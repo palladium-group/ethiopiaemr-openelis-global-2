@@ -2,21 +2,21 @@ package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
 @Service
 public class OclZipImporter {
 
     private static final Logger log = LoggerFactory.getLogger(OclZipImporter.class);
-    // To Do: Change the default value to the actual path of the OCL ZIP package reference this from the properties file
+    // To Do: Change the default value to the actual path of the OCL ZIP package
+    // reference this from the properties file
     @Value("${ocl.zip.path:src/main/java/org/openelisglobal/ocl/test(1).zip}")
     private String oclZipPath;
 
