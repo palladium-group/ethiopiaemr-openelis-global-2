@@ -17,7 +17,7 @@ public class OclZipImporter {
     private static final Logger log = LoggerFactory.getLogger(OclZipImporter.class);
     // To Do: Change the default value to the actual path of the OCL ZIP package
     // reference this from the properties file
-    @Value("${ocl.zip.path:src/main/java/org/openelisglobal/ocl/test(1).zip}")
+    @Value("${org.openelisglobal.ocl.zip.path}")
     private String oclZipPath;
 
     public void importOclZip() {

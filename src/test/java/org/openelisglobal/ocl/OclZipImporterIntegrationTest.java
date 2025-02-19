@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { OclIntegrationTestConfig.class })
+
 public class OclZipImporterIntegrationTest {
 
     @Autowired
