@@ -1,4 +1,3 @@
-// File: src/main/java/org/openelisglobal/integration/ocl/OclZipImporter.java
 package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;

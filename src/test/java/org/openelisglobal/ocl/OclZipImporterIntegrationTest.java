@@ -1,4 +1,3 @@
-// File: src/test/java/org/openelisglobal/integration/ocl/OclZipImporterIntegrationTest.java
 package org.openelisglobal.integration.ocl;
 
 import org.junit.Test;

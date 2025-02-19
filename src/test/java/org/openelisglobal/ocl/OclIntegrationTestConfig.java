@@ -1,4 +1,3 @@
-// File: src/test/java/org/openelisglobal/integration/ocl/OclIntegrationTestConfig.java
 package org.openelisglobal.integration.ocl;
 
 import org.springframework.context.annotation.Bean;
