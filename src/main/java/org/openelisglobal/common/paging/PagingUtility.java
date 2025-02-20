@@ -124,7 +124,7 @@ public class PagingUtility<E> {
         PagingBean paging = new PagingBean();
         paging.setCurrentPage(String.valueOf(currentPage));
         paging.setTotalPages(String.valueOf(totalPages));
-        if (ControllerUtills.isRestCall()) {
+        if (!ControllerUtills.isRestCall()) {
             paging.setSearchTermToPage(getPageMapping(session));
         }
 
