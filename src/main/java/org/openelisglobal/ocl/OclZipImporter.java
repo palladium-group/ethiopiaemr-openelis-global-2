@@ -2,10 +2,13 @@ package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.slf4j.Logger;
@@ -21,6 +24,7 @@ public class OclZipImporter {
     private String oclZipPath;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CsvMapper csvMapper = new CsvMapper(); // Added for CSV parsing
 
     public void importOclZip() {
         log.info("Starting import of OCL ZIP package from path: {}", oclZipPath);
@@ -44,10 +48,19 @@ public class OclZipImporter {
 
         List<JsonNode> jsonNodes = new ArrayList<>();
         try (ZipFile zipFile = new ZipFile(file)) {
-            zipFile.stream().filter(entry -> !entry.isDirectory() && entry.getName().endsWith(".json"))
+            zipFile.stream()
+                    .filter(entry -> !entry.isDirectory()
+                            && (entry.getName().endsWith(".json") || entry.getName().endsWith(".csv")))
                     .forEach(entry -> {
                         try {
-                            JsonNode node = parseJsonEntry(zipFile, entry);
+                            JsonNode node;
+                            if (entry.getName().endsWith(".json")) {
+                                node = parseJsonEntry(zipFile, entry);
+                            } else if (entry.getName().endsWith(".csv")) {
+                                node = parseCsvEntry(zipFile, entry); // New CSV parsing method
+                            } else {
+                                return;
+                            }
                             jsonNodes.add(node);
                             log.info("Processed entry: {}", entry.getName());
                         } catch (RuntimeException e) {
@@ -55,7 +68,7 @@ public class OclZipImporter {
                         }
                     });
         }
-        log.info("Imported {} JSON files", jsonNodes.size());
+        log.info("Imported {} files (JSON or CSV)", jsonNodes.size());
         return jsonNodes;
     }
 
@@ -65,6 +78,20 @@ public class OclZipImporter {
         } catch (IOException e) {
             log.error("Failed to parse JSON file: {}", entry.getName(), e);
             throw new RuntimeException("Failed to parse JSON: " + entry.getName(), e);
+        }
+    }
+
+    // The comments are for future reference if any modification is needed
+    private JsonNode parseCsvEntry(ZipFile zipFile, ZipEntry entry) {
+        try {
+            // Assuming CSV has headers; adjust schema if needed
+            CsvSchema schema = CsvSchema.emptySchema().withHeader();
+            List<Object> rows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
+                    .readAll();
+            return objectMapper.valueToTree(rows);
+        } catch (IOException e) {
+            log.error("Failed to parse CSV file: {}", entry.getName(), e);
+            throw new RuntimeException("Failed to parse CSV: " + entry.getName(), e);
         }
     }
 }

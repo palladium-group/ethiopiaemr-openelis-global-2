@@ -1,6 +1,7 @@
 package org.openelisglobal.integration.ocl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,7 +66,32 @@ public class OclZipImporterIntegrationTest {
         String tempZipPath = createTempZipFile(zipData);
 
         List<JsonNode> nodes = oclZipImporter.importOclPackage(tempZipPath);
-        assertEquals("Should return an empty list when no JSON files are present", 0, nodes.size());
+        assertEquals("Should return an empty list when no JSON or CSV files are present", 0, nodes.size());
+    }
+
+    @Test
+    public void testImportOclPackage_withCsvAndJson() throws IOException {
+        String csvContent = "code,name,unit\nLAB123,Hemoglobin Test,g/dL\nLAB456,Glucose Test,mg/dL";
+        byte[] zipData = createZipWithFiles(new String[] { "file1.json", "{\"name\": \"file1\"}" },
+                new String[] { "file2.csv", csvContent });
+        String tempZipPath = createTempZipFile(zipData);
+
+        List<JsonNode> nodes = oclZipImporter.importOclPackage(tempZipPath);
+        assertEquals("Should import two files (JSON and CSV)", 2, nodes.size());
+
+        // Assuming the order is file1.json then file2.csv
+        JsonNode jsonNode = nodes.get(0);
+        assertEquals("file1", jsonNode.get("name").asText());
+
+        JsonNode csvNode = nodes.get(1);
+        assertTrue(csvNode.isArray());
+        assertEquals(2, csvNode.size());
+        assertEquals("LAB123", csvNode.get(0).get("code").asText());
+        assertEquals("Hemoglobin Test", csvNode.get(0).get("name").asText());
+        assertEquals("g/dL", csvNode.get(0).get("unit").asText());
+        assertEquals("LAB456", csvNode.get(1).get("code").asText());
+        assertEquals("Glucose Test", csvNode.get(1).get("name").asText());
+        assertEquals("mg/dL", csvNode.get(1).get("unit").asText());
     }
 
     @Test
