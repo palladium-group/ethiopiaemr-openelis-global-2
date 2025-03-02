@@ -27,8 +27,9 @@ public class OclZipImporter {
     private final CsvMapper csvMapper = new CsvMapper();
 
     /**
-     * Imports and parses the OCL ZIP package, returning the parsed data.
-     * Also logs the complete JSON output for inspection.
+     * Imports and parses the OCL ZIP package, returning the parsed data. Also logs
+     * the complete JSON output for inspection.
+     * 
      * @return List of JsonNode objects representing parsed JSON/CSV files.
      * @throws IOException if the import fails.
      */
@@ -36,7 +37,7 @@ public class OclZipImporter {
         log.info("Starting import of OCL ZIP package from path: {}", oclZipPath);
         List<JsonNode> nodes = importOclPackage(oclZipPath);
         log.info("Parsed {} nodes for mapping", nodes.size());
-        
+
         // Log the complete JSON output as in the original implementation
         int nodeIndex = 0;
         for (JsonNode node : nodes) {
@@ -44,12 +45,13 @@ public class OclZipImporter {
             String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
             log.info("Parsed JSON node #{}/{}:\n{}", nodeIndex, nodes.size(), prettyJson);
         }
-        
+
         return nodes;
     }
 
     /**
      * Imports an OCL package from the specified path.
+     * 
      * @param zipPath Path to the ZIP file.
      * @return List of JsonNode objects from JSON/CSV files.
      * @throws IOException if the file doesn't exist or parsing fails.
@@ -95,8 +97,8 @@ public class OclZipImporter {
         try {
             log.debug("Parsing JSON file: {}", entry.getName());
             JsonNode node = objectMapper.readTree(zipFile.getInputStream(entry));
-            log.debug("JSON structure: isArray={}, fields={}", 
-                node.isArray(), node.isObject() ? node.fieldNames().next() : "N/A");
+            log.debug("JSON structure: isArray={}, fields={}", node.isArray(),
+                    node.isObject() ? node.fieldNames().next() : "N/A");
             if (node.isArray() && node.size() > 0) {
                 log.debug("Sample JSON entry: {}", node.get(0).toString());
             } else if (node.isObject()) {
@@ -112,15 +114,12 @@ public class OclZipImporter {
         try {
             log.debug("Parsing CSV file: {}", entry.getName());
             CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader(); // Currently we yse first row as header
-            List<Object> rows = csvMapper.readerFor(Map.class)
-                    .with(schema)
-                    .readValues(zipFile.getInputStream(entry))
+            List<Object> rows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
                     .readAll();
             JsonNode node = objectMapper.valueToTree(rows);
             if (!rows.isEmpty()) {
                 Map<?, ?> firstRow = (Map<?, ?>) rows.get(0);
-                log.debug("CSV headers: {}, row count: {}, sample: {}", 
-                    firstRow.keySet(), rows.size(), firstRow);
+                log.debug("CSV headers: {}, row count: {}, sample: {}", firstRow.keySet(), rows.size(), firstRow);
             } else {
                 log.warn("CSV file is empty: {}", entry.getName());
             }
