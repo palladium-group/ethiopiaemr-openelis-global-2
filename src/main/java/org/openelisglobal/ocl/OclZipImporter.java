@@ -24,73 +24,108 @@ public class OclZipImporter {
     private String oclZipPath;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final CsvMapper csvMapper = new CsvMapper(); // Added for CSV parsing
+    private final CsvMapper csvMapper = new CsvMapper();
 
-    public void importOclZip() {
+    /**
+     * Imports and parses the OCL ZIP package, returning the parsed data.
+     * Also logs the complete JSON output for inspection.
+     * @return List of JsonNode objects representing parsed JSON/CSV files.
+     * @throws IOException if the import fails.
+     */
+    public List<JsonNode> importOclZip() throws IOException {
         log.info("Starting import of OCL ZIP package from path: {}", oclZipPath);
-        try {
-            List<JsonNode> nodes = importOclPackage(oclZipPath);
-            for (JsonNode node : nodes) {
-                String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
-                log.info("Parsed JSON:\n{}", prettyJson);
-            }
-        } catch (IOException e) {
-            log.error("Failed to import OCL ZIP package", e);
+        List<JsonNode> nodes = importOclPackage(oclZipPath);
+        log.info("Parsed {} nodes for mapping", nodes.size());
+        
+        // Log the complete JSON output as in the original implementation
+        int nodeIndex = 0;
+        for (JsonNode node : nodes) {
+            nodeIndex++;
+            String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+            log.info("Parsed JSON node #{}/{}:\n{}", nodeIndex, nodes.size(), prettyJson);
         }
+        
+        return nodes;
     }
 
+    /**
+     * Imports an OCL package from the specified path.
+     * @param zipPath Path to the ZIP file.
+     * @return List of JsonNode objects from JSON/CSV files.
+     * @throws IOException if the file doesn't exist or parsing fails.
+     */
     public List<JsonNode> importOclPackage(String zipPath) throws IOException {
         log.info("Importing OCL package from: {}", zipPath);
         File file = new File(zipPath);
-        if (!file.exists()) {
-            throw new IOException("OCL package not found at: " + zipPath);
+        if (!file.exists() || !file.isFile()) {
+            throw new IOException("OCL package not found or invalid at: " + zipPath);
         }
 
         List<JsonNode> jsonNodes = new ArrayList<>();
         try (ZipFile zipFile = new ZipFile(file)) {
-            zipFile.stream()
-                    .filter(entry -> !entry.isDirectory()
-                            && (entry.getName().endsWith(".json") || entry.getName().endsWith(".csv")))
-                    .forEach(entry -> {
-                        try {
-                            JsonNode node;
-                            if (entry.getName().endsWith(".json")) {
-                                node = parseJsonEntry(zipFile, entry);
-                            } else if (entry.getName().endsWith(".csv")) {
-                                node = parseCsvEntry(zipFile, entry); // New CSV parsing method
-                            } else {
-                                return;
-                            }
-                            jsonNodes.add(node);
-                            log.info("Processed entry: {}", entry.getName());
-                        } catch (RuntimeException e) {
-                            log.error("Error processing entry: {}", entry.getName(), e);
-                        }
-                    });
+            log.debug("ZIP file details: size={} bytes, entries={}", file.length(), zipFile.size());
+            zipFile.stream().forEach(entry -> {
+                try {
+                    log.debug("Parsing entry: {}", entry.getName());
+                    if (entry.isDirectory()) {
+                        log.debug("Skipping directory: {}", entry.getName());
+                        return;
+                    }
+                    JsonNode node = null;
+                    if (entry.getName().endsWith(".json")) {
+                        node = parseJsonEntry(zipFile, entry);
+                    } else if (entry.getName().endsWith(".csv")) {
+                        node = parseCsvEntry(zipFile, entry);
+                    } else {
+                        log.warn("Skipping unsupported file: {}", entry.getName());
+                        return;
+                    }
+                    jsonNodes.add(node);
+                    log.info("Successfully parsed entry: {}", entry.getName());
+                } catch (RuntimeException e) {
+                    log.error("Error parsing entry: {}", entry.getName(), e);
+                }
+            });
         }
-        log.info("Imported {} files (JSON or CSV)", jsonNodes.size());
+        log.info("Imported {} files from ZIP", jsonNodes.size());
         return jsonNodes;
     }
 
     private JsonNode parseJsonEntry(ZipFile zipFile, ZipEntry entry) {
         try {
-            return objectMapper.readTree(zipFile.getInputStream(entry));
+            log.debug("Parsing JSON file: {}", entry.getName());
+            JsonNode node = objectMapper.readTree(zipFile.getInputStream(entry));
+            log.debug("JSON structure: isArray={}, fields={}", 
+                node.isArray(), node.isObject() ? node.fieldNames().next() : "N/A");
+            if (node.isArray() && node.size() > 0) {
+                log.debug("Sample JSON entry: {}", node.get(0).toString());
+            } else if (node.isObject()) {
+                log.debug("Sample JSON keys: {}", node.fieldNames().next());
+            }
+            return node;
         } catch (IOException e) {
-            log.error("Failed to parse JSON file: {}", entry.getName(), e);
             throw new RuntimeException("Failed to parse JSON: " + entry.getName(), e);
         }
     }
 
-    // The comments are for future reference if any modification is needed
     private JsonNode parseCsvEntry(ZipFile zipFile, ZipEntry entry) {
         try {
-            // Assuming CSV has headers; adjust schema if needed
-            CsvSchema schema = CsvSchema.emptySchema().withHeader();
-            List<Object> rows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
+            log.debug("Parsing CSV file: {}", entry.getName());
+            CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader(); // Currently we yse first row as header
+            List<Object> rows = csvMapper.readerFor(Map.class)
+                    .with(schema)
+                    .readValues(zipFile.getInputStream(entry))
                     .readAll();
-            return objectMapper.valueToTree(rows);
+            JsonNode node = objectMapper.valueToTree(rows);
+            if (!rows.isEmpty()) {
+                Map<?, ?> firstRow = (Map<?, ?>) rows.get(0);
+                log.debug("CSV headers: {}, row count: {}, sample: {}", 
+                    firstRow.keySet(), rows.size(), firstRow);
+            } else {
+                log.warn("CSV file is empty: {}", entry.getName());
+            }
+            return node;
         } catch (IOException e) {
-            log.error("Failed to parse CSV file: {}", entry.getName(), e);
             throw new RuntimeException("Failed to parse CSV: " + entry.getName(), e);
         }
     }
