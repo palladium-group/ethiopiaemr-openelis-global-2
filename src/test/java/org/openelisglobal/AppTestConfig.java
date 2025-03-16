@@ -27,12 +27,14 @@ import org.openelisglobal.notification.service.TestNotificationConfigService;
 import org.openelisglobal.observationhistory.service.ObservationHistoryService;
 import org.openelisglobal.observationhistorytype.service.ObservationHistoryTypeService;
 import org.openelisglobal.organization.service.OrganizationTypeService;
-import org.openelisglobal.panel.service.PanelService;
+import org.openelisglobal.panel.dao.PanelDAO;
+import org.openelisglobal.panel.daoimpl.PanelDAOImpl;
 import org.openelisglobal.panelitem.service.PanelItemService;
 import org.openelisglobal.program.service.ImmunohistochemistrySampleService;
 import org.openelisglobal.referral.service.ReferralResultService;
 import org.openelisglobal.referral.service.ReferralService;
 import org.openelisglobal.referral.service.ReferralSetService;
+import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
 import org.openelisglobal.sample.service.SampleEditService;
 import org.openelisglobal.sampleqaevent.service.SampleQaEventService;
@@ -88,9 +90,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.program.dao", "org.openelisglobal.systemuser.daoimpl",
         "org.openelisglobal.systemuser.service", "org.openelisglobal.note.service",
         "org.openelisglobal.requester.service", "org.openelisglobal.requester.daoimpl",
-        "org.openelisglobal.organization.dao", "org.openelisglobal.note.daoimpl",
+        "org.openelisglobal.organization.dao", "org.openelisglobal.note.daoimpl", "org.openelisglobal.method",
         "org.openelisglobal.sampleorganization", "org.openelisglobal.menu.controller",
-        "org.openelisglobal.analyte.daoimpl", "org.openelisglobal.analyte.service" }, excludeFilters = {
+        "org.openelisglobal.analyte.daoimpl", "org.openelisglobal.analyte.service", "org.openelisglobal.panel.service",
+        "org.openelisglobal.panelitem.dao", "org.openelisglobal.reports.*" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.provider.controller.*.java"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
@@ -98,7 +101,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.dictionary.controller.*.java"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.config.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.fhir.*"),
-                @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.*.fhir.*") })
+                @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.*.fhir.*"),
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WHONetReportServiceImpl.class) })
 @EnableWebMvc
 public class AppTestConfig implements WebMvcConfigurer {
 
@@ -153,8 +157,8 @@ public class AppTestConfig implements WebMvcConfigurer {
 
     @Bean()
     @Profile("test")
-    public PanelService panelService() {
-        return mock(PanelService.class);
+    public PanelDAO panelDAO() {
+        return new PanelDAOImpl();
     }
 
     @Bean()
