@@ -48,7 +48,6 @@ import org.openelisglobal.testanalyte.service.TestAnalyteService;
 import org.openelisglobal.testresult.service.TestResultService;
 import org.openelisglobal.typeofsample.service.TypeOfSampleService;
 import org.openelisglobal.typeofsample.service.TypeOfSampleTestService;
-import org.openelisglobal.userrole.service.UserRoleService;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -93,7 +92,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.organization.dao", "org.openelisglobal.note.daoimpl", "org.openelisglobal.method",
         "org.openelisglobal.sampleorganization", "org.openelisglobal.menu.controller",
         "org.openelisglobal.analyte.daoimpl", "org.openelisglobal.analyte.service", "org.openelisglobal.panel.service",
-        "org.openelisglobal.panelitem.dao", "org.openelisglobal.reports.*" }, excludeFilters = {
+        "org.openelisglobal.panelitem.dao", "org.openelisglobal.reports.*", "org.openelisglobal.userrole",
+        "org.openelisglobal.unitofmeasure", "org.openelisglobal.organization", "org.openelisglobal.testtrailer",
+        "org.openelisglobal.scriptlet" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.provider.controller.*.java"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
@@ -224,12 +225,6 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("test")
     public TestSectionService testSectionService() {
         return mock(TestSectionService.class);
-    }
-
-    @Bean()
-    @Profile("test")
-    public UserRoleService userRoleService() {
-        return mock(UserRoleService.class);
     }
 
     @Bean()
