@@ -71,7 +71,6 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
         List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
         Assert.assertFalse(historyList.isEmpty());
 
-        // Verify sorting by timestamp
         for (int i = 1; i < historyList.size(); i++) {
             Timestamp previousTimestamp = historyList.get(i - 1).getTimestamp();
             Timestamp currentTimestamp = historyList.get(i).getTimestamp();
@@ -97,7 +96,7 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     public void getHistoryByRefIdAndRefTableId_differentTableIds_shouldReturnCorrectRecords() {
         List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
         Assert.assertFalse(historyList.isEmpty());
-        Assert.assertEquals(1, historyList.size()); // One record for refId="67890" and tableId="2"
+        Assert.assertEquals(1, historyList.size());
     }
 
     @Test

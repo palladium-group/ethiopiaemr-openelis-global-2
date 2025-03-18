@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-    <!-- Existing history records for reference_id="67890" -->
     <history id="12345" sys_user_id="1" reference_id="67890"
         reference_table="1" changes="Original Entry"
         timestamp="2024-03-01 12:00:00" activity="C" />
@@ -8,13 +7,10 @@
         reference_table="2" changes="Another Entry"
         timestamp="2024-03-02 12:00:00" activity="U" />
 
-    <!-- Additional record for testing deletion -->
     <history id="67890" sys_user_id="1" reference_id="67890"
         reference_table="1" changes="Delete Entry"
         timestamp="2024-03-03 12:00:00" activity="D" />
 
-    <!-- Record for testing no records found with valid numeric reference_id
-        and reference_table -->
     <history id="99999" sys_user_id="1" reference_id="99999"
         reference_table="99999" changes="Nonexistent Entry"
         timestamp="2024-03-04 12:00:00" activity="C" />
