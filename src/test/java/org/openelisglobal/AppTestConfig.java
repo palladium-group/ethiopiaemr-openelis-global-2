@@ -93,7 +93,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.panelitem.dao", "org.openelisglobal.reports.*", "org.openelisglobal.userrole",
         "org.openelisglobal.unitofmeasure", "org.openelisglobal.organization", "org.openelisglobal.testtrailer",
         "org.openelisglobal.scriptlet", "org.openelisglobal.localization.service",
-        "org.openelisglobal.localization.daoimpl" }, excludeFilters = {
+        "org.openelisglobal.localization.daoimpl", "org.openelisglobal.typeoftestresult",
+        "org.openelisglobal.systemuser", "org.openelisglobal.systemmodule" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.provider.controller.*.java"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),

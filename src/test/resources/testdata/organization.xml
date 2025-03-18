@@ -38,4 +38,21 @@
         org_id="4" org_type_id="1" />
     <organization_organization_type
         org_id="5" org_type_id="2" />
+
+    <person id="1" last_name="Doe" first_name="John"
+        middle_name="joddy" city="Kampala" state="Kampala metropolitan"
+        zip_code="256" country="Uganda" work_phone="12345678"
+        home_phone="87654321" cell_phone="09785432" primary_phone="12345678"
+        fax="3456" email="john@gmail.com" lastUpdated="2023-11-01 12:00:00" />
+    <person id="2" last_name="Mulizi" first_name="James"
+        middle_name="Mark" city="Orion" state="Texas" zip_code="001"
+        country="USA" work_phone="10000001" home_phone="8000001"
+        cell_phone="0000000" primary_phone="10000001" fax="0001"
+        email="james@gmail.com" lastUpdated="2023-11-01 12:00:00" />
+
+    <organization_contact id="1" organization_id="3"
+        person_id="1" position="Manager" />
+    <organization_contact id="2" organization_id="3"
+        person_id="2" position="Coordinator" />
+
 </dataset>
