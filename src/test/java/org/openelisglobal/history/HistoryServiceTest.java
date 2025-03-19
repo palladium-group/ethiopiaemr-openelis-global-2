@@ -27,6 +27,18 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
+    public void verifyTestData() {
+        List<History> historyList = historyService.getAll();
+
+        System.out.println("History records in the database: " + historyList.size());
+
+        historyList.forEach(history -> System.out.println("ID: " + history.getId() + ", " + "Reference ID: "
+                + history.getReferenceId() + ", " + "Reference Table: " + history.getReferenceTable() + ", "
+                + "Timestamp: " + history.getTimestamp() + ", " + "Activity: " + history.getActivity() + ", "
+                + "Changes: " + new String(history.getChanges())));
+    }
+
+    @Test
     public void updateHistory_shouldModifyAndReturnUpdatedRecord() {
         List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
         Assert.assertFalse(historyList.isEmpty());
