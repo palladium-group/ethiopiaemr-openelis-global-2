@@ -2,9 +2,14 @@ package org.openelisglobal.history;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import javax.sql.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,9 +26,25 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Before
     public void init() throws Exception {
         executeDataSetWithStateManagement("testdata/history.xml");
+    }
+
+    private void cleanDatabase() throws SQLException {
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute("TRUNCATE TABLE history RESTART IDENTITY CASCADE");
+
+        }
+    }
+
+    @Test
+    public void verifyDatasetExists() {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("testdata/history.xml");
+        Assert.assertNotNull("Dataset file not found!", inputStream);
     }
 
     @Test
