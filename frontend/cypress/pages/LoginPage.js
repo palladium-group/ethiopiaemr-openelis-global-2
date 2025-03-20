@@ -81,8 +81,8 @@ class LoginPage {
     cy.url().then((url) => {
       if (url.includes("/login")) {
         cy.contains("button", "Login", { timeout: 10000 }).should("be.visible");
-        cy.get("#loginName").type("admin");
-        cy.get("#password").type("adminADMIN!");
+        this.enterUsername(this.testProperties.getUsername());
+        this.enterPassword(this.testProperties.getPassword());
         this.signIn();
       }
     });

@@ -1,6 +1,7 @@
 //This handles all pages of the admin
 import LabNumberManagementPage from "./LabNumberManagementPage";
 import GlobalMenuConfigPage from "./GlobalMenuConfigPage";
+import ProviderManagementPage from "./ProviderManagementPage";
 
 class AdminPage {
   constructor() {}
@@ -8,7 +9,16 @@ class AdminPage {
   visit() {
     cy.visit("/administration"); //need to confirm this
   }
+  //Provider Management
+  goToProviderManagementPage() {
+    cy.get("[data-cy='providerMgmnt']").should("be.visible");
+    cy.get("[data-cy='providerMgmnt']").click();
 
+    cy.url().should("include", "#providerMenu");
+    cy.contains("Provider Management").should("be.visible");
+
+    return new ProviderManagementPage();
+  }
   //lab number management
   goToLabNumberManagementPage() {
     cy.get("[data-cy='labNumberMgmnt']").should("be.visible");
