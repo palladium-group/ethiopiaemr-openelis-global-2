@@ -184,7 +184,6 @@ class HomePage {
 
   // Navigate to the Results for Referred Out page
   goToResultsForRefferedOut() {
-
     this.clickDropdownItem(
       this.selectors.resultsMenu,
       "#menu_results_referred",
@@ -280,7 +279,6 @@ class HomePage {
 
     return new HelpPage();
   }
-
 
   // Home page navigation
 
