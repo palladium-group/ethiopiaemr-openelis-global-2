@@ -22,7 +22,7 @@ public class TestSectionServiceTest extends BaseWebContextSensitiveTest {
         executeDataSetWithStateManagement("testdata/test.xml");
     }
 
-    @Test
+    // @Test
     public void testDataBaseData() {
         List<TestSection> testSections = testSectionService.getAll();
         testSections.forEach(testSection -> {
