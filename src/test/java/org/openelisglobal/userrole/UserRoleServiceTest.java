@@ -23,7 +23,6 @@ public class UserRoleServiceTest extends BaseWebContextSensitiveTest {
         executeDataSetWithStateManagement("testdata/user-role.xml");
     }
 
-    // @Test
     public void testDataInDataBase() {
         List<UserRole> userRoles = userRoleService.getAll();
         userRoles.forEach(userRole -> {
