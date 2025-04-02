@@ -218,7 +218,6 @@ class HomePage {
 
   // Navigate to the Results by Range Order page
   goToResultsByRangeOrder() {
-
     this.openNavigationMenu();
     cy.get(this.selectors.resultsMenu).click({ force: true });
     cy.get(this.selectors.resultsRange).click({ force: true });
