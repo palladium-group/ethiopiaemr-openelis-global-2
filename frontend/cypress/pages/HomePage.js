@@ -97,7 +97,7 @@ class HomePage {
   goToBatchOrderEntry() {
     this.openNavigationMenu();
     cy.get("#menu_sample").click({ force: true });
-    cy.get(this.selectors.sampleBatchEntryNav).click({force:true});
+    cy.get(this.selectors.sampleBatchEntryNav).click({ force: true });
     return new BatchOrderEntry();
   }
 
@@ -303,7 +303,7 @@ class HomePage {
   // Navigate to the Admin page
   goToAdminPage() {
     this.openNavigationMenu();
-    cy.get(this.selectors.administrationMenu).click({force:true});
+    cy.get(this.selectors.administrationMenu).click({ force: true });
     return new AdminPage();
   }
 
