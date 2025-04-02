@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <!-- Include all data from samplehuman.xml -->
+    <include file="testdata/samplehuman.xml" />
+
+    <!-- Additional data needed for SamplePatientEntryService tests -->
+    <test id="1" name="HIV Test" description="HIV Test"
+        is_reportable="Y" loinc="12345-6" lastupdated="2023-11-01 12:00:00" />
+
+    <test_section id="1" name="Immunology"
+        lastupdated="2023-11-01 12:00:00" />
+
+    <sample_item id="1" samp_id="1" type="SERUM" status_id="1"
+        lastupdated="2023-11-01 12:00:00" />
+
+    <organization id="1" name="Test Org" short_name="TO"
+        lastupdated="2023-11-01 12:00:00" />
+
+    <organization_type id="1" description="Referring Org"
+        lastupdated="2023-11-01 12:00:00" />
+
+    <organization_organization_type
+        org_id="1" org_type_id="1" lastupdated="2023-11-01 12:00:00" />
+
+    <electronic_order id="1" external_id="EORDER1"
+        status_id="1" patient_id="1" lastupdated="2023-11-01 12:00:00" />
+
+    <observation_history id="1" patient_id="1"
+        value="Observation 1" lastupdated="2023-11-01 12:00:00" />
+
+    <sample_requester id="1" sample_id="1"
+        requester_id="1" requester_type_id="1"
+        lastupdated="2023-11-01 12:00:00" />
+</dataset>
