@@ -95,10 +95,9 @@ class HomePage {
 
   // Navigate to the Batch Order Entry page
   goToBatchOrderEntry() {
-    this.clickDropdownItem(
-      this.selectors.sampleDropdown,
-      this.selectors.sampleBatchEntryNav,
-    );
+    this.openNavigationMenu();
+    cy.get("#menu_sample").click({ force: true });
+    cy.get(this.selectors.sampleBatchEntryNav).click();
     return new BatchOrderEntry();
   }
 
