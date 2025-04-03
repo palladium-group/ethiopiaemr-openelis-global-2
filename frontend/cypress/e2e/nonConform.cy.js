@@ -94,7 +94,7 @@ describe("Report Non-Conforming Event", function () {
       nonConform.clickSearchButton();
       // nonConform.validateSearchResult(patient.labNo);
     });
-    nonConform.clickCheckbox();
+    nonConform.clickCheckbox({ force: true });
     nonConform.clickGoToNceFormButton({ timeout: 12000 });
     nonConform.getAndSaveNceNumber();
   });

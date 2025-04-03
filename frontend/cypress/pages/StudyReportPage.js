@@ -323,7 +323,9 @@ class StudyReportPage {
   }
 
   selectNCReportsByDate() {
-    cy.get("[data-cy='menu_reports_nonconformity_date_study']").click();
+    cy.get("[data-cy='menu_reports_nonconformity_date_study']").click({
+      force: true,
+    });
   }
   visitNonConformityReportByDate() {
     //this.visitStudyReports();
@@ -336,7 +338,9 @@ class StudyReportPage {
   }
 
   selectNCReportsByUnitAndReason() {
-    cy.get("[data-cy='menu_reports_nonconformity_section_study']").click();
+    cy.get("[data-cy='menu_reports_nonconformity_section_study']").click({
+      force: true,
+    });
   }
   visitNonConformityReportByUnitAndReason() {
     //this.visitStudyReports();
@@ -349,7 +353,9 @@ class StudyReportPage {
   }
 
   selectNCReportsByLabNo() {
-    cy.get("[data-cy='menu_reports_nonconformity_Labno']").click();
+    cy.get("[data-cy='menu_reports_nonconformity_Labno']").click({
+      force: true,
+    });
   }
   visitNonConformityReportByLabNo() {
     //this.visitStudyReports();
@@ -365,7 +371,9 @@ class StudyReportPage {
   }
 
   selectNCReportsByNotification() {
-    cy.get("[data-cy='menu_reports_nonconformity_notification_study']").click();
+    cy.get("[data-cy='menu_reports_nonconformity_notification_study']").click({
+      force: true,
+    });
   }
   visitNonConformityReportByNotification() {
     //this.visitStudyReports();
@@ -379,9 +387,9 @@ class StudyReportPage {
   }
 
   selectNCFollowUp() {
-    cy.get(
-      "[data-cy='menu_reports_followupRequired_ByLocation_study']",
-    ).click();
+    cy.get("[data-cy='menu_reports_followupRequired_ByLocation_study']").click({
+      force: true,
+    });
   }
   visitNonConformityReportFollowUpRequired() {
     //this.visitStudyReports();
@@ -405,7 +413,7 @@ class StudyReportPage {
     this.verifyButtonVisible();
   }
   selectGeneralReport() {
-    cy.get("#menu_reports_export_general").click();
+    cy.get("#menu_reports_export_general").click({ force: true });
   }
 
   selectExportByDate() {

@@ -1,38 +1,25 @@
 class NonConform {
   // Centralized selectors
   selectors = {
-    // Titles
     title: "h2",
-
-    // Search form
     searchType: "#type",
     searchField: "[data-cy='fieldName']",
     searchButton: "[data-testid='nce-search-button']",
-
-    // Search results
     searchResult: "[data-testid='nce-search-result']",
     nceNumberResult: "[data-testid='nce-number-result']",
-
-    // Checkbox and navigation
     sampleCheckbox: "[data-testid='nce-sample-checkbox']",
     goToFormButton: "[data-testid='nce-goto-form-button']",
-
-    // Form fields
     startDate: "input#startDate",
     reportingUnits: "#reportingUnits",
     description: "#text-area-1",
     suspectedCause: "#text-area-2",
     correctiveAction: "#text-area-3",
     additionalTextArea: "#text-area-10",
-
-    // Dropdowns
     nceCategory: "#nceCategory",
     nceType: "#nceType",
     consequences: "#consequences",
     recurrence: "#recurrence",
     labComponent: "#labComponent",
-
-    // Corrective actions
     discussionDate: "#tdiscussionDate",
     proposedCorrectiveAction: "#text-area-corrective",
     dateCompleted: "#dateCompleted",
@@ -41,12 +28,8 @@ class NonConform {
       "div.cds--sm\\:col-span-3:nth-child(30) > div:nth-child(1) > input:nth-child(1)",
     resolutionOption:
       "div.cds--radio-button-wrapper:nth-child(1) > label:nth-child(2)",
-
-    // Radio buttons
     nceRadioButton:
-      "tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > label:nth-child(2) > span:nth-child(1)",
-
-    // Submission
+      ".cds--data-table > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > label:nth-child(2) > span:nth-child(1)",
     submitButton: "[data-testid='nce-submit-button']",
   };
 
@@ -177,7 +160,7 @@ class NonConform {
   }
 
   clickRadioButtonNCE() {
-    cy.get(this.selectors.nceRadioButton).click();
+    cy.get(this.selectors.nceRadioButton).click({ force: true });
   }
 
   enterDateCompleted0(date) {
