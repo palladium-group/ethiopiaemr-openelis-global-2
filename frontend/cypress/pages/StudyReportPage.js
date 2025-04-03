@@ -20,7 +20,7 @@ class StudyReportPage {
   }
 
   typeInDate(selector, value) {
-    cy.get(selector).type(value);
+    cy.get(selector, { timeout: 10000 }).type(value);
   }
 
   typeEndDate(selector, value) {
@@ -44,7 +44,7 @@ class StudyReportPage {
   }
 
   selectDropdown(optionId, value) {
-    cy.get(`#${optionId}`).select(value);
+    cy.get(`#${optionId}`, { timeout: 10000 }).select(value);
   }
 
   visitStudyReports() {

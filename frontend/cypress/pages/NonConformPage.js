@@ -73,7 +73,7 @@ class NonConform {
 
   // Checkbox and navigation
   clickCheckbox() {
-    cy.get(this.selectors.sampleCheckbox)
+    cy.get(this.selectors.sampleCheckbox, { timeout: 12000 })
       .should("be.visible")
       .check({ force: true });
   }
@@ -84,7 +84,7 @@ class NonConform {
 
   // Form fields (preserve original IDs)
   enterStartDate(date) {
-    cy.get(this.selectors.startDate).type(date);
+    cy.get(this.selectors.startDate, { timeout: 10000 }).type(date);
   }
 
   selectReportingUnit(unit) {

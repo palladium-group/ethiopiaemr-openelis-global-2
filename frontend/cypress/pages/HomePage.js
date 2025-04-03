@@ -28,7 +28,7 @@ class HomePage {
       pathologyMenu: "#menu_pathology",
       immunochemMenu: "#menu_immunochem",
       cytologyMenu: "#menu_cytology",
-      administrationMenu: "#menu_administration_nav",
+      administrationMenu: "#menu_administration",
       minimizeIcon: "#minimizeIcon",
       searchIcon: "#search-Icon",
       searchItem: "#searchItem",
