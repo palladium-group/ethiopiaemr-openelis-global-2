@@ -314,7 +314,6 @@ class HomePage {
   afterAll() {
     cy.get(this.selectors.minimizeIcon).should("be.visible").click();
   }
-
   // Search for a patient
   searchBar() {
     cy.get(this.selectors.searchIcon).click();
