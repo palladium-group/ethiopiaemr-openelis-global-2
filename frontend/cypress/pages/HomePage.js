@@ -75,9 +75,7 @@ class HomePage {
 
   // Open the navigation menu
   openNavigationMenu() {
-    cy.get(this.selectors.menuButton, { timeout: 30000 }).click({
-      force: true,
-    });
+    cy.get(this.selectors.menuButton, { timeout: 30000 }).click();
   }
 
   // Click a dropdown item
@@ -160,27 +158,28 @@ class HomePage {
 
   // Navigate to the Non-Conforming Report page
   goToReportNCE() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.nonconformityDropdown).click({ force: true });
-    cy.get(this.selectors.nonConformingReportNav).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.nonconformityDropdown,
+      this.selectors.nonConformingReportNav,
+    );
     return new NonConform();
   }
 
   // Navigate to the View Non-Conforming Events page
   goToViewNCE() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.nonconformityDropdown).click({ force: true });
-    cy.get(this.selectors.nonConformingViewNav).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.nonconformityDropdown,
+      this.selectors.nonConformingViewNav,
+    );
     return new NonConform();
   }
 
   // Navigate to the Corrective Actions page
   goToCorrectiveActions() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.nonconformityDropdown).click({ force: true });
-    cy.get(this.selectors.nonConformingCorrectiveActionsNav).click({
-      force: true,
-    });
+    this.clickDropdownItem(
+      this.selectors.nonconformityDropdown,
+      this.selectors.nonConformingCorrectiveActionsNav,
+    );
     return new NonConform();
   }
 
@@ -235,9 +234,10 @@ class HomePage {
 
   // Navigate to the Validation by Routine page
   goToValidationByRoutine() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu).click({ force: true });
-    cy.get(this.selectors.resultValidationRoutine).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.resultValidationMenu,
+      this.selectors.resultValidationRoutine,
+    );
     return new Validation();
   }
 
@@ -251,17 +251,18 @@ class HomePage {
 
   // Navigate to the Validation by Range Order page
   goToValidationByRangeOrder() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu).click({ force: true });
-    cy.get(this.selectors.accessionValidationRange).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.resultValidationMenu,
+      this.selectors.accessionValidationRange,
+    );
     return new Validation();
   }
 
   // Navigate to the Routine Reports page
   goToRoutineReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu).click({ force: true });
-    cy.get(this.selectors.reportsRoutineNav).click({ force: true });
+    cy.get(this.selectors.reportsMenu).click();
+    cy.get(this.selectors.reportsRoutineNav).click();
     return new RoutineReportPage();
   }
 
@@ -281,21 +282,21 @@ class HomePage {
   // Navigate to the Pathology Dashboard
   goToPathologyDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.pathologyMenu).click({ force: true });
+    cy.get(this.selectors.pathologyMenu).click();
     return new DashBoardPage();
   }
 
   // Navigate to the ImmunoChemistry Dashboard
   goToImmunoChemistryDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.immunochemMenu).click({ force: true });
+    cy.get(this.selectors.immunochemMenu).click();
     return new DashBoardPage();
   }
 
   // Navigate to the Cytology Dashboard
   goToCytologyDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.cytologyMenu).click({ force: true });
+    cy.get(this.selectors.cytologyMenu).click();
     return new DashBoardPage();
   }
 
@@ -312,6 +313,7 @@ class HomePage {
   afterAll() {
     cy.get(this.selectors.minimizeIcon).should("be.visible").click();
   }
+
   // Search for a patient
   searchBar() {
     cy.get(this.selectors.searchIcon).click();
