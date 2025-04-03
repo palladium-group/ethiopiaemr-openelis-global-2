@@ -81,8 +81,8 @@ class HomePage {
   // Click a dropdown item
   clickDropdownItem(dropdownSelector, itemSelector) {
     this.openNavigationMenu();
-    cy.get(dropdownSelector).click({ force: true });
-    cy.get(itemSelector).click({ force: true });
+    cy.get(dropdownSelector, { timeout: 15000 }).click();
+    cy.get(itemSelector, { timeout: 15000 }).click();
   }
 
   // Navigate to the Order Entry page
@@ -185,25 +185,28 @@ class HomePage {
 
   // Navigate to the Results by Unit page
   goToResultsByUnit() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsLogbook).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.resultsMenu,
+      this.selectors.resultsLogbook,
+    );
     return new Result();
   }
 
   // Navigate to the Results by Order page
   goToResultsByOrder() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsAccession).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.resultsMenu,
+      this.selectors.resultsAccession,
+    );
     return new Result();
   }
 
   // Navigate to the Results by Patient page
   goToResultsByPatient() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenuExt).click({ force: true });
-    cy.get(this.selectors.resultsPatient).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.resultsMenuExt,
+      this.selectors.resultsPatient,
+    );
     return new Result();
   }
 
@@ -275,35 +278,32 @@ class HomePage {
   }
 
   goToReports() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu).click({ force: true });
+    this.clickDropdownItem(
+      this.selectors.reportsMenu);
   }
 
   // Navigate to the Pathology Dashboard
   goToPathologyDashboard() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.pathologyMenu).click();
+    this.clickDropdownItem(this.selectors.pathologyMenu);
+
     return new DashBoardPage();
   }
 
   // Navigate to the ImmunoChemistry Dashboard
   goToImmunoChemistryDashboard() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.immunochemMenu).click();
+    this.clickDropdownItem(this.selectors.immunochemMenu);
     return new DashBoardPage();
   }
 
   // Navigate to the Cytology Dashboard
   goToCytologyDashboard() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.cytologyMenu).click();
+    this.clickDropdownItem(this.selectors.cytologyMenu);
     return new DashBoardPage();
   }
 
   // Navigate to the Admin page
   goToAdminPage() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.administrationMenu).click({ force: true });
+    this.clickDropdownItem(this.selectors.administrationMenu);
     return new AdminPage();
   }
 
