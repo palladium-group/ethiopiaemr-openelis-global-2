@@ -81,8 +81,8 @@ class HomePage {
   // Click a dropdown item
   clickDropdownItem(dropdownSelector, itemSelector) {
     this.openNavigationMenu();
-    cy.get(dropdownSelector, { timeout: 15000 }).click();
-    cy.get(itemSelector, { timeout: 15000 }).click();
+    cy.get(dropdownSelector, { timeout: 15000 }).click({ force: true });
+    cy.get(itemSelector, { timeout: 15000 }).click({ force: true });
   }
 
   // Navigate to the Order Entry page
@@ -97,8 +97,12 @@ class HomePage {
   // Navigate to the Batch Order Entry page
   goToBatchOrderEntry() {
     this.openNavigationMenu();
-    cy.get(this.selectors.sampleDropdown).click({ force: true });
-    cy.get(this.selectors.sampleBatchEntryNav).click({ force: true });
+    cy.get(this.selectors.sampleDropdown, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.sampleBatchEntryNav, { timeout: 15000 }).click({
+      force: true,
+    });
     return new BatchOrderEntry();
   }
 
@@ -194,115 +198,168 @@ class HomePage {
 
   // Navigate to the Results by Order page
   goToResultsByOrder() {
-    this.clickDropdownItem(
-      this.selectors.resultsMenu,
-      this.selectors.resultsAccession,
-    );
+    this.openNavigationMenu();
+    cy.get(this.selectors.resultsMenu, { timeout: 1500 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultsAccession, { timeout: 1500 }).click({
+      force: true,
+    });
     return new Result();
   }
 
   // Navigate to the Results by Patient page
   goToResultsByPatient() {
-    this.clickDropdownItem(
-      this.selectors.resultsMenuExt,
-      this.selectors.resultsPatient,
-    );
+    this.openNavigationMenu();
+    cy.get(this.selectors.resultsMenuExt, { timeout: 1500 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultsPatient, { timeout: 1500 }).click({
+      force: true,
+    });
     return new Result();
   }
 
   // Navigate to the Results for Referred Out page
   goToResultsForRefferedOut() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsReferred).click({ force: true });
+    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultsReferred, { timeout: 15000 }).click({
+      force: true,
+    });
     return new Result();
   }
 
   // Navigate to the Results by Range Order page
   goToResultsByRangeOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsRange).click({ force: true });
+    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultsRange, { timeout: 15000 }).click({
+      force: true,
+    });
     return new Result();
   }
 
   // Navigate to the Results by Test and Status page
   goToResultsByTestAndStatus() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsStatus).click({ force: true });
+    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultsStatus, { timeout: 15000 }).click({
+      force: true,
+    });
 
     return new Result();
   }
 
   // Navigate to the Validation by Routine page
   goToValidationByRoutine() {
-    this.clickDropdownItem(
-      this.selectors.resultValidationMenu,
-      this.selectors.resultValidationRoutine,
-    );
+    this.openNavigationMenu();
+    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.resultValidationRoutine, { timeout: 15000 }).click({
+      force: true,
+    });
+
     return new Validation();
   }
 
   // Navigate to the Validation by Order page
   goToValidationByOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu).click({ force: true });
-    cy.get(this.selectors.accessionValidation).click({ force: true });
+    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.accessionValidation, { timeout: 15000 }).click({
+      force: true,
+    });
     return new Validation();
   }
 
   // Navigate to the Validation by Range Order page
   goToValidationByRangeOrder() {
-    this.clickDropdownItem(
-      this.selectors.resultValidationMenu,
-      this.selectors.accessionValidationRange,
-    );
+    this.openNavigationMenu();
+    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.accessionValidationRange, { timeout: 15000 }).click({
+      force: true,
+    });
+
     return new Validation();
   }
 
   // Navigate to the Routine Reports page
   goToRoutineReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu).click();
-    cy.get(this.selectors.reportsRoutineNav).click();
+    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.reportsRoutineNav, { timeout: 15000 }).click({
+      force: true,
+    });
     return new RoutineReportPage();
   }
 
   // Navigate to the Study Reports page
   goToStudyReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu).click({ force: true });
-    cy.get(this.selectors.reportsStudyNav).click({ force: true });
+    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
+    cy.get(this.selectors.reportsStudyNav, { timeout: 15000 }).click({
+      force: true,
+    });
     return new StudyReportPage();
   }
 
   goToReports() {
-    this.clickDropdownItem(this.selectors.reportsMenu);
+    this.openNavigationMenu();
+    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
+      force: true,
+    });
   }
 
   // Navigate to the Pathology Dashboard
   goToPathologyDashboard() {
-    this.clickDropdownItem(this.selectors.pathologyMenu);
+    this.openNavigationMenu();
+    cy.get(this.selectors.pathologyMenu, { timeout: 15000 }).click({
+      force: true,
+    });
 
     return new DashBoardPage();
   }
 
   // Navigate to the ImmunoChemistry Dashboard
   goToImmunoChemistryDashboard() {
-    this.clickDropdownItem(this.selectors.immunochemMenu);
+    this.openNavigationMenu();
+    cy.get(this.selectors.immunochemMenu, { timeout: 15000 }).click({
+      force: true,
+    });
     return new DashBoardPage();
   }
 
   // Navigate to the Cytology Dashboard
   goToCytologyDashboard() {
-    this.clickDropdownItem(this.selectors.cytologyMenu);
+    this.openNavigationMenu();
+    cy.get(this.selectors.cytologyMenu, { timeout: 15000 }).click({
+      force: true,
+    });
     return new DashBoardPage();
   }
 
   // Navigate to the Admin page
   goToAdminPage() {
-    this.clickDropdownItem(this.selectors.administrationMenu);
+    this.openNavigationMenu();
+    cy.get(this.selectors.administrationMenu, { timeout: 15000 }).click({
+      force: true,
+    });
     return new AdminPage();
   }
 
