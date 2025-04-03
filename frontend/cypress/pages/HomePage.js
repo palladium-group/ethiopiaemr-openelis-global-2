@@ -278,8 +278,7 @@ class HomePage {
   }
 
   goToReports() {
-    this.clickDropdownItem(
-      this.selectors.reportsMenu);
+    this.clickDropdownItem(this.selectors.reportsMenu);
   }
 
   // Navigate to the Pathology Dashboard
