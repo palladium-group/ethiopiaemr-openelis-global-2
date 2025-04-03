@@ -17,17 +17,17 @@ class HomePage {
     // Centralized selectors
     this.selectors = {
       menuButton: "[data-cy='menuButton']",
-      sampleDropdown: "#menu_sample_dropdown",
-      patientDropdown: "#menu_patient_dropdown",
-      workplanDropdown: "#menu_workplan_dropdown",
-      nonconformityDropdown: "#menu_nonconformity_dropdown",
-      resultsMenu: "#menu_results_dropdown",
+      sampleDropdown: "#menu_sample",
+      patientDropdown: "#menu_patient",
+      workplanDropdown: "#menu_workplan",
+      nonconformityDropdown: "#menu_nonconformity",
+      resultsMenu: "#menu_results",
       resultValidationMenu: "#menu_resultvalidation",
-      reportsMenu: "#menu_reports_dropdown",
+      reportsMenu: "#menu_reports",
       pathologyMenu: "#menu_pathology",
       immunochemMenu: "#menu_immunochem",
       cytologyMenu: "#menu_cytology",
-      administrationMenu: "#menu_administration",
+      administrationMenu: "#menu_administration_nav",
       minimizeIcon: "#minimizeIcon",
       searchIcon: "#search-Icon",
       searchItem: "#searchItem",
@@ -96,7 +96,7 @@ class HomePage {
   // Navigate to the Batch Order Entry page
   goToBatchOrderEntry() {
     this.openNavigationMenu();
-    cy.get("#menu_sample").click({ force: true });
+    cy.get(this.selectors.sampleDropdown).click({ force: true });
     cy.get(this.selectors.sampleBatchEntryNav).click({ force: true });
     return new BatchOrderEntry();
   }
