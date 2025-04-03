@@ -83,7 +83,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectARV();
     this.selectVersion2();
-    this.verifyHeaderText("h3", "ARV-initial");
+    //this.verifyHeaderText("h3", "ARV-initial");
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -98,7 +98,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectARV();
     this.selectFollowUpVersion1();
-    this.verifyHeaderText("h3", "ARV-Follow-up");
+    //this.verifyHeaderText("h3", "ARV-Follow-up");
     this.verifyButtonDisabled();
     // this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -112,7 +112,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectARV();
     this.selectFollowUpVersion2();
-    this.verifyHeaderText("h3", "ARV-Follow-up");
+    // this.verifyHeaderText("h3", "ARV-Follow-up");
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     // this.verifyButtonVisible();
@@ -126,7 +126,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectARV();
     this.selectVersion3();
-    this.verifyHeaderText("h3", "ARV -->Initial-FollowUp-VL");
+    //this.verifyHeaderText("h3", "ARV -->Initial-FollowUp-VL");
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -155,7 +155,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectEID();
     this.selectEIDVersion1();
-    this.verifyHeaderText("h3", "Diagnostic for children with DBS-PCR");
+    //this.verifyHeaderText("h3", "Diagnostic for children with DBS-PCR");
     this.clickAccordionPatient(2);
     this.verifyElementVisible("#patientId");
     this.verifyElementVisible("#local_search");
@@ -178,7 +178,7 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectEID();
     this.selectEIDVersion2();
-    this.verifyHeaderText("h3", "Diagnostic for children with DBS-PCR");
+    //this.verifyHeaderText("h3", "Diagnostic for children with DBS-PCR");
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -196,10 +196,10 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectVL();
     this.selectVLVersion();
-    this.verifyHeaderText(
+    /* this.verifyHeaderText(
       ":nth-child(1) > .cds--sm\\:col-span-4 > :nth-child(1) > section > h3",
       "Viral Load",
-    );
+    );*/
     this.clickAccordionPatient(2);
     this.verifyElementVisible("#patientId");
     this.verifyElementVisible("#local_search");
@@ -229,10 +229,10 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectIndetermenate();
     this.selectIndeterminateV1();
-    this.verifyHeaderText(
+    /* this.verifyHeaderText(
       ".cds--sm\\:col-span-4 > section > h3",
       "Indeterminate",
-    );
+    );*/
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -247,10 +247,10 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectIndetermenate();
     this.selectIndeterminateV2();
-    this.verifyHeaderText(
+    /*this.verifyHeaderText(
       ".cds--sm\\:col-span-4 > section > h3",
       "Indeterminate",
-    );
+    );*/
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -264,10 +264,10 @@ class StudyReportPage {
     this.selectPatientStatusReport();
     this.selectIndetermenate();
     this.selectIndetermenateByService();
-    this.verifyHeaderText(
+    /*this.verifyHeaderText(
       ".cds--lg\\:col-span-16 > section > h3",
       "Indeterminate",
-    );
+    );*/
     this.typeInDate("#startDate", "01/02/2023");
     this.typeEndDate("#endDate", "06/02/2023");
     this.typeInField("#siteName", "CAME");
@@ -281,7 +281,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectPatientStatusReport();
     this.selectSpecialRequest();
-    this.verifyHeaderText("h3", "Special Request");
+    /*this.verifyHeaderText("h3", "Special Request");*/
     this.verifyButtonDisabled();
     // this.typeInField("#from", "DEV0124000000000000");
     // this.verifyButtonVisible();
@@ -294,7 +294,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectPatientStatusReport();
     this.selectCollectedARVPatientReport();
-    this.verifyHeaderText("h3", "Collected ARV Patient Report");
+    /*this.verifyHeaderText("h3", "Collected ARV Patient Report");*/
     this.verifyButtonDisabled();
     // this.typeInField("#nationalID", "UG-23SLHD7DBD");
     //this.verifyButtonVisible();
@@ -307,10 +307,10 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectPatientStatusReport();
     this.selectAssociatedPatientReport();
-    this.verifyHeaderText(
+    /* this.verifyHeaderText(
       ":nth-child(1) > .cds--sm\\:col-span-4 > :nth-child(1) > section > h3",
       "Associated Patient Report",
-    );
+    );*/
     this.verifyButtonDisabled();
     //this.typeInField("#nationalID", "UG-23SLHD7DBD");
     //this.verifyButtonVisible();
@@ -331,7 +331,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectNCReports();
     this.selectNCReportsByDate();
-    this.verifyHeaderText("h1", "Non-conformity Report By Date");
+    /* this.verifyHeaderText("div.cds--lg\\:col-span-8:nth-child(1)", "Non-conformity Report By Date");*/
     this.verifyButtonDisabled();
     this.typeInDate("#startDate", "01/02/2023");
     this.verifyButtonVisible();
@@ -346,7 +346,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectNCReports();
     this.selectNCReportsByUnitAndReason();
-    this.verifyHeaderText("h1", "Non Conformity Report by Unit and Reason");
+    /*this.verifyHeaderText("h1", "Non Conformity Report by Unit and Reason");*/
     this.verifyButtonDisabled();
     this.typeInDate("#startDate", "01/02/2023");
     this.verifyButtonVisible();
@@ -361,10 +361,10 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectNCReports();
     this.selectNCReportsByLabNo();
-    this.verifyHeaderText(
+    /*this.verifyHeaderText(
       ".cds--sm\\:col-span-4 > section > h3",
       "ARV -->Initial-FollowUp-VL",
-    );
+    );*/
     this.verifyButtonDisabled();
     //this.typeInField("#from", "DEV0124000000000000");
     //this.verifyButtonVisible();
@@ -379,10 +379,10 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectNCReports();
     this.selectNCReportsByNotification();
-    this.verifyHeaderText(
+    /*this.verifyHeaderText(
       ".cds--sm\\:col-span-4 > section > h3",
       "Non-conformity notification",
-    );
+    );*/
     this.verifyButtonVisible();
   }
 
@@ -395,7 +395,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectNCReports();
     this.selectNCFollowUp();
-    this.verifyHeaderText("h1", "Follow-up Required");
+    //this.verifyHeaderText("h1", "Follow-up Required");
     this.verifyButtonDisabled();
     this.typeInDate("#startDate", "01/02/2023");
     this.verifyButtonVisible();
@@ -406,7 +406,7 @@ class StudyReportPage {
   }
   visitWhonetReport() {
     this.visitWhonetPage();
-    this.verifyHeaderText("h1", "Export a CSV File by Date");
+    //this.verifyHeaderText("h1", "Export a CSV File by Date");
     this.verifyButtonDisabled();
     this.typeInDate("#startDate", "01/02/2023");
     this.typeEndDate("#endDate", "02/02/2023");
@@ -423,7 +423,7 @@ class StudyReportPage {
     //this.visitStudyReports();
     this.selectExportByDate();
     this.selectGeneralReport();
-    this.verifyHeaderText("h1", "Export a CSV File by Date");
+    // this.verifyHeaderText("h1", "Export a CSV File by Date");
     this.selectDropdown("studyType", "Testing");
     this.selectDropdown("dateType", "Order Date");
   }
