@@ -22,6 +22,7 @@ class HomePage {
       workplanDropdown: "#menu_workplan",
       nonconformityDropdown: "#menu_nonconformity",
       resultsMenu: "#menu_results",
+      resultsMenuExt: "#menu_results_dropdown",
       resultValidationMenu: "#menu_resultvalidation",
       reportsMenu: "#menu_reports",
       pathologyMenu: "#menu_pathology",
@@ -201,7 +202,7 @@ class HomePage {
   // Navigate to the Results by Patient page
   goToResultsByPatient() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
+    cy.get(this.selectors.resultsMenuExt).click({ force: true });
     cy.get(this.selectors.resultsPatient).click({ force: true });
     return new Result();
   }
