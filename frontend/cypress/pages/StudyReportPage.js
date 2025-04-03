@@ -317,7 +317,9 @@ class StudyReportPage {
   }
 
   selectNCReports() {
-    cy.get("[data-cy='menu_reports_nonconformity_study']").click();
+    cy.get("[data-cy='menu_reports_nonconformity_study']").click({
+      force: true,
+    });
   }
 
   selectNCReportsByDate() {
@@ -407,7 +409,7 @@ class StudyReportPage {
   }
 
   selectExportByDate() {
-    cy.get("#menu_reports_export").click();
+    cy.get("#menu_reports_export").click({ force: true });
   }
   visitGeneralReportInExportByDate() {
     //this.visitStudyReports();
