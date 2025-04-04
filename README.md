@@ -124,7 +124,8 @@ accessing any of these links, simply follow these steps:
 
 #### To ensure your code passes the same checks as the CI pipeline, you can run the following commands from your project directory
 
-1.  Run Code Formatting Check (Backend). This command checks code formatting and performs validation similar to the CI
+1.  Run Code Formatting Check (Backend). This command checks code formatting and
+    performs validation similar to the CI
 
         mvn spotless:check
 
