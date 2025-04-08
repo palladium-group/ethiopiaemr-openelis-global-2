@@ -1,34 +1,32 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
-    <!-- Include all data from samplehuman.xml -->
-    <include file="testdata/samplehuman.xml" />
+    <!-- Test Data -->
+    <test id="1" guid="550e8400-e29b-41d4-a716-446655440000"
+        name="HIV Test" description="HIV Test" is_reportable="Y"
+        loinc="12345-6" lastupdated="2023-11-01 12:00:00" test_collection="Y"
+        is_active="Y" orderable="Y" />
 
-    <!-- Additional data needed for SamplePatientEntryService tests -->
-    <test id="1" name="HIV Test" description="HIV Test"
-        is_reportable="Y" loinc="12345-6" lastupdated="2023-11-01 12:00:00" />
-
+    <!-- Test Section -->
     <test_section id="1" name="Immunology"
+        lastupdated="2023-11-01 12:00:00" is_active="Y" sort_order="1" />
+
+    <!-- Sample -->
+    <sample id="1" accession_number="TEST001" domain="H"
+        lastupdated="2023-11-01 12:00:00" status="Not Started" />
+
+    <!-- Sample Item -->
+    <sample_item id="1" samp_id="1" type="SERUM" status="Valid"
         lastupdated="2023-11-01 12:00:00" />
 
-    <sample_item id="1" samp_id="1" type="SERUM" status_id="1"
-        lastupdated="2023-11-01 12:00:00" />
-
+    <!-- Organization -->
     <organization id="1" name="Test Org" short_name="TO"
-        lastupdated="2023-11-01 12:00:00" />
+        lastupdated="2023-11-01 12:00:00" is_active="Y" />
 
-    <organization_type id="1" description="Referring Org"
-        lastupdated="2023-11-01 12:00:00" />
+    <!-- Patient -->
+    <patient id="1" guid="550e8400-e29b-41d4-a716-446655440001"
+        lastupdated="2023-11-01 12:00:00" national_id="TEST123" />
 
-    <organization_organization_type
-        org_id="1" org_type_id="1" lastupdated="2023-11-01 12:00:00" />
-
+    <!-- Electronic Order -->
     <electronic_order id="1" external_id="EORDER1"
-        status_id="1" patient_id="1" lastupdated="2023-11-01 12:00:00" />
-
-    <observation_history id="1" patient_id="1"
-        value="Observation 1" lastupdated="2023-11-01 12:00:00" />
-
-    <sample_requester id="1" sample_id="1"
-        requester_id="1" requester_type_id="1"
-        lastupdated="2023-11-01 12:00:00" />
+        status="New" patient_id="1" lastupdated="2023-11-01 12:00:00" />
 </dataset>
