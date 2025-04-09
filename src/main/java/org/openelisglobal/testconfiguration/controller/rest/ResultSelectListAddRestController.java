@@ -37,6 +37,8 @@ public class ResultSelectListAddRestController extends BaseController {
     public ResultSelectListForm showCreateResultSelectList(HttpServletRequest request) {
         ResultSelectListForm form = new ResultSelectListForm();
         form.setPage("1");
+        form.setTests(testService.getAllTestsByDictionaryResult());
+        form.setTestDictionary(resultSelectListService.getTestSelectDictionary());
         addFlashMsgsToRequest(request);
         // return findForward(FWD_SUCCESS, form);
         return form;
