@@ -74,11 +74,14 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void persistData_shouldPersistCompleteSamplePatientData() throws Exception {
 
-        Sample sample = sampleService.getSampleByAccessionNumber("EXISTING001");
+        Sample sample = sampleService.getSampleByAccessionNumber("TEST001");
         assertNotNull("Sample from dataset should exist", sample);
 
         SampleHuman sampleHuman = new SampleHuman();
-        sampleHuman.setSampleId(sample.getId());
+
+        sampleHuman.setId("1");
+
+        sampleHuman.setSampleId(String.valueOf(sample.getId()));
         sampleHumanService.getData(sampleHuman);
 
         assertNotNull("Sample should be linked to a patient", sampleHuman);
@@ -87,19 +90,20 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
 
         SamplePatientUpdateData updateData = new SamplePatientUpdateData("1");
         updateData.setSample(sample);
-        updateData.setSampleHuman(sampleHuman); // Set the populated sampleHuman
+        updateData.setSampleHuman(sampleHuman);
 
         PatientManagementInfo patientInfo = new PatientManagementInfo();
         patientInfo.setPatientPK(patientId);
+        SamplePatientEntryForm patientEntryForm = new SamplePatientEntryForm();
 
+        patientEntryForm.setPatientProperties(patientInfo);
         MockHttpServletRequest request = new MockHttpServletRequest();
         UserSessionData usd = new UserSessionData();
         request.getSession().setAttribute(IActionConstants.USER_SESSION_DATA, usd);
 
         PatientManagementUpdate patientUpdate = new PatientManagementUpdate();
 
-        samplePatientEntryService.persistData(updateData, patientUpdate, patientInfo, new SamplePatientEntryForm(),
-                request);
+        samplePatientEntryService.persistData(updateData, patientUpdate, patientInfo, patientEntryForm, request);
 
         Sample savedSample = sampleService.getSampleByAccessionNumber(sample.getAccessionNumber());
         assertNotNull("Sample should be persisted", savedSample);
@@ -115,6 +119,64 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
 
         List<Analysis> analyses = analysisService.getAnalysesBySampleId(savedSample.getId());
         assertFalse("Analyses should be persisted", analyses.isEmpty());
+    }
+
+    @Test
+    public void persistData_shouldHandleInvalidSample() throws Exception {
+        Sample invalidSample = new Sample();
+        invalidSample.setAccessionNumber("INVALID123");
+
+        SamplePatientUpdateData updateData = new SamplePatientUpdateData("1");
+        updateData.setSample(invalidSample);
+
+        PatientManagementInfo patientInfo = new PatientManagementInfo();
+        patientInfo.setPatientPK("testPatientId");
+
+        SamplePatientEntryForm form = new SamplePatientEntryForm();
+        form.setPatientProperties(patientInfo);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        try {
+            samplePatientEntryService.persistData(updateData, new PatientManagementUpdate(), patientInfo, form,
+                    request);
+            fail("Should have thrown exception for invalid sample");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void persistData_shouldHandleMissingPatientId() throws Exception {
+        Sample sample = sampleService.getSampleByAccessionNumber("TEST001");
+        assertNotNull("Sample should exist", sample);
+
+        SampleHuman sampleHuman = new SampleHuman();
+        sampleHuman.setId("1");
+        sampleHuman.setSampleId(String.valueOf(sample.getId()));
+
+        sampleHumanService.getData(sampleHuman);
+
+        SamplePatientUpdateData updateData = new SamplePatientUpdateData("1");
+        updateData.setSample(sample);
+        updateData.setSampleHuman(sampleHuman);
+
+        PatientManagementInfo patientInfo = new PatientManagementInfo();
+        SamplePatientEntryForm patientEntryForm = new SamplePatientEntryForm();
+        patientEntryForm.setPatientProperties(patientInfo);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        UserSessionData usd = new UserSessionData();
+        request.getSession().setAttribute(IActionConstants.USER_SESSION_DATA, usd);
+
+        PatientManagementUpdate patientUpdate = new PatientManagementUpdate();
+
+        try {
+            // Call the method under test
+            samplePatientEntryService.persistData(updateData, patientUpdate, patientInfo, patientEntryForm, request);
+            fail("Expected exception for missing patient ID");
+        } catch (Exception e) {
+            assertTrue("Exception should be thrown for missing patient ID", e instanceof IllegalArgumentException);
+        }
     }
 
 }
