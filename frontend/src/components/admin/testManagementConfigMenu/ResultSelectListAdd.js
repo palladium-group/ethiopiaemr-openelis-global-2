@@ -40,6 +40,7 @@ import {
 } from "../../common/CustomNotification.js";
 import { FormattedMessage, injectIntl, useIntl } from "react-intl";
 import PageBreadCrumb from "../../common/PageBreadCrumb.js";
+import { SortableResultSelectionOptionList } from "./sortableListComponent/SortableList.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -67,6 +68,12 @@ function ResultSelectListAdd() {
   const [ResultSelectListRes, setResultSelectListRes] = useState({});
   const [resultTestsList, setResultTestsList] = useState([]);
   const [resultTestsDirectory, setResultTestsDirectory] = useState([]);
+  const [testSelectListJson, setTestSelectListJson] = useState([]);
+  const [testSelectListJsonPost, setTestSelectListJsonPost] = useState([]);
+
+  // [{id: testId, items : [{id: itemId, order: sortingOrder++ },{ qualifiable: boolean, sortingOrder++ }]}]
+  // normal checkbox === hard alert
+  // qualifiable {if checked then in arrary qualifiable : true else false}
 
   const componentMounted = useRef(false);
 
@@ -110,6 +117,7 @@ function ResultSelectListAdd() {
       JSON.stringify({
         nameEnglish: englishLangPost,
         nameFrench: frenchLangPost,
+        testSelectListJson: JSON.stringify(testSelectListJsonPost),
       }),
       (res) => {
         handlePostSaveResultSelectListCallBack(res);
@@ -142,7 +150,51 @@ function ResultSelectListAdd() {
     }
   };
 
-  const handleTestNameResultValueSetToSpecificTest = (testId, checked) => {};
+  const handleTestNameResultValueSetToSpecificTest = (
+    testId,
+    testDescription,
+    checked,
+  ) => {
+    if (checked) {
+      const relatedItems = resultTestsDirectory[testId];
+      if (Array.isArray(relatedItems)) {
+        const itemsWithOrder = relatedItems.map((item, index) => ({
+          id: item.id,
+          value: item.value,
+          order: index,
+        }));
+
+        const newTestObj = {
+          id: testId,
+          description: testDescription,
+          items: itemsWithOrder,
+        };
+
+        setTestSelectListJson((prev) => [...prev, newTestObj]);
+      }
+    } else {
+      setTestSelectListJson((prev) =>
+        prev.filter((testObj) => testObj.id !== parseInt(testId)),
+      );
+    }
+  };
+
+  // const getTestValueNamesWithTestId = (testId) => {
+  //   const testObj = resultTestsList.find((test) => test.id === testId);
+  //   let testValueNames = [];
+  //   if (testObj) {
+  //     testValueNames.push({
+  //       id: testObj.id,
+  //       description: testObj.description,
+  //     });
+  //     return testValueNames;
+  //   }
+  //   return [];
+  // };
+
+  const handleRemove = (id) => {
+    setTestSelectListJson((prev) => prev.filter((test) => test.id !== id)); // Remove the test based on ID
+  };
 
   useEffect(() => {
     componentMounted.current = true;
@@ -299,14 +351,19 @@ function ResultSelectListAdd() {
           {resultTestsList?.length > 0 && (
             <Grid fullWidth={true}>
               {resultTestsList?.map((test) => (
-                <Column lg={4} md={4} sm={4}>
+                <Column lg={4} md={4} sm={4} key={test.id}>
                   <Checkbox
                     id={test.id}
                     labelText={test.description}
-                    checked={false}
+                    checked={
+                      !!testSelectListJson.find(
+                        (obj) => String(obj.id) === String(test.id),
+                      )
+                    }
                     onChange={(_, { checked }) => {
                       handleTestNameResultValueSetToSpecificTest(
                         test.id,
+                        test.description,
                         checked,
                       );
                     }}
@@ -365,11 +422,19 @@ function ResultSelectListAdd() {
         >
           ResultTestsDirectoryLog
         </button>
+        <button
+          onClick={() => {
+            console.log(testSelectListJson);
+            console.log(testSelectListJsonPost);
+          }}
+        >
+          testSelectListJson
+        </button>
       </div>
 
       <Modal
         open={isConfirmModalOpen}
-        size="md"
+        size="lg"
         modalHeading={
           <FormattedMessage id="configuration.selectList.assign.new" />
         }
@@ -386,10 +451,37 @@ function ResultSelectListAdd() {
         preventCloseOnClickOutside={true}
         shouldSubmitOnEnter={true}
       >
+        <button
+          onClick={() => {
+            console.log(testSelectListJson);
+            console.log(testSelectListJsonPost);
+          }}
+        >
+          testSelectListJson
+        </button>
         <Grid fullWidth={true}>
-          <Column lg={4} md={4} sm={4}>
-            {/* renderSortablelistType3 */}
-          </Column>
+          {testSelectListJson.map((test, index) => (
+            <Column lg={4} md={4} sm={4} key={test.id}>
+              <SortableResultSelectionOptionList
+                test={test}
+                onSort={(updatedTestSelectListJson) => {
+                  setTestSelectListJson((prev) => {
+                    const newArrangement = [...prev];
+                    newArrangement[index] = updatedTestSelectListJson;
+                    return newArrangement;
+                  });
+                  setTestSelectListJsonPost((prev) => {
+                    const newArrangement = [...prev];
+                    newArrangement[index] = updatedTestSelectListJson;
+                    return newArrangement;
+                  });
+                }}
+                onRemove={() => {
+                  handleRemove(test.id);
+                }}
+              />
+            </Column>
+          ))}
         </Grid>
       </Modal>
     </>
@@ -397,3 +489,7 @@ function ResultSelectListAdd() {
 }
 
 export default injectIntl(ResultSelectListAdd);
+
+// remove description and value from the testSelectListJson list
+// check box fix on sortableList component
+// check the testSelectListJsonPost list
