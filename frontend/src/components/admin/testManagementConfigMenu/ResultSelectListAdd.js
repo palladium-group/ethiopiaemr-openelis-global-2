@@ -62,6 +62,7 @@ function ResultSelectListAdd() {
   const intl = useIntl();
   const [isLoading, setIsLoading] = useState(true);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [bothFilled, setBothFilled] = useState(false);
   const [englishLangPost, setEnglishLangPost] = useState("");
   const [frenchLangPost, setFrenchLangPost] = useState("");
   const [inputError, setInputError] = useState(false);
@@ -97,6 +98,10 @@ function ResultSelectListAdd() {
   const handlePostResultSelectListCallBack = (res) => {
     if (res) {
       setResultSelectListRes(res);
+      if (res?.tests && res?.testDictionary) {
+        setResultTestsList(res?.tests);
+        setResultTestsDirectory(res?.testDictionary);
+      }
     } else {
       addNotification({
         kind: NotificationKinds.error,
@@ -117,7 +122,9 @@ function ResultSelectListAdd() {
       JSON.stringify({
         nameEnglish: englishLangPost,
         nameFrench: frenchLangPost,
-        testSelectListJson: JSON.stringify(testSelectListJsonPost),
+        testSelectListJson: JSON.stringify({
+          items: JSON.stringify(testSelectListJsonPost),
+        }),
       }),
       (res) => {
         handlePostSaveResultSelectListCallBack(res);
@@ -143,10 +150,6 @@ function ResultSelectListAdd() {
       setIsLoading(true);
     } else {
       setResultSelectListRes(res);
-      if (res?.tests && res?.testDictionary) {
-        setResultTestsList(res?.tests);
-        setResultTestsDirectory(res?.testDictionary);
-      }
     }
   };
 
@@ -174,7 +177,10 @@ function ResultSelectListAdd() {
       }
     } else {
       setTestSelectListJson((prev) =>
-        prev.filter((testObj) => testObj.id !== parseInt(testId)),
+        prev.filter((t) => String(t.id) !== String(id)),
+      );
+      setTestSelectListJsonPost((prev) =>
+        prev.filter((t) => String(t.id) !== String(id)),
       );
     }
   };
@@ -193,7 +199,12 @@ function ResultSelectListAdd() {
   // };
 
   const handleRemove = (id) => {
-    setTestSelectListJson((prev) => prev.filter((test) => test.id !== id)); // Remove the test based on ID
+    setTestSelectListJson((prev) =>
+      prev.filter((test) => String(test.id) !== String(id)),
+    );
+    setTestSelectListJsonPost((prev) =>
+      prev.filter((test) => String(test.id) !== String(id)),
+    );
   };
 
   useEffect(() => {
@@ -265,6 +276,7 @@ function ResultSelectListAdd() {
                 id={`eng`}
                 labelText=""
                 hideLabel
+                disabled={bothFilled}
                 value={`${englishLangPost}` || ""}
                 onChange={(e) => {
                   setEnglishLangPost(e.target.value);
@@ -286,6 +298,7 @@ function ResultSelectListAdd() {
                 id={`fr`}
                 labelText=""
                 hideLabel
+                disabled={bothFilled}
                 value={`${frenchLangPost}` || ""}
                 onChange={(e) => {
                   setFrenchLangPost(e.target.value);
@@ -298,101 +311,138 @@ function ResultSelectListAdd() {
             </Column>
           </Grid>
           <br />
-          <hr />
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Section>
-                <Section>
-                  <Heading>
-                    <FormattedMessage id="configuration.selectList.assign.header" />
-                  </Heading>
-                </Section>
-              </Section>
-            </Column>
-          </Grid>
-          <br />
-          <hr />
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Section>
-                <Section>
-                  <Section>
-                    <Section>
-                      <Heading>
-                        <FormattedMessage id="configuration.selectList.assign.description" />
-                      </Heading>
-                    </Section>
-                  </Section>
-                </Section>
-              </Section>
-            </Column>
-          </Grid>
-          <br />
-          <hr />
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Section>
-                <Section>
-                  <Section>
-                    <Section>
-                      <Heading>
-                        <FormattedMessage id="availabletests.title" />
-                      </Heading>
-                    </Section>
-                  </Section>
-                </Section>
-              </Section>
-            </Column>
-          </Grid>
-          <br />
-          {resultTestsList?.length > 0 && (
-            <Grid fullWidth={true}>
-              {resultTestsList?.map((test) => (
-                <Column lg={4} md={4} sm={4} key={test.id}>
-                  <Checkbox
-                    id={test.id}
-                    labelText={test.description}
-                    checked={
-                      !!testSelectListJson.find(
-                        (obj) => String(obj.id) === String(test.id),
-                      )
-                    }
-                    onChange={(_, { checked }) => {
-                      handleTestNameResultValueSetToSpecificTest(
-                        test.id,
-                        test.description,
-                        checked,
-                      );
-                    }}
-                  />
-                </Column>
-              ))}
-            </Grid>
-          )}
-          <br />
           <Grid fullWidth={true}>
             <Column lg={4} md={4} sm={4}>
               <Button
                 onClick={() => {
-                  if (englishLangPost && frenchLangPost !== "") {
-                    setIsConfirmModalOpen(true);
-                  } else {
-                    setInputError(true);
-                  }
+                  handleResultSelectTestListCall();
+                  setBothFilled(true);
+                  setInputError(false);
                 }}
                 type="button"
                 kind="primary"
               >
                 <FormattedMessage id="next.action.button" />
               </Button>{" "}
-              <Button type="button" kind="tertiary">
+              <Button
+                type="button"
+                kind="tertiary"
+                onClick={() => {
+                  window.location.reload();
+                }}
+              >
                 <FormattedMessage id="label.button.cancel" />
               </Button>
             </Column>
           </Grid>
+          <br />
+          <hr />
+          {resultTestsList &&
+            resultTestsList?.length > 0 &&
+            resultTestsDirectory && (
+              <>
+                <br />
+                <Grid fullWidth={true}>
+                  <Column lg={16} md={8} sm={4}>
+                    <Section>
+                      <Section>
+                        <Heading>
+                          <FormattedMessage id="configuration.selectList.assign.header" />
+                        </Heading>
+                      </Section>
+                    </Section>
+                  </Column>
+                </Grid>
+                <br />
+                <hr />
+                <br />
+                <Grid fullWidth={true}>
+                  <Column lg={16} md={8} sm={4}>
+                    <Section>
+                      <Section>
+                        <Section>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="configuration.selectList.assign.description" />
+                            </Heading>
+                          </Section>
+                        </Section>
+                      </Section>
+                    </Section>
+                  </Column>
+                </Grid>
+                <br />
+                <hr />
+                <br />
+                <Grid fullWidth={true}>
+                  <Column lg={16} md={8} sm={4}>
+                    <Section>
+                      <Section>
+                        <Section>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="availabletests.title" />
+                            </Heading>
+                          </Section>
+                        </Section>
+                      </Section>
+                    </Section>
+                  </Column>
+                </Grid>
+                <br />
+                {resultTestsList?.length > 0 && (
+                  <Grid fullWidth={true}>
+                    {resultTestsList?.map((test) => (
+                      <Column lg={4} md={4} sm={4} key={test.id}>
+                        <Checkbox
+                          id={test.id}
+                          labelText={test.description}
+                          checked={
+                            !!testSelectListJson.find(
+                              (obj) => String(obj.id) === String(test.id),
+                            )
+                          }
+                          onChange={(_, { checked }) => {
+                            handleTestNameResultValueSetToSpecificTest(
+                              test.id,
+                              test.description,
+                              checked,
+                            );
+                          }}
+                        />
+                      </Column>
+                    ))}
+                  </Grid>
+                )}
+                <br />
+                <Grid fullWidth={true}>
+                  <Column lg={4} md={4} sm={4}>
+                    <Button
+                      onClick={() => {
+                        if (englishLangPost && frenchLangPost !== "") {
+                          setIsConfirmModalOpen(true);
+                        } else {
+                          setInputError(true);
+                        }
+                      }}
+                      type="button"
+                      kind="primary"
+                    >
+                      <FormattedMessage id="next.action.button" />
+                    </Button>{" "}
+                    <Button
+                      type="button"
+                      kind="tertiary"
+                      onClick={() => {
+                        window.location.reload();
+                      }}
+                    >
+                      <FormattedMessage id="label.button.cancel" />
+                    </Button>
+                  </Column>
+                </Grid>
+              </>
+            )}
         </div>
         <button
           onClick={() => {
@@ -472,7 +522,13 @@ function ResultSelectListAdd() {
                   });
                   setTestSelectListJsonPost((prev) => {
                     const newArrangement = [...prev];
-                    newArrangement[index] = updatedTestSelectListJson;
+                    newArrangement[index] = {
+                      ...updatedTestSelectListJson,
+                      items: updatedTestSelectListJson.items.map(
+                        ({ value, ...rest }) => rest,
+                      ),
+                    };
+                    delete newArrangement[index].description;
                     return newArrangement;
                   });
                 }}

@@ -8,7 +8,6 @@ export const SortableResultSelectionOptionList = ({
   onSort,
   onRemove,
 }) => {
-  console.log(test);
   const [tests, setTests] = useState(test);
 
   const handleDragStart = (e, index) => {
@@ -71,11 +70,16 @@ export const SortableResultSelectionOptionList = ({
 
     // setTests(updatedItems);
 
-    alert(`Normal checkbox clicked for item: ${updatedItems[index].value}`);
+    alert(
+      <>
+        <FormattedMessage id="configuration.selectList.confirmChange" />
+      </>,
+    );
   };
 
   useEffect(() => {
     setTests(test);
+    onSort(test);
   }, [test]);
 
   return (
