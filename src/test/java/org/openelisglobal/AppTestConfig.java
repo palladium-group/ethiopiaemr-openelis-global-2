@@ -12,6 +12,7 @@ import org.jasypt.util.text.TextEncryptor;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
+import org.openelisglobal.common.services.RequesterService;
 import org.openelisglobal.common.util.Versioning;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
@@ -75,7 +76,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.analyzerimport", "org.openelisglobal.analyzer", "org.openelisglobal.testanalyte",
         "org.openelisglobal.observationhistory", "org.openelisglobal.systemusersection",
         "org.openelisglobal.citystatezip", "org.openelisglobal.typeofsample", "org.openelisglobal.siteinformation",
-        "org.openelisglobal.config", "org.openelisglobal.image", "org.openelisglobal.testresult" }, excludeFilters = {
+        "org.openelisglobal.config", "org.openelisglobal.image", "org.openelisglobal.testresult",
+        "org.openelisglobal.qaevent", "org.openelisglobal.project" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.sample.controller.*"),
@@ -208,6 +210,12 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("test")
     public ReferralSetService ReferralSetService() {
         return mock(ReferralSetService.class);
+    }
+
+    @Bean()
+    @Profile("test")
+    public RequesterService requesterService() {
+        return mock(RequesterService.class);
     }
 
     @Bean()
