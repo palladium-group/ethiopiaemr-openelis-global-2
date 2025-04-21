@@ -3,13 +3,9 @@ package org.openelisglobal.history;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import javax.sql.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,37 +22,15 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Autowired
-    private DataSource dataSource;
-
     @Before
     public void init() throws Exception {
         executeDataSetWithStateManagement("testdata/history.xml");
-    }
-
-    private void cleanDatabase() throws SQLException {
-        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
-            statement.execute("TRUNCATE TABLE history RESTART IDENTITY CASCADE");
-
-        }
     }
 
     @Test
     public void verifyDatasetExists() {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream("testdata/history.xml");
         Assert.assertNotNull("Dataset file not found!", inputStream);
-    }
-
-    @Test
-    public void verifyTestData() {
-        List<History> historyList = historyService.getAll();
-
-        System.out.println("History records in the database: " + historyList.size());
-
-        historyList.forEach(history -> System.out.println("ID: " + history.getId() + ", " + "Reference ID: "
-                + history.getReferenceId() + ", " + "Reference Table: " + history.getReferenceTable() + ", "
-                + "Timestamp: " + history.getTimestamp() + ", " + "Activity: " + history.getActivity() + ", "
-                + "Changes: " + new String(history.getChanges())));
     }
 
     @Test
@@ -78,7 +52,6 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
 
     @Test(expected = NumberFormatException.class)
     public void getHistoryByRefIdAndRefTableId_noRecordsFound() {
-
         historyService.getHistoryByRefIdAndRefTableId("nonexistent", "nonexistent");
     }
 
@@ -141,5 +114,4 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
             Assert.assertTrue(history.getActivity().equals("C") || history.getActivity().equals("D"));
         }
     }
-
 }

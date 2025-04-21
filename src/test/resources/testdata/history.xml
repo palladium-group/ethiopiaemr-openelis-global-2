@@ -3,6 +3,7 @@
     <history id="12345" sys_user_id="1" reference_id="67890"
         reference_table="1" changes="Original Entry"
         timestamp="2024-03-01 12:00:00" activity="C" />
+
     <history id="54321" sys_user_id="1" reference_id="67890"
         reference_table="2" changes="Another Entry"
         timestamp="2024-03-02 12:00:00" activity="U" />
