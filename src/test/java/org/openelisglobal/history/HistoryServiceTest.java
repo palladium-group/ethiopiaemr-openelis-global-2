@@ -96,4 +96,13 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
         Assert.assertFalse(historyList.isEmpty());
         Assert.assertEquals(1, historyList.size());
     }
+
+    @Test
+    public void getHistory_differentRefTables_shouldReturnCorrectCounts() {
+        List<History> table1 = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
+        Assert.assertEquals(2, table1.size());
+
+        List<History> table2 = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
+        Assert.assertEquals(1, table2.size());
+    }
 }
