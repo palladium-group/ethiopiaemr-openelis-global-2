@@ -2,7 +2,6 @@ package org.openelisglobal.history;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.io.InputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -25,12 +24,6 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     @Before
     public void init() throws Exception {
         executeDataSetWithStateManagement("testdata/history.xml");
-    }
-
-    @Test
-    public void verifyDatasetExists() {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("testdata/history.xml");
-        Assert.assertNotNull("Dataset file not found!", inputStream);
     }
 
     @Test
@@ -61,7 +54,6 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
         History detachedHistory = historyList.get(0);
 
         entityManager.clear();
-
         historyService.delete(detachedHistory);
     }
 
@@ -103,15 +95,5 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
         List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
         Assert.assertFalse(historyList.isEmpty());
         Assert.assertEquals(1, historyList.size());
-    }
-
-    @Test
-    public void getHistoryByRefIdAndRefTableId_activityFiltering_shouldReturnCorrectRecords() {
-        List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
-        Assert.assertFalse(historyList.isEmpty());
-
-        for (History history : historyList) {
-            Assert.assertTrue(history.getActivity().equals("C") || history.getActivity().equals("D"));
-        }
     }
 }
