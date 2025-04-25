@@ -146,7 +146,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
-      //nonConform.validateNCESearchResult(nce.NceNumber);
+      nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
   
