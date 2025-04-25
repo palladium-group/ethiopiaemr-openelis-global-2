@@ -23,7 +23,7 @@ describe("Report Non-Conforming Event", function () {
       nonConform.selectSearchType("Last Name");
       nonConform.enterSearchField(patient.lastName);
       nonConform.clickSearchButton();
-      // nonConform.validateSearchResult(patient.labNo);
+      nonConform.validateSearchResult(patient.labNo);
       nonConform.clickCheckbox({ force: true });
       nonConform.clickGoToNceFormButton();
     });
@@ -46,7 +46,7 @@ describe("Report Non-Conforming Event", function () {
       nonConform.selectSearchType("First Name");
       nonConform.enterSearchField(patient.firstName);
       nonConform.clickSearchButton();
-      //nonConform.validateSearchResult(patient.labNo);
+      nonConform.validateSearchResult(patient.labNo);
     });
     nonConform.clickCheckbox({ force: true });
     nonConform.clickGoToNceFormButton();
@@ -69,13 +69,14 @@ describe("Report Non-Conforming Event", function () {
       nonConform.selectSearchType("Patient Identification Code");
       nonConform.enterSearchField(patient.nationalId);
       nonConform.clickSearchButton();
-      //nonConform.validateSearchResult(patient.labNo);
+      //nonConform.validateSearchResult(patient.nationalId);
     });
     nonConform.clickCheckbox({ force: true });
     nonConform.clickGoToNceFormButton();
   });
 
   it("Enter details", function () {
+    nonConform.getAndSaveNceNumber();
     cy.fixture("NonConform").then((nonConformData) => {
       nonConform.enterStartDate(nonConformData.dateOfEvent);
       nonConform.selectReportingUnit(nonConformData.reportingUnit);
@@ -92,11 +93,10 @@ describe("Report Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      // nonConform.validateSearchResult(patient.labNo);
+      nonConform.validateSearchResult(patient.labNo);
     });
     nonConform.clickCheckbox({ force: true });
     nonConform.clickGoToNceFormButton({ timeout: 12000 });
-    nonConform.getAndSaveNceNumber();
   });
 
   it("Enter details", function () {
@@ -124,7 +124,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      //nonConform.validateLabNoSearchResult(patient.labNo);
+      nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
 
@@ -146,10 +146,10 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
-      // nonConform.validateNCESearchResult(nce.NceNumber);
+      //nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
-  /* under examination
+  
   it("Enter The details and Submit", function () {
     cy.fixture("NonConform").then((nce) => {
       nonConform.enterNceCategory(nce.nceCategory, { timeout: 12000 });
@@ -161,7 +161,6 @@ describe("View New Non-Conforming Event", function () {
       nonConform.submitForm();
     });
   });
-  */
 });
 
 describe("Corrective Actions", function () {
@@ -200,7 +199,7 @@ describe("Corrective Actions", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
-      // nonConform.validateNCESearchResult(nce.NceNumber);
+      nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
 
