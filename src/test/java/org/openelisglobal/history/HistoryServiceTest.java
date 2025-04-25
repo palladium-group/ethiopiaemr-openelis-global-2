@@ -22,8 +22,20 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     private EntityManager entityManager;
 
     @Before
-    public void init() throws Exception {
-        executeDataSetWithStateManagement("testdata/history.xml");
+    public void init() {
+        try {
+            executeDataSetWithStateManagement("testdata/history.xml");
+        } catch (Exception e) {
+            System.err.println(" Failed to execute dataset: testdata/history.xml");
+            System.err.println("Exception Message: " + e.getMessage());
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                System.err.println("Caused by: " + cause.getClass().getName() + " - " + cause.getMessage());
+                cause = cause.getCause();
+            }
+            e.printStackTrace(); // Print full stack trace for CI
+            throw new RuntimeException("Dataset setup failed. See logs above for root cause.", e);
+        }
     }
 
     @Test
@@ -90,19 +102,19 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
         Assert.assertEquals(newTimestamp, updatedHistory.getTimestamp());
     }
 
-//    @Test
-//    public void getHistoryByRefIdAndRefTableId_differentTableIds_shouldReturnCorrectRecords() {
-//        List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
-//        Assert.assertFalse(historyList.isEmpty());
-//        Assert.assertEquals(1, historyList.size());
-//    }
-//
-//    @Test
-//    public void getHistory_differentRefTables_shouldReturnCorrectCounts() {
-//        List<History> table1 = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
-//        Assert.assertEquals(2, table1.size());
-//
-//        List<History> table2 = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
-//        Assert.assertEquals(1, table2.size());
-//    }
+    @Test
+    public void getHistoryByRefIdAndRefTableId_differentTableIds_shouldReturnCorrectRecords() {
+        List<History> historyList = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
+        Assert.assertFalse(historyList.isEmpty());
+        Assert.assertEquals(1, historyList.size());
+    }
+
+    @Test
+    public void getHistory_differentRefTables_shouldReturnCorrectCounts() {
+        List<History> table1 = historyService.getHistoryByRefIdAndRefTableId("67890", "1");
+        Assert.assertEquals(2, table1.size());
+
+        List<History> table2 = historyService.getHistoryByRefIdAndRefTableId("67890", "2");
+        Assert.assertEquals(1, table2.size());
+    }
 }
