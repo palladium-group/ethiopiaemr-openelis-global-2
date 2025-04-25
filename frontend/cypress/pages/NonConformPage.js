@@ -45,6 +45,7 @@ class NonConform {
   // Form interactions
   selectSearchType(type) {
     cy.get(this.selectors.searchType).select(type);
+
   }
 
   enterSearchField(value) {
@@ -53,6 +54,7 @@ class NonConform {
 
   clickSearchButton() {
     cy.get(this.selectors.searchButton).should("be.visible").click();
+
   }
 
   // Search results validation
