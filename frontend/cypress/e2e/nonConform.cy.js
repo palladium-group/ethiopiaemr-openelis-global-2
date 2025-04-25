@@ -149,7 +149,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
-  
+
   it("Enter The details and Submit", function () {
     cy.fixture("NonConform").then((nce) => {
       nonConform.enterNceCategory(nce.nceCategory, { timeout: 12000 });

@@ -14,434 +14,319 @@ import AdminPage from "./AdminPage";
 
 class HomePage {
   constructor() {
-    // Centralized selectors
-    this.selectors = {
-      menuButton: "[data-cy='menuButton']",
-      sampleDropdown: "#menu_sample",
-      patientDropdown: "#menu_patient",
-      workplanDropdown: "#menu_workplan",
-      nonconformityDropdown: "#menu_nonconformity",
-      resultsMenu: "#menu_results",
-      resultsMenuExt: "#menu_results_dropdown",
-      resultValidationMenu: "#menu_resultvalidation",
-      reportsMenu: "#menu_reports",
-      pathologyMenu: "#menu_pathology",
-      immunochemMenu: "#menu_immunochem",
-      cytologyMenu: "#menu_cytology",
-      administrationMenu: "#menu_administration",
-      minimizeIcon: "#minimizeIcon",
-      searchIcon: "#search-Icon",
-      searchItem: "#searchItem",
-      patientSearch: "#patientSearch",
-      notificationIcon: "#notification-Icon",
-      userIcon: "#user-Icon",
-      helpIcon: "#user-Help",
-      maximizeIcon: "#maximizeIcon",
-      sampleAddNav: "#menu_sample_add_nav",
-      sampleBatchEntryNav: "#menu_sample_batch_entry_nav",
-      sampleEditNav: "#menu_sample_edit_nav",
-      patientAddOrEditNav: "#menu_patient_add_or_edit_nav",
-      workplanTestNav: "#menu_workplan_test_nav",
-      workplanPanelNav: "#menu_workplan_panel_nav",
-      workplanBenchNav: "#menu_workplan_bench_nav",
-      workplanPriorityNav: "#menu_workplan_priority_nav",
-      nonConformingReportNav: "#menu_non_conforming_report_nav",
-      nonConformingViewNav: "#menu_non_conforming_view_nav",
-      nonConformingCorrectiveActionsNav:
-        "#menu_non_conforming_corrective_actions_nav",
-      resultsLogbook: "#menu_results_logbook_nav",
-      resultsAccession: "#menu_results_accession_nav",
-      resultsPatient: "#menu_results_patient_nav",
-      resultsReferred: "#menu_results_referred_nav",
-      resultsRange: "#menu_results_range_nav",
-      resultsStatus: "#menu_results_status_nav",
-      resultValidationRoutine: "#menu_resultvalidation_routine",
-      accessionValidation: "#menu_accession_validation",
-      accessionValidationRange: "#menu_accession_validation_range",
-      reportsRoutineNav: "[data-cy='sidenav-button-menu_reports_routine']",
-      reportsStudyNav: "[data-cy='sidenav-button-menu_reports_study']",
-    };
+    // Removed centralized selectors
   }
 
-  // Visit the home page
   visit() {
     cy.visit("/");
   }
 
-  // Navigate to the login page
   goToSign() {
     return new LoginPage();
   }
 
-  // Open the navigation menu
   openNavigationMenu() {
-    cy.get(this.selectors.menuButton, { timeout: 30000 }).click();
+    cy.get("[data-cy='menuButton']", { timeout: 30000 }).click();
   }
 
-  // Click a dropdown item
-  clickDropdownItem(dropdownSelector, itemSelector) {
+  // Order Entry related functions
+  goToOrderPageExt() {
     this.openNavigationMenu();
-    cy.get(dropdownSelector, { timeout: 15000 }).click({ force: true });
-    cy.get(itemSelector, { timeout: 15000 }).click({ force: true });
-  }
-
-  // Navigate to the Order Entry page
-  goToOrderPage() {
-    this.clickDropdownItem(
-      this.selectors.sampleDropdown,
-      this.selectors.sampleAddNav,
-    );
+    cy.get("span#menu_sample_dropdown").click({ force: true });
+    cy.get("#menu_sample_add_nav", { timeout: 20000 }).click({ force: true });
     return new OrderEntityPage();
   }
 
-  // Navigate to the Batch Order Entry page
+  goToOrderPage() {
+    this.openNavigationMenu();
+    cy.get("span#menu_sample", { timeout: 20000 }).should("be.visible").click();
+    cy.get("#menu_sample_add_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new OrderEntityPage();
+  }
+
   goToBatchOrderEntry() {
     this.openNavigationMenu();
-    cy.get(this.selectors.sampleDropdown, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.sampleBatchEntryNav, { timeout: 15000 }).click({
-      force: true,
-    });
+    //cy.get("span#menu_sample").click();
+    cy.contains("span", "Order").click();
+    cy.get("#menu_sample_batch_entry").click();
     return new BatchOrderEntry();
   }
 
-  // Navigate to the Patient Entry page
+  // Patient Entry related functions
   goToPatientEntry() {
-    this.clickDropdownItem(
-      this.selectors.patientDropdown,
-      this.selectors.patientAddOrEditNav,
-    );
+    this.openNavigationMenu();
+    cy.get("span#menu_patient", { timeout: 20000 }).click();
+    cy.get("#menu_patient_add_or_edit_nav", { timeout: 20000 }).click();
     return new PatientEntryPage();
   }
 
-  // Navigate to the Modify Order page
+  // Modify Order related functions
   goToModifyOrderPage() {
-    this.clickDropdownItem(
-      this.selectors.sampleDropdown,
-      this.selectors.sampleEditNav,
-    );
+    this.openNavigationMenu();
+    cy.get("span#menu_sample", { timeout: 20000 }).should("be.visible").click();
+    cy.get("#menu_sample_edit_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
     return new ModifyOrderPage();
   }
 
-  // Navigate to the Work Plan by Test page
+  // Work Plan related functions
   goToWorkPlanPlanByTest() {
-    this.clickDropdownItem(
-      this.selectors.workplanDropdown,
-      this.selectors.workplanTestNav,
-    );
-    return new WorkPlan();
-  }
-
-  // Navigate to the Work Plan by Panel page
-  goToWorkPlanPlanByPanel() {
-    this.clickDropdownItem(
-      this.selectors.workplanDropdown,
-      this.selectors.workplanPanelNav,
-    );
-    return new WorkPlan();
-  }
-
-  // Navigate to the Work Plan by Unit page
-  goToWorkPlanPlanByUnit() {
-    this.clickDropdownItem(
-      this.selectors.workplanDropdown,
-      this.selectors.workplanBenchNav,
-    );
-    return new WorkPlan();
-  }
-
-  // Navigate to the Work Plan by Priority page
-  goToWorkPlanPlanByPriority() {
-    this.clickDropdownItem(
-      this.selectors.workplanDropdown,
-      this.selectors.workplanPriorityNav,
-    );
-    return new WorkPlan();
-  }
-
-  // Navigate to the Non-Conforming Report page
-  goToReportNCE() {
-    this.clickDropdownItem(
-      this.selectors.nonconformityDropdown,
-      this.selectors.nonConformingReportNav,
-    );
-    return new NonConform();
-  }
-
-  // Navigate to the View Non-Conforming Events page
-  goToViewNCE() {
-    this.clickDropdownItem(
-      this.selectors.nonconformityDropdown,
-      this.selectors.nonConformingViewNav,
-    );
-    return new NonConform();
-  }
-
-  // Navigate to the Corrective Actions page
-  goToCorrectiveActions() {
-    this.clickDropdownItem(
-      this.selectors.nonconformityDropdown,
-      this.selectors.nonConformingCorrectiveActionsNav,
-    );
-    return new NonConform();
-  }
-
-  // Navigate to the Results by Unit page
-  goToResultsByUnit() {
-    this.clickDropdownItem(
-      this.selectors.resultsMenu,
-      this.selectors.resultsLogbook,
-    );
-    return new Result();
-  }
-
-  // Navigate to the Results by Order page
-  goToResultsByOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu, { timeout: 1500 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultsAccession, { timeout: 1500 }).click({
-      force: true,
-    });
+    cy.get("span#menu_workplan", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    cy.get("#menu_workplan_test_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new WorkPlan();
+  }
+
+  goToWorkPlanPlanByPanel() {
+    this.openNavigationMenu();
+    cy.get("span#menu_workplan").click({ force: true });
+    cy.get("#menu_workplan_panel_nav", { timeout: 20000 }).click();
+    return new WorkPlan();
+  }
+
+  goToWorkPlanPlanByUnit() {
+    this.openNavigationMenu();
+    cy.get("span#menu_workplan", { timeout: 20000 }).click();
+    cy.get("#menu_workplan_bench_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new WorkPlan();
+  }
+
+  goToWorkPlanPlanByPriority() {
+    this.openNavigationMenu();
+    cy.get("span#menu_workplan", { timeout: 20000 }).click();
+    cy.get("#menu_workplan_priority_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new WorkPlan();
+  }
+
+  // Non-Conforming related functions
+  goToReportNCE() {
+    this.openNavigationMenu();
+    cy.get("span#menu_nonconformity_dropdown", { timeout: 20000 }).click();
+    cy.get("span#menu_non_conforming_report", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new NonConform();
+  }
+
+  goToViewNCE() {
+    this.openNavigationMenu();
+    cy.get("span#menu_nonconformity_dropdown", { timeout: 20000 }).click();
+    cy.get("span#menu_non_conforming_view", { timeout: 20000 })
+      .should("be.visible")
+      .click();
+    return new NonConform();
+  }
+
+  goToCorrectiveActions() {
+    this.openNavigationMenu();
+    cy.get("span#menu_nonconformity", { timeout: 20000 }).click();
+    cy.get("span#menu_non_conforming_corrective_actions")
+      .should("be.visible")
+      .click();
+    return new NonConform();
+  }
+
+  // Results related functions
+  goToResultsByUnit() {
+    this.openNavigationMenu();
+    cy.get("span#menu_results", { timeout: 20000 }).click();
+    cy.get("#menu_results_logbook_nav", { timeout: 20000 })
+      .should("be.visible")
+      .click();
     return new Result();
   }
 
-  // Navigate to the Results by Patient page
+  goToResultsByOrder() {
+    cy.get("[data-cy='menuButton']").click();
+    cy.get("span#menu_results_dropdown").click();
+    cy.get("#menu_results_accession_nav").click();
+
+    return new Result();
+  }
+
   goToResultsByPatient() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenuExt, { timeout: 1500 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultsPatient, { timeout: 1500 }).click({
-      force: true,
-    });
+    cy.contains("span", "Results").click();
+    cy.contains("span", "By Patient").click();
+
     return new Result();
   }
 
-  // Navigate to the Results for Referred Out page
   goToResultsForRefferedOut() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultsReferred, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("span#menu_results", { timeout: 20000 }).click();
+    cy.get("#menu_results_referred_nav", { timeout: 20000 }).click();
     return new Result();
   }
 
-  // Navigate to the Results by Range Order page
   goToResultsByRangeOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultsRange, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("span#menu_results", { timeout: 20000 }).click();
+    cy.get("#menu_results_range_nav", { timeout: 20000 }).click();
     return new Result();
   }
 
-  // Navigate to the Results by Test and Status page
   goToResultsByTestAndStatus() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultsStatus, { timeout: 15000 }).click({
-      force: true,
-    });
-
+    cy.get("span#menu_results", { timeout: 20000 }).click();
+    cy.get("#menu_results_status_nav", { timeout: 20000 }).click();
     return new Result();
   }
 
-  // Navigate to the Validation by Routine page
+  // Validation related functions
   goToValidationByRoutine() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.resultValidationRoutine, { timeout: 15000 }).click({
-      force: true,
-    });
-
+    cy.contains("span", "Validation").click();
+    cy.contains("span", "Routine").click();
     return new Validation();
   }
 
-  // Navigate to the Validation by Order page
   goToValidationByOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.accessionValidation, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.contains("span", "Validation").click();
+    cy.get("#menu_accession_validation").click();
     return new Validation();
   }
 
-  // Navigate to the Validation by Range Order page
   goToValidationByRangeOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultValidationMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.accessionValidationRange, { timeout: 15000 }).click({
-      force: true,
-    });
-
+    cy.contains("span", "Validation").click();
+    cy.contains("span", "By Range of Order Numbers").click();
     return new Validation();
   }
 
-  // Navigate to the Routine Reports page
+  // Reports related functions
   goToRoutineReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.reportsRoutineNav, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("#menu_reports", { timeout: 20000 }).click();
+    cy.get("#menu_reports_routine", { timeout: 20000 })
+      .should("be.visible")
+      .click();
     return new RoutineReportPage();
   }
 
-  // Navigate to the Study Reports page
   goToStudyReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-    cy.get(this.selectors.reportsStudyNav, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("#menu_reports", { timeout: 20000 }).click();
+    cy.get("[data-cy='sidenav-button-menu_reports_study']", { timeout: 20000 })
+      .should("be.visible")
+      .click();
     return new StudyReportPage();
   }
 
   goToReports() {
     this.openNavigationMenu();
-    cy.get(this.selectors.reportsMenu, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("#menu_reports", { timeout: 15000 }).click();
   }
 
-  // Navigate to the Pathology Dashboard
+  // Dashboard related functions
   goToPathologyDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.pathologyMenu, { timeout: 15000 }).click({
-      force: true,
-    });
-
+    cy.get("#menu_pathology_nav", { timeout: 15000 })
+      .should("be.visible")
+      .click();
     return new DashBoardPage();
   }
 
-  // Navigate to the ImmunoChemistry Dashboard
   goToImmunoChemistryDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.immunochemMenu, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("#menu_immunochem").click();
     return new DashBoardPage();
   }
 
-  // Navigate to the Cytology Dashboard
   goToCytologyDashboard() {
     this.openNavigationMenu();
-    cy.get(this.selectors.cytologyMenu, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("#menu_cytology").click();
     return new DashBoardPage();
   }
 
-  // Navigate to the Admin page
-  goToAdminPage() {
+  // Admin related functions
+  goToAdminPageProgram() {
     this.openNavigationMenu();
-    cy.get(this.selectors.administrationMenu, { timeout: 15000 }).click({
-      force: true,
-    });
+    cy.get("span#menu_administration", { timeout: 30000 }).click();
     return new AdminPage();
   }
 
-  // Home page navigation
+  goToAdminPage() {
+    this.openNavigationMenu();
+    cy.get("#menu_administration_nav", { timeout: 30000 }).click();
+    return new AdminPage();
+  }
 
-  // Minimize the page
+  // UI interaction functions
   afterAll() {
-    cy.get(this.selectors.minimizeIcon).should("be.visible").click();
+    cy.get("#minimizeIcon").should("be.visible").click();
   }
 
-  // Search for a patient
   searchBar() {
-    cy.get(this.selectors.searchIcon).click();
-    cy.get(this.selectors.searchItem).type("Smith");
-    cy.get(this.selectors.patientSearch).click();
-    cy.get(this.selectors.searchIcon).click();
+    cy.get("#search-Icon").click();
+    cy.get("#searchItem").type("Smith");
+    cy.get("#patientSearch").click();
+    cy.get("#search-Icon").click();
   }
 
-  // Click the notifications icon
   clickNotifications() {
-    cy.get(this.selectors.notificationIcon).click();
-    cy.get(this.selectors.notificationIcon).click();
+    cy.get("#notification-Icon").click();
+    cy.get("#notification-Icon").click();
   }
 
-  // Click the user icon
   clickUserIcon() {
-    cy.get(this.selectors.userIcon).click();
-    cy.get(this.selectors.userIcon).click();
+    cy.get("#user-Icon").click();
+    cy.get("#user-Icon").click();
   }
 
-  // Click the help icon
   clickHelpIcon() {
-    cy.get(this.selectors.helpIcon).click();
-    cy.get(this.selectors.helpIcon).click();
+    cy.get("#user-Help").click();
+    cy.get("#user-Help").click();
   }
 
-  // Select In Progress
   selectInProgress() {
-    cy.get(this.selectors.maximizeIcon).click();
+    cy.get("#maximizeIcon").click();
   }
 
-  // Select Ready for Validation
   selectReadyforValidation() {
     cy.contains("a.cds--link", "Ready For Validation").click();
   }
 
-  // Select Orders Completed Today
   selectOrdersCompletedToday() {
     cy.contains("a.cds--link", "Orders Completed Today").click();
   }
 
-  // Select Partially Completed Today
   selectPartiallyCompletedToday() {
     cy.contains("a.cds--link", "Partially Completed Today").click();
   }
 
-  // Select Orders Entered By Users
   selectOrdersEnteredByUsers() {
     cy.contains("a.cds--link", "Orders Entered By Users").click();
   }
 
-  // Select Orders Rejected
   selectOrdersRejected() {
     cy.contains("a.cds--link", "Orders Rejected").click();
   }
 
-  // Select UnPrinted Results
   selectUnPrintedResults() {
     cy.contains("a.cds--link", "UnPrinted Results").click();
   }
 
-  // Select Electronic Orders
   selectElectronicOrders() {
     cy.contains("a.cds--link", "Electronic Orders").click();
   }
 
-  // Select Average Turn Around Time
   selectAverageTurnAroundTime() {
     cy.contains("a.cds--link", "Average Turn Around time").click();
   }
 
-  // Select Delayed Turn Around
   selectDelayedTurnAround() {
     cy.contains("a.cds--link", "Delayed Turn Around").click();
   }
