@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
+    <system_user id="1" external_id="1" login_name="admin"
+        last_name="ELIS" first_name="Open" initials="OE" is_active="Y"
+        is_employee="Y" lastupdated="2006-11-08 11:11:14.312" />
+
     <history id="12345" sys_user_id="1" reference_id="67890"
         reference_table="1" timestamp="2024-03-01 12:00:00" activity="U" />
 
