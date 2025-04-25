@@ -22,20 +22,8 @@ public class HistoryServiceTest extends BaseWebContextSensitiveTest {
     private EntityManager entityManager;
 
     @Before
-    public void init() {
-        try {
-            executeDataSetWithStateManagement("testdata/history.xml");
-        } catch (Exception e) {
-            System.err.println(" Failed to execute dataset: testdata/history.xml");
-            System.err.println("Exception Message: " + e.getMessage());
-            Throwable cause = e.getCause();
-            while (cause != null) {
-                System.err.println("Caused by: " + cause.getClass().getName() + " - " + cause.getMessage());
-                cause = cause.getCause();
-            }
-            e.printStackTrace(); // Print full stack trace for CI
-            throw new RuntimeException("Dataset setup failed. See logs above for root cause.", e);
-        }
+    public void init() throws Exception {
+        executeDataSetWithStateManagement("testdata/history.xml");
     }
 
     @Test
