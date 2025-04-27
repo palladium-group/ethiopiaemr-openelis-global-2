@@ -124,13 +124,11 @@ class NonConform {
   }
 
   selectActionType() {
-    cy.get(
-      "div.cds--sm\:col-span-3:nth-child(30) > div:nth-child(1) > input:nth-child(1)",
-    ).check({ force: true });
+    cy.get("#correctiveAction").check({ force: true });
   }
 
   checkResolution() {
-    cy.contains("#yes\\.option").click();
+    cy.contains("span", "Yes").click();
   }
 
   clickRadioButtonNCE() {
