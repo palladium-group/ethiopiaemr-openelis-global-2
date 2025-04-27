@@ -133,10 +133,9 @@ class NonConform {
 
   clickRadioButtonNCE() {
     cy.get(
-      "tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > label:nth-child(2) > span:nth-child(1)",
-    )
-      //.first()
-      .click();
+      ".cds--data-table > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > label:nth-child(2) > span:nth-child(1)",
+    ).click();
+    //cy.get("[data-cy='Radio-button']").first().click();
   }
 
   enterDateCompleted0(date) {
