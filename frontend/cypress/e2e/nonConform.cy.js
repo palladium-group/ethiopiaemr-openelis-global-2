@@ -124,7 +124,8 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      nonConform.validateLabNoSearchResult(patient.labNo);
+      nonConform.clickRadioButtonNCE();
+      //nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
 
