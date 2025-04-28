@@ -132,7 +132,9 @@ class NonConform {
   }
 
   clickRadioButtonNCE() {
-    cy.get("[data-testid='Radio-button'] > .cds--radio-button-wrapper")
+    cy.get("[data-testid='Radio-button'] > .cds--radio-button-wrapper", {
+      timeout: 15000,
+    })
       .first()
       .click();
   }
