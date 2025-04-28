@@ -124,6 +124,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
+      cy.wait(5000);
       nonConform.clickRadioButtonNCE();
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
@@ -147,6 +148,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
+      cy.wait(5000);
       nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
