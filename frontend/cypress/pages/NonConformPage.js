@@ -1,6 +1,7 @@
 class NonConform {
   constructor() {
     this.selectors = {
+      //centralized selectors
       title: "h2",
       searchType: "#type",
       searchField: "[data-cy='fieldName']",
@@ -186,4 +187,4 @@ class NonConform {
   }
 }
 
-export default NonConform();
+export default NonConform;
