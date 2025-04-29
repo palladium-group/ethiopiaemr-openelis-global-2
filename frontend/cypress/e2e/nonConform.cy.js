@@ -124,7 +124,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      cy.wait(5000);
+      cy.wait(8000);
       nonConform.clickRadioButtonNCE();
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
@@ -179,7 +179,8 @@ describe("Corrective Actions", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      nonConform.clickRadioButtonNCE({ timeout: 12000 });
+      cy.wait(8000);
+      nonConform.clickRadioButtonNCE();
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
