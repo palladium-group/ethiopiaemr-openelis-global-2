@@ -76,7 +76,6 @@ describe("Report Non-Conforming Event", function () {
   });
 
   it("Enter details", function () {
-    nonConform.getAndSaveNceNumber();
     cy.fixture("NonConform").then((nonConformData) => {
       nonConform.enterStartDate(nonConformData.dateOfEvent);
       nonConform.selectReportingUnit(nonConformData.reportingUnit);
@@ -100,6 +99,7 @@ describe("Report Non-Conforming Event", function () {
   });
 
   it("Enter details", function () {
+    nonConform.getAndSaveNceNumber();
     cy.fixture("NonConform").then((nonConformData) => {
       nonConform.enterStartDate(nonConformData.dateOfEvent);
       nonConform.selectReportingUnit(nonConformData.reportingUnit);
@@ -124,8 +124,6 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      cy.wait(12000);
-      nonConform.clickRadioButtonNCE();
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
@@ -179,8 +177,6 @@ describe("Corrective Actions", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
-      cy.wait(12000);
-      nonConform.clickRadioButtonNCE();
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
