@@ -132,7 +132,6 @@ class NonConform {
   }
 
   clickRadioButtonNCE() {
-    // Wait for the table to be visible first
     cy.get("table").should("be.visible");
 
     // Wait for at least one radio button to be present
