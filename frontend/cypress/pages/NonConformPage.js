@@ -1,34 +1,36 @@
-class NonConformPage {
-  selectors = {
-    title: "h2",
-    searchType: "#type",
-    searchField: "[data-cy='fieldName']",
-    searchButton: "[data-testid='nce-search-button']",
-    searchResult: "[data-testid='nce-search-result']",
-    nceNumberResult: "[data-testid='nce-number-result']",
-    sampleCheckbox: "[data-testid='nce-sample-checkbox']",
-    goToFormButton: "[data-testid='nce-goto-form-button']",
-    startDate: "input#startDate",
-    reportingUnits: "#reportingUnits",
-    description: "#text-area-1",
-    suspectedCause: "#text-area-2",
-    correctiveActionText: "#text-area-3",
-    descriptionAndComments: "#text-area-10",
-    nceCategory: "#nceCategory",
-    nceType: "#nceType",
-    consequences: "#consequences",
-    recurrence: "#recurrence",
-    labComponent: "#labComponent",
-    discussionDate: "#tdiscussionDate",
-    proposedCorrectiveAction: "#text-area-corrective",
-    dateCompleted: "#dateCompleted",
-    actionTypeCheckbox: "#correctiveAction",
-    resolutionYes: "span:contains('Yes')",
-    dateCompleted0: ".cds--date-picker-input__wrapper > #dateCompleted-0",
-    submitButton: "[data-testid='nce-submit-button']",
-    radioTable: "table",
-    radioButton: 'input[type="radio"][name="radio-group"]',
-  };
+class NonConform {
+  constructor() {
+    this.selectors = {
+      title: "h2",
+      searchType: "#type",
+      searchField: "[data-cy='fieldName']",
+      searchButton: "[data-testid='nce-search-button']",
+      searchResult: "[data-testid='nce-search-result']",
+      nceNumberResult: "[data-testid='nce-number-result']",
+      sampleCheckbox: "[data-testid='nce-sample-checkbox']",
+      goToFormButton: "[data-testid='nce-goto-form-button']",
+      startDate: "input#startDate",
+      reportingUnits: "#reportingUnits",
+      description: "#text-area-1",
+      suspectedCause: "#text-area-2",
+      correctiveActionText: "#text-area-3",
+      descriptionAndComments: "#text-area-10",
+      nceCategory: "#nceCategory",
+      nceType: "#nceType",
+      consequences: "#consequences",
+      recurrence: "#recurrence",
+      labComponent: "#labComponent",
+      discussionDate: "#tdiscussionDate",
+      proposedCorrectiveAction: "#text-area-corrective",
+      dateCompleted: "#dateCompleted",
+      actionTypeCheckbox: "#correctiveAction",
+      resolutionYes: "span:contains('Yes')",
+      dateCompleted0: ".cds--date-picker-input__wrapper > #dateCompleted-0",
+      submitButton: "[data-testid='nce-submit-button']",
+      radioTable: "table",
+      radioButton: 'input[type="radio"][name="radio-group"]',
+    };
+  }
 
   getReportNonConformTitle() {
     return cy.get(this.selectors.title);
@@ -184,4 +186,4 @@ class NonConformPage {
   }
 }
 
-export default new NonConformPage();
+export default NonConform();
