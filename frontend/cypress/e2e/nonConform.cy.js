@@ -30,6 +30,7 @@ describe("Report Non-Conforming Event", function () {
   });
 
   it("Enter details", function () {
+    nonConform.getAndSaveNceNumber();
     cy.fixture("NonConform").then((nonConformData) => {
       nonConform.enterStartDate(nonConformData.dateOfEvent);
       nonConform.selectReportingUnit(nonConformData.reportingUnit);
@@ -99,7 +100,6 @@ describe("Report Non-Conforming Event", function () {
   });
 
   it("Enter details", function () {
-    nonConform.getAndSaveNceNumber();
     cy.fixture("NonConform").then((nonConformData) => {
       nonConform.enterStartDate(nonConformData.dateOfEvent);
       nonConform.selectReportingUnit(nonConformData.reportingUnit);
@@ -124,6 +124,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
+      //nonConform.checkRadioButton(); //Only needed locally, not in the CI
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
@@ -146,7 +147,7 @@ describe("View New Non-Conforming Event", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
-      cy.wait(5000);
+      cy.wait(200);
       nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });
@@ -177,6 +178,7 @@ describe("Corrective Actions", function () {
       nonConform.selectSearchType("Lab Number");
       nonConform.enterSearchField(patient.labNo);
       nonConform.clickSearchButton();
+      //nonConform.checkRadioButton(); //Only needed locally, not in the CI
       nonConform.validateLabNoSearchResult(patient.labNo);
     });
   });
@@ -199,6 +201,7 @@ describe("Corrective Actions", function () {
       nonConform.selectSearchType("NCE Number");
       nonConform.enterSearchField(nce.NceNumber);
       nonConform.clickSearchButton();
+      cy.wait(200);
       nonConform.validateNCESearchResult(nce.NceNumber);
     });
   });

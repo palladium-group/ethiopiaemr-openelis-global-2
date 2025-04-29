@@ -131,7 +131,16 @@ class NonConform {
     cy.contains("span", "Yes").click();
   }
 
-  clickRadioButtonNCE() {
+  enterDateCompleted0(date) {
+    cy.get(".cds--date-picker-input__wrapper > #dateCompleted-0").type(date);
+  }
+
+  clickSubmitButton() {
+    cy.get("[data-testid='nce-submit-button']").should("be.visible").click();
+  }
+
+  checkRadioButton() {
+    // Wait for the table to be visible first
     cy.get("table").should("be.visible");
 
     // Wait for at least one radio button to be present
@@ -148,14 +157,6 @@ class NonConform {
       });
   }
 
-  enterDateCompleted0(date) {
-    cy.get(".cds--date-picker-input__wrapper > #dateCompleted-0").type(date);
-  }
-
-  clickSubmitButton() {
-    cy.get("[data-testid='nce-submit-button']").should("be.visible").click();
-  }
-  // Data management
   getAndSaveNceNumber() {
     cy.get("[data-testid='nce-number-result']")
       .invoke("text")
