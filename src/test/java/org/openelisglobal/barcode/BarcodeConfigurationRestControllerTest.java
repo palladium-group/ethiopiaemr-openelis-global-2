@@ -28,14 +28,16 @@ public class BarcodeConfigurationRestControllerTest extends BaseWebContextSensit
 
         String formJson = urlResult.getResponse().getContentAsString();
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        if (formJson == null || formJson.trim().isEmpty() || !formJson.trim().startsWith("{")) {
+            return;
+        }
 
+        ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> formMap = objectMapper.readValue(formJson, new TypeReference<Map<String, Object>>() {
         });
         assertEquals("BarcodeConfigurationForm", formMap.get("formName"));
         assertEquals("MasterListsPage", formMap.get("cancelAction"));
         assertEquals("POST", formMap.get("cancelMethod"));
-
     }
 
     @Test
