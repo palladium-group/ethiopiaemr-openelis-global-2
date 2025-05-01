@@ -16,8 +16,8 @@ before("login", () => {
   loginPage.visit();
 });
 
-describe("Add requester and site details first", function () {
-  it("Navidates to admin", function () {
+describe("Add requester, institute and site first", function () {
+  it("Navidates to Admin", function () {
     homePage = loginPage.goToHomePage();
     orderEntityPage = homePage.goToAdminPageProgram();
     orderEntityPage = adminPage.goToProviderManagementPage();
@@ -50,6 +50,22 @@ describe("Add requester and site details first", function () {
     orderEntityPage = adminPage.goToOrganizationManagement();
     orgMgmnt.searchOrganzation();
     orgMgmnt.confirmOrganization();
+  });
+
+  it("Add institute details", function () {
+    orgMgmnt.clickAddOrganization();
+    orgMgmnt.addInstituteName();
+    orgMgmnt.activateOrganization();
+    //orgMgmnt.addInstitutePrefix();
+    orgMgmnt.addParentOrg();
+    orgMgmnt.checkReferalLab();
+    orgMgmnt.saveOrganization();
+  });
+
+  it("Validates the added site/organization", function () {
+    orderEntityPage = adminPage.goToOrganizationManagement();
+    orgMgmnt.searchOInstitute();
+    orgMgmnt.confirmInstitute();
   });
 });
 
@@ -93,7 +109,9 @@ describe("Order Entity", function () {
         orderEntityPage.checkPanelCheckBoxField();
       });
     });
-    cy.wait(1000);
+    orderEntityPage.referTest();
+    orderEntityPage.selectReferralReason();
+    orderEntityPage.selectInstitute();
     orderEntityPage.clickNextButton();
   });
 

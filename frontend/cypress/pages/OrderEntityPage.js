@@ -29,6 +29,17 @@ class OrderEntityPage {
     cy.contains("span", "Serologie VIH").click();
   }
 
+  referTest() {
+    cy.contains("span", "Refer test to a reference lab").click();
+  }
+
+  selectInstitute() {
+    cy.get("#referredInstituteId_0_1").select("CEDRES");
+  }
+
+  selectReferralReason() {
+    cy.get("#referralReasonId_0_1").select("Test not performed");
+  }
   generateLabOrderNumber() {
     cy.get("[data-cy='generate-labNumber']").click();
   }
