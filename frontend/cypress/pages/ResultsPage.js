@@ -4,10 +4,10 @@ class Result {
       resultTitle: "h3",
       unitType: "#unitType",
       testMethod: "#testMethod0",
-      collectionDate: "#collectionDate",
-      receivedDate: "#recievedDate",
-      startDate: "#startDate",
-      endDate: "#endDate",
+      collectionDate: "input#collectionDate",
+      receivedDate: "input#recievedDate",
+      startDate: "input#startDate",
+      endDate: "input#endDate",
       referralReason: "#referralReason0",
       institute: "#institute0",
       sampleStatus: "#sampleStatusType",
@@ -85,6 +85,10 @@ class Result {
 
   enterReceivedDate() {
     cy.get(this.selectors.receivedDate).should("be.visible").type("01/05/2025");
+  }
+
+  clickReceivedDate() {
+    cy.get(this.selectors.receivedDate).should("be.visible").click();
   }
 
   validatePatientResult(lName, fName) {

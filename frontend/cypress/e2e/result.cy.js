@@ -301,6 +301,7 @@ describe("Result By Test And Status", function () {
   it("Search by Collection Date", function () {
     cy.fixture("result").then((res) => {
       result.enterCollectionDate();
+      result.clickReceivedDate();
       result.searchResults();
       result.expandSampleDetails();
       result.selectTestMethod(res.pcrTestMethod);
