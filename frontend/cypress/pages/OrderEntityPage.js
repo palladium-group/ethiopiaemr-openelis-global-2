@@ -24,6 +24,17 @@ class OrderEntityPage {
   selectSampleTypeOption(sampleType) {
     cy.getElement("select#sampleId_0").select(sampleType);
   }
+
+  collectionDate(value) {
+    cy.get("#collectionDate_0").type(value);
+  }
+
+  requestDate(value) {
+    cy.get("#order_requestDate").type(value);
+  }
+  receivedDate(value) {
+    cy.get("#order_receivedDate").type(value);
+  }
   checkPanelCheckBoxField() {
     cy.contains("span", "Bilan Biochimique").click();
     cy.contains("span", "Serologie VIH").click();

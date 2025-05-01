@@ -106,6 +106,7 @@ describe("Order Entity", function () {
     cy.fixture("Order").then((order) => {
       order.samples.forEach((sample) => {
         orderEntityPage.selectSampleTypeOption(sample.sampleType);
+        orderEntityPage.collectionDate(sample.collectionDate);
         orderEntityPage.checkPanelCheckBoxField();
       });
     });
@@ -117,6 +118,12 @@ describe("Order Entity", function () {
 
   it("Generate Lab Order Number", function () {
     orderEntityPage.generateLabOrderNumber();
+    cy.fixture("Order").then((order) => {
+      order.samples.forEach((sample) => {
+        orderEntityPage.requestDate(sample.receivedDate);
+        orderEntityPage.receivedDate(sample.receivedDate);
+      });
+    });
   });
 
   it("Select site name", function () {

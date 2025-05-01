@@ -80,11 +80,11 @@ class Result {
   enterCollectionDate() {
     cy.get(this.selectors.collectionDate)
       .should("be.visible")
-      .type("24/03/2025");
+      .type("30/04/2025");
   }
 
   enterReceivedDate() {
-    cy.get(this.selectors.receivedDate).should("be.visible").type("26/03/2025");
+    cy.get(this.selectors.receivedDate).should("be.visible").type("01/05/2025");
   }
 
   validatePatientResult(lName, fName) {
