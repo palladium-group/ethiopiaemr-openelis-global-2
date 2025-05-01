@@ -26,14 +26,14 @@ class OrderEntityPage {
   }
 
   collectionDate(value) {
-    cy.get("#collectionDate_0").type(value);
+    cy.get("input#collectionDate_0").type(value);
   }
 
   requestDate(value) {
-    cy.get("#order_requestDate").type(value);
+    cy.get("input#order_requestDate").type(value);
   }
   receivedDate(value) {
-    cy.get("#order_receivedDate").type(value);
+    cy.get("input#order_receivedDate").type(value);
   }
   checkPanelCheckBoxField() {
     cy.contains("span", "Bilan Biochimique").click();
