@@ -62,9 +62,9 @@ describe("Add requester, institute and site first", function () {
     orgMgmnt.saveOrganization();
   });
 
-  it("Validates the added site/organization", function () {
+  it("Validates the added institute", function () {
     orderEntityPage = adminPage.goToOrganizationManagement();
-    orgMgmnt.searchOInstitute();
+    orgMgmnt.searchInstitute();
     orgMgmnt.confirmInstitute();
   });
 });

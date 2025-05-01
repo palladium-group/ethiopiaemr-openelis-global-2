@@ -1,22 +1,17 @@
 class OrganizationManagementPage {
   constructor() {
     this.selectors = {
-      // Buttons
       addButton: "[data-cy='add-button']",
       saveButton: "#saveButton",
-
-      // Input fields
       orgName: "#org-name",
       orgPrefix: "#org-prefix",
       isActive: "#is-active",
       parentOrgName: "#parentOrgName",
       orgSearchBar: "#org-name-search-bar",
-
-      // Checkboxes
       referringClinic: '[id="5:select"]',
       referralLab: '[id="6:select"]',
-
-      // Table selectors
+      orgTableRowOne:
+        "div > div.cds--data-table-container > div > table > tbody > tr:nth-child(1)",
       orgTableRow: ".cds--data-table > tbody:nth-child(2)",
     };
   }
@@ -65,12 +60,12 @@ class OrganizationManagementPage {
     cy.get(this.selectors.orgSearchBar).should("be.visible").type("CAMES MAN");
   }
 
-  searchOInstitute() {
+  searchInstitute() {
     cy.get(this.selectors.orgSearchBar).should("be.visible").type("CEDRES");
   }
 
   confirmOrganization() {
-    cy.get(this.selectors.orgTableRow)
+    cy.get(this.selectors.orgTableRowOne)
       .contains("CAMES MAN")
       .should("be.visible");
   }
