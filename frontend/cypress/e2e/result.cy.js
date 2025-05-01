@@ -281,10 +281,6 @@ describe("Result By Range Of Order", function () {
     result.expandSampleDetails();
     cy.fixture("result").then((res) => {
       result.selectTestMethod(res.pcrTestMethod);
-      result.referTests(res.referTests);
-      result.referralReason(res.referalReason);
-      result.selectInstitute(res.cedres);
-      //result.setResultValue(res.resultNo);
     });
     result.submitResults();
   });
