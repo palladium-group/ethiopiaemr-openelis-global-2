@@ -106,8 +106,8 @@ describe("Order Entity", function () {
     cy.fixture("Order").then((order) => {
       order.samples.forEach((sample) => {
         orderEntityPage.selectSampleTypeOption(sample.sampleType);
-        orderEntityPage.collectionDate(sample.collectionDate);
         orderEntityPage.checkPanelCheckBoxField();
+        orderEntityPage.collectionDate(sample.collectionDate);
       });
     });
     orderEntityPage.referTest();
@@ -116,14 +116,14 @@ describe("Order Entity", function () {
     orderEntityPage.clickNextButton();
   });
 
-  it("Generate Lab Order Number", function () {
-    orderEntityPage.generateLabOrderNumber();
+  it("Generate Lab Order Number, Request and Received Dates", function () {
     cy.fixture("Order").then((order) => {
       order.samples.forEach((sample) => {
         orderEntityPage.requestDate(sample.receivedDate);
         orderEntityPage.receivedDate(sample.receivedDate);
       });
     });
+    orderEntityPage.generateLabOrderNumber();
   });
 
   it("Select site name", function () {
