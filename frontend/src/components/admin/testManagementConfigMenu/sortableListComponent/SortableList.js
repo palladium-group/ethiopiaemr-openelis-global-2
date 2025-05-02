@@ -157,7 +157,7 @@ export const SortableResultSelectionOptionList = ({
     const dragIndex = e.dataTransfer.getData("dragIndex");
     if (dragIndex === dropIndex) return;
 
-    const newItems = [...tests?.items];
+    const newItems = [...tests.items];
     const [draggedItem] = newItems.splice(dragIndex, 1);
     newItems.splice(dropIndex, 0, draggedItem);
     const updatedItems = newItems.map((item, index) => ({
@@ -190,18 +190,21 @@ export const SortableResultSelectionOptionList = ({
         margin: "10px",
       }}
     >
-      {tests?.description && (
-        <h3
-          key={tests?.id}
-          style={{
-            background: "#cce0d0",
-            padding: "5px",
-            textAlign: "center",
-          }}
-        >
-          {tests?.description}
-        </h3>
-      )}
+      {tests &&
+        typeof tests === "object" &&
+        tests !== null &&
+        "description" in tests && (
+          <h3
+            key={tests?.id}
+            style={{
+              background: "#cce0d0",
+              padding: "5px",
+              textAlign: "center",
+            }}
+          >
+            {tests?.description}
+          </h3>
+        )}
       {tests &&
         tests?.items &&
         tests?.items?.length > 0 &&
@@ -234,7 +237,7 @@ export const SortableResultSelectionOptionList = ({
         {test.items.map((item, index) => {
           return (
             <div key={item.id ?? index}>
-              {item.hasOwnProperty("qualifiable") && (
+              {Object.prototype.hasOwnProperty.call(item, "qualifiable") && (
                 <Checkbox
                   id={`qualifiable-checkbox-${test.id}-${index}`}
                   labelText={"Qualifiable"}
@@ -251,7 +254,7 @@ export const SortableResultSelectionOptionList = ({
                   }}
                 />
               )}
-              {item.hasOwnProperty("normal") && (
+              {Object.prototype.hasOwnProperty.call(item, "normal") && (
                 <Checkbox
                   id={`normal-checkbox-${test.id}-${index}`}
                   labelText={"Normal"}

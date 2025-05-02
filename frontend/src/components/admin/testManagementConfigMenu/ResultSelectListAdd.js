@@ -186,10 +186,10 @@ function ResultSelectListAdd() {
       }
     } else {
       setTestSelectListJson((prev) =>
-        prev.filter((t) => String(t.id) !== String(id)),
+        prev.filter((t) => String(t.id) !== String(testId)),
       );
       setTestSelectListJsonPost((prev) =>
-        prev.filter((t) => String(t.id) !== String(id)),
+        prev.filter((t) => String(t.id) !== String(testId)),
       );
     }
   };
