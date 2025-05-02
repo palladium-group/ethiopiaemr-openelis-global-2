@@ -318,13 +318,10 @@ class HomePage {
   }
 
   // Home page navigation
-
-  // Minimize the page
   afterAll() {
     cy.get(this.selectors.minimizeIcon).should("be.visible").click();
   }
 
-  // Search for a patient
   searchBar() {
     cy.get(this.selectors.searchIcon).click();
     cy.get(this.selectors.searchItem).type("Smith");
@@ -332,70 +329,57 @@ class HomePage {
     cy.get(this.selectors.searchIcon).click();
   }
 
-  // Click the notifications icon
   clickNotifications() {
     cy.get(this.selectors.notificationIcon).click();
     cy.get(this.selectors.notificationIcon).click();
   }
 
-  // Click the user icon
   clickUserIcon() {
     cy.get(this.selectors.userIcon).click();
     cy.get(this.selectors.userIcon).click();
   }
 
-  // Click the help icon
   clickHelpIcon() {
     cy.get(this.selectors.helpIcon).click();
     cy.get(this.selectors.helpIcon).click();
   }
 
-  // Select In Progress
   selectInProgress() {
     cy.get(this.selectors.maximizeIcon).click();
   }
 
-  // Select Ready for Validation
   selectReadyforValidation() {
     cy.contains("a.cds--link", "Ready For Validation").click();
   }
 
-  // Select Orders Completed Today
   selectOrdersCompletedToday() {
     cy.contains("a.cds--link", "Orders Completed Today").click();
   }
 
-  // Select Partially Completed Today
   selectPartiallyCompletedToday() {
     cy.contains("a.cds--link", "Partially Completed Today").click();
   }
 
-  // Select Orders Entered By Users
   selectOrdersEnteredByUsers() {
     cy.contains("a.cds--link", "Orders Entered By Users").click();
   }
 
-  // Select Orders Rejected
   selectOrdersRejected() {
     cy.contains("a.cds--link", "Orders Rejected").click();
   }
 
-  // Select UnPrinted Results
   selectUnPrintedResults() {
     cy.contains("a.cds--link", "UnPrinted Results").click();
   }
 
-  // Select Electronic Orders
   selectElectronicOrders() {
     cy.contains("a.cds--link", "Electronic Orders").click();
   }
 
-  // Select Average Turn Around Time
   selectAverageTurnAroundTime() {
     cy.contains("a.cds--link", "Average Turn Around time").click();
   }
 
-  // Select Delayed Turn Around
   selectDelayedTurnAround() {
     cy.contains("a.cds--link", "Delayed Turn Around").click();
   }
