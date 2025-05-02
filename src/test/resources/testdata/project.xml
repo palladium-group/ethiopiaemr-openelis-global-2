@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-    <!-- Foreign Key: system_user -->
+
     <system_user id="1" external_id="ext-001"
         login_name="admin" last_name="Admin" first_name="System" initials="SA"
         is_active="Y" is_employee="Y" lastupdated="2024-01-01 00:00:00.000000" />
 
-    <!-- Foreign Key: scriptlet -->
     <scriptlet id="1" name="Integration Test Scriptlet" />
 
-    <!-- Main Entity: project -->
     <project id="101" name="Integration Test Project"
         sys_user_id="1" description="Used for integration test"
         started_date="2023-01-01 00:00:00"
@@ -24,16 +22,13 @@
     <organization id="1329" name="Org 1329"
         mls_sentinel_lab_flag="N" />
 
-
     <project_parameter id="3001" param_name="Param1"
         value="SomeValue" operation="IN" projparam_type="A" project_id="101" />
 
-    <!-- Add the missing sample (samp_id="101") -->
     <sample id="101" accession_number="ACC101"
         is_confirmation="true" entered_date="2025-05-02 10:00:00"
         received_date="2025-05-02 09:00:00" />
 
-    <!-- Optional: sample_projects (updated samp_id and proj_id) -->
     <sample_projects samp_id="101" proj_id="101"
         is_permanent="Y" id="1001" />
 </dataset>
