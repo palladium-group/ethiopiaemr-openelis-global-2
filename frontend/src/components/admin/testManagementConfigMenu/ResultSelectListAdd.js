@@ -71,11 +71,6 @@ function ResultSelectListAdd() {
   const [resultTestsDirectory, setResultTestsDirectory] = useState([]);
   const [testSelectListJson, setTestSelectListJson] = useState([]);
   const [testSelectListJsonPost, setTestSelectListJsonPost] = useState([]);
-
-  // [{id: testId, items : [{id: itemId, order: sortingOrder++ },{ qualifiable: boolean, sortingOrder++ }]}]
-  // normal checkbox === hard alert
-  // qualifiable {if checked then in arrary qualifiable : true else false}
-
   const componentMounted = useRef(false);
 
   const handleResultSelectTestListCall = () => {
@@ -122,9 +117,7 @@ function ResultSelectListAdd() {
       JSON.stringify({
         nameEnglish: englishLangPost,
         nameFrench: frenchLangPost,
-        testSelectListJson: JSON.stringify({
-          items: JSON.stringify(testSelectListJsonPost),
-        }),
+        testSelectListJson: JSON.stringify(testSelectListJsonPost),
       }),
       (res) => {
         handlePostSaveResultSelectListCallBack(res);
@@ -134,7 +127,20 @@ function ResultSelectListAdd() {
 
   const handlePostSaveResultSelectListCallBack = (res) => {
     if (res) {
+      setIsLoading(false);
       setResultSelectListRes(res);
+      addNotification({
+        title: intl.formatMessage({
+          id: "notification.title",
+        }),
+        message: intl.formatMessage({
+          id: "notification.user.post.delete.success",
+        }),
+        kind: NotificationKinds.success,
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     } else {
       addNotification({
         kind: NotificationKinds.error,
@@ -142,6 +148,9 @@ function ResultSelectListAdd() {
         message: intl.formatMessage({ id: "server.error.msg" }),
       });
       setNotificationVisible(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     }
   };
 
@@ -185,19 +194,6 @@ function ResultSelectListAdd() {
     }
   };
 
-  // const getTestValueNamesWithTestId = (testId) => {
-  //   const testObj = resultTestsList.find((test) => test.id === testId);
-  //   let testValueNames = [];
-  //   if (testObj) {
-  //     testValueNames.push({
-  //       id: testObj.id,
-  //       description: testObj.description,
-  //     });
-  //     return testValueNames;
-  //   }
-  //   return [];
-  // };
-
   const handleRemove = (id) => {
     setTestSelectListJson((prev) =>
       prev.filter((test) => String(test.id) !== String(id)),
@@ -205,6 +201,26 @@ function ResultSelectListAdd() {
     setTestSelectListJsonPost((prev) =>
       prev.filter((test) => String(test.id) !== String(id)),
     );
+  };
+
+  const enrichTestSelectListJson = (list, englishLangPost) => {
+    return list.map((test) => {
+      const enrichedItems = [
+        ...test.items,
+        {
+          // id: null,
+          value: englishLangPost,
+          qualifiable: true,
+          normal: true,
+          order: test.items.length,
+        },
+      ];
+
+      return {
+        ...test,
+        items: enrichedItems,
+      };
+    });
   };
 
   useEffect(() => {
@@ -420,6 +436,11 @@ function ResultSelectListAdd() {
                     <Button
                       onClick={() => {
                         if (englishLangPost && frenchLangPost !== "") {
+                          const enrichedList = enrichTestSelectListJson(
+                            testSelectListJson,
+                            englishLangPost,
+                          ); //TODO: push frenchLangPost if lang=fr
+                          setTestSelectListJson(enrichedList);
                           setIsConfirmModalOpen(true);
                         } else {
                           setInputError(true);
@@ -532,8 +553,8 @@ function ResultSelectListAdd() {
                     return newArrangement;
                   });
                 }}
-                onRemove={() => {
-                  handleRemove(test.id);
+                onRemove={(testId) => {
+                  handleRemove(testId);
                 }}
               />
             </Column>
@@ -545,7 +566,3 @@ function ResultSelectListAdd() {
 }
 
 export default injectIntl(ResultSelectListAdd);
-
-// remove description and value from the testSelectListJson list
-// check box fix on sortableList component
-// check the testSelectListJsonPost list

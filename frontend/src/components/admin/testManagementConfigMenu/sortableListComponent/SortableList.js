@@ -170,48 +170,10 @@ export const SortableResultSelectionOptionList = ({
       items: updatedItems,
     });
 
-    // const sortedSendout = updatedItems.map((item, index) => {
-    //   return {
-    //     id: Number(item.id), //if id exisit the only nee udpate
-    //     qualifiable: item.qualifiable ?? false, //if qualifiable presed the only send this as ture
-    //     order: index,
-    //   };
-    // });
-
     onSort({
       ...tests,
       items: updatedItems,
     });
-  };
-
-  const handleQualifiableCheckboxClick = (index) => {
-    const updatedItems = [...tests?.items];
-
-    updatedItems[index] = {
-      ...updatedItems[index],
-      qualifiable: !updatedItems[index].qualifiable,
-      order: updatedItems[index].order + 1, // Increment order by 1
-    };
-
-    setTests(updatedItems);
-  };
-
-  const handleNormalCheckboxClick = (index) => {
-    // const updatedItems = [...tests?.items];
-
-    // updatedItems[index] = {
-    //   ...updatedItems[index],
-    //   qualifiable: !updatedItems[index].qualifiable,
-    //   order: updatedItems[index].order - 1, // Decrement order by 1
-    // };
-
-    // setTests(updatedItems);
-
-    alert(
-      <>
-        <FormattedMessage id="configuration.selectList.confirmChange" />
-      </>,
-    );
   };
 
   useEffect(() => {
@@ -269,23 +231,53 @@ export const SortableResultSelectionOptionList = ({
           </div>
         ))}
       <div style={{ margin: "10px", textAlign: "center" }}>
-        <Checkbox
-          id="qualifiable-checkbox"
-          labelText={"Qualifiable"}
-          onClick={() => handleQualifiableCheckboxClick(index)}
-        />
-        <br />
-        <Checkbox
-          id="normal-checkbox"
-          labelText={"Normal"}
-          onClick={() => handleNormalCheckboxClick(index)}
-        />
+        {test.items.map((item, index) => {
+          return (
+            <div key={item.id ?? index}>
+              {item.hasOwnProperty("qualifiable") && (
+                <Checkbox
+                  id={`qualifiable-checkbox-${test.id}-${index}`}
+                  labelText={"Qualifiable"}
+                  checked={item.qualifiable}
+                  onChange={() => {
+                    const updatedItems = test.items.map((itm, idx) =>
+                      idx === index
+                        ? { ...itm, qualifiable: !itm.qualifiable }
+                        : itm,
+                    );
+
+                    const updatedTest = { ...test, items: updatedItems };
+                    onSort(updatedTest);
+                  }}
+                />
+              )}
+              {item.hasOwnProperty("normal") && (
+                <Checkbox
+                  id={`normal-checkbox-${test.id}-${index}`}
+                  labelText={"Normal"}
+                  onChange={() => {
+                    const updatedItems = test.items.map((itm, idx) =>
+                      idx === index ? { ...itm, normal: !itm.normal } : itm,
+                    );
+                    const updatedTest = { ...test, items: updatedItems };
+                    onSort(updatedTest);
+                    alert(
+                      <>
+                        <FormattedMessage id="configuration.selectList.confirmChange" />
+                      </>,
+                    );
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
         <br />
         <Button
           type="button"
           kind="tertiary"
           onClick={() => {
-            onRemove();
+            onRemove(tests?.id);
           }}
         >
           <FormattedMessage id="label.button.remove" />
