@@ -10,7 +10,6 @@ import BatchOrderEntry from "./BatchOrderEntryPage";
 import RoutineReportPage from "./RoutineReportPage";
 import StudyReportPage from "./StudyReportPage";
 import DashBoardPage from "./DashBoard";
-import HelpPage from "./HelpPage";
 import AdminPage from "./AdminPage";
 
 class HomePage {
@@ -173,9 +172,8 @@ class HomePage {
 
   goToResultsByRangeOrder() {
     this.openNavigationMenu();
-    cy.get(this.selectors.resultsMenu).click({ force: true });
-    cy.get(this.selectors.resultsRange).click({ force: true });
-
+    cy.get("span#menu_results", { timeout: 20000 }).click();
+    cy.get("#menu_results_range_nav", { timeout: 20000 }).click();
     return new Result();
   }
 
@@ -253,10 +251,16 @@ class HomePage {
     return new DashBoardPage();
   }
 
-  // Navigate to the Admin page
+  // Admin related functions
+  goToAdminPageProgram() {
+    this.openNavigationMenu();
+    cy.get("span#menu_administration", { timeout: 30000 }).click();
+    return new AdminPage();
+  }
+
   goToAdminPage() {
     this.openNavigationMenu();
-    cy.get(this.selectors.administrationMenu).click();
+    cy.get("#menu_administration_nav", { timeout: 30000 }).click();
     return new AdminPage();
   }
 
@@ -267,7 +271,7 @@ class HomePage {
     return new HelpPage();
   }
 
-  // Home page navigation
+  // UI interaction functions
   afterAll() {
     cy.get("#minimizeIcon").should("be.visible").click();
   }
