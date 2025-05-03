@@ -11,6 +11,7 @@ import RoutineReportPage from "./RoutineReportPage";
 import StudyReportPage from "./StudyReportPage";
 import DashBoardPage from "./DashBoard";
 import AdminPage from "./AdminPage";
+import HelpPage from "./HelpPage";
 
 class HomePage {
   constructor() {
