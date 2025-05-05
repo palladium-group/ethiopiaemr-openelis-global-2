@@ -432,7 +432,7 @@ function ResultSelectListAdd() {
                 )}
                 <br />
                 <Grid fullWidth={true}>
-                  <Column lg={4} md={4} sm={4}>
+                  <Column lg={16} md={8} sm={4}>
                     <Button
                       onClick={() => {
                         if (englishLangPost && frenchLangPost !== "") {
