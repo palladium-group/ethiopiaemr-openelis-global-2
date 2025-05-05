@@ -465,42 +465,6 @@ function ResultSelectListAdd() {
               </>
             )}
         </div>
-        <button
-          onClick={() => {
-            handleResultSelectTestListCall();
-          }}
-        >
-          ResultSelectListCall
-        </button>
-        <button
-          onClick={() => {
-            console.log(ResultSelectListRes);
-          }}
-        >
-          ResultSelectListResLog
-        </button>
-        <button
-          onClick={() => {
-            console.log(resultTestsList);
-          }}
-        >
-          ResultTestsListLog
-        </button>
-        <button
-          onClick={() => {
-            console.log(resultTestsDirectory);
-          }}
-        >
-          ResultTestsDirectoryLog
-        </button>
-        <button
-          onClick={() => {
-            console.log(testSelectListJson);
-            console.log(testSelectListJsonPost);
-          }}
-        >
-          testSelectListJson
-        </button>
       </div>
 
       <Modal
@@ -522,14 +486,6 @@ function ResultSelectListAdd() {
         preventCloseOnClickOutside={true}
         shouldSubmitOnEnter={true}
       >
-        <button
-          onClick={() => {
-            console.log(testSelectListJson);
-            console.log(testSelectListJsonPost);
-          }}
-        >
-          testSelectListJson
-        </button>
         <Grid fullWidth={true}>
           {testSelectListJson.map((test, index) => (
             <Column lg={4} md={4} sm={4} key={test.id}>
