@@ -17,7 +17,6 @@ import org.openelisglobal.referral.form.ReferredOutTestsForm;
 import org.openelisglobal.referral.form.ReferredOutTestsForm.ReferDateType;
 import org.openelisglobal.referral.service.ReferralService;
 import org.openelisglobal.referral.valueholder.Referral;
-import org.openelisglobal.referral.valueholder.ReferralStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +27,6 @@ public class ReferralServiceTest extends BaseWebContextSensitiveTest {
     @Before
     public void init() throws Exception {
         executeDataSetWithStateManagement("testdata/referral.xml");
-
-        Referral referral = rService.get("1");
-        referral.setStatus(ReferralStatus.SENT);
-        rService.save(referral);
-        Referral referral2 = rService.get("2");
-        referral2.setStatus(ReferralStatus.RECEIVED);
-        rService.save(referral2);
     }
 
     @Test
