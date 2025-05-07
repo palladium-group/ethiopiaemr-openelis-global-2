@@ -8,7 +8,7 @@ class Validation {
       datePickerInput: ".cds--date-picker_input",
       searchButton: "[data-testid='Search-btn']",
       saveButton: "[data-testid='Save-btn']",
-      saveAllResultsButton: "span:contains('Save All Results')",
+      saveAllResultsButton: "Save All Results",
       sampleInfo: "[data-testid='sampleInfo']",
     };
   }
@@ -34,7 +34,7 @@ class Validation {
   }
 
   saveAllResults() {
-    cy.get(this.selectors.saveAllResultsButton).click();
+    cy.contains("span", this.selectors.saveAllResultsButton).click();
   }
 
   typeNotes() {

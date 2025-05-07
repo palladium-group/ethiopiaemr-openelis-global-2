@@ -15,15 +15,15 @@ const navigateToValidationPage = (validationType) => {
 };
 
 describe("Validation By Routine", function () {
-  before("navigate to Validation Page", function () {
+  before("Navigate to Validation Page", function () {
     navigateToValidationPage("Routine");
   });
 
-  it("User visits Validation Page", function () {
+  it("Navigate to Validation Page", function () {
     validation.checkForHeading();
   });
 
-  it("Should Select Test Unit From Drop-Down And Validate", function () {
+  it("Select Test Unit From Drop-Down", function () {
     cy.fixture("workplan").then((order) => {
       validation.selectTestUnit(order.unitType);
     });
@@ -37,11 +37,11 @@ describe("Validation By Routine", function () {
 });
 
 describe("Validation By Order", function () {
-  before("navigate to Validation Page", function () {
+  before("Navigate to Validation Page", function () {
     navigateToValidationPage("Order");
   });
 
-  it("User visits Validation Page", function () {
+  it("Navigate to Validation Page", function () {
     validation.checkForHeading();
   });
 
@@ -63,11 +63,11 @@ describe("Validation By Range Of Order", function () {
     navigateToValidationPage("RangeOrder");
   });
 
-  it("User visits Validation Page", function () {
+  it("Navigate to Validation Page", function () {
     validation.checkForHeading();
   });
 
-  it("Should Enter Lab Number and perform a search", function () {
+  it("Enter Lab Number and search", function () {
     cy.fixture("Patient").then((order) => {
       validation.enterLabNumberAndSearch(order.labNo);
     });
@@ -85,15 +85,15 @@ describe("Validation By Date", function () {
     navigateToValidationPage("Date");
   });
 
-  it("User visits Validation Page", function () {
+  it("Navigate to Validation Page", function () {
     validation.checkForHeading();
   });
 
-  it("Enter Date and perform a search", function () {
+  it("Enter Date and search", function () {
     validation.enterDateAndSearch("26/03/2025");
   });
 
-  it("Should Save the results", function () {
+  it("Save the results", function () {
     validation.saveResults();
   });
 });
