@@ -340,6 +340,8 @@ function ResultSelectListAdd() {
               >
                 <FormattedMessage id="next.action.button" />
               </Button>{" "}
+            </Column>
+            <Column lg={4} md={4} sm={4}>
               <Button
                 type="button"
                 kind="tertiary"
