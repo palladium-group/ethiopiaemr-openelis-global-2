@@ -135,7 +135,8 @@ accessing any of these links, simply follow these steps:
 
 3.  Run Frontend Formatting, Build, and E2E Test Checks similar to CI
 
-    > **Note:** Frontend checks will only pass successfully if your development environment is properly set up and running without issues.
+    > **Note:** Frontend checks will only pass successfully if your development
+    > environment is properly set up and running without issues.
 
         cd frontend/ # from project directory
         npm install
