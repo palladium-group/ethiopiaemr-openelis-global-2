@@ -5,10 +5,11 @@ class Validation {
       unitType: "#unitType",
       accessionNumber: "#accessionNumber",
       notesInput: "#cell-notes-0",
-      datePickerInput: ".cds--date-picker_input",
+      datePickerInput: ".cds--date-picker__input",
       searchButton: "[data-testid='Search-btn']",
       saveButton: "[data-testid='Save-btn']",
       saveAllResultsButton: "Save All Results",
+      helpIcon: "#user-Help",
       sampleInfo: "[data-testid='sampleInfo']",
     };
   }
@@ -47,6 +48,9 @@ class Validation {
 
   enterDateAndSearch(date) {
     cy.get(this.selectors.datePickerInput).type(date);
+    //clicking the help icon helps remove the calender cover
+    cy.get(this.selectors.helpIcon).click();
+    cy.get(this.selectors.helpIcon).click();
     cy.get(this.selectors.searchButton).click();
   }
 }

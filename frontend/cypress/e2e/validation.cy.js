@@ -90,7 +90,7 @@ describe("Validation By Date", function () {
   });
 
   it("Enter Date and search", function () {
-    validation.enterDateAndSearch("26/03/2025");
+    validation.enterDateAndSearch("01/05/2025");
   });
 
   it("Save the results", function () {

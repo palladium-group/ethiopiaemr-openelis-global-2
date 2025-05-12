@@ -1,25 +1,39 @@
-import HomePage from "./HomePage";
-
 class WorkPlan {
-  constructor() {}
+  constructor() {
+    this.selectors = {
+      filterTitle: "h3",
+      dropdown: "select#select-1",
+      printButton: "button",
+      accessionLink: "a.cds--link",
+      resultsTable: '[data-cy="workplanResultsTable"]',
+    };
+  }
 
   visit() {
     cy.visit("/WorkplanByTest");
   }
+
   getWorkPlanFilterTitle(tiles) {
-    cy.contains("h3", tiles).should("be.visible");
+    cy.contains(this.selectors.filterTitle, tiles).should("be.visible");
   }
 
   selectDropdownOption(option) {
-    cy.get("select#select-1").should("be.visible").select(option);
+    cy.get(this.selectors.dropdown).should("be.visible").select(option);
   }
 
   getPrintWorkPlanButton() {
-    cy.contains("button", "Print Workplan").should("be.visible");
+    cy.contains(this.selectors.printButton, "Print Workplan").should(
+      "be.visible",
+    );
+  }
+
+  clickAccessionNumber(labNo) {
+    cy.contains(this.selectors.accessionLink, labNo).click();
   }
 
   getWorkPlanResultsTable() {
-    return cy.get('[data-cy="workplanResultsTable"]');
+    return cy.get(this.selectors.resultsTable);
   }
 }
+
 export default WorkPlan;
