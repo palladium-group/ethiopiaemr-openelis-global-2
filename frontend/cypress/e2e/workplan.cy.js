@@ -97,9 +97,6 @@ describe("Work plan by Panel", function () {
 
   it("Select test method and save the result", function () {
     result.expandSampleDetails();
-    cy.fixture("result").then((res) => {
-      result.selectTestMethod(res.pcrTestMethod);
-    });
     result.submitResults();
   });
 });
@@ -170,9 +167,6 @@ describe("Work plan by Priority", function () {
 
   it("Select test method and save the result", function () {
     result.expandSampleDetails();
-    cy.fixture("result").then((res) => {
-      result.selectTestMethod(res.pcrTestMethod);
-    });
     result.submitResults();
   });
 });
