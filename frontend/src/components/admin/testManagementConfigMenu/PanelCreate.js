@@ -138,12 +138,12 @@ function PanelCreate() {
 
   const validatePanelType = (name) => {
     const allPanels = [
-      ...panelCreateList?.existingPanelList?.flatMap(
-        (epl) => epl?.panels || [],
-      ),
-      ...panelCreateList?.inactivePanelList?.flatMap(
-        (epl) => epl?.panels || [],
-      ),
+      ...(panelCreateList?.existingPanelList
+        ? panelCreateList.existingPanelList.flatMap((epl) => epl?.panels || [])
+        : []),
+      ...(panelCreateList?.inactivePanelList
+        ? panelCreateList.inactivePanelList.flatMap((epl) => epl?.panels || [])
+        : []),
     ];
 
     return allPanels.some((panel) => panel?.panelName === name);
