@@ -1,6 +1,7 @@
 package org.openelisglobal.sample;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -68,8 +69,8 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
         assertNotNull("Organization should exist in test data", org);
     }
 
-    @Test(expected = Exception.class)
-    public void persistData_shouldHandleInvalidSample() throws Exception {
+    @Test
+    public void persistData_shouldHandleInvalidSample() {
         Sample invalidSample = new Sample();
         invalidSample.setAccessionNumber("INVALID123");
 
@@ -84,10 +85,16 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
 
-        samplePatientEntryService.persistData(updateData, new PatientManagementUpdate(), patientInfo, form, request);
+        try {
+            samplePatientEntryService.persistData(updateData, new PatientManagementUpdate(), patientInfo, form,
+                    request);
+            fail("Expected exception was not thrown");
+        } catch (Exception e) {
+            assertNotNull("Exception should be thrown for invalid sample", e.getMessage());
+        }
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void persistData_shouldHandleMissingPatientId() throws Exception {
         Sample sample = sampleService.getSampleByAccessionNumber("TEST001");
         assertNotNull("Sample should exist", sample);
@@ -101,7 +108,7 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
         updateData.setSample(sample);
         updateData.setSampleHuman(sampleHuman);
 
-        PatientManagementInfo patientInfo = new PatientManagementInfo();
+        PatientManagementInfo patientInfo = new PatientManagementInfo(); // No ID set to simulate missing ID
         SamplePatientEntryForm patientEntryForm = new SamplePatientEntryForm();
         patientEntryForm.setPatientProperties(patientInfo);
 
@@ -111,6 +118,12 @@ public class SamplePatientEntryServiceTest extends BaseWebContextSensitiveTest {
 
         PatientManagementUpdate patientUpdate = new PatientManagementUpdate();
 
-        samplePatientEntryService.persistData(updateData, patientUpdate, patientInfo, patientEntryForm, request);
+        try {
+            samplePatientEntryService.persistData(updateData, patientUpdate, patientInfo, patientEntryForm, request);
+            fail("Expected exception due to missing patient ID was not thrown");
+        } catch (Exception e) {
+            assertNotNull("Exception should be thrown for missing patient ID", e.getMessage());
+        }
     }
+
 }
