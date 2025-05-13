@@ -67,7 +67,7 @@ describe("Workplan by Test Type", function () {
   });
 });
 
-describe("Work plan by Panel", function () {
+describe("Workplan by Panel", function () {
   it("User can select work plan by test from main menu drop-down. Workplan by panel page appears.", function () {
     homePage = loginPage.goToHomePage();
     workplan = homePage.goToWorkPlanPlanByPanel();
@@ -95,7 +95,7 @@ describe("Work plan by Panel", function () {
     });
   });
 
-  it("Select test method and save the result", function () {
+  it("Expand sample details and save the result", function () {
     result.expandSampleDetails();
     result.submitResults();
   });
@@ -137,7 +137,7 @@ describe("Workplan by Unit", function () {
   });
 });
 
-describe("Work plan by Priority", function () {
+describe("Workplan by Priority", function () {
   it("User selects workplan By Priority from main menu drop-down list.", function () {
     homePage = loginPage.goToHomePage();
     workplan = homePage.goToWorkPlanPlanByPriority();
@@ -165,7 +165,7 @@ describe("Work plan by Priority", function () {
     });
   });
 
-  it("Select test method and save the result", function () {
+  it("Expand sample details and save the result", function () {
     result.expandSampleDetails();
     result.submitResults();
   });
