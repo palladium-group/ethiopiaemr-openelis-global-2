@@ -58,11 +58,9 @@ describe("Workplan by Test Type", function () {
       workplan.clickAccessionNumber(options.labNo);
     });
   });
-  it("Select test method and save the result", function () {
+
+  it("Expand sample details and save the result", function () {
     result.expandSampleDetails();
-    cy.fixture("result").then((res) => {
-      result.selectTestMethod(res.pcrTestMethod);
-    });
     result.submitResults();
   });
 });
@@ -128,11 +126,8 @@ describe("Workplan by Unit", function () {
     });
   });
 
-  it("Select test method and save the result", function () {
+  it("Expand sample details and save the result", function () {
     result.expandSampleDetails();
-    cy.fixture("result").then((res) => {
-      result.selectTestMethod(res.pcrTestMethod);
-    });
     result.submitResults();
   });
 });
