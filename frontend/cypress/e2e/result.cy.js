@@ -347,10 +347,6 @@ describe("Result By Test And Status", function () {
     cy.fixture("workplan").then((order) => {
       result.selectTestName(order.testName);
       result.searchResults();
-      result.expandSampleDetails();
-    });
-    cy.fixture("result").then((res) => {
-      result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
   });
