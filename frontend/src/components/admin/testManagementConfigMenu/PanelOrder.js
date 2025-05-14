@@ -82,8 +82,10 @@ function PanelOrder() {
 
   const handlePanelOrderListCall = () => {
     if (!panelOrderListPost) {
-      setInputError(true);
-      return;
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     }
     postToOpenElisServerJsonResponse(
       "/rest/PanelOrder",
