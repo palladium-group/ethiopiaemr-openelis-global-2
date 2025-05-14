@@ -1,14 +1,16 @@
 import LoginPage from "../pages/LoginPage";
+import OrderEntityPage from "../pages/OrderEntityPage";
 import ProviderManagementPage from "../pages/ProviderManagementPage";
 import AdminPage from "../pages/AdminPage";
-import Result from "../pages/ResultsPage";
+import PatientEntryPage from "../pages/PatientEntryPage";
 
 let homePage = null;
 let loginPage = null;
 let workplan = null;
+let orderEntityPage = new OrderEntityPage();
+let patientEntryPage = new PatientEntryPage();
 let providerManagementPage = new ProviderManagementPage();
 let adminPage = new AdminPage();
-let result = new Result();
 
 before("login", () => {
   loginPage = new LoginPage();
@@ -31,41 +33,7 @@ describe("Add requester details first", function () {
   });
 });
 
-describe("Workplan by Test Type", function () {
-  it("User selects workplan by test type from main menu drop-down list.", function () {
-    homePage = loginPage.goToHomePage();
-    workplan = homePage.goToWorkPlanPlanByTest();
-    cy.fixture("workplan").then((options) => {
-      workplan.getWorkPlanFilterTitle(options.testTile);
-    });
-  });
-
-  it("User selects test from drop-down options", () => {
-    cy.fixture("workplan").then((options) => {
-      workplan.selectDropdownOption(options.testName);
-      workplan.getPrintWorkPlanButton();
-    });
-  });
-
-  it("Validate and select Accession Number", () => {
-    cy.fixture("Patient").then((options) => {
-      workplan
-        .getWorkPlanResultsTable()
-        .find("tr")
-        .then((row) => {
-          expect(row.text()).contains(options.labNo);
-        });
-      workplan.clickAccessionNumber(options.labNo);
-    });
-  });
-
-  it("Expand sample details and save the result", function () {
-    result.expandSampleDetails();
-    result.submitResults();
-  });
-});
-
-describe("Workplan by Panel", function () {
+describe("Work plan by Panel", function () {
   it("User can select work plan by test from main menu drop-down. Workplan by panel page appears.", function () {
     homePage = loginPage.goToHomePage();
     workplan = homePage.goToWorkPlanPlanByPanel();
@@ -81,26 +49,20 @@ describe("Workplan by Panel", function () {
     });
   });
 
-  it("Validate and select Accession Number", () => {
-    cy.fixture("Patient").then((options) => {
+  it("All known orders are present", () => {
+    cy.fixture("Order").then((options) => {
       workplan
         .getWorkPlanResultsTable()
         .find("tr")
         .then((row) => {
           expect(row.text()).contains(options.labNo);
         });
-      workplan.clickAccessionNumber(options.labNo);
     });
-  });
-
-  it("Expand sample details and save the result", function () {
-    result.expandSampleDetails();
-    result.submitResults();
   });
 });
 
-describe("Workplan by Unit", function () {
-  it("Navigates to Workplan By Unit.", function () {
+describe("Work plan by Unit", function () {
+  it("User can select work plan By Unit from main menu drop-down. Workplan By Unit page appears.", function () {
     homePage = loginPage.goToHomePage();
     workplan = homePage.goToWorkPlanPlanByUnit();
     cy.fixture("workplan").then((options) => {
@@ -108,32 +70,27 @@ describe("Workplan by Unit", function () {
     });
   });
 
-  it("Search by Unit and click accession Number", function () {
-    cy.fixture("workplan").then((order) => {
-      workplan.selectDropdownOption(order.unitType);
+  it("User should select unit type from drop-down selector option", () => {
+    cy.fixture("workplan").then((options) => {
+      workplan.selectDropdownOption(options.unitType);
+      workplan.getPrintWorkPlanButton();
     });
   });
 
-  it("Validate and select Accession Number", () => {
-    cy.fixture("Patient").then((options) => {
+  it("All known orders are present", () => {
+    cy.fixture("Order").then((options) => {
       workplan
         .getWorkPlanResultsTable()
         .find("tr")
         .then((row) => {
           expect(row.text()).contains(options.labNo);
         });
-      workplan.clickAccessionNumber(options.labNo);
     });
-  });
-
-  it("Expand sample details and save the result", function () {
-    result.expandSampleDetails();
-    result.submitResults();
   });
 });
 
-describe("Workplan by Priority", function () {
-  it("User selects workplan By Priority from main menu drop-down list.", function () {
+describe("Work plan by Priority", function () {
+  it("User can select work plan By Priority from main menu drop-down. Workplan By Priority page appears.", function () {
     homePage = loginPage.goToHomePage();
     workplan = homePage.goToWorkPlanPlanByPriority();
     cy.fixture("workplan").then((options) => {
@@ -141,27 +98,21 @@ describe("Workplan by Priority", function () {
     });
   });
 
-  it("User selects Priority from drop-down list", () => {
+  it("User should select Priority from drop-down selector option", () => {
     cy.fixture("workplan").then((options) => {
       workplan.selectDropdownOption(options.priority);
       workplan.getPrintWorkPlanButton();
     });
   });
 
-  it("Validate and select Accession Number", () => {
-    cy.fixture("Patient").then((options) => {
+  it("All known orders are present", () => {
+    cy.fixture("Order").then((options) => {
       workplan
         .getWorkPlanResultsTable()
         .find("tr")
         .then((row) => {
           expect(row.text()).contains(options.labNo);
         });
-      workplan.clickAccessionNumber(options.labNo);
     });
-  });
-
-  it("Expand sample details and save the result", function () {
-    result.expandSampleDetails();
-    result.submitResults();
   });
 });

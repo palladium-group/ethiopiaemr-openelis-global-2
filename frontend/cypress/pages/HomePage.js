@@ -187,29 +187,22 @@ class HomePage {
   // Validation related functions
   goToValidationByRoutine() {
     this.openNavigationMenu();
-    cy.get("#menu_resultvalidation").click();
-    cy.get("[data-cy='menu_resultvalidation_routine']").click();
+    cy.contains("span", "Validation").click();
+    cy.contains("span", "Routine").click();
     return new Validation();
   }
 
   goToValidationByOrder() {
     this.openNavigationMenu();
-    cy.get("#menu_resultvalidation").click();
+    cy.contains("span", "Validation").click();
     cy.get("#menu_accession_validation").click();
     return new Validation();
   }
 
   goToValidationByRangeOrder() {
     this.openNavigationMenu();
-    cy.get("#menu_resultvalidation").click();
-    cy.get("[data-cy='menu_accession_validation_range']").click();
-    return new Validation();
-  }
-
-  goToValidationByDate() {
-    this.openNavigationMenu();
-    cy.get("#menu_resultvalidation").click();
-    cy.get("[data-cy='menu_resultvalidation_date']").click();
+    cy.contains("span", "Validation").click();
+    cy.contains("span", "By Range of Order Numbers").click();
     return new Validation();
   }
 
