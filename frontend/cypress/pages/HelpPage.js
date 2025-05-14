@@ -1,20 +1,27 @@
 class HelpPage {
-  constructor() {}
+  constructor() {
+    this.selectors = {
+      userManual: "#menu_help_user_manual",
+      processDocumentation: "[data-cy='menu_help_documents']",
+      vlForm: "#menu_help_form_VL",
+      dbsForm: "[data-cy='menu_help_form_DBS']",
+    };
+  }
 
   clickUserManual() {
-    cy.get("#menu_help_user_manual").click();
+    cy.get(this.selectors.userManual).click();
   }
 
   clickProcessDocumentation() {
-    cy.get("[data-cy='menu_help_documents']").click();
+    cy.get(this.selectors.processDocumentation).click();
   }
 
   clickVLForm() {
-    cy.get("#menu_help_form_VL").click();
+    cy.get(this.selectors.vlForm).click();
   }
 
   clickDBSForm() {
-    cy.get("[data-cy='menu_help_form_DBS']").click();
+    cy.get(this.selectors.dbsForm).click();
   }
 }
 

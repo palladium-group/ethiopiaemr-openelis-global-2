@@ -28,7 +28,6 @@ describe("Interacts with Help options", function () {
 
     it("User opens VL Form", function () {
       cy.window().then((win) => {
-        //Stubbed to prevent opening new tab
         cy.stub(win, "open").as("windowOpen"); // Stub to prevent opening a new tab
       });
 
@@ -42,7 +41,6 @@ describe("Interacts with Help options", function () {
 
     it("User opens DBS Form", function () {
       cy.window().then((win) => {
-        //Stubbed to prevent opening new tab
         cy.stub(win, "open").as("windowOpen"); // Stub to prevent opening a new tab
       });
 
