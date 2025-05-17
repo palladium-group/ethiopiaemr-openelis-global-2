@@ -1418,5 +1418,10 @@
   "sampleType.existing": "Existing Sample Types",
   "sampleType.existing.inactive": "Inactive Sample Types.  Assign tests to activate.",
   "configuration.sampleType.confirmation.explain": "This sample type will not be active until at least one test has been assigned to it.",
-  "configuration.sampleType.create.duplicate": "An existing test sample type with the same name has been found.  Please cancel or use a different name."
+  "configuration.sampleType.create.duplicate": "An existing test sample type with the same name has been found.  Please cancel or use a different name.",
+  "configuration.testUnit.create.duplicate": "An existing test unit with the same name has been found.  Please cancel or use a different name.",
+  "configuration.testUnit.confirmation.explain": "This test unit will not be active until at least one test has been assigned to it.",
+  "testUnit.existing": "Existing Test Units",
+  "testUnit.existing.inactive": "Inactive Test Units.  Assign tests to activate.",
+  "testUnit.new": "New Unit Test"
 }

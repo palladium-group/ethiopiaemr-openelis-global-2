@@ -221,6 +221,8 @@ function SampleTypeCreate() {
             </Column>
           </Grid>
           <br />
+          <hr />
+          <br />
           <Formik
             initialValues={{ englishLangPost: "", frenchLangPost: "" }}
             validationSchema={validationSchema}
