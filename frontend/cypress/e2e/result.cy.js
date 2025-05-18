@@ -347,6 +347,7 @@ describe("Result By Test And Status", function () {
     cy.fixture("workplan").then((order) => {
       result.selectTestName(order.testName);
       result.searchResults();
+      cy.wait(4000);
       result.expandSampleDetails();
     });
     cy.fixture("result").then((res) => {

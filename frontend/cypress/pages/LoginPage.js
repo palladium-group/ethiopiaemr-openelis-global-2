@@ -26,8 +26,8 @@ class LoginPage {
   }
 
   enterUsername(value) {
+    cy.wait(3000);
     this.getUsernameElement().should("be.visible");
-    cy.wait(200);
     this.getUsernameElement().type(value);
     this.getUsernameElement().should("have.value", value);
   }
