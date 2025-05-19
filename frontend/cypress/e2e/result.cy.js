@@ -340,14 +340,13 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
-    cy.reload();
   });
 
   it("Search by TestName", function () {
+    cy.reload();
     cy.fixture("workplan").then((order) => {
       result.selectTestName(order.testName);
       result.searchResults();
-      cy.wait(4000);
       result.expandSampleDetails();
     });
     cy.fixture("result").then((res) => {
