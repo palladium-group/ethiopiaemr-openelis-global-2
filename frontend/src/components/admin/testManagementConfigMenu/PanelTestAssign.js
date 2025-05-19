@@ -70,27 +70,29 @@ function PanelTestAssign() {
       {notificationVisible === true ? <AlertDialog /> : ""}
       <div className="adminPageContent">
         <PageBreadCrumb breadcrumbs={breadcrumbs} />
-        <Grid fullWidth={true}>
-          <Column lg={16} md={8} sm={4}>
-            <Section>
-              <Heading>
-                <FormattedMessage id="label.button.select" />
-              </Heading>
-            </Section>
-          </Column>
-        </Grid>
-        <br />
-        <hr />
-        <br />
-        <Grid fullWidth={true}>
-          <Column lg={16} md={8} sm={4}>
-            <Section>
-              <Heading>
-                <FormattedMessage id="configuration.panel.assign" />
-              </Heading>
-            </Section>
-          </Column>
-        </Grid>
+        <div className="orderLegendBody">
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Heading>
+                  <FormattedMessage id="label.button.select" />
+                </Heading>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Heading>
+                  <FormattedMessage id="configuration.panel.assign" />
+                </Heading>
+              </Section>
+            </Column>
+          </Grid>
+        </div>
       </div>
     </>
   );
