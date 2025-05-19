@@ -1422,5 +1422,6 @@
   "configuration.testUnit.confirmation.explain": "Cette unité de test ne sera pas active tant qu'au moins un test ne lui aura pas été assigné.",
   "testUnit.existing": "Unités de test existantes",
   "testUnit.existing.inactive": "Unités de test inactives. Assignez des tests pour les activer.",
-  "testUnit.new": "Nouvelle unité de test"
+  "testUnit.new": "Nouvelle unité de test",
+  "configuration.panel.order.explain.limits": "Seuls les panels avec des tests assignés peuvent être ordonnés. Pour les nouveaux panels, veuillez assigner des tests avant de les ordonner."
 }
