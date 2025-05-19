@@ -1426,5 +1426,9 @@
   "testUnit.existing": "Existing Test Units",
   "testUnit.existing.inactive": "Inactive Test Units.  Assign tests to activate.",
   "testUnit.new": "New Unit Test",
-  "configuration.panel.order.explain.limits": "Only panels with tests assigned may be ordered. For new panels please assign tests before ordering."
+  "configuration.panel.order.explain.limits": "Only panels with tests assigned may be ordered. For new panels please assign tests before ordering.",
+  "configuration.panel.assign.explain": "Select tests to re-assign to a different panel by clicking the test name; they are displayed under their currently assigned panel.",
+  "configuration.sampleType.assign.explain": "Select tests to re-assign to a different sample type by clicking the test name; they are displayed under their currently assigned sample type.",
+  "configuration.testUnit.assign.new.unit": "Assign to test section",
+  "configuration.sampleType.assign.new.type": "Assign to sample type"
 }

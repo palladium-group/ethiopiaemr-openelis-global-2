@@ -1425,5 +1425,9 @@
   "testUnit.existing": "Unités de test existantes",
   "testUnit.existing.inactive": "Unités de test inactives. Assignez des tests pour les activer.",
   "testUnit.new": "Nouvelle unité de test",
-  "configuration.panel.order.explain.limits": "Seuls les panels avec des tests assignés peuvent être ordonnés. Pour les nouveaux panels, veuillez assigner des tests avant de les ordonner."
+  "configuration.panel.order.explain.limits": "Seuls les panels avec des tests assignés peuvent être ordonnés. Pour les nouveaux panels, veuillez assigner des tests avant de les ordonner.",
+  "configuration.panel.assign.explain": "Sélectionnez les tests à réaffecter à un autre panneau en cliquant sur le nom du test ; ils sont affichés sous leur panneau actuellement assigné.",
+  "configuration.sampleType.assign.explain": "Sélectionnez les tests à réaffecter à un autre type d'échantillon en cliquant sur le nom du test ; ils sont affichés sous leur type d'échantillon actuellement assigné.",
+  "configuration.testUnit.assign.new.unit": "Affecter à la section de test",
+  "configuration.sampleType.assign.new.type": "Affecter au type d'échantillon"
 }
