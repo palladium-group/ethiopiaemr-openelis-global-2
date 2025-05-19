@@ -319,9 +319,7 @@ function TestManagementConfigMenu() {
                 <ClickableTile>
                   <ListItem
                     onClick={() => {
-                      window.location.assign(
-                        "/api/OpenELIS-Global/TestSectionManagement",
-                      );
+                      window.location.assign("/admin#TestSectionManagement");
                     }}
                   >
                     <FormattedMessage id="configuration.testUnit.manage" />
@@ -336,9 +334,7 @@ function TestManagementConfigMenu() {
                 <ClickableTile>
                   <ListItem
                     onClick={() => {
-                      window.location.assign(
-                        "/api/OpenELIS-Global/SampleTypeManagement",
-                      );
+                      window.location.assign("/admin#SampleTypeManagement");
                     }}
                   >
                     <FormattedMessage id="configuration.sampleType.manage" />
@@ -368,9 +364,7 @@ function TestManagementConfigMenu() {
                 <ClickableTile>
                   <ListItem
                     onClick={() => {
-                      window.location.assign(
-                        "/api/OpenELIS-Global/PanelManagement",
-                      );
+                      window.location.assign("/admin#PanelManagement");
                     }}
                   >
                     <FormattedMessage id="configuration.panel.manage" />
