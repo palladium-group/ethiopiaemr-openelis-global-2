@@ -1413,5 +1413,10 @@
   "panel.existing.inactive": "Panneaux inactifs (Attribuer des tests pour activer)",
   "configuration.panel.confirmation.explain": "Ce panneau ne sera pas actif tant qu'au moins un test ne lui aura pas été attribué.",
   "input.error.same.panel.type": "Un panneau existant avec le même nom a été trouvé. Veuillez annuler ou utiliser un nom différent.",
+  "sampleType.new": "New Sample Type",
+  "sampleType.existing": "Existing Sample Types",
+  "sampleType.existing.inactive": "Inactive Sample Types.  Assign tests to activate.",
+  "configuration.sampleType.confirmation.explain": "This sample type will not be active until at least one test has been assigned to it.",
+  "configuration.sampleType.create.duplicate": "An existing test sample type with the same name has been found.  Please cancel or use a different name.",
   "configuration.panel.order.explain.limits": "Seuls les panels avec des tests assignés peuvent être ordonnés. Pour les nouveaux panels, veuillez assigner des tests avant de les ordonner."
 }
