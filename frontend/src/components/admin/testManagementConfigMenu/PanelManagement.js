@@ -85,36 +85,25 @@ function PanelManagement() {
           <Grid fullWidth={true}>
             <Column lg={16} md={8} sm={4}>
               <UnorderedList>
-                <ClickableTile>
-                  <ListItem
-                    onClick={() => {
-                      window.location.assign("/MasterListsPage#PanelCreate");
-                    }}
-                  >
-                    <FormattedMessage id="configuration.panel.create" />
-                  </ListItem>
+                <ClickableTile
+                  href="/MasterListsPage#PanelCreate"
+                  id="PanelCreate"
+                >
+                  <FormattedMessage id="configuration.panel.create" />
                 </ClickableTile>
                 <br />
-                <ClickableTile>
-                  <ListItem
-                    onClick={() => {
-                      window.location.assign("/MasterListsPage#PanelOrder");
-                    }}
-                  >
-                    <FormattedMessage id="configuration.panel.order" />
-                  </ListItem>
+                <ClickableTile
+                  href="/MasterListsPage#PanelOrder"
+                  id="PanelOrder"
+                >
+                  <FormattedMessage id="configuration.panel.order" />
                 </ClickableTile>
                 <br />
-                <ClickableTile>
-                  <ListItem
-                    onClick={() => {
-                      window.location.assign(
-                        "/MasterListsPage#PanelTestAssign",
-                      );
-                    }}
-                  >
-                    <FormattedMessage id="configuration.panel.assign" />
-                  </ListItem>
+                <ClickableTile
+                  href="/MasterListsPage#PanelTestAssign"
+                  id="PanelTestAssign"
+                >
+                  <FormattedMessage id="configuration.panel.assign" />
                 </ClickableTile>
               </UnorderedList>
             </Column>
