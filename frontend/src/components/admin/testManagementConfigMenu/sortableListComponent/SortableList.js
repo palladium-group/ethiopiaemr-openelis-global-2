@@ -290,7 +290,11 @@ export const SortableResultSelectionOptionList = ({
   );
 };
 
-export const SortablePanelOrderList = ({ test, onSort, disableSorting }) => {
+export const CustomCommonSortableOrderList = ({
+  test,
+  onSort,
+  disableSorting,
+}) => {
   const [tests, setTests] = useState(test);
 
   const handleDragStart = (e, index) => {

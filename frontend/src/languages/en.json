@@ -1414,6 +1414,8 @@
   "panel.existing.inactive": "Inactive Panels (Assign tests to activate)",
   "configuration.panel.confirmation.explain": "This panel will not be active until at least one test has been assigned to it.",
   "input.error.same.panel.type": "An existing panel type with the same name has been found.  Please cancel or use a different name.",
+  "configuration.testUnit.order.explain.limits": "Only test sections with tests assigned may be ordered.  For new sections please assign tests before ordering.",
+  "configuration.sampleType.order.explain.limits": "Only sample types with tests assigned may be ordered.  For new types please assign tests before ordering.",
   "sampleType.new": "New Sample Type",
   "sampleType.existing": "Existing Sample Types",
   "sampleType.existing.inactive": "Inactive Sample Types.  Assign tests to activate.",
