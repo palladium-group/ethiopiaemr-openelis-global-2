@@ -1412,5 +1412,9 @@
   "panel.existing": "Panneaux existants",
   "panel.existing.inactive": "Panneaux inactifs (Attribuer des tests pour activer)",
   "configuration.panel.confirmation.explain": "Ce panneau ne sera pas actif tant qu'au moins un test ne lui aura pas été attribué.",
-  "input.error.same.panel.type": "Un panneau existant avec le même nom a été trouvé. Veuillez annuler ou utiliser un nom différent."
+  "input.error.same.panel.type": "Un panneau existant avec le même nom a été trouvé. Veuillez annuler ou utiliser un nom différent.",
+  "configuration.panel.assign.explain": "Sélectionnez les tests à réaffecter à un autre panneau en cliquant sur le nom du test ; ils sont affichés sous leur panneau actuellement assigné.",
+  "configuration.sampleType.assign.explain": "Sélectionnez les tests à réaffecter à un autre type d'échantillon en cliquant sur le nom du test ; ils sont affichés sous leur type d'échantillon actuellement assigné.",
+  "configuration.testUnit.assign.new.unit": "Affecter à la section de test",
+  "configuration.sampleType.assign.new.type": "Affecter au type d'échantillon"
 }

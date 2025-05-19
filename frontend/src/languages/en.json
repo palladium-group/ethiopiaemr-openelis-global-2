@@ -1413,5 +1413,9 @@
   "panel.existing": "Existing Panels",
   "panel.existing.inactive": "Inactive Panels (Assign tests to activate)",
   "configuration.panel.confirmation.explain": "This panel will not be active until at least one test has been assigned to it.",
-  "input.error.same.panel.type": "An existing panel type with the same name has been found.  Please cancel or use a different name."
+  "input.error.same.panel.type": "An existing panel type with the same name has been found.  Please cancel or use a different name.",
+  "configuration.panel.assign.explain": "Select tests to re-assign to a different panel by clicking the test name; they are displayed under their currently assigned panel.",
+  "configuration.sampleType.assign.explain": "Select tests to re-assign to a different sample type by clicking the test name; they are displayed under their currently assigned sample type.",
+  "configuration.testUnit.assign.new.unit": "Assign to test section",
+  "configuration.sampleType.assign.new.type": "Assign to sample type"
 }
