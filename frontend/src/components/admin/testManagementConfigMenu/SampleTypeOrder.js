@@ -41,7 +41,7 @@ import { FormattedMessage, injectIntl, useIntl } from "react-intl";
 import PageBreadCrumb from "../../common/PageBreadCrumb.js";
 import CustomCheckBox from "../../common/CustomCheckBox.js";
 import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
-import { SortablePanelOrderList } from "./sortableListComponent/SortableList.js";
+import { CustomCommonSortableOrderList } from "./sortableListComponent/SortableList.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -201,7 +201,7 @@ function SampleTypeOrder() {
               {sampleTypeOrderList &&
                 sampleTypeOrderList?.testSectionList &&
                 sampleTypeOrderList?.testSectionList?.length > 0 && (
-                  <SortablePanelOrderList
+                  <CustomCommonSortableOrderList
                     test={sampleTypeOrderList?.testSectionList}
                     onSort={(updatedList) => {
                       setSampleTypeOrderList((prev) => ({
