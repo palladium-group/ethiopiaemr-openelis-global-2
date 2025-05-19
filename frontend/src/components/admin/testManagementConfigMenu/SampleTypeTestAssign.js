@@ -65,6 +65,7 @@ function SampleTypeTestAssign() {
 
   const intl = useIntl();
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState(false);
   const [sampleTypeTestAssignModal, setSampleTypeTestAssignModal] =
     useState(false);
   const [sampleTypeTestAssign, setSampleTypeTestAssign] = useState({});
@@ -148,6 +149,14 @@ function SampleTypeTestAssign() {
     };
   }, []);
 
+  if (!isLoading) {
+    return (
+      <>
+        <Loading />
+      </>
+    );
+  }
+
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
@@ -224,7 +233,6 @@ function SampleTypeTestAssign() {
                           >
                             <ClickableTile
                               onClick={() => {
-                                console.log(test);
                                 setSampleTypeTestAssignModal(true),
                                   setSampleTypeTestAssignPost({
                                     testId: test.id,
@@ -248,26 +256,37 @@ function SampleTypeTestAssign() {
             )}
           </Grid>
         </div>
-        <button
-          onClick={() => {
-            console.log(sampleTypeTestAssign);
-          }}
-        >
-          sampleTypeTestAssign
-        </button>
       </div>
 
       <Modal
         open={sampleTypeTestAssignModal}
         size="md"
-        modalHeading={`${intl.formatMessage({
-          id: "banner.menu.patientEdit",
-        })}`}
-        primaryButtonText={intl.formatMessage({ id: "label.button.save" })}
-        secondaryButtonText={intl.formatMessage({ id: "label.button.cancel" })}
+        modalHeading={
+          confirmation
+            ? `${intl.formatMessage({
+                id: "uom.create.heading.confirmation",
+              })}`
+            : `${intl.formatMessage({
+                id: "banner.menu.patientEdit",
+              })}`
+        }
+        primaryButtonText={
+          confirmation
+            ? intl.formatMessage({ id: "accept.action.button" })
+            : intl.formatMessage({ id: "label.button.save" })
+        }
+        secondaryButtonText={
+          confirmation
+            ? intl.formatMessage({ id: "reject.action.button" })
+            : intl.formatMessage({ id: "label.button.cancel" })
+        }
         onRequestSubmit={() => {
-          setSampleTypeTestAssignModal(false);
-          handlePostSampleTypeTestAssignListCall();
+          if (confirmation) {
+            setSampleTypeTestAssignModal(false);
+            handlePostSampleTypeTestAssignListCall();
+          } else {
+            setConfirmation(true);
+          }
         }}
         onRequestClose={() => {
           setSampleTypeTestAssignModal(false);
@@ -276,13 +295,6 @@ function SampleTypeTestAssign() {
         preventCloseOnClickOutside={true}
         shouldSubmitOnEnter={true}
       >
-        <button
-          onClick={() => {
-            console.log(sampleTypeTestAssignPost);
-          }}
-        >
-          sampleTypeTestAssignPost
-        </button>
         <Grid fullWidth={true}>
           <Column lg={16} md={8} sm={4}>
             <Section>
@@ -320,8 +332,6 @@ function SampleTypeTestAssign() {
                     const selectedId = selectedOption.value;
                     const selectedValue = selectedOption.dataset.value;
 
-                    console.log(selectedId, selectedValue);
-
                     setSampleTypeTestAssignPost((prev) => ({
                       ...prev,
                       sampleTypeIdNew: selectedId,
@@ -343,7 +353,8 @@ function SampleTypeTestAssign() {
               )}
             </Section>
             <br />
-            {sampleTypeTestAssignPost &&
+            {confirmation &&
+              sampleTypeTestAssignPost &&
               sampleTypeTestAssignPost?.testValue &&
               sampleTypeTestAssignPost?.sampleTypeNameOld &&
               sampleTypeTestAssignPost?.sampleTypeNameNew && (

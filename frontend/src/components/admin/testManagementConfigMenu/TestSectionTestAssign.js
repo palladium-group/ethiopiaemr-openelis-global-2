@@ -65,6 +65,7 @@ function TestSectionTestAssign() {
 
   const intl = useIntl();
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState(false);
   const [testSectionTestAssignModal, setTestSectionTestAssignModal] =
     useState(false);
   const [testSectionTestAssign, setTestSectionTestAssign] = useState({});
@@ -148,6 +149,14 @@ function TestSectionTestAssign() {
     };
   }, []);
 
+  if (!isLoading) {
+    return (
+      <>
+        <Loading />
+      </>
+    );
+  }
+
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
@@ -224,7 +233,6 @@ function TestSectionTestAssign() {
                           >
                             <ClickableTile
                               onClick={() => {
-                                console.log(test);
                                 setTestSectionTestAssignModal(true),
                                   setTestSectionTestAssignPost({
                                     testId: test.id,
@@ -248,26 +256,37 @@ function TestSectionTestAssign() {
             )}
           </Grid>
         </div>
-        <button
-          onClick={() => {
-            console.log(testSectionTestAssign);
-          }}
-        >
-          testSectionTestAssign
-        </button>
       </div>
 
       <Modal
         open={testSectionTestAssignModal}
         size="md"
-        modalHeading={`${intl.formatMessage({
-          id: "banner.menu.patientEdit",
-        })}`}
-        primaryButtonText={intl.formatMessage({ id: "label.button.save" })}
-        secondaryButtonText={intl.formatMessage({ id: "label.button.cancel" })}
+        modalHeading={
+          confirmation
+            ? `${intl.formatMessage({
+                id: "uom.create.heading.confirmation",
+              })}`
+            : `${intl.formatMessage({
+                id: "banner.menu.patientEdit",
+              })}`
+        }
+        primaryButtonText={
+          confirmation
+            ? intl.formatMessage({ id: "accept.action.button" })
+            : intl.formatMessage({ id: "label.button.save" })
+        }
+        secondaryButtonText={
+          confirmation
+            ? intl.formatMessage({ id: "reject.action.button" })
+            : intl.formatMessage({ id: "label.button.cancel" })
+        }
         onRequestSubmit={() => {
-          setTestSectionTestAssignModal(false);
-          handlePostTestSectionTestAssignListCall();
+          if (confirmation) {
+            setTestSectionTestAssignModal(false);
+            handlePostTestSectionTestAssignListCall();
+          } else {
+            setConfirmation(true);
+          }
         }}
         onRequestClose={() => {
           setTestSectionTestAssignModal(false);
@@ -313,8 +332,6 @@ function TestSectionTestAssign() {
                     const selectedId = selectedOption.value;
                     const selectedValue = selectedOption.dataset.value;
 
-                    console.log(selectedId, selectedValue);
-
                     setTestSectionTestAssignPost((prev) => ({
                       ...prev,
                       testSectionIdNew: selectedId,
@@ -336,7 +353,8 @@ function TestSectionTestAssign() {
               )}
             </Section>
             <br />
-            {testSectionTestAssignPost &&
+            {confirmation &&
+              testSectionTestAssignPost &&
               testSectionTestAssignPost?.testValue &&
               testSectionTestAssignPost?.testSectionNameOld &&
               testSectionTestAssignPost.testSectionNameNew && (
