@@ -88,7 +88,7 @@ function SampleTypeOrder() {
       }, 200);
     }
     postToOpenElisServerJsonResponse(
-      "/rest/TestSectionOrder",
+      "/rest/SampleTypeOrder",
       JSON.stringify({
         jsonChangeList: JSON.stringify({
           sampleTypes: JSON.stringify(sampleTypeOrderListPost),
@@ -131,7 +131,7 @@ function SampleTypeOrder() {
   useEffect(() => {
     componentMounted.current = true;
     setIsLoading(true);
-    getFromOpenElisServer(`/rest/TestSectionOrder`, handleSampleTypeOrderList);
+    getFromOpenElisServer(`/rest/SampleTypeOrder`, handleSampleTypeOrderList);
     return () => {
       componentMounted.current = false;
       setIsLoading(false);
@@ -199,14 +199,14 @@ function SampleTypeOrder() {
           <Grid fullWidth={true}>
             <Column lg={16} md={8} sm={4}>
               {sampleTypeOrderList &&
-                sampleTypeOrderList?.testSectionList &&
-                sampleTypeOrderList?.testSectionList?.length > 0 && (
+                sampleTypeOrderList?.sampleTypeList &&
+                sampleTypeOrderList?.sampleTypeList?.length > 0 && (
                   <CustomCommonSortableOrderList
-                    test={sampleTypeOrderList?.testSectionList}
+                    test={sampleTypeOrderList?.sampleTypeList}
                     onSort={(updatedList) => {
                       setSampleTypeOrderList((prev) => ({
                         ...prev,
-                        testSectionList: updatedList,
+                        sampleTypeList: updatedList,
                       }));
                       setSampleTypeOrderListPost(
                         updatedList.map(({ id, sortOrder }) => ({
