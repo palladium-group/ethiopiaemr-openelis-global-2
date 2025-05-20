@@ -185,9 +185,13 @@ function PanelTestAssign() {
           <Grid fullWidth={true}>
             <Column lg={16} md={8} sm={4}>
               <Section>
-                <Heading>
-                  <FormattedMessage id="configuration.panel.assign" />
-                </Heading>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="configuration.panel.assign" />
+                    </Heading>
+                  </Section>
+                </Section>
               </Section>
             </Column>
           </Grid>

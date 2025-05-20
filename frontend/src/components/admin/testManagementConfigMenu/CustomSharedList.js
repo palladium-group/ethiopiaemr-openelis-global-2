@@ -21,9 +21,6 @@ export function CustomSharedList({
   const [selectedLeft, setSelectedLeft] = useState(new Set());
   const [selectedRight, setSelectedRight] = useState(new Set());
 
-  const [movedLeftToRightIds, setMovedLeftToRightIds] = useState([]);
-  const [movedRightToLeftIds, setMovedRightToLeftIds] = useState([]);
-
   const toggleSelection = (item, side) => {
     const id = item.id;
     const setFn = side === "left" ? setSelectedLeft : setSelectedRight;
@@ -40,8 +37,6 @@ export function CustomSharedList({
       ...rightList,
       ...Array.from(selectedLeft).filter((i) => !rightList?.includes(i)),
     ];
-    const movedIds = Array.from(selectedLeft);
-    setMovedLeftToRightIds((prev) => [...prev, ...movedIds]);
     setSelectedLeft(new Set());
     onChange(newLeft, newRight);
   };
@@ -52,8 +47,6 @@ export function CustomSharedList({
       ...leftList,
       ...Array.from(selectedRight).filter((i) => !leftList?.includes(i)),
     ];
-    const movedIds = Array.from(selectedRight);
-    setMovedRightToLeftIds((prev) => [...prev, ...movedIds]);
     setSelectedRight(new Set());
     onChange(newLeft, newRight);
   };
