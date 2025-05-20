@@ -345,7 +345,7 @@ describe("Result By Test And Status", function () {
   it("Search by TestName", function () {
     cy.reload();
     cy.fixture("workplan").then((order) => {
-      result.selectTestName(order.testName);
+      result.selectTestName(order.testNameTwo);
       result.searchResults();
       result.expandSampleDetails();
     });
