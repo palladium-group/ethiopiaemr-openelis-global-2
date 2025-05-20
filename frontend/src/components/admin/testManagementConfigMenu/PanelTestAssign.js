@@ -211,10 +211,17 @@ function PanelTestAssign() {
                           {`${intl.formatMessage({ id: "Panel" })} : `}
                         </span>
                       }
+                      value={panelId}
                       onChange={(e) => {
                         setPanelId(e.target.value);
                       }}
                     >
+                      <SelectItem
+                        disabled
+                        hidden
+                        value=""
+                        text="-- Select Panel Test --"
+                      />
                       {panelTestList?.panelList?.map((panelTest) => (
                         <SelectItem
                           key={panelTest.id}
