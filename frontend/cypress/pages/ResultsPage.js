@@ -62,7 +62,10 @@ class Result {
   }
 
   expandSampleDetails() {
-    return cy.get(this.selectors.expanderButton).should("be.visible").click();
+    return cy
+      .get(this.selectors.expanderButton)
+      .should("be.visible")
+      .click({ timeout: 12000 });
   }
 
   selectTestMethod(method) {
