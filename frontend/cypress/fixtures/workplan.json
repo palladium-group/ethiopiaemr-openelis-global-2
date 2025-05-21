@@ -1,6 +1,5 @@
 {
   "testName": "Western blot HIV(Serum)",
-  "testNameTwo": "GOT/ASAT(Serum)",
   "bilanPanelType": "Bilan Biochimique",
   "panelType": "Serologie VIH",
   "unitBioType": "Biochemistry",
