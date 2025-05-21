@@ -298,6 +298,19 @@ describe("Result By Test And Status", function () {
     });
   });
 
+  it("Search by TestName", function () {
+    cy.fixture("workplan").then((order) => {
+      result.selectTestName(order.testName);
+      result.searchResults();
+      result.expandSampleDetails();
+    });
+    cy.fixture("result").then((res) => {
+      result.selectTestMethod(res.pcrTestMethod);
+    });
+    result.submitResults();
+    cy.reload();
+  });
+
   it("Search by Collection Date", function () {
     cy.fixture("result").then((res) => {
       result.enterCollectionDate();
@@ -337,20 +350,6 @@ describe("Result By Test And Status", function () {
       result.selectAnalysisStatus(res.analysisStatus);
       result.searchResults();
       result.expandSampleDetails();
-      result.selectTestMethod(res.pcrTestMethod);
-    });
-    result.submitResults();
-    cy.reload();
-  });
-
-  it("Search by TestName", function () {
-    cy.reload();
-    cy.fixture("workplan").then((order) => {
-      result.selectTestName(order.testName);
-      result.searchResults();
-      result.expandSampleDetails();
-    });
-    cy.fixture("result").then((res) => {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
