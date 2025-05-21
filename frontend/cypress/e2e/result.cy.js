@@ -342,10 +342,14 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
-    cy.reload();
   });
 
   it("Search by Test Analysis", function () {
+    before("navigate to Result By Test And Status", function () {
+      homePage = loginPage.goToHomePage();
+      result = homePage.goToResultsByTestAndStatus();
+    });
+
     cy.fixture("result").then((res) => {
       result.selectAnalysisStatus(res.analysisStatus);
       result.searchResults();
