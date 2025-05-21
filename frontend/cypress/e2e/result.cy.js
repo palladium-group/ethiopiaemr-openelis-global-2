@@ -311,10 +311,8 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Collection Date", function () {
-    before("navigate to Result By Test And Status", function () {
-      homePage = loginPage.goToHomePage();
-      result = homePage.goToResultsByTestAndStatus();
-    });
+    homePage = loginPage.goToHomePage();
+    result = homePage.goToResultsByTestAndStatus();
 
     cy.fixture("result").then((res) => {
       result.enterCollectionDate();
@@ -327,10 +325,8 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Received Date", function () {
-    before("navigate to Result By Test And Status", function () {
-      homePage = loginPage.goToHomePage();
-      result = homePage.goToResultsByTestAndStatus();
-    });
+    homePage = loginPage.goToHomePage();
+    result = homePage.goToResultsByTestAndStatus();
 
     cy.fixture("result").then((res) => {
       result.enterReceivedDate();
@@ -342,10 +338,8 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Sample status", function () {
-    before("navigate to Result By Test And Status", function () {
-      homePage = loginPage.goToHomePage();
-      result = homePage.goToResultsByTestAndStatus();
-    });
+    homePage = loginPage.goToHomePage();
+    result = homePage.goToResultsByTestAndStatus();
 
     cy.fixture("result").then((res) => {
       result.sampleStatus(res.sample);
@@ -357,10 +351,8 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Test Analysis", function () {
-    before("navigate to Result By Test And Status", function () {
-      homePage = loginPage.goToHomePage();
-      result = homePage.goToResultsByTestAndStatus();
-    });
+    homePage = loginPage.goToHomePage();
+    result = homePage.goToResultsByTestAndStatus();
 
     cy.fixture("result").then((res) => {
       result.selectAnalysisStatus(res.analysisStatus);
