@@ -340,6 +340,7 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
+    cy.reload();
   });
 
   it("Search by TestName", function () {
