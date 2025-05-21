@@ -308,10 +308,14 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
-    cy.reload();
   });
 
   it("Search by Collection Date", function () {
+    before("navigate to Result By Test And Status", function () {
+      homePage = loginPage.goToHomePage();
+      result = homePage.goToResultsByTestAndStatus();
+    });
+
     cy.fixture("result").then((res) => {
       result.enterCollectionDate();
       result.clickReceivedDate();
@@ -320,10 +324,14 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
-    cy.reload();
   });
 
   it("Search by Received Date", function () {
+    before("navigate to Result By Test And Status", function () {
+      homePage = loginPage.goToHomePage();
+      result = homePage.goToResultsByTestAndStatus();
+    });
+
     cy.fixture("result").then((res) => {
       result.enterReceivedDate();
       result.searchResults();
@@ -331,10 +339,14 @@ describe("Result By Test And Status", function () {
       result.selectTestMethod(res.pcrTestMethod);
     });
     result.submitResults();
-    cy.reload();
   });
 
   it("Search by Sample status", function () {
+    before("navigate to Result By Test And Status", function () {
+      homePage = loginPage.goToHomePage();
+      result = homePage.goToResultsByTestAndStatus();
+    });
+
     cy.fixture("result").then((res) => {
       result.sampleStatus(res.sample);
       result.searchResults();
