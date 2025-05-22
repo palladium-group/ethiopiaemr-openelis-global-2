@@ -287,7 +287,8 @@ describe("Result By Range Of Order", function () {
 });
 
 describe("Result By Test And Status", function () {
-  before("navigate to Result By Test And Status", function () {
+  // This will run before every test case
+  beforeEach("Navigate to Results page", function () {
     homePage = loginPage.goToHomePage();
     result = homePage.goToResultsByTestAndStatus();
   });
@@ -311,9 +312,6 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Collection Date", function () {
-    homePage = loginPage.goToHomePage();
-    result = homePage.goToResultsByTestAndStatus();
-
     cy.fixture("result").then((res) => {
       result.enterCollectionDate();
       result.clickReceivedDate();
@@ -325,9 +323,6 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Received Date", function () {
-    homePage = loginPage.goToHomePage();
-    result = homePage.goToResultsByTestAndStatus();
-
     cy.fixture("result").then((res) => {
       result.enterReceivedDate();
       result.searchResults();
@@ -338,9 +333,6 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Sample status", function () {
-    homePage = loginPage.goToHomePage();
-    result = homePage.goToResultsByTestAndStatus();
-
     cy.fixture("result").then((res) => {
       result.sampleStatus(res.sample);
       result.searchResults();
@@ -351,9 +343,6 @@ describe("Result By Test And Status", function () {
   });
 
   it("Search by Test Analysis", function () {
-    homePage = loginPage.goToHomePage();
-    result = homePage.goToResultsByTestAndStatus();
-
     cy.fixture("result").then((res) => {
       result.selectAnalysisStatus(res.analysisStatus);
       result.searchResults();
