@@ -5,6 +5,7 @@ import BarcodeConfigPage from "./BarcodeConfigPage";
 import ProgramEntryPage from "./ProgramEntryPage";
 import ProviderManagementPage from "./ProviderManagementPage";
 import OrganizationManagementPage from "./OrganizationManagementPage";
+import UserManagementPage from "./UserManagementPage";
 
 class AdminPage {
   constructor() {}
@@ -62,6 +63,11 @@ class AdminPage {
     cy.get("[data-cy='programEntry']").click();
 
     return new ProgramEntryPage();
+  }
+
+  goToUserManagementPage() {
+    cy.get("[data-cy='userMgmnt']").click();
+    return new UserManagementPage();
   }
 }
 

@@ -114,6 +114,7 @@ function Admin() {
       >
         <SideNavItems className="adminSideNav">
           <SideNavMenu
+            data-cy="adminTestMgmt"
             renderIcon={Microscope}
             title={intl.formatMessage({ id: "sidenav.label.admin.testmgt" })}
           >
@@ -155,7 +156,11 @@ function Admin() {
           >
             <FormattedMessage id="sidenav.label.admin.barcodeconfiguration" />
           </SideNavLink>
-          <SideNavLink href="#PluginFile" renderIcon={BootVolumeAlt}>
+          <SideNavLink
+            data-cy="pluginFile"
+            href="#PluginFile"
+            renderIcon={BootVolumeAlt}
+          >
             <FormattedMessage id="sidenav.label.admin.Listplugin" />
           </SideNavLink>
           <SideNavLink
@@ -165,20 +170,35 @@ function Admin() {
           >
             <FormattedMessage id="organization.main.title" />
           </SideNavLink>
-          <SideNavLink renderIcon={Report} href="#resultReportingConfiguration">
+          <SideNavLink
+            data-cy="resultReportingConfiguration"
+            renderIcon={Report}
+            href="#resultReportingConfiguration"
+          >
             <FormattedMessage id="resultreporting.browse.title" />
           </SideNavLink>
-          <SideNavLink renderIcon={User} href="#userManagement">
+          <SideNavLink
+            data-cy="userMgmnt"
+            renderIcon={User}
+            href="#userManagement"
+          >
             <FormattedMessage id="unifiedSystemUser.browser.title" />
           </SideNavLink>
-          <SideNavLink renderIcon={BatchJob} href="#batchTestReassignment">
+          <SideNavLink
+            data-cy="batchTestReassignment"
+            renderIcon={BatchJob}
+            href="#batchTestReassignment"
+          >
             <FormattedMessage id="configuration.batch.test.reassignment" />
           </SideNavLink>
-          <SideNavLink renderIcon={ResultNew} href="#testManagementConfigMenu">
+          <SideNavLink
+            data-cy="testManagementConfigMenu"
+            renderIcon={ResultNew}
+            href="#testManagementConfigMenu"
+          >
             <FormattedMessage id="master.lists.page.test.management" />
           </SideNavLink>
           <SideNavMenu
-            data-testid="menuConfig"
             title={intl.formatMessage({ id: "sidenav.label.admin.menu" })}
             renderIcon={TableOfContents}
           >
@@ -302,7 +322,7 @@ function Admin() {
       <PathRoute path="#resultReportingConfiguration">
         <ResultReportingConfiguration />
       </PathRoute>
-      <PathRoute path="#userManagement">
+      <PathRoute data-cy="userMgmnt" path="#userManagement">
         <UserManagement />
       </PathRoute>
       <PathRoute path="#batchTestReassignment">
