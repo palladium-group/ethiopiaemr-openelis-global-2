@@ -1,3 +1,4 @@
+import { use } from "react";
 import LoginPage from "../../pages/LoginPage";
 
 let loginPage = null;
@@ -28,7 +29,7 @@ describe("User Management", function () {
   describe("Add User and Exit", function () {
     it("Add User", function () {
       userMgmnt.clickAddButton();
-      userMgmnt.verifyPageTitle();
+      userMgmnt.validatePageTitle();
     });
 
     it("Enter USer details", function () {
@@ -66,7 +67,7 @@ describe("User Management", function () {
   describe("Add User and Save", function () {
     it("Add User", function () {
       userMgmnt.clickAddButton();
-      userMgmnt.verifyPageTitle();
+      userMgmnt.validatePageTitle();
     });
 
     it("Enter USer details", function () {
@@ -98,6 +99,40 @@ describe("User Management", function () {
 
     it("Save Changes", function () {
       userMgmnt.saveChanges();
+    });
+  });
+
+  describe("Validate added User", function () {
+    it("Search by Username", function () {
+      userMgmnt = adminPage.goToUserManagementPage();
+      userMgmnt.validatePageTitle();
+      userMgmnt.searchUser(usersData[4].username);
+      //add validations
+      cy.reload();
+    });
+
+    it("Search by First Name", function () {
+      userMgmnt.searchUser("Warren");
+      //add validations
+      cy.reload();
+    });
+
+    it("Search by Last Name", function () {
+      userMgmnt.searchUser("Buffet");
+      //add validations
+      cy.reload();
+    });
+
+    it("Search by Only Active", function () {
+      userMgmnt.activeUser();
+      //add validations
+      cy.reload();
+    });
+
+    it("Search by Only Administrator", function () {
+      userMgmnt.adminUser();
+      //add validations
+      cy.reload();
     });
   });
 });

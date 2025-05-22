@@ -1,3 +1,5 @@
+import { Search } from "@carbon/react";
+
 class UserManagementPage {
   constructor() {
     this.selectors = {
@@ -21,6 +23,7 @@ class UserManagementPage {
       removePermission: "[data-cy='removePermission']",
       saveButton: "[data-cy='saveButton']",
       exitButton: "[data-cy='exitButton']",
+      searchBar: "#user-name-search-bar",
     };
   }
   verifyPageTitle() {
@@ -106,7 +109,7 @@ class UserManagementPage {
 
   //Global Roles
   analyzerImport() {
-    cy.contains(this.selectors.span, "Analyzer Import").click();
+    cy.contains(this.selectors.span, "Analyser Import").click();
   }
 
   auditTrail() {
@@ -127,6 +130,18 @@ class UserManagementPage {
 
   userAccountAdmin() {
     cy.contains(this.selectors.span, "User Account Administrator").click();
+  }
+
+  searchUser(value) {
+    cy.get(this.selectors.searchBar).type(value);
+  }
+
+  activeUser() {
+    cy.contains(this.selectors.span, "Only Active").click();
+  }
+
+  adminUser() {
+    cy.contains(this.selectors.span, "Only Administrator").click();
   }
 }
 
