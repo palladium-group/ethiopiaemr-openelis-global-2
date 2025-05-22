@@ -1,5 +1,3 @@
-import { Search } from "@carbon/react";
-
 class UserManagementPage {
   constructor() {
     this.selectors = {
