@@ -51,8 +51,6 @@ describe("User Management", function () {
       //userMgmnt.copyPermisionsFromUser();
       //userMgmnt.applyChanges();
       userMgmnt.analyzerImport();
-      userMgmnt.auditTrail();
-      userMgmnt.cytopathologist();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
       userMgmnt.allPermissions();
@@ -77,6 +75,7 @@ describe("User Management", function () {
       userMgmnt.enterFirstName("Warren");
       userMgmnt.enterLastName("Buffet");
       userMgmnt.enterUserTimeout("480");
+      userMgmnt.checkAccountDisabled();
     });
 
     it("Add and Remove Lab Unit Roles", function () {
@@ -89,8 +88,6 @@ describe("User Management", function () {
       //userMgmnt.copyPermisionsFromUser();
       //userMgmnt.applyChanges();
       userMgmnt.analyzerImport();
-      userMgmnt.auditTrail();
-      userMgmnt.cytopathologist();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
       userMgmnt.allPermissions();

@@ -13,7 +13,7 @@ class UserManagementPage {
       passwordExpirationDate: "#password-expire-date",
       userTimeOut: "#login-timeout",
       accountLocked: "",
-      accountDisabled: "",
+      accountDisabled: "#radio-3",
       isActive: "",
       copyPermisionsFromUser: "#copy-permissions",
       applyButton: "[data-cy='apply-button']",
@@ -58,11 +58,15 @@ class UserManagementPage {
   }
 
   passwordExpiryDate(value) {
-    cy.get(this.selectors.passwordExpirationDate).type(value);
+    cy.get(this.selectors.passwordExpirationDate).clear().type(value);
   }
 
   enterUserTimeout(value) {
-    cy.get(this.selectors.userTimeOut).type(value);
+    cy.get(this.selectors.userTimeOut).clear().type(value);
+  }
+
+  checkAccountDisabled() {
+    cy.get(this.selectors.accountDisabled).check({ force: true });
   }
 
   copyPermisionsFromUser(value) {
