@@ -111,7 +111,7 @@ class UserManagementPage {
   }
 
   auditTrail() {
-    cy.contains(this.selectors.span, "Audit Trail").click();
+    cy.contains(this.selectors.span, "Audit Trail").click({ force: true });
   }
 
   cytopathologist() {

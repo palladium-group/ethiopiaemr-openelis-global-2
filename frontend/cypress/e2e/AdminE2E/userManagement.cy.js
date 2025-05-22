@@ -104,7 +104,7 @@ describe("User Management", function () {
   describe("Validate added User", function () {
     it("Search by Username", function () {
       userMgmnt = adminPage.goToUserManagementPage();
-      userMgmnt.validatePageTitle();
+      userMgmnt.verifyPageTitle();
       userMgmnt.searchUser(usersData[4].username);
       //add validations
       cy.reload();

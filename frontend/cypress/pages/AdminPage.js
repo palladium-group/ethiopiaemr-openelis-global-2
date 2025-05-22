@@ -17,7 +17,7 @@ class AdminPage {
       barcodeConfig: "[data-cy='barcodeConfig']",
       programEntry: "[data-cy='programEntry']",
       userManagement: "[data-cy='userMgmnt']",
-      menuConfigText: "span:contains('Menu Configuration')",
+      span: "span",
     };
   }
 
@@ -47,7 +47,7 @@ class AdminPage {
   }
 
   goToGlobalMenuConfigPage() {
-    cy.get(this.selectors.menuConfigText).click();
+    cy.contains(this.selectors.span, "Menu Configuration").click();
     cy.get(this.selectors.globalMenuManagement).should("be.visible").click();
     cy.url().should("include", "#globalMenuManagement");
     cy.contains("Global Menu Management").should("be.visible");
