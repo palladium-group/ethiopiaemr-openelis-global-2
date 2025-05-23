@@ -65,7 +65,7 @@ let breadcrumbs = [
   },
 ];
 
-function TestAdd() {
+const TestAdd = () => {
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
@@ -100,9 +100,9 @@ function TestAdd() {
   const [singleSelectDictionaryList, setSingleSelectDictionaryList] = useState(
     [],
   );
-  const [multiSelectDictionaryList, setMultiSelectDictionaryList] = useState([
-    { id: "0", value: "Multiple" },
-  ]);
+  const [multiSelectDictionaryList, setMultiSelectDictionaryList] = useState(
+    [],
+  );
   const [multiSelectDictionaryListTag, setMultiSelectDictionaryListTag] =
     useState([]);
   const [sampleTypeSetupPage, setSampleTypeSetupPage] = useState(true);
@@ -182,42 +182,24 @@ function TestAdd() {
     };
   }, []);
 
-  function handleTestAddData(res) {
+  const handleTestAddData = (res) => {
     if (!res) {
       setIsLoading(true);
     } else {
       setTestAdd(res);
     }
-  }
+  };
 
   useEffect(() => {
     if (testAdd) {
-      setLabUnitList([{ id: "0", value: "" }, ...(testAdd.labUnitList || [])]);
-      setPanelList([
-        { id: "0", value: "Select Multiple" },
-        ...(testAdd.panelList || []),
-      ]);
-      setUomList([{ id: "0", value: "" }, ...(testAdd.uomList || [])]);
-      setResultTypeList([
-        { id: "0", value: "" },
-        ...(testAdd.resultTypeList || []),
-      ]);
-      setSampleTypeList([
-        { id: "0", value: "Select Multiple" },
-        ...(testAdd.sampleTypeList || []),
-      ]);
-      setGroupedDictionaryList([
-        // { id: "0", value: "Select Multiple" },
-        ...(testAdd.groupedDictionaryList || []),
-      ]);
-      setDictionaryList([
-        { id: "0", value: "Select Multiple" },
-        ...(testAdd.dictionaryList || []),
-      ]);
-      setAgeRangeList([
-        { id: "0", value: "" },
-        ...(testAdd.ageRangeList || []),
-      ]);
+      setLabUnitList(testAdd.labUnitList || []);
+      setPanelList(testAdd.panelList || []);
+      setUomList(testAdd.uomList || []);
+      setResultTypeList(testAdd.resultTypeList || []);
+      setSampleTypeList(testAdd.sampleTypeList || []);
+      setGroupedDictionaryList(testAdd.groupedDictionaryList || []);
+      setDictionaryList(testAdd.dictionaryList || []);
+      setAgeRangeList(testAdd.ageRangeList || []);
     }
   }, [testAdd]);
 
@@ -260,7 +242,7 @@ function TestAdd() {
     fetchAllSampleTypesData();
   }, [selectedSampleType]);
 
-  function handleSampleType(res) {
+  const handleSampleType = (res) => {
     setSelectedSampleTypeResp((prev) => {
       const selectedSampleTypeIds = selectedSampleType.map((type) => type.id);
 
@@ -280,45 +262,45 @@ function TestAdd() {
       }
       return prev;
     });
-  }
+  };
 
-  function testNameEn(e) {
+  const testNameEn = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       testNameEnglish: e.target.value,
     }));
-  }
+  };
 
-  function testNameFr(e) {
+  const testNameFr = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       testNameFrench: e.target.value,
     }));
-  }
+  };
 
-  function reportingTestNameEn(e) {
+  const reportingTestNameEn = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       testReportNameEnglish: e.target.value,
     }));
-  }
+  };
 
-  function reportingTestNameFr(e) {
+  const reportingTestNameFr = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       testReportNameFrench: e.target.value,
     }));
-  }
+  };
 
-  function copyInputValuesFromTestNameEnFr() {
+  const copyInputValuesFromTestNameEnFr = () => {
     setJsonWad((prev) => ({
       ...prev,
       testReportNameEnglish: prev.testNameEnglish,
       testReportNameFrench: prev.testNameFrench,
     }));
-  }
+  };
 
-  function handelTestSectionSelect(e) {
+  const handelTestSectionSelect = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       testSection: e.target.value,
@@ -331,9 +313,9 @@ function TestAdd() {
     if (selectedLabUnitObject) {
       setSelectedLabUnitList(selectedLabUnitObject);
     }
-  }
+  };
 
-  function handelUomSelect(e) {
+  const handelUomSelect = (e) => {
     setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
 
     const selectedUomObject = uomList.find(
@@ -343,9 +325,9 @@ function TestAdd() {
     if (selectedUomObject) {
       setSelectedUomList(selectedUomObject);
     }
-  }
+  };
 
-  function handelLonicChange(e) {
+  const handelLonicChange = (e) => {
     const regex = /^(?!-)(?:\d+-)*\d*$/;
 
     const value = e.target.value;
@@ -365,9 +347,9 @@ function TestAdd() {
       });
       setNotificationVisible(true);
     }
-  }
+  };
 
-  function handelResultType(e) {
+  const handelResultType = (e) => {
     setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
 
     const selectedResultTypeObject = resultTypeList.find(
@@ -377,55 +359,55 @@ function TestAdd() {
     if (selectedResultTypeObject) {
       setSelectedResultTypeList(selectedResultTypeObject);
     }
-  }
+  };
 
-  function handleAntimicrobialResistance(e) {
+  const handleAntimicrobialResistance = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       antimicrobialResistance: e.target.checked ? "Y" : "N",
     }));
-  }
-  function handleIsActive(e) {
+  };
+  const handleIsActive = (e) => {
     setJsonWad((prev) => ({ ...prev, active: e.target.checked ? "Y" : "N" }));
-  }
-  function handleOrderable(e) {
+  };
+  const handleOrderable = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       orderable: e.target.checked ? "Y" : "N",
     }));
-  }
-  function handleNotifyPatientofResults(e) {
+  };
+  const handleNotifyPatientofResults = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       notifyResults: e.target.checked ? "Y" : "N",
     }));
-  }
-  function handleInLabOnly(e) {
+  };
+  const handleInLabOnly = (e) => {
     setJsonWad((prev) => ({
       ...prev,
       inLabOnly: e.target.checked ? "Y" : "N",
     }));
-  }
+  };
 
-  function handleSampleTypeSetup() {
+  const handleSampleTypeSetup = () => {
     setSampleTypeSetupPage(true);
-  }
+  };
 
-  function handleRangeSetup() {
+  const handleRangeSetup = () => {
     setRangeSetupPage(true);
-  }
+  };
 
-  function handleOnResultType() {
+  const handleOnResultType = () => {
     setOnResultType(true);
-  }
+  };
 
-  function handleExistingTestSetup() {
+  const handleExistingTestSetup = () => {
     setExistingTestSetupPage(true);
-  }
+  };
 
-  function handleFinalSaveConfirmation() {
+  const handleFinalSaveConfirmation = () => {
     setFinalSaveConfirmation(true);
-  }
+  };
 
   const handelPanelSelectSetTag = (e) => {
     const selectedId = e.target.value;
@@ -518,7 +500,7 @@ function TestAdd() {
     }
   };
 
-  function handleRemoveSampleTypeListSelectIdTestTag(indexToRemove) {
+  const handleRemoveSampleTypeListSelectIdTestTag = (indexToRemove) => {
     setSampleTestTypeToGetTagList((prevTags) => {
       const updatedTags = prevTags.filter(
         (_, index) => index !== indexToRemove,
@@ -550,9 +532,9 @@ function TestAdd() {
     setSelectedSampleTypeResp((prevState) =>
       prevState.filter((_, index) => index !== indexToRemove),
     );
-  }
+  };
 
-  function testAddPostCall() {
+  const testAddPostCall = () => {
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
@@ -561,9 +543,9 @@ function TestAdd() {
         testAddPostCallback(res);
       },
     );
-  }
+  };
 
-  function testAddPostCallback(res) {
+  const testAddPostCallback = (res) => {
     if (res) {
       setIsLoading(false);
       addNotification({
@@ -590,7 +572,7 @@ function TestAdd() {
         window.location.reload();
       }, 200);
     }
-  }
+  };
 
   const handelSelectListOptions = (e) => {
     const selectedId = e.target.value;
@@ -671,6 +653,7 @@ function TestAdd() {
                     handelTestSectionSelect(e);
                   }}
                 >
+                  <SelectItem value="0" text="Select Test Section" />
                   {labUnitList?.map((test) => (
                     <SelectItem
                       key={test.id}
@@ -756,6 +739,7 @@ function TestAdd() {
                 hideLabel
                 required
               >
+                <SelectItem value="0" text="Select Panel" />
                 {panelList?.map((test) => (
                   <SelectItem
                     key={test.id}
@@ -797,6 +781,7 @@ function TestAdd() {
                 hideLabel
                 required
               >
+                <SelectItem value="0" text="Select Unit Of Measurement" />
                 {uomList?.map((test) => (
                   <SelectItem
                     key={test.id}
@@ -821,6 +806,7 @@ function TestAdd() {
                     handelResultType(e);
                   }}
                 >
+                  <SelectItem value="0" text="Select Result Type" />
                   {resultTypeList?.map((test) => (
                     <SelectItem
                       key={test.id}
@@ -916,6 +902,7 @@ function TestAdd() {
                     required
                     onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
                   >
+                    <SelectItem value="0" text="Select Sample Type" />
                     {sampleTypeList?.map((test) => (
                       <SelectItem
                         key={test.id}
@@ -1019,6 +1006,7 @@ function TestAdd() {
                     required
                     onChange={(e) => handelSelectListOptions(e)} // need a fix
                   >
+                    <SelectItem value="0" text="Select List Option" />
                     {dictionaryList?.map((test) => (
                       <SelectItem
                         key={test.id}
@@ -1078,6 +1066,7 @@ function TestAdd() {
                     required
                     // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
                   >
+                    <SelectItem value="0" text="Select Reference Value" />
                     {singleSelectDictionaryList?.map((test) => (
                       <SelectItem
                         key={test.id}
@@ -1097,6 +1086,10 @@ function TestAdd() {
                     required
                     // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
                   >
+                    <SelectItem
+                      value="0"
+                      text="Select Single Dictionary List"
+                    />
                     {singleSelectDictionaryList?.map((test) => (
                       <SelectItem
                         key={test.id}
@@ -1115,6 +1108,7 @@ function TestAdd() {
                     required
                     onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
                   >
+                    <SelectItem value="0" text="Select Multi Dictionary List" />
                     {multiSelectDictionaryList?.map((test) => (
                       <SelectItem
                         key={test.id}
@@ -1631,6 +1625,6 @@ function TestAdd() {
       </div>
     </>
   );
-}
+};
 
 export default injectIntl(TestAdd);
