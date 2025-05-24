@@ -1,6 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import {
-  Form,
   Heading,
   Button,
   Loading,
@@ -47,10 +46,8 @@ import {
 } from "../../common/CustomNotification.js";
 import { FormattedMessage, injectIntl, useIntl } from "react-intl";
 import PageBreadCrumb from "../../common/PageBreadCrumb.js";
-import CustomCheckBox from "../../common/CustomCheckBox.js";
-import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
-import { id } from "date-fns/locale";
-import { value } from "jsonpath";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -65,7 +62,7 @@ let breadcrumbs = [
   },
 ];
 
-const TestAdd = () => {
+function TestAdd() {
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
@@ -170,6 +167,89 @@ const TestAdd = () => {
     },
   );
 
+  const initialValues = {
+    testNameEnglish: jsonWad?.testNameEnglish || "",
+    testNameFrench: jsonWad?.testNameFrench || "",
+    testReportNameEnglish: jsonWad?.testReportNameEnglish || "",
+    testReportNameFrench: jsonWad?.testReportNameFrench || "",
+    testSection: jsonWad?.testSection || "",
+    panels: jsonWad?.panels || [],
+    uom: jsonWad?.uom || "",
+    loinc: jsonWad?.loinc || "",
+    resultType: jsonWad?.resultType || "",
+    orderable: jsonWad?.orderable || "Y",
+    notifyResults: jsonWad?.notifyResults || "",
+    inLabOnly: jsonWad?.inLabOnly || "",
+    antimicrobialResistance: jsonWad?.antimicrobialResistance || "",
+    active: jsonWad?.active || "Y",
+    sampleTypes: jsonWad?.sampleTypes || [],
+    lowValid: jsonWad?.lowValid || "",
+    highValid: jsonWad?.highValid || "",
+    lowReportingRange: jsonWad?.lowReportingRange || "",
+    highReportingRange: jsonWad?.highReportingRange || "",
+    lowCritical: jsonWad?.lowCritical || "",
+    highCritical: jsonWad?.highCritical || "",
+    significantDigits: jsonWad?.significantDigits || "",
+    resultLimits:
+      jsonWad?.resultLimits ||
+      '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]',
+  };
+
+  const validationSchema = Yup.object({
+    testNameEnglish: Yup.string().required("Test Name in English is required"),
+    testNameFrench: Yup.string().required("Test Name in French is required"),
+    testReportNameEnglish: Yup.string().required(
+      "Reporting Test Name in English is required",
+    ),
+    testReportNameFrench: Yup.string().required(
+      "Reporting Test Name in French is required",
+    ),
+    testSection: Yup.string().required("Test Section is required"),
+    panels: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string().required("Panel ID is required"),
+      }),
+    ),
+    uom: Yup.string().required("Unit of Measurement is required"),
+    loinc: Yup.string()
+      .matches(/^(?!-)(?:\d+-)*\d*$/, "Loinc must be a valid format")
+      .required("Loinc is required"),
+    resultType: Yup.string().required("Result Type is required"),
+    orderable: Yup.string().oneOf(["Y", "N"], "Orderable must be Y or N"),
+    notifyResults: Yup.string().oneOf(
+      ["Y", "N"],
+      "Notify Results must be Y or N",
+    ),
+    inLabOnly: Yup.string().oneOf(["Y", "N"], "In Lab Only must be Y or N"),
+    antimicrobialResistance: Yup.string().oneOf(
+      ["Y", "N"],
+      "Antimicrobial Resistance must be Y or N",
+    ),
+    active: Yup.string().oneOf(["Y", "N"], "Active must be Y or N"),
+    sampleTypes: Yup.array().of(
+      Yup.object().shape({
+        typeId: Yup.string().required("Sample Type ID is required"),
+        tests: Yup.array()
+          .of(
+            Yup.object().shape({
+              id: Yup.number().required("Test ID is required"),
+            }),
+          )
+          .required("Tests are required"),
+      }),
+    ),
+    lowValid: Yup.string().required("Low Valid is required"),
+    highValid: Yup.string().required("High Valid is required"),
+    lowReportingRange: Yup.string().required("Low Reporting Range is required"),
+    highReportingRange: Yup.string().required(
+      "High Reporting Range is required",
+    ),
+    lowCritical: Yup.string().required("Low Critical is required"),
+    highCritical: Yup.string().required("High Critical is required"),
+    significantDigits: Yup.string().required("Significant Digits is required"),
+    resultLimits: Yup.string().required("Result Limits are required"),
+  });
+
   useEffect(() => {
     componentMounted.current = true;
     setIsLoading(true);
@@ -264,135 +344,6 @@ const TestAdd = () => {
     });
   };
 
-  const testNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameEnglish: e.target.value,
-    }));
-  };
-
-  const testNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameFrench: e.target.value,
-    }));
-  };
-
-  const reportingTestNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameEnglish: e.target.value,
-    }));
-  };
-
-  const reportingTestNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameFrench: e.target.value,
-    }));
-  };
-
-  const copyInputValuesFromTestNameEnFr = () => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameEnglish: prev.testNameEnglish,
-      testReportNameFrench: prev.testNameFrench,
-    }));
-  };
-
-  const handelTestSectionSelect = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testSection: e.target.value,
-    }));
-
-    const selectedLabUnitObject = labUnitList.find(
-      (item) => item.id === e.target.value,
-    );
-
-    if (selectedLabUnitObject) {
-      setSelectedLabUnitList(selectedLabUnitObject);
-    }
-  };
-
-  const handelUomSelect = (e) => {
-    setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
-
-    const selectedUomObject = uomList.find(
-      (item) => item.id === e.target.value,
-    );
-
-    if (selectedUomObject) {
-      setSelectedUomList(selectedUomObject);
-    }
-  };
-
-  const handelLonicChange = (e) => {
-    const regex = /^(?!-)(?:\d+-)*\d*$/;
-
-    const value = e.target.value;
-
-    if (regex.test(value)) {
-      setLonic(value);
-      setJsonWad((prev) => ({ ...prev, loinc: value }));
-    } else {
-      addNotification({
-        title: intl.formatMessage({
-          id: "notification.title",
-        }),
-        message: intl.formatMessage({
-          id: "notification.user.post.save.success",
-        }),
-        kind: NotificationKinds.error,
-      });
-      setNotificationVisible(true);
-    }
-  };
-
-  const handelResultType = (e) => {
-    setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
-
-    const selectedResultTypeObject = resultTypeList.find(
-      (item) => item.id == e.target.value,
-    );
-
-    if (selectedResultTypeObject) {
-      setSelectedResultTypeList(selectedResultTypeObject);
-    }
-  };
-
-  const handleAntimicrobialResistance = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      antimicrobialResistance: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleIsActive = (e) => {
-    setJsonWad((prev) => ({ ...prev, active: e.target.checked ? "Y" : "N" }));
-  };
-  const handleOrderable = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      orderable: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleNotifyPatientofResults = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      notifyResults: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleInLabOnly = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      inLabOnly: e.target.checked ? "Y" : "N",
-    }));
-  };
-
-  const handleSampleTypeSetup = () => {
-    setSampleTypeSetupPage(true);
-  };
-
   const handleRangeSetup = () => {
     setRangeSetupPage(true);
   };
@@ -407,41 +358,6 @@ const TestAdd = () => {
 
   const handleFinalSaveConfirmation = () => {
     setFinalSaveConfirmation(true);
-  };
-
-  const handelPanelSelectSetTag = (e) => {
-    const selectedId = e.target.value;
-    const selectedValue = e.target.options[e.target.selectedIndex].text;
-
-    setPanelListTag((prevTags) => {
-      const isTagPresent = prevTags.some((tag) => tag.id === selectedId);
-      if (isTagPresent) return prevTags;
-
-      const newTag = { id: selectedId, value: selectedValue };
-      const updatedTags = [...prevTags, newTag];
-
-      const updatedPanels = [...updatedTags.map((tag) => ({ id: tag.id }))];
-      setJsonWad((prevJsonWad) => ({
-        ...prevJsonWad,
-        panels: updatedPanels,
-      }));
-
-      return updatedTags;
-    });
-  };
-
-  const handlePanelRemoveTag = (idToRemove) => {
-    setPanelListTag((prevTags) => {
-      const updatedTags = prevTags.filter((tag) => tag.id !== idToRemove);
-
-      const updatedPanels = updatedTags.map((tag) => ({ id: tag.id }));
-      setJsonWad((prevJsonWad) => ({
-        ...prevJsonWad,
-        panels: updatedPanels,
-      }));
-
-      return updatedTags;
-    });
   };
 
   // const handleSampleTypeListSelectIdTestTag = (e) => {
@@ -619,973 +535,38 @@ const TestAdd = () => {
     );
   }
 
+  const [currentStep, setCurrentStep] = useState(1);
+  const steps = [
+    <StepOneTestName />,
+    <StepTwoTestPanelAndUom />,
+    <StepThreeTestResultTypeAndLoinc />,
+    <StepFourSelectSampleTypeAndTestDisplayOrder />,
+    <StepFiveSelectListOptionsAndResultOrder />,
+    <StepSixSelectRangeAgeRangeAndSignificantDigits />,
+    <StepSevenDisplayExistingTestSets />,
+    <StepEightFinalDisplayAndSaveConfirmation />,
+  ];
+
+  const handleNextStep = () => {
+    setCurrentStep((prevStep) => {
+      prevStep + 1;
+    });
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep((prevStep) => {
+      prevStep - 1;
+    });
+  };
+
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
       <div className="adminPageContent">
         <PageBreadCrumb breadcrumbs={breadcrumbs} />
         <div className="orderLegendBody">
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Section>
-                <Heading>
-                  <FormattedMessage id="configuration.test.add" />
-                </Heading>
-              </Section>
-            </Column>
-          </Grid>
+          <Formik>{() => <Form>{steps[currentStep]}</Form>}</Formik>
           <br />
-          <hr />
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={8} md={4} sm={4}>
-              <div>
-                <>
-                  <FormattedMessage id="test.section.label" />
-                  <span style={{ color: "red" }}>*</span>
-                </>
-                <br />
-                <Select
-                  id={`select-test-section`}
-                  hideLabel
-                  required
-                  onChange={(e) => {
-                    handelTestSectionSelect(e);
-                  }}
-                >
-                  <SelectItem value="0" text="Select Test Section" />
-                  {labUnitList?.map((test) => (
-                    <SelectItem
-                      key={test.id}
-                      value={test.id}
-                      text={`${test.value}`}
-                    />
-                  ))}
-                </Select>
-              </div>
-              <br />
-              <div>
-                <>
-                  <FormattedMessage id="sample.entry.project.testName" />
-                  <span style={{ color: "red" }}>*</span>
-                </>
-                <br />
-                <br />
-                <FormattedMessage id="english.label" />
-                <br />
-                <TextInput
-                  labelText=""
-                  id="testNameEn"
-                  value={jsonWad?.testNameEnglish}
-                  onChange={testNameEn}
-                  required
-                />
-                <br />
-                <FormattedMessage id="french.label" />
-                <br />
-                <TextInput
-                  labelText=""
-                  id="testNameFr"
-                  value={jsonWad?.testNameFrench}
-                  onChange={testNameFr}
-                  required
-                />
-              </div>
-              <br />
-              <div>
-                <>
-                  <FormattedMessage id="reporting.label.testName" />
-                  <span style={{ color: "red" }}>*</span>
-                </>
-                <br />
-                <br />
-                <Button
-                  kind="tertiary"
-                  onClick={copyInputValuesFromTestNameEnFr}
-                  type="button"
-                >
-                  <FormattedMessage id="test.add.copy.name" />
-                </Button>
-                <br />
-                <br />
-                <FormattedMessage id="english.label" />
-                <br />
-                <TextInput
-                  labelText=""
-                  id="reportingTestNameEn"
-                  value={jsonWad?.reportingTestNameEn}
-                  required
-                  onChange={reportingTestNameEn}
-                />
-                <br />
-                <FormattedMessage id="french.label" />
-                <br />
-                <TextInput
-                  labelText=""
-                  id="reportingTestNameFr"
-                  value={jsonWad?.reportingTestNameFr}
-                  required
-                  onChange={reportingTestNameFr}
-                />
-              </div>
-            </Column>
-            <Column lg={4} md={4} sm={4}>
-              <FormattedMessage id="field.panel" />
-              <Select
-                id={`select-panel`}
-                onChange={(e) => {
-                  handelPanelSelectSetTag(e);
-                }}
-                hideLabel
-                required
-              >
-                <SelectItem value="0" text="Select Panel" />
-                {panelList?.map((test) => (
-                  <SelectItem
-                    key={test.id}
-                    value={test.id}
-                    text={`${test.value}`}
-                  />
-                ))}
-              </Select>
-              <br />
-              {panelListTag && panelListTag.length ? (
-                <div
-                  className={"select-panel"}
-                  style={{ marginBottom: "1.188rem" }}
-                >
-                  <>
-                    {panelListTag.map((panel) => (
-                      <Tag
-                        filter
-                        key={`panelTags_${panel.id}`}
-                        onClose={() => handlePanelRemoveTag(panel.id)}
-                        style={{ marginRight: "0.5rem" }}
-                        type={"green"}
-                      >
-                        {panel.value}
-                      </Tag>
-                    ))}
-                  </>
-                </div>
-              ) : (
-                <></>
-              )}
-              <br />
-              <FormattedMessage id="field.uom" />
-              <Select
-                onChange={(e) => {
-                  handelUomSelect(e);
-                }}
-                id={`select-uom`}
-                hideLabel
-                required
-              >
-                <SelectItem value="0" text="Select Unit Of Measurement" />
-                {uomList?.map((test) => (
-                  <SelectItem
-                    key={test.id}
-                    value={test.id}
-                    text={`${test.value}`}
-                  />
-                ))}
-              </Select>
-            </Column>
-            <Column lg={4} md={4} sm={4}>
-              <div>
-                <>
-                  <FormattedMessage id="field.resultType" />
-                  <span style={{ color: "red" }}>*</span>
-                </>
-                <br />
-                <Select
-                  id={`select-result-type`}
-                  hideLabel
-                  required
-                  onChange={(e) => {
-                    handelResultType(e);
-                  }}
-                >
-                  <SelectItem value="0" text="Select Result Type" />
-                  {resultTypeList?.map((test) => (
-                    <SelectItem
-                      key={test.id}
-                      value={test.id}
-                      text={`${test.value}`}
-                    />
-                  ))}
-                </Select>
-              </div>
-              <br />
-              <div>
-                <FormattedMessage id="label.loinc" />
-                <br />
-                <TextInput
-                  labelText=""
-                  required
-                  id="loinc"
-                  value={lonic}
-                  onChange={(e) => {
-                    handelLonicChange(e);
-                  }}
-                />
-              </div>
-              <br />
-              <div>
-                <Checkbox
-                  labelText={
-                    <FormattedMessage id="test.antimicrobialResistance" />
-                  }
-                  id="antimicrobial-resistance"
-                  onChange={handleAntimicrobialResistance}
-                  checked={jsonWad?.antimicrobialResistance === "Y"}
-                />
-                <Checkbox
-                  labelText={
-                    <FormattedMessage id="dictionary.category.isActive" />
-                  }
-                  id="is-active"
-                  onChange={handleIsActive}
-                  checked={jsonWad?.active === "Y"}
-                />
-                <Checkbox
-                  labelText={<FormattedMessage id="label.orderable" />}
-                  id="orderable"
-                  onChange={handleOrderable}
-                  checked={jsonWad?.orderable === "Y"}
-                />
-                <Checkbox
-                  labelText={<FormattedMessage id="test.notifyResults" />}
-                  id="notify-patient-of-results"
-                  onChange={handleNotifyPatientofResults}
-                  checked={jsonWad?.notifyResults === "Y"}
-                />
-                <Checkbox
-                  labelText={<FormattedMessage id="test.inLabOnly" />}
-                  id="in-lab-only"
-                  onChange={handleInLabOnly}
-                  checked={jsonWad?.inLabOnly === "Y"}
-                />
-              </div>
-            </Column>
-            <br />
-            <br />
-            <Column lg={16} md={8} sm={4}>
-              <Button onClick={handleSampleTypeSetup} type="button">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
-              <Button
-                onClick={() => {
-                  window.location.assign(
-                    "/MasterListsPage#testManagementConfigMenu",
-                  );
-                }}
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="back.action.button" />
-              </Button>
-            </Column>
-          </Grid>
-          <br />
-          <hr />
-          <br />
-          {sampleTypeSetupPage ? (
-            <>
-              <Grid fullWidth={true}>
-                <Column lg={6} md={2} sm={4}>
-                  <FormattedMessage id="sample.type" />
-                  <br />
-                  <Select
-                    id={`select-sample-type`}
-                    hideLabel
-                    required
-                    onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
-                  >
-                    <SelectItem value="0" text="Select Sample Type" />
-                    {sampleTypeList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                  <br />
-                  {sampleTestTypeToGetTagList &&
-                  sampleTestTypeToGetTagList.length ? (
-                    <div
-                      className={"select-sample-type"}
-                      style={{ marginBottom: "1.188rem" }}
-                    >
-                      <>
-                        {sampleTestTypeToGetTagList.map((section, index) => (
-                          <Tag
-                            filter
-                            key={`testTags_${index}`}
-                            onClose={() =>
-                              handleRemoveSampleTypeListSelectIdTestTag(index)
-                            }
-                            style={{ marginRight: "0.5rem" }}
-                            type={"green"}
-                          >
-                            {section.value}
-                          </Tag>
-                        ))}
-                      </>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  <br />
-                </Column>
-                <Column lg={10} md={6} sm={4}>
-                  <Section>
-                    <Section>
-                      <Section>
-                        <Heading>
-                          <FormattedMessage id="label.test.display.order" />
-                        </Heading>
-                      </Section>
-                    </Section>
-                  </Section>
-                  <br />
-                  {selectedSampleTypeResp.length > 0 ? (
-                    selectedSampleTypeResp.map((item, index) => (
-                      <>
-                        <div className="gridBoundary">
-                          <Section key={index}>
-                            <UnorderedList>
-                              {item.tests.map((test) => (
-                                <ListItem key={test.id}>{test.name}</ListItem>
-                              ))}
-                            </UnorderedList>
-                          </Section>
-                        </div>
-                        <br />
-                      </>
-                    ))
-                  ) : (
-                    <></>
-                  )}
-                </Column>
-                <br />
-                <br />
-                <Column lg={16} md={8} sm={4}>
-                  <Button onClick={handleRangeSetup} type="button">
-                    <FormattedMessage id="next.action.button" />
-                  </Button>{" "}
-                  <Button
-                    onClick={() => {
-                      window.location.reload();
-                    }}
-                    kind="tertiary"
-                    type="button"
-                  >
-                    <FormattedMessage id="label.button.cancel" />
-                  </Button>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-            </>
-          ) : (
-            <></>
-          )}
-          {onResultType ? (
-            <>
-              <Grid>
-                <Column lg={8} md={8} sm={4}>
-                  <FormattedMessage id="label.select.list.options" />
-                  {/* map the Select list options */}
-                  <br />
-                  <Select
-                    id={`select-list-options`}
-                    hideLabel
-                    required
-                    onChange={(e) => handelSelectListOptions(e)} // need a fix
-                  >
-                    <SelectItem value="0" text="Select List Option" />
-                    {dictionaryList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                  {/* tags need to display */}
-                  <br />
-                  {/* need to add tags */}
-                  {dictionaryListTag && dictionaryListTag.length ? (
-                    <div
-                      className={"select-list-options-tag"}
-                      style={{ marginBottom: "1.188rem" }}
-                    >
-                      <>
-                        {dictionaryListTag.map((dict, index) => (
-                          <Tag
-                            filter
-                            key={`list-options_${index}`}
-                            // onClose={() =>
-                            //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                            // }
-                            style={{ marginRight: "0.5rem" }}
-                            type={"green"}
-                          >
-                            {dict.value}
-                          </Tag>
-                        ))}
-                      </>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  <br />
-                </Column>
-                <Column lg={8} md={8} sm={4}>
-                  <Section>
-                    <Section>
-                      <Section>
-                        <Heading>
-                          <FormattedMessage id="label.result.order" />
-                        </Heading>
-                      </Section>
-                    </Section>
-                  </Section>
-                  {/* remeder dragable & Select list options */}
-                  <br />
-                  <br />
-                  <FormattedMessage id="label.reference.value" />
-                  <br />
-                  {/* single Select */}
-                  <Select
-                    id={`select-reference-value`}
-                    hideLabel
-                    required
-                    // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
-                  >
-                    <SelectItem value="0" text="Select Reference Value" />
-                    {singleSelectDictionaryList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                  <br />
-                  <br />
-                  <FormattedMessage id="label.default.result" />
-                  <br />
-                  {/* single Select */}
-                  <Select
-                    id={`select-default-result`}
-                    hideLabel
-                    required
-                    // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
-                  >
-                    <SelectItem
-                      value="0"
-                      text="Select Single Dictionary List"
-                    />
-                    {singleSelectDictionaryList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                  <br />
-                  <br />
-                  <FormattedMessage id="label.qualifiers" />
-                  <br />
-                  <Select
-                    id={`select-qualifiers`}
-                    hideLabel
-                    required
-                    onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
-                  >
-                    <SelectItem value="0" text="Select Multi Dictionary List" />
-                    {multiSelectDictionaryList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                  <br />
-                  {/* need to add tags */}
-                  {multiSelectDictionaryListTag &&
-                  multiSelectDictionaryListTag.length ? (
-                    <div
-                      className={"select-qualifiers-tag"}
-                      style={{ marginBottom: "1.188rem" }}
-                    >
-                      <>
-                        {multiSelectDictionaryListTag.map((dict, index) => (
-                          <Tag
-                            filter
-                            key={`qualifiers_${index}`}
-                            // onClose={() =>
-                            //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                            // }
-                            style={{ marginRight: "0.5rem" }}
-                            type={"green"}
-                          >
-                            {dict.value}
-                          </Tag>
-                        ))}
-                      </>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  <br />
-                </Column>
-                <br />
-                <br />
-                <Column lg={16} md={8} sm={4}>
-                  <Button onClick={handleOnResultType} type="button">
-                    <FormattedMessage id="next.action.button" />
-                  </Button>{" "}
-                  <Button
-                    onClick={() => {
-                      window.location.assign(
-                        "/MasterListsPage#testManagementConfigMenu",
-                      );
-                    }}
-                    kind="tertiary"
-                    type="button"
-                  >
-                    <FormattedMessage id="back.action.button" />
-                  </Button>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-            </>
-          ) : (
-            <></>
-          )}
-          {rangeSetupPage ? (
-            <>
-              <Grid fullWidth={true}>
-                <Column lg={16} md={8} sm={4}>
-                  <Section>
-                    <Section>
-                      <Section>
-                        <Heading>
-                          <FormattedMessage id="label.button.range" />
-                        </Heading>
-                      </Section>
-                    </Section>
-                  </Section>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-              <Grid fullWidth={true} className="gridBoundary">
-                <Column lg={16} md={8} sm={4}>
-                  <FormattedMessage id="field.ageRange" />
-                  <hr />
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <Checkbox
-                      id={"gender"}
-                      labelText={<FormattedMessage id="label.sex.dependent" />}
-                      // onChange={() => {}}
-                    />
-                    {/* render male & female on checkbox*/}
-                    <RadioButtonGroup name={"fieldAgeRangeRadioGroup"}>
-                      <RadioButton labelText={"Y"} />
-                      <RadioButton labelText={"M"} />
-                      <RadioButton labelText={"D"} />
-                    </RadioButtonGroup>
-                    <TextInput
-                      id="field.ageRange0"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    <Select
-                      id="field.ageRange1"
-                      labelText=""
-                      hideLabel
-                      required
-                    >
-                      {/* map agerangeList values from objects inside array */}
-                      {ageRangeList.map((age) => (
-                        <SelectItem
-                          key={age.id}
-                          value={age.id}
-                          text={`${age.value}`}
-                        />
-                      ))}
-                    </Select>
-                  </div>
-                  <hr />
-                  <br />
-                </Column>
-                <Column lg={8} md={4} sm={4}>
-                  <FormattedMessage id="field.normalRange" />
-                  <hr />
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <TextInput
-                      id="field.normalRange0"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    <TextInput
-                      id="field.normalRange1"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    {/* render  two extra fields for TextInput on Click of Check box */}
-                  </div>
-                </Column>
-                <Column lg={8} md={4} sm={4}>
-                  <FormattedMessage id="label.reporting.range" />
-                  <hr />
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <TextInput
-                      id="label.reporting.range0"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    <TextInput
-                      id="label.reporting.range1"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                  </div>
-                </Column>
-                <Column lg={8} md={4} sm={4}>
-                  <FormattedMessage id="field.validRange" />
-                  <hr />
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <TextInput
-                      id="field.validRange0"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    <TextInput
-                      id="field.validRange1"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                  </div>
-                </Column>
-                <Column lg={8} md={4} sm={4}>
-                  <FormattedMessage id="label.critical.range" />
-                  <hr />
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <TextInput
-                      id="label.critical.range0"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                    <TextInput
-                      id="label.critical.range1"
-                      labelText=""
-                      hideLabel
-                      required
-                    />
-                  </div>
-                </Column>
-              </Grid>
-              <br />
-              <FlexGrid fullWidth={true}>
-                <Row>
-                  <Column lg={4} md={4} sm={4}>
-                    <Section>
-                      <Section>
-                        <Section>
-                          <Heading>
-                            <FormattedMessage id="field.significantDigits" />
-                            {" : "}
-                          </Heading>
-                        </Section>
-                      </Section>
-                    </Section>
-                  </Column>
-                  <Column lg={4} md={4} sm={4}>
-                    <NumberInput
-                      id={"significant_digits_num_input"}
-                      max={99}
-                      min={0}
-                      size={"md"}
-                      allowEmpty={true}
-                    />
-                  </Column>
-                </Row>
-              </FlexGrid>
-              <br />
-              <Grid fullWidth={true}>
-                <Column lg={16} md={8} sm={4}>
-                  <Button onClick={handleExistingTestSetup} type="button">
-                    <FormattedMessage id="next.action.button" />
-                  </Button>{" "}
-                  <Button
-                    onClick={() => {
-                      window.location.assign(
-                        "/MasterListsPage#testManagementConfigMenu",
-                      );
-                    }}
-                    kind="tertiary"
-                    type="button"
-                  >
-                    <FormattedMessage id="back.action.button" />
-                  </Button>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-            </>
-          ) : (
-            <></>
-          )}
-          {existingTestSetupPage ? (
-            <>
-              <Grid fullWidth={true}>
-                <Column lg={16} md={8} sm={4}>
-                  <Section>
-                    <Section>
-                      <Section>
-                        <Heading>
-                          <FormattedMessage id="label.existing.test.sets" />
-                        </Heading>
-                      </Section>
-                    </Section>
-                  </Section>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-              <Grid fullWidth={true}>
-                {groupedDictionaryList.map((innerArray, outerIndex) => (
-                  <>
-                    <Column
-                      key={`list-${outerIndex}`}
-                      lg={4}
-                      md={4}
-                      sm={4}
-                      onClick={() => {
-                        setSelectedGroupedDictionaryList([
-                          ...selectedGroupedDictionaryList,
-                          innerArray,
-                        ]);
-                      }}
-                    >
-                      <Section>
-                        <UnorderedList>
-                          {innerArray.map((item) => (
-                            <ListItem key={`listItem-${outerIndex}-${item.id}`}>
-                              {item.value}
-                            </ListItem>
-                          ))}
-                          {/* need to fix console log here */}
-                        </UnorderedList>
-                      </Section>
-                      <br />
-                    </Column>
-                  </>
-                ))}
-              </Grid>
-              <br />
-              <Grid fullWidth={true}>
-                <Column lg={16} md={8} sm={4}>
-                  <Button onClick={handleFinalSaveConfirmation} type="button">
-                    <FormattedMessage id="next.action.button" />
-                  </Button>{" "}
-                  <Button
-                    onClick={() => {
-                      window.location.assign(
-                        "/MasterListsPage#testManagementConfigMenu",
-                      );
-                    }}
-                    kind="tertiary"
-                    type="button"
-                  >
-                    <FormattedMessage id="back.action.button" />
-                  </Button>
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-            </>
-          ) : (
-            <></>
-          )}
-          {finalSaveConfirmation ? (
-            <>
-              <Grid fullWidth={true}>
-                <Column lg={6} md={8} sm={4}>
-                  <FormattedMessage id="sample.entry.project.testName" />
-                  <br />
-                  <FormattedMessage id="english.label" />
-                  {" : "}
-                  {jsonWad?.testNameEnglish}
-                  <br />
-                  <FormattedMessage id="french.label" />
-                  {" : "}
-                  {jsonWad?.testNameFrench}
-                  <br />
-                  <br />
-                  <FormattedMessage id="reporting.label.testName" />
-                  <br />
-                  <FormattedMessage id="english.label" />
-                  {" : "}
-                  {jsonWad?.reportingTestNameEn}
-                  <br />
-                  <FormattedMessage id="french.label" />
-                  {" : "}
-                  {jsonWad?.reportingTestNameFr}
-                  <br />
-                  <br />
-                  <FormattedMessage id="test.section.label" />
-                  {" : "}
-                  {selectedLabUnitList?.value}
-                  <br />
-                  <br />
-                  <FormattedMessage id="field.panel" />
-                  {" : "}
-                  {/* map the  {panelList[0].value} in and there values in line*/}
-                  {panelListTag.length > 0 ? (
-                    <UnorderedList>
-                      {panelListTag.map((tag) => (
-                        <div key={tag.id} style={{ marginRight: "0.5rem" }}>
-                          <ListItem>{tag.value}</ListItem>
-                        </div>
-                      ))}
-                    </UnorderedList>
-                  ) : (
-                    <></>
-                  )}
-                  <br />
-                  <br />
-                  <FormattedMessage id="field.uom" />
-                  {" : "}
-                  {selectedUomList?.value}
-                  <br />
-                  <br />
-                  <FormattedMessage id="label.loinc" />
-                  {" : "}
-                  {jsonWad?.loinc}
-                  <br />
-                  <br />
-                  <FormattedMessage id="field.resultType" />
-                  {" : "}
-                  {selectedResultTypeList.value}
-                  <br />
-                  <br />
-                  <FormattedMessage id="test.antimicrobialResistance" />
-                  {" : "}
-                  {jsonWad?.antimicrobialResistance}
-                  <br />
-                  <br />
-                  <FormattedMessage id="dictionary.category.isActive" />
-                  {" : "}
-                  {jsonWad?.active}
-                  <br />
-                  <br />
-                  <FormattedMessage id="label.orderable" />
-                  {" : "}
-                  {jsonWad?.orderable}
-                  <br />
-                  <br />
-                  <FormattedMessage id="test.notifyResults" />
-                  {" : "}
-                  {jsonWad?.notifyResults}
-                  <br />
-                  <br />
-                  <FormattedMessage id="test.inLabOnly" />
-                  {" : "}
-                  {jsonWad?.inLabOnly}
-                  <br />
-                </Column>
-                <Column lg={10} md={8} sm={4}>
-                  <FormattedMessage id="sample.type.and.test.sort.order" />
-                  {/* Mapp the combbination of the selecte[sampleType] & tests of [sampleType] in sorted order */}
-                  <br />
-                  {selectedSampleTypeList.length > 0 ? (
-                    <UnorderedList nested={true}>
-                      {selectedSampleTypeList.map((type, index) => (
-                        <div key={`selectedSampleType_${index}`}>
-                          <ListItem>{type.value}</ListItem>
-                          <br />
-                          {selectedSampleTypeResp
-                            .filter((resp) => resp.sampleTypeId === type.id)
-                            .map((item, respIndex) => (
-                              <div
-                                key={`selectedSampleTypeResp_${respIndex}`}
-                                className="gridBoundary"
-                              >
-                                <Section>
-                                  <UnorderedList nested>
-                                    {item.tests.map((test) => (
-                                      <ListItem key={`test_${test.id}`}>
-                                        {test.name}
-                                      </ListItem>
-                                    ))}
-                                  </UnorderedList>
-                                </Section>
-                              </div>
-                            ))}
-                        </div>
-                      ))}
-                    </UnorderedList>
-                  ) : (
-                    <></>
-                  )}
-                </Column>
-              </Grid>
-              <br />
-              <hr />
-              <br />
-            </>
-          ) : (
-            <></>
-          )}
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Button
-                disabled={!finalSaveConfirmation}
-                onClick={() => {
-                  setJsonWad(JSON.stringify(jsonWad));
-                  testAddPostCall();
-                }}
-                type="button"
-              >
-                <FormattedMessage id="label.button.submit" />
-              </Button>{" "}
-              <Button
-                onClick={() =>
-                  window.location.assign(
-                    "/MasterListsPage#testManagementConfigMenu",
-                  )
-                }
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="label.button.cancel" />
-              </Button>
-            </Column>
-          </Grid>
           <button
             onClick={() => {
               console.log(testAdd);
@@ -1625,6 +606,1167 @@ const TestAdd = () => {
       </div>
     </>
   );
-};
+}
 
 export default injectIntl(TestAdd);
+
+const StepOneTestName = () => {
+  const testNameEn = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testNameEnglish: e.target.value,
+    }));
+  };
+
+  const testNameFr = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testNameFrench: e.target.value,
+    }));
+  };
+
+  const reportingTestNameEn = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testReportNameEnglish: e.target.value,
+    }));
+  };
+
+  const reportingTestNameFr = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testReportNameFrench: e.target.value,
+    }));
+  };
+
+  const copyInputValuesFromTestNameEnFr = () => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testReportNameEnglish: prev.testNameEnglish,
+      testReportNameFrench: prev.testNameFrench,
+    }));
+  };
+
+  const handelTestSectionSelect = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      testSection: e.target.value,
+    }));
+
+    const selectedLabUnitObject = labUnitList.find(
+      (item) => item.id === e.target.value,
+    );
+
+    if (selectedLabUnitObject) {
+      setSelectedLabUnitList(selectedLabUnitObject);
+    }
+  };
+
+  return (
+    <>
+      <Grid fullWidth={true}>
+        <Column lg={16} md={8} sm={4}>
+          <Section>
+            <Heading>
+              <FormattedMessage id="configuration.test.add" />
+            </Heading>
+          </Section>
+        </Column>
+      </Grid>
+      <br />
+      <hr />
+      <br />
+      <Grid fullWidth={true}>
+        <Column lg={8} md={4} sm={4}>
+          <div>
+            <>
+              <FormattedMessage id="test.section.label" />
+              <span style={{ color: "red" }}>*</span>
+            </>
+            <br />
+            <Select
+              id={`select-test-section`}
+              hideLabel
+              required
+              onChange={(e) => {
+                handelTestSectionSelect(e);
+              }}
+            >
+              <SelectItem value="0" text="Select Test Section" />
+              {labUnitList?.map((test) => (
+                <SelectItem
+                  key={test.id}
+                  value={test.id}
+                  text={`${test.value}`}
+                />
+              ))}
+            </Select>
+          </div>
+          <br />
+          <div>
+            <>
+              <FormattedMessage id="sample.entry.project.testName" />
+              <span style={{ color: "red" }}>*</span>
+            </>
+            <br />
+            <br />
+            <FormattedMessage id="english.label" />
+            <br />
+            <TextInput
+              labelText=""
+              id="testNameEn"
+              value={jsonWad?.testNameEnglish}
+              onChange={testNameEn}
+              required
+            />
+            <br />
+            <FormattedMessage id="french.label" />
+            <br />
+            <TextInput
+              labelText=""
+              id="testNameFr"
+              value={jsonWad?.testNameFrench}
+              onChange={testNameFr}
+              required
+            />
+          </div>
+          <br />
+          <div>
+            <>
+              <FormattedMessage id="reporting.label.testName" />
+              <span style={{ color: "red" }}>*</span>
+            </>
+            <br />
+            <br />
+            <Button
+              kind="tertiary"
+              onClick={copyInputValuesFromTestNameEnFr}
+              type="button"
+            >
+              <FormattedMessage id="test.add.copy.name" />
+            </Button>
+            <br />
+            <br />
+            <FormattedMessage id="english.label" />
+            <br />
+            <TextInput
+              labelText=""
+              id="reportingTestNameEn"
+              value={jsonWad?.reportingTestNameEn}
+              required
+              onChange={reportingTestNameEn}
+            />
+            <br />
+            <FormattedMessage id="french.label" />
+            <br />
+            <TextInput
+              labelText=""
+              id="reportingTestNameFr"
+              value={jsonWad?.reportingTestNameFr}
+              required
+              onChange={reportingTestNameFr}
+            />
+          </div>
+        </Column>
+      </Grid>
+    </>
+  );
+};
+
+const StepTwoTestPanelAndUom = () => {
+  const handelPanelSelectSetTag = (e) => {
+    const selectedId = e.target.value;
+    const selectedValue = e.target.options[e.target.selectedIndex].text;
+
+    setPanelListTag((prevTags) => {
+      const isTagPresent = prevTags.some((tag) => tag.id === selectedId);
+      if (isTagPresent) return prevTags;
+
+      const newTag = { id: selectedId, value: selectedValue };
+      const updatedTags = [...prevTags, newTag];
+
+      const updatedPanels = [...updatedTags.map((tag) => ({ id: tag.id }))];
+      setJsonWad((prevJsonWad) => ({
+        ...prevJsonWad,
+        panels: updatedPanels,
+      }));
+
+      return updatedTags;
+    });
+  };
+
+  const handlePanelRemoveTag = (idToRemove) => {
+    setPanelListTag((prevTags) => {
+      const updatedTags = prevTags.filter((tag) => tag.id !== idToRemove);
+
+      const updatedPanels = updatedTags.map((tag) => ({ id: tag.id }));
+      setJsonWad((prevJsonWad) => ({
+        ...prevJsonWad,
+        panels: updatedPanels,
+      }));
+
+      return updatedTags;
+    });
+  };
+
+  const handelUomSelect = (e) => {
+    setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
+
+    const selectedUomObject = uomList.find(
+      (item) => item.id === e.target.value,
+    );
+
+    if (selectedUomObject) {
+      setSelectedUomList(selectedUomObject);
+    }
+  };
+
+  return (
+    <>
+      <Grid fullWidth={true}>
+        <Column lg={4} md={4} sm={4}>
+          <FormattedMessage id="field.panel" />
+          <Select
+            id={`select-panel`}
+            onChange={(e) => {
+              handelPanelSelectSetTag(e);
+            }}
+            hideLabel
+            required
+          >
+            <SelectItem value="0" text="Select Panel" />
+            {panelList?.map((test) => (
+              <SelectItem
+                key={test.id}
+                value={test.id}
+                text={`${test.value}`}
+              />
+            ))}
+          </Select>
+          <br />
+          {panelListTag && panelListTag.length ? (
+            <div
+              className={"select-panel"}
+              style={{ marginBottom: "1.188rem" }}
+            >
+              <>
+                {panelListTag.map((panel) => (
+                  <Tag
+                    filter
+                    key={`panelTags_${panel.id}`}
+                    onClose={() => handlePanelRemoveTag(panel.id)}
+                    style={{ marginRight: "0.5rem" }}
+                    type={"green"}
+                  >
+                    {panel.value}
+                  </Tag>
+                ))}
+              </>
+            </div>
+          ) : (
+            <></>
+          )}
+          <br />
+          <FormattedMessage id="field.uom" />
+          <Select
+            onChange={(e) => {
+              handelUomSelect(e);
+            }}
+            id={`select-uom`}
+            hideLabel
+            required
+          >
+            <SelectItem value="0" text="Select Unit Of Measurement" />
+            {uomList?.map((test) => (
+              <SelectItem
+                key={test.id}
+                value={test.id}
+                text={`${test.value}`}
+              />
+            ))}
+          </Select>
+        </Column>
+      </Grid>
+    </>
+  );
+};
+
+const StepThreeTestResultTypeAndLoinc = () => {
+  const handelLonicChange = (e) => {
+    const regex = /^(?!-)(?:\d+-)*\d*$/;
+
+    const value = e.target.value;
+
+    if (regex.test(value)) {
+      setLonic(value);
+      setJsonWad((prev) => ({ ...prev, loinc: value }));
+    } else {
+      addNotification({
+        title: intl.formatMessage({
+          id: "notification.title",
+        }),
+        message: intl.formatMessage({
+          id: "notification.user.post.save.success",
+        }),
+        kind: NotificationKinds.error,
+      });
+      setNotificationVisible(true);
+    }
+  };
+
+  const handelResultType = (e) => {
+    setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
+
+    const selectedResultTypeObject = resultTypeList.find(
+      (item) => item.id == e.target.value,
+    );
+
+    if (selectedResultTypeObject) {
+      setSelectedResultTypeList(selectedResultTypeObject);
+    }
+  };
+
+  const handleAntimicrobialResistance = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      antimicrobialResistance: e.target.checked ? "Y" : "N",
+    }));
+  };
+  const handleIsActive = (e) => {
+    setJsonWad((prev) => ({ ...prev, active: e.target.checked ? "Y" : "N" }));
+  };
+  const handleOrderable = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      orderable: e.target.checked ? "Y" : "N",
+    }));
+  };
+  const handleNotifyPatientofResults = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      notifyResults: e.target.checked ? "Y" : "N",
+    }));
+  };
+  const handleInLabOnly = (e) => {
+    setJsonWad((prev) => ({
+      ...prev,
+      inLabOnly: e.target.checked ? "Y" : "N",
+    }));
+  };
+
+  const handleSampleTypeSetup = () => {
+    setSampleTypeSetupPage(true);
+  };
+
+  return (
+    <>
+      <Grid fullWidth={true}>
+        <Column lg={4} md={4} sm={4}>
+          <div>
+            <>
+              <FormattedMessage id="field.resultType" />
+              <span style={{ color: "red" }}>*</span>
+            </>
+            <br />
+            <Select
+              id={`select-result-type`}
+              hideLabel
+              required
+              onChange={(e) => {
+                handelResultType(e);
+              }}
+            >
+              <SelectItem value="0" text="Select Result Type" />
+              {resultTypeList?.map((test) => (
+                <SelectItem
+                  key={test.id}
+                  value={test.id}
+                  text={`${test.value}`}
+                />
+              ))}
+            </Select>
+          </div>
+          <br />
+          <div>
+            <FormattedMessage id="label.loinc" />
+            <br />
+            <TextInput
+              labelText=""
+              required
+              id="loinc"
+              value={lonic}
+              onChange={(e) => {
+                handelLonicChange(e);
+              }}
+            />
+          </div>
+          <br />
+          <div>
+            <Checkbox
+              labelText={<FormattedMessage id="test.antimicrobialResistance" />}
+              id="antimicrobial-resistance"
+              onChange={handleAntimicrobialResistance}
+              checked={jsonWad?.antimicrobialResistance === "Y"}
+            />
+            <Checkbox
+              labelText={<FormattedMessage id="dictionary.category.isActive" />}
+              id="is-active"
+              onChange={handleIsActive}
+              checked={jsonWad?.active === "Y"}
+            />
+            <Checkbox
+              labelText={<FormattedMessage id="label.orderable" />}
+              id="orderable"
+              onChange={handleOrderable}
+              checked={jsonWad?.orderable === "Y"}
+            />
+            <Checkbox
+              labelText={<FormattedMessage id="test.notifyResults" />}
+              id="notify-patient-of-results"
+              onChange={handleNotifyPatientofResults}
+              checked={jsonWad?.notifyResults === "Y"}
+            />
+            <Checkbox
+              labelText={<FormattedMessage id="test.inLabOnly" />}
+              id="in-lab-only"
+              onChange={handleInLabOnly}
+              checked={jsonWad?.inLabOnly === "Y"}
+            />
+          </div>
+        </Column>
+        <br />
+        <br />
+        <Column lg={16} md={8} sm={4}>
+          <Button onClick={handleSampleTypeSetup} type="button">
+            <FormattedMessage id="next.action.button" />
+          </Button>{" "}
+          <Button
+            onClick={() => {
+              window.location.assign(
+                "/MasterListsPage#testManagementConfigMenu",
+              );
+            }}
+            kind="tertiary"
+            type="button"
+          >
+            <FormattedMessage id="back.action.button" />
+          </Button>
+        </Column>
+      </Grid>
+    </>
+  );
+};
+
+const StepFourSelectSampleTypeAndTestDisplayOrder = () => {
+  return (
+    <>
+      {sampleTypeSetupPage ? (
+        <>
+          <Grid fullWidth={true}>
+            <Column lg={6} md={2} sm={4}>
+              <FormattedMessage id="sample.type" />
+              <br />
+              <Select
+                id={`select-sample-type`}
+                hideLabel
+                required
+                onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
+              >
+                <SelectItem value="0" text="Select Sample Type" />
+                {sampleTypeList?.map((test) => (
+                  <SelectItem
+                    key={test.id}
+                    value={test.id}
+                    text={`${test.value}`}
+                  />
+                ))}
+              </Select>
+              <br />
+              {sampleTestTypeToGetTagList &&
+              sampleTestTypeToGetTagList.length ? (
+                <div
+                  className={"select-sample-type"}
+                  style={{ marginBottom: "1.188rem" }}
+                >
+                  <>
+                    {sampleTestTypeToGetTagList.map((section, index) => (
+                      <Tag
+                        filter
+                        key={`testTags_${index}`}
+                        onClose={() =>
+                          handleRemoveSampleTypeListSelectIdTestTag(index)
+                        }
+                        style={{ marginRight: "0.5rem" }}
+                        type={"green"}
+                      >
+                        {section.value}
+                      </Tag>
+                    ))}
+                  </>
+                </div>
+              ) : (
+                <></>
+              )}
+              <br />
+            </Column>
+            <Column lg={10} md={6} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="label.test.display.order" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+              <br />
+              {selectedSampleTypeResp.length > 0 ? (
+                selectedSampleTypeResp.map((item, index) => (
+                  <>
+                    <div className="gridBoundary">
+                      <Section key={index}>
+                        <UnorderedList>
+                          {item.tests.map((test) => (
+                            <ListItem key={test.id}>{test.name}</ListItem>
+                          ))}
+                        </UnorderedList>
+                      </Section>
+                    </div>
+                    <br />
+                  </>
+                ))
+              ) : (
+                <></>
+              )}
+            </Column>
+            <br />
+            <br />
+            <Column lg={16} md={8} sm={4}>
+              <Button onClick={handleRangeSetup} type="button">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="label.button.cancel" />
+              </Button>
+            </Column>
+          </Grid>
+        </>
+      ) : (
+        <></>
+      )}
+    </>
+  );
+};
+
+const StepFiveSelectListOptionsAndResultOrder = () => {
+  return (
+    <>
+      {onResultType ? (
+        <>
+          <Grid>
+            <Column lg={8} md={8} sm={4}>
+              <FormattedMessage id="label.select.list.options" />
+              {/* map the Select list options */}
+              <br />
+              <Select
+                id={`select-list-options`}
+                hideLabel
+                required
+                onChange={(e) => handelSelectListOptions(e)} // need a fix
+              >
+                <SelectItem value="0" text="Select List Option" />
+                {dictionaryList?.map((test) => (
+                  <SelectItem
+                    key={test.id}
+                    value={test.id}
+                    text={`${test.value}`}
+                  />
+                ))}
+              </Select>
+              {/* tags need to display */}
+              <br />
+              {/* need to add tags */}
+              {dictionaryListTag && dictionaryListTag.length ? (
+                <div
+                  className={"select-list-options-tag"}
+                  style={{ marginBottom: "1.188rem" }}
+                >
+                  <>
+                    {dictionaryListTag.map((dict, index) => (
+                      <Tag
+                        filter
+                        key={`list-options_${index}`}
+                        // onClose={() =>
+                        //   handleRemoveSampleTypeListSelectIdTestTag(index)
+                        // }
+                        style={{ marginRight: "0.5rem" }}
+                        type={"green"}
+                      >
+                        {dict.value}
+                      </Tag>
+                    ))}
+                  </>
+                </div>
+              ) : (
+                <></>
+              )}
+              <br />
+            </Column>
+            <Column lg={8} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="label.result.order" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+              {/* remeder dragable & Select list options */}
+              <br />
+              <br />
+              <FormattedMessage id="label.reference.value" />
+              <br />
+              {/* single Select */}
+              <Select
+                id={`select-reference-value`}
+                hideLabel
+                required
+                // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
+              >
+                <SelectItem value="0" text="Select Reference Value" />
+                {singleSelectDictionaryList?.map((test) => (
+                  <SelectItem
+                    key={test.id}
+                    value={test.id}
+                    text={`${test.value}`}
+                  />
+                ))}
+              </Select>
+              <br />
+              <br />
+              <FormattedMessage id="label.default.result" />
+              <br />
+              {/* single Select */}
+              <Select
+                id={`select-default-result`}
+                hideLabel
+                required
+                // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
+              >
+                <SelectItem value="0" text="Select Single Dictionary List" />
+                {singleSelectDictionaryList?.map((test) => (
+                  <SelectItem
+                    key={test.id}
+                    value={test.id}
+                    text={`${test.value}`}
+                  />
+                ))}
+              </Select>
+              <br />
+              <br />
+              <FormattedMessage id="label.qualifiers" />
+              <br />
+              <Select
+                id={`select-qualifiers`}
+                hideLabel
+                required
+                onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
+              >
+                <SelectItem value="0" text="Select Multi Dictionary List" />
+                {multiSelectDictionaryList?.map((test) => (
+                  <SelectItem
+                    key={test.id}
+                    value={test.id}
+                    text={`${test.value}`}
+                  />
+                ))}
+              </Select>
+              <br />
+              {/* need to add tags */}
+              {multiSelectDictionaryListTag &&
+              multiSelectDictionaryListTag.length ? (
+                <div
+                  className={"select-qualifiers-tag"}
+                  style={{ marginBottom: "1.188rem" }}
+                >
+                  <>
+                    {multiSelectDictionaryListTag.map((dict, index) => (
+                      <Tag
+                        filter
+                        key={`qualifiers_${index}`}
+                        // onClose={() =>
+                        //   handleRemoveSampleTypeListSelectIdTestTag(index)
+                        // }
+                        style={{ marginRight: "0.5rem" }}
+                        type={"green"}
+                      >
+                        {dict.value}
+                      </Tag>
+                    ))}
+                  </>
+                </div>
+              ) : (
+                <></>
+              )}
+              <br />
+            </Column>
+            <br />
+            <br />
+            <Column lg={16} md={8} sm={4}>
+              <Button onClick={handleOnResultType} type="button">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => {
+                  window.location.assign(
+                    "/MasterListsPage#testManagementConfigMenu",
+                  );
+                }}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="back.action.button" />
+              </Button>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+        </>
+      ) : (
+        <></>
+      )}
+    </>
+  );
+};
+
+const StepSixSelectRangeAgeRangeAndSignificantDigits = () => {
+  return (
+    <>
+      {rangeSetupPage ? (
+        <>
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="label.button.range" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+          <Grid fullWidth={true} className="gridBoundary">
+            <Column lg={16} md={8} sm={4}>
+              <FormattedMessage id="field.ageRange" />
+              <hr />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <Checkbox
+                  id={"gender"}
+                  labelText={<FormattedMessage id="label.sex.dependent" />}
+                  // onChange={() => {}}
+                />
+                {/* render male & female on checkbox*/}
+                <RadioButtonGroup name={"fieldAgeRangeRadioGroup"}>
+                  <RadioButton labelText={"Y"} />
+                  <RadioButton labelText={"M"} />
+                  <RadioButton labelText={"D"} />
+                </RadioButtonGroup>
+                <TextInput
+                  id="field.ageRange0"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                <Select id="field.ageRange1" labelText="" hideLabel required>
+                  {/* map agerangeList values from objects inside array */}
+                  {ageRangeList.map((age) => (
+                    <SelectItem
+                      key={age.id}
+                      value={age.id}
+                      text={`${age.value}`}
+                    />
+                  ))}
+                </Select>
+              </div>
+              <hr />
+              <br />
+            </Column>
+            <Column lg={8} md={4} sm={4}>
+              <FormattedMessage id="field.normalRange" />
+              <hr />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <TextInput
+                  id="field.normalRange0"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                <TextInput
+                  id="field.normalRange1"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                {/* render  two extra fields for TextInput on Click of Check box */}
+              </div>
+            </Column>
+            <Column lg={8} md={4} sm={4}>
+              <FormattedMessage id="label.reporting.range" />
+              <hr />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <TextInput
+                  id="label.reporting.range0"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                <TextInput
+                  id="label.reporting.range1"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+              </div>
+            </Column>
+            <Column lg={8} md={4} sm={4}>
+              <FormattedMessage id="field.validRange" />
+              <hr />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <TextInput
+                  id="field.validRange0"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                <TextInput
+                  id="field.validRange1"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+              </div>
+            </Column>
+            <Column lg={8} md={4} sm={4}>
+              <FormattedMessage id="label.critical.range" />
+              <hr />
+              <div style={{ display: "flex", gap: "4px" }}>
+                <TextInput
+                  id="label.critical.range0"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+                <TextInput
+                  id="label.critical.range1"
+                  labelText=""
+                  hideLabel
+                  required
+                />
+              </div>
+            </Column>
+          </Grid>
+          <br />
+          <FlexGrid fullWidth={true}>
+            <Row>
+              <Column lg={4} md={4} sm={4}>
+                <Section>
+                  <Section>
+                    <Section>
+                      <Heading>
+                        <FormattedMessage id="field.significantDigits" />
+                        {" : "}
+                      </Heading>
+                    </Section>
+                  </Section>
+                </Section>
+              </Column>
+              <Column lg={4} md={4} sm={4}>
+                <NumberInput
+                  id={"significant_digits_num_input"}
+                  max={99}
+                  min={0}
+                  size={"md"}
+                  allowEmpty={true}
+                />
+              </Column>
+            </Row>
+          </FlexGrid>
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Button onClick={handleExistingTestSetup} type="button">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => {
+                  window.location.assign(
+                    "/MasterListsPage#testManagementConfigMenu",
+                  );
+                }}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="back.action.button" />
+              </Button>
+            </Column>
+          </Grid>
+        </>
+      ) : (
+        <></>
+      )}
+    </>
+  );
+};
+
+const StepSevenDisplayExistingTestSets = () => {
+  return (
+    <>
+      {existingTestSetupPage ? (
+        <>
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="label.existing.test.sets" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+          <Grid fullWidth={true}>
+            {groupedDictionaryList.map((innerArray, outerIndex) => (
+              <>
+                <Column
+                  key={`list-${outerIndex}`}
+                  lg={4}
+                  md={4}
+                  sm={4}
+                  onClick={() => {
+                    setSelectedGroupedDictionaryList([
+                      ...selectedGroupedDictionaryList,
+                      innerArray,
+                    ]);
+                  }}
+                >
+                  <Section>
+                    <UnorderedList>
+                      {innerArray.map((item) => (
+                        <ListItem key={`listItem-${outerIndex}-${item.id}`}>
+                          {item.value}
+                        </ListItem>
+                      ))}
+                      {/* need to fix console log here */}
+                    </UnorderedList>
+                  </Section>
+                  <br />
+                </Column>
+              </>
+            ))}
+          </Grid>
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Button onClick={handleFinalSaveConfirmation} type="button">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => {
+                  window.location.assign(
+                    "/MasterListsPage#testManagementConfigMenu",
+                  );
+                }}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="back.action.button" />
+              </Button>
+            </Column>
+          </Grid>
+        </>
+      ) : (
+        <></>
+      )}
+    </>
+  );
+};
+
+const StepEightFinalDisplayAndSaveConfirmation = () => {
+  return (
+    <>
+      {finalSaveConfirmation ? (
+        <>
+          <Grid fullWidth={true}>
+            <Column lg={6} md={8} sm={4}>
+              <FormattedMessage id="sample.entry.project.testName" />
+              <br />
+              <FormattedMessage id="english.label" />
+              {" : "}
+              {jsonWad?.testNameEnglish}
+              <br />
+              <FormattedMessage id="french.label" />
+              {" : "}
+              {jsonWad?.testNameFrench}
+              <br />
+              <br />
+              <FormattedMessage id="reporting.label.testName" />
+              <br />
+              <FormattedMessage id="english.label" />
+              {" : "}
+              {jsonWad?.reportingTestNameEn}
+              <br />
+              <FormattedMessage id="french.label" />
+              {" : "}
+              {jsonWad?.reportingTestNameFr}
+              <br />
+              <br />
+              <FormattedMessage id="test.section.label" />
+              {" : "}
+              {selectedLabUnitList?.value}
+              <br />
+              <br />
+              <FormattedMessage id="field.panel" />
+              {" : "}
+              {/* map the  {panelList[0].value} in and there values in line*/}
+              {panelListTag.length > 0 ? (
+                <UnorderedList>
+                  {panelListTag.map((tag) => (
+                    <div key={tag.id} style={{ marginRight: "0.5rem" }}>
+                      <ListItem>{tag.value}</ListItem>
+                    </div>
+                  ))}
+                </UnorderedList>
+              ) : (
+                <></>
+              )}
+              <br />
+              <br />
+              <FormattedMessage id="field.uom" />
+              {" : "}
+              {selectedUomList?.value}
+              <br />
+              <br />
+              <FormattedMessage id="label.loinc" />
+              {" : "}
+              {jsonWad?.loinc}
+              <br />
+              <br />
+              <FormattedMessage id="field.resultType" />
+              {" : "}
+              {selectedResultTypeList.value}
+              <br />
+              <br />
+              <FormattedMessage id="test.antimicrobialResistance" />
+              {" : "}
+              {jsonWad?.antimicrobialResistance}
+              <br />
+              <br />
+              <FormattedMessage id="dictionary.category.isActive" />
+              {" : "}
+              {jsonWad?.active}
+              <br />
+              <br />
+              <FormattedMessage id="label.orderable" />
+              {" : "}
+              {jsonWad?.orderable}
+              <br />
+              <br />
+              <FormattedMessage id="test.notifyResults" />
+              {" : "}
+              {jsonWad?.notifyResults}
+              <br />
+              <br />
+              <FormattedMessage id="test.inLabOnly" />
+              {" : "}
+              {jsonWad?.inLabOnly}
+              <br />
+            </Column>
+            <Column lg={10} md={8} sm={4}>
+              <FormattedMessage id="sample.type.and.test.sort.order" />
+              {/* Mapp the combbination of the selecte[sampleType] & tests of [sampleType] in sorted order */}
+              <br />
+              {selectedSampleTypeList.length > 0 ? (
+                <UnorderedList nested={true}>
+                  {selectedSampleTypeList.map((type, index) => (
+                    <div key={`selectedSampleType_${index}`}>
+                      <ListItem>{type.value}</ListItem>
+                      <br />
+                      {selectedSampleTypeResp
+                        .filter((resp) => resp.sampleTypeId === type.id)
+                        .map((item, respIndex) => (
+                          <div
+                            key={`selectedSampleTypeResp_${respIndex}`}
+                            className="gridBoundary"
+                          >
+                            <Section>
+                              <UnorderedList nested>
+                                {item.tests.map((test) => (
+                                  <ListItem key={`test_${test.id}`}>
+                                    {test.name}
+                                  </ListItem>
+                                ))}
+                              </UnorderedList>
+                            </Section>
+                          </div>
+                        ))}
+                    </div>
+                  ))}
+                </UnorderedList>
+              ) : (
+                <></>
+              )}
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+        </>
+      ) : (
+        <></>
+      )}
+      <Grid fullWidth={true}>
+        <Column lg={16} md={8} sm={4}>
+          <Button
+            disabled={!finalSaveConfirmation}
+            onClick={() => {
+              setJsonWad(JSON.stringify(jsonWad));
+              testAddPostCall();
+            }}
+            type="button"
+          >
+            <FormattedMessage id="label.button.submit" />
+          </Button>{" "}
+          <Button
+            onClick={() =>
+              window.location.assign(
+                "/MasterListsPage#testManagementConfigMenu",
+              )
+            }
+            kind="tertiary"
+            type="button"
+          >
+            <FormattedMessage id="label.button.cancel" />
+          </Button>
+        </Column>
+      </Grid>
+    </>
+  );
+};
