@@ -5,6 +5,7 @@ class UserManagementPage {
       userPageTitle: "h3",
       span: "span",
       addButton: "[data-cy='add-button']",
+      modifyUser: "[data-cy='modify-button']",
       loginName: "#login-name",
       loginPassword: "#login-password",
       repeatPassword: "#login-repeat-password",
@@ -12,9 +13,12 @@ class UserManagementPage {
       lastName: "#last-name",
       passwordExpirationDate: "#password-expire-date",
       userTimeOut: "#login-timeout",
-      accountLocked: "",
+      accountLocked: "[for='radio-1']",
+      accountNotLocked: "[for='radio-2']",
       accountDisabled: "#radio-3",
-      isActive: "",
+      accountEnabled: "[for='radio-4']",
+      isActive: "[for='radio-5']",
+      isNotActive: "[for='radio-6']",
       copyPermisionsFromUser: "#copy-permissions",
       applyButton: "[data-cy='apply-button']",
       addNewPermission: "[data-cy='addNewPermission']",
@@ -22,8 +26,10 @@ class UserManagementPage {
       saveButton: "[data-cy='saveButton']",
       exitButton: "[data-cy='exitButton']",
       searchBar: "#user-name-search-bar",
+      tableData: ".cds--data-table",
     };
   }
+
   verifyPageTitle() {
     cy.contains(this.selectors.pageTitle, "User Management").should(
       "be.visible",
@@ -35,6 +41,10 @@ class UserManagementPage {
   }
   clickAddButton() {
     cy.get(this.selectors.addButton).click();
+  }
+
+  modifyUser() {
+    cy.get(this.selectors.modifyUser).click();
   }
 
   typeLoginName(value) {
@@ -63,6 +73,26 @@ class UserManagementPage {
 
   enterUserTimeout(value) {
     cy.get(this.selectors.userTimeOut).clear().type(value);
+  }
+
+  checkAccountLocked() {
+    cy.get(this.selectors.accountNotLocked).click();
+  }
+
+  checkAccountNotLocked() {
+    cy.get(this.selectors.accountNotLocked).click();
+  }
+
+  checkActive() {
+    cy.get(this.selectors.isActive).click();
+  }
+
+  checkNotActive() {
+    cy.get(this.selectors.isNotActive).click();
+  }
+
+  checkAccountEnabled() {
+    cy.get(this.selectors.accountEnabled).click();
   }
 
   checkAccountDisabled() {
@@ -138,10 +168,20 @@ class UserManagementPage {
     cy.get(this.selectors.searchBar).type(value);
   }
 
+  validateUser(value) {
+    cy.contains(this.selectors.tableData, value);
+  }
+
+  inactiveUser(value) {
+    cy.get(this.selectors.tableData).should("not.contain", value);
+  }
   activeUser() {
     cy.contains(this.selectors.span, "Only Active").click();
   }
 
+  checkUser(value) {
+    cy.contains("td", value).click();
+  }
   adminUser() {
     cy.contains(this.selectors.span, "Only Administrator").click();
   }

@@ -74,20 +74,15 @@ describe("User Management", function () {
       userMgmnt.repeatPassword(usersData[4].password);
       userMgmnt.enterFirstName("Warren");
       userMgmnt.enterLastName("Buffet");
-      userMgmnt.enterUserTimeout("480");
+      userMgmnt.enterUserTimeout("500");
+      userMgmnt.checkAccountLocked();
       userMgmnt.checkAccountDisabled();
-    });
-
-    it("Add and Remove Lab Unit Roles", function () {
-      userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
-      userMgmnt.removePermission();
+      userMgmnt.checkNotActive();
     });
 
     it("Apply Roles and Permissions", function () {
       //userMgmnt.copyPermisionsFromUser();
       //userMgmnt.applyChanges();
-      userMgmnt.analyzerImport();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
       userMgmnt.allPermissions();
@@ -103,32 +98,52 @@ describe("User Management", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
       userMgmnt.searchUser(usersData[4].username);
-      //add validations
+      userMgmnt.validateUser(usersData[4].username);
       cy.reload();
     });
 
     it("Search by First Name", function () {
       userMgmnt.searchUser("Warren");
-      //add validations
+      userMgmnt.validateUser("Warren");
       cy.reload();
     });
 
     it("Search by Last Name", function () {
       userMgmnt.searchUser("Buffet");
-      //add validations
+      userMgmnt.validateUser("Buffet");
       cy.reload();
     });
 
-    it("Search by Only Active", function () {
-      userMgmnt.activeUser();
-      //add validations
+    it("User should not be active", function () {
+      userMgmnt.activeUser(); //checks active users
+      userMgmnt.inactiveUser("Warren");
       cy.reload();
     });
 
     it("Search by Only Administrator", function () {
       userMgmnt.adminUser();
-      //add validations
-      cy.reload();
+      userMgmnt.validateUser("Warren");
+    });
+  });
+
+  describe("Modify added User", function () {
+    it("Search and check user", function () {
+      userMgmnt.searchUser("Warren");
+      userMgmnt.validateUser("Warren");
+      userMgmnt.checkUser("Warren");
+    });
+
+    it("Modify User and Save", function () {
+      userMgmnt.modifyUser();
+      userMgmnt.checkNotAccountLocked();
+      userMgmnt.checkAccountEnabled();
+      userMgmnt.checkActive();
+      userMgmnt.saveChanges();
+    });
+
+    it("Validate user is activated", function () {
+      userMgmnt.activeUser();
+      userMgmnt.activeUser("Warren");
     });
   });
 });
