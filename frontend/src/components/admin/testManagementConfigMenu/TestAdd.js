@@ -167,6 +167,16 @@ function TestAdd() {
     },
   );
 
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const handleNextStep = () => {
+    setCurrentStep((prevStep) => prevStep + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep((prevStep) => prevStep - 1);
+  };
+
   const initialValues = {
     testNameEnglish: jsonWad?.testNameEnglish || "",
     testNameFrench: jsonWad?.testNameFrench || "",
@@ -535,37 +545,98 @@ function TestAdd() {
     );
   }
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const steps = [
-    <StepOneTestName />,
-    <StepTwoTestPanelAndUom />,
-    <StepThreeTestResultTypeAndLoinc />,
-    <StepFourSelectSampleTypeAndTestDisplayOrder />,
-    <StepFiveSelectListOptionsAndResultOrder />,
-    <StepSixSelectRangeAgeRangeAndSignificantDigits />,
-    <StepSevenDisplayExistingTestSets />,
-    <StepEightFinalDisplayAndSaveConfirmation />,
-  ];
-
-  const handleNextStep = () => {
-    setCurrentStep((prevStep) => {
-      prevStep + 1;
-    });
-  };
-
-  const handlePreviousStep = () => {
-    setCurrentStep((prevStep) => {
-      prevStep - 1;
-    });
-  };
-
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
       <div className="adminPageContent">
         <PageBreadCrumb breadcrumbs={breadcrumbs} />
         <div className="orderLegendBody">
-          <Formik>{() => <Form>{steps[currentStep]}</Form>}</Formik>
+          <Formik
+            initialValues={initialValues}
+            onSubmit={() => {
+              if (currentStep === steps.length - 1) {
+                testAddPostCall;
+              } else {
+                // call the submit button of own sub componenet
+              }
+            }}
+          >
+            {(formikProps) => {
+              const {
+                values,
+                errors,
+                touched,
+                handleChange,
+                setFieldValue,
+                setErrors,
+              } = formikProps;
+
+              const steps = [
+                <StepOneTestName
+                  {...formikProps}
+                  labUnitList={labUnitList}
+                  next={handleNextStep}
+                />,
+                // <StepTwoTestPanelAndUom
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepThreeTestResultTypeAndLoinc
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepFourSelectSampleTypeAndTestDisplayOrder
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepFiveSelectListOptionsAndResultOrder
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepSixSelectRangeAgeRangeAndSignificantDigits
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepSevenDisplayExistingTestSets
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+                // <StepEightFinalDisplayAndSaveConfirmation
+                //   {...formikProps}
+                //   next={handleNextStep}
+                //   prev={handlePreviousStep}
+                // />,
+              ];
+
+              return <Form>{steps[0]}</Form>;
+            }}
+          </Formik>
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Button onClick={handleNextStep} type="button">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => {
+                  // handleSampleTypeSetup;
+                  window.location.assign(
+                    "/MasterListsPage#testManagementConfigMenu",
+                  );
+                }}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="back.action.button" />
+              </Button>
+            </Column>
+          </Grid>
           <br />
           <button
             onClick={() => {
@@ -610,48 +681,57 @@ function TestAdd() {
 
 export default injectIntl(TestAdd);
 
-const StepOneTestName = () => {
-  const testNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameEnglish: e.target.value,
-    }));
-  };
+const StepOneTestName = ({
+  values,
+  labUnitList,
+  handleChange,
+  setFieldValue,
+}) => {
+  // const testNameEn = (e) => {
+  //   setJsonWad((prev) => ({
+  //     ...prev,
+  //     testNameEnglish: e.target.value,
+  //   }));
+  // };
 
-  const testNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameFrench: e.target.value,
-    }));
-  };
+  // const testNameFr = (e) => {
+  //   setJsonWad((prev) => ({
+  //     ...prev,
+  //     testNameFrench: e.target.value,
+  //   }));
+  // };
 
-  const reportingTestNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameEnglish: e.target.value,
-    }));
-  };
+  // const reportingTestNameEn = (e) => {
+  //   setJsonWad((prev) => ({
+  //     ...prev,
+  //     testReportNameEnglish: e.target.value,
+  //   }));
+  // };
 
-  const reportingTestNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameFrench: e.target.value,
-    }));
-  };
+  // const reportingTestNameFr = (e) => {
+  //   setJsonWad((prev) => ({
+  //     ...prev,
+  //     testReportNameFrench: e.target.value,
+  //   }));
+  // };
 
   const copyInputValuesFromTestNameEnFr = () => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameEnglish: prev.testNameEnglish,
-      testReportNameFrench: prev.testNameFrench,
-    }));
+    // setJsonWad((prev) => ({
+    //   ...prev,
+    //   testReportNameEnglish: prev.testNameEnglish,
+    //   testReportNameFrench: prev.testNameFrench,
+    // }));
+    setFieldValue("testReportNameEnglish", values.testNameEnglish);
+    setFieldValue("testReportNameFrench", values.testNameFrench);
   };
 
   const handelTestSectionSelect = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testSection: e.target.value,
-    }));
+    // setJsonWad((prev) => ({
+    //   ...prev,
+    //   testSection: e.target.value,
+    // }));
+
+    setFieldValue(e.target.value);
 
     const selectedLabUnitObject = labUnitList.find(
       (item) => item.id === e.target.value,
@@ -661,6 +741,8 @@ const StepOneTestName = () => {
       setSelectedLabUnitList(selectedLabUnitObject);
     }
   };
+
+  console.log("values", values);
 
   return (
     <>
@@ -688,9 +770,9 @@ const StepOneTestName = () => {
               id={`select-test-section`}
               hideLabel
               required
-              onChange={(e) => {
-                handelTestSectionSelect(e);
-              }}
+              name="testSection"
+              onChange={handelTestSectionSelect}
+              value={values.testSection}
             >
               <SelectItem value="0" text="Select Test Section" />
               {labUnitList?.map((test) => (
@@ -715,8 +797,9 @@ const StepOneTestName = () => {
             <TextInput
               labelText=""
               id="testNameEn"
-              value={jsonWad?.testNameEnglish}
-              onChange={testNameEn}
+              name="testNameEnglish"
+              value={values.testNameEnglish}
+              onChange={handleChange}
               required
             />
             <br />
@@ -725,8 +808,9 @@ const StepOneTestName = () => {
             <TextInput
               labelText=""
               id="testNameFr"
-              value={jsonWad?.testNameFrench}
-              onChange={testNameFr}
+              name="testNameFrench"
+              value={values.testNameFrench}
+              onChange={handleChange}
               required
             />
           </div>
@@ -752,9 +836,10 @@ const StepOneTestName = () => {
             <TextInput
               labelText=""
               id="reportingTestNameEn"
-              value={jsonWad?.reportingTestNameEn}
+              name="testReportNameEnglish"
+              value={values.testReportNameEnglish}
+              onChange={handleChange}
               required
-              onChange={reportingTestNameEn}
             />
             <br />
             <FormattedMessage id="french.label" />
@@ -762,9 +847,10 @@ const StepOneTestName = () => {
             <TextInput
               labelText=""
               id="reportingTestNameFr"
-              value={jsonWad?.reportingTestNameFr}
+              name="testReportNameFrench"
+              value={values.testReportNameFrench}
+              onChange={handleChange}
               required
-              onChange={reportingTestNameFr}
             />
           </div>
         </Column>
@@ -773,7 +859,7 @@ const StepOneTestName = () => {
   );
 };
 
-const StepTwoTestPanelAndUom = () => {
+const StepTwoTestPanelAndUom = ({ values, handleChange, setFieldValue }) => {
   const handelPanelSelectSetTag = (e) => {
     const selectedId = e.target.value;
     const selectedValue = e.target.options[e.target.selectedIndex].text;
