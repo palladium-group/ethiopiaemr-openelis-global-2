@@ -6,6 +6,7 @@ class UserManagementPage {
       span: "span",
       addButton: "[data-cy='add-button']",
       modifyUser: "[data-cy='modify-button']",
+      deactivateUser: "[data-cy='deactivate-button']",
       loginName: "#login-name",
       loginPassword: "#login-password",
       repeatPassword: "#login-repeat-password",
@@ -15,7 +16,7 @@ class UserManagementPage {
       userTimeOut: "#login-timeout",
       accountLocked: "[for='radio-1']",
       accountNotLocked: "[for='radio-2']",
-      accountDisabled: "#radio-3",
+      accountDisabled: "[for='radio-3']",
       accountEnabled: "[for='radio-4']",
       isActive: "[for='radio-5']",
       isNotActive: "[for='radio-6']",
@@ -27,6 +28,8 @@ class UserManagementPage {
       exitButton: "[data-cy='exitButton']",
       searchBar: "#user-name-search-bar",
       tableData: ".cds--data-table",
+      header: "#mainHeader",
+      menuButton: "[data-cy='menuButton']",
     };
   }
 
@@ -45,6 +48,11 @@ class UserManagementPage {
 
   modifyUser() {
     cy.get(this.selectors.modifyUser).click();
+    cy.wait(1000);
+  }
+
+  deactivateUser() {
+    cy.get(this.selectors.deactivateUser).click();
   }
 
   typeLoginName(value) {
@@ -76,7 +84,7 @@ class UserManagementPage {
   }
 
   checkAccountLocked() {
-    cy.get(this.selectors.accountNotLocked).click();
+    cy.get(this.selectors.accountLocked).click();
   }
 
   checkAccountNotLocked() {
@@ -96,7 +104,7 @@ class UserManagementPage {
   }
 
   checkAccountDisabled() {
-    cy.get(this.selectors.accountDisabled).check({ force: true });
+    cy.get(this.selectors.accountDisabled).click();
   }
 
   copyPermisionsFromUser(value) {
@@ -184,6 +192,15 @@ class UserManagementPage {
   }
   adminUser() {
     cy.contains(this.selectors.span, "Only Administrator").click();
+  }
+
+  incorrectCredentials() {
+    cy.contains("Username or Password are incorrect").should("be.visible");
+  }
+
+  validateLogin() {
+    cy.get(this.selectors.header).should("exist");
+    cy.get(this.selectors.menuButton).should("exist");
   }
 }
 
