@@ -16,18 +16,18 @@ before(() => {
 });
 
 describe("User Management", function () {
-  beforeEach(() => {
-    cy.fixture("UserManagement").then((users) => {
-      usersData = users;
-    });
-  });
-
   it("Navigate to User Management Page", function () {
     userMgmnt = adminPage.goToUserManagementPage();
     userMgmnt.verifyPageTitle();
   });
 
   describe("Add User and Exit", function () {
+    beforeEach(() => {
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+      });
+    });
+
     it("Add User", function () {
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
@@ -64,6 +64,12 @@ describe("User Management", function () {
   });
 
   describe("Add Users and Save", function () {
+    beforeEach(() => {
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+      });
+    });
+
     it("Add First User", function () {
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
@@ -131,6 +137,12 @@ describe("User Management", function () {
   });
 
   describe("Validate added Users", function () {
+    beforeEach(() => {
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+      });
+    });
+
     it("Search by Username", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
@@ -176,6 +188,12 @@ describe("User Management", function () {
   });
 
   describe("Modify First User", function () {
+    beforeEach(() => {
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+      });
+    });
+
     it("Check user to modify", function () {
       userMgmnt.checkUser(usersData[0].fName);
     });
@@ -207,6 +225,11 @@ describe("User Management", function () {
   //});
 
   describe("Signout, use active/deactivated user to login", () => {
+    beforeEach(() => {
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+      });
+    });
     // it("Login with Deactivated user", () => {
     // userMgmnt = loginPage.signOut();
     // loginPage.enterUsername(usersData[1].username);
