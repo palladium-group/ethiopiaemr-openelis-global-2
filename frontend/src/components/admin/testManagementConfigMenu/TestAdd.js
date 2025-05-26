@@ -473,11 +473,23 @@ function TestAdd() {
       <div className="adminPageContent">
         <PageBreadCrumb breadcrumbs={breadcrumbs} />
         <div className="orderLegendBody">
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Heading>
+                  <FormattedMessage id="configuration.test.add" />
+                </Heading>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={() => {
-              if (currentStep === steps.length - 1) {
+              if (currentStep === currentStep.length + 1) {
                 testAddPostCall;
               } else {
                 // call the submit button of own sub componenet
@@ -496,6 +508,7 @@ function TestAdd() {
 
               const steps = [
                 <StepOneTestNameAndTestSection
+                  key="step-1"
                   {...formikProps}
                   next={handleNextStep}
                   labUnitList={labUnitList}
@@ -506,6 +519,7 @@ function TestAdd() {
                   // setJsonWad={setJsonWad}
                 />,
                 <StepTwoTestPanelAndUom
+                  key="step-2"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -521,6 +535,7 @@ function TestAdd() {
                   // setJsonWad={setJsonWad}
                 />,
                 <StepThreeTestResultTypeAndLoinc
+                  key="step-3"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -528,10 +543,16 @@ function TestAdd() {
                   setResultTypeList={setResultTypeList}
                   selectedResultTypeList={selectedResultTypeList}
                   setSelectedResultTypeList={setSelectedResultTypeList}
+                  intl={intl}
+                  addNotification={addNotification}
+                  setNotificationVisible={setNotificationVisible}
+                  lonic={lonic}
+                  setLonic={setLonic}
                   jsonWad={jsonWad}
                   setJsonWad={setJsonWad}
                 />,
                 <StepFourSelectSampleTypeAndTestDisplayOrder
+                  key="step-4"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -553,6 +574,7 @@ function TestAdd() {
                   currentStep={currentStep}
                 />,
                 <StepFiveSelectListOptionsAndResultOrder
+                  key="step-5"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -582,6 +604,7 @@ function TestAdd() {
                   currentStep={currentStep}
                 />,
                 <StepSixSelectRangeAgeRangeAndSignificantDigits
+                  key="step-6"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -594,6 +617,7 @@ function TestAdd() {
                   currentStep={currentStep}
                 />,
                 <StepSevenDisplayExistingTestSets
+                  key="step-7"
                   {...formikProps}
                   next={handleNextStep}
                   prev={handlePreviousStep}
@@ -609,33 +633,67 @@ function TestAdd() {
                   setSelectedSampleTypeList={setSelectedSampleTypeList}
                   currentStep={currentStep}
                 />,
-                // <StepEightFinalDisplayAndSaveConfirmation
-                //   {...formikProps}
-                //   prev={handlePreviousStep}
-                //   jsonWad={jsonWad}
-                //   setJsonWad={setJsonWad}
-                // />,
+                <StepEightFinalDisplayAndSaveConfirmation
+                  key="step-8"
+                  {...formikProps}
+                  prev={handlePreviousStep}
+                  jsonWad={jsonWad}
+                  setJsonWad={setJsonWad}
+                  panelListTag={panelListTag}
+                  setPanelListTag={setPanelListTag}
+                  selectedUomList={selectedUomList}
+                  setSelectedUomList={setSelectedUomList}
+                  selectedResultTypeList={selectedResultTypeList}
+                  setSelectedResultTypeList={setSelectedResultTypeList}
+                  selectedSampleTypeList={selectedSampleTypeList}
+                  setSelectedSampleTypeList={setSelectedSampleTypeList}
+                  sampleTestTypeToGetTagList={sampleTestTypeToGetTagList}
+                  setSampleTestTypeToGetTagList={setSampleTestTypeToGetTagList}
+                  selectedSampleType={selectedSampleType}
+                  setSelectedSampleType={setSelectedSampleType}
+                  selectedSampleTypeResp={selectedSampleTypeResp}
+                  setSelectedSampleTypeResp={setSelectedSampleTypeResp}
+                  dictionaryListTag={dictionaryListTag}
+                  setDictionaryListTag={setDictionaryListTag}
+                  singleSelectDictionaryList={singleSelectDictionaryList}
+                  setSingleSelectDictionaryList={setSingleSelectDictionaryList}
+                  multiSelectDictionaryList={multiSelectDictionaryList}
+                  setMultiSelectDictionaryList={setMultiSelectDictionaryList}
+                  multiSelectDictionaryListTag={multiSelectDictionaryListTag}
+                  setMultiSelectDictionaryListTag={
+                    setMultiSelectDictionaryListTag
+                  }
+                  ageRangeList={ageRangeList}
+                  setAgeRangeList={setAgeRangeList}
+                  gotSelectedAgeRangeList={gotSelectedAgeRangeList}
+                  setGotSelectedAgeRangeList={setGotSelectedAgeRangeList}
+                  currentStep={currentStep}
+                />,
               ];
 
               return <Form>{steps[currentStep]}</Form>;
             }}
           </Formik>
           <br />
+          <hr />
+          <br />
           <Grid fullWidth={true}>
             <Column lg={16} md={8} sm={4}>
               <Button
                 onClick={() => {
-                  if (currentStep === currentStep.length - 1) {
+                  if (currentStep === 8 - 1) {
                     testAddPostCall();
                   } else {
                     handleNextStep();
                   }
                 }}
-                type={
-                  currentStep === currentStep.length - 1 ? "submit" : "button"
-                }
+                type={currentStep === 8 - 1 ? "submit" : "button"}
               >
-                <FormattedMessage id="next.action.button" />
+                {currentStep === 8 - 1 ? (
+                  <FormattedMessage id="accept.action.button" />
+                ) : (
+                  <FormattedMessage id="next.action.button" />
+                )}
               </Button>{" "}
               <Button
                 onClick={() => {
@@ -771,18 +829,6 @@ const StepOneTestNameAndTestSection = ({
 
   return (
     <>
-      <Grid fullWidth={true}>
-        <Column lg={16} md={8} sm={4}>
-          <Section>
-            <Heading>
-              <FormattedMessage id="configuration.test.add" />
-            </Heading>
-          </Section>
-        </Column>
-      </Grid>
-      <br />
-      <hr />
-      <br />
       <Grid fullWidth={true}>
         <Column lg={16} md={8} sm={4}>
           <div>
@@ -1043,6 +1089,11 @@ const StepThreeTestResultTypeAndLoinc = ({
   setResultTypeList,
   selectedResultTypeList,
   setSelectedResultTypeList,
+  intl,
+  addNotification,
+  setNotificationVisible,
+  lonic,
+  setLonic,
   jsonWad,
   setJsonWad,
 }) => {
@@ -1189,24 +1240,6 @@ const StepThreeTestResultTypeAndLoinc = ({
             />
           </div>
         </Column>
-        {/* <br />
-        <br />
-        <Column lg={16} md={8} sm={4}>
-          <Button onClick={() => {}} type="button">
-            <FormattedMessage id="next.action.button" />
-          </Button>{" "}
-          <Button
-            onClick={() => {
-              window.location.assign(
-                "/MasterListsPage#testManagementConfigMenu",
-              );
-            }}
-            kind="tertiary"
-            type="button"
-          >
-            <FormattedMessage id="back.action.button" />
-          </Button>
-        </Column> */}
       </Grid>
     </>
   );
@@ -1343,22 +1376,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 <></>
               )}
             </Column>
-            {/* <br />
-            <br />
-            <Column lg={16} md={8} sm={4}>
-              <Button onClick={() => {}} type="button">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
-              <Button
-                onClick={() => {
-                  window.location.reload();
-                }}
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="label.button.cancel" />
-              </Button>
-            </Column> */}
           </Grid>
         </>
       ) : (
@@ -1584,28 +1601,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
               )}
               <br />
             </Column>
-            {/* <br />
-            <br />
-            <Column lg={16} md={8} sm={4}>
-              <Button onClick={()=>{}} type="button">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
-              <Button
-                onClick={() => {
-                  window.location.assign(
-                    "/MasterListsPage#testManagementConfigMenu",
-                  );
-                }}
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="back.action.button" />
-              </Button>
-            </Column> */}
           </Grid>
-          <br />
-          <hr />
-          <br />
         </>
       ) : (
         <></>
@@ -1786,25 +1782,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               </Column>
             </Row>
           </FlexGrid>
-          {/* <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Button onClick={() => {}} type="button">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
-              <Button
-                onClick={() => {
-                  window.location.assign(
-                    "/MasterListsPage#testManagementConfigMenu",
-                  );
-                }}
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="back.action.button" />
-              </Button>
-            </Column>
-          </Grid> */}
         </>
       ) : (
         <></>
@@ -1879,25 +1856,6 @@ const StepSevenDisplayExistingTestSets = ({
               </>
             ))}
           </Grid>
-          {/* <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Button onClick={()=>{}} type="button">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
-              <Button
-                onClick={() => {
-                  window.location.assign(
-                    "/MasterListsPage#testManagementConfigMenu",
-                  );
-                }}
-                kind="tertiary"
-                type="button"
-              >
-                <FormattedMessage id="back.action.button" />
-              </Button>
-            </Column>
-          </Grid> */}
         </>
       ) : (
         <></>
@@ -1915,11 +1873,17 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
   handlePreviousStep,
   jsonWad,
   setJsonWad,
+  panelListTag,
+  selectedLabUnitList,
+  selectedUomList,
+  selectedResultTypeList,
+  selectedSampleTypeList,
+  selectedSampleTypeResp,
   currentStep,
 }) => {
   return (
     <>
-      {currentStep === 7 ? (
+      {currentStep === 8 - 1 ? (
         <>
           <Grid fullWidth={true}>
             <Column lg={6} md={8} sm={4}>
@@ -2049,31 +2013,6 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
       ) : (
         <></>
       )}
-      {/* <Grid fullWidth={true}>
-        <Column lg={16} md={8} sm={4}>
-          <Button
-            // disabled={!finalSaveConfirmation}
-            // onClick={() => {
-            //   setJsonWad(JSON.stringify(jsonWad));
-            //   testAddPostCall();
-            // }}
-            type="button"
-          >
-            <FormattedMessage id="label.button.submit" />
-          </Button>{" "}
-          <Button
-            onClick={() =>
-              window.location.assign(
-                "/MasterListsPage#testManagementConfigMenu",
-              )
-            }
-            kind="tertiary"
-            type="button"
-          >
-            <FormattedMessage id="label.button.cancel" />
-          </Button>
-        </Column>
-      </Grid> */}
     </>
   );
 };
