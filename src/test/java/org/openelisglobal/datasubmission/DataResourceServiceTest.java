@@ -36,15 +36,15 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getPage_shouldReturnPageOfTypeOfIndicators() {
-        List<DataResource> typeOfDataIndicators = dataResourceService.getPage(1);
+    public void getPage_shouldReturnPageOfDataResources() {
+        List<DataResource> dataResources = dataResourceService.getPage(1);
         int expectedPages = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(typeOfDataIndicators.size() <= expectedPages);
+        assertTrue(dataResources.size() <= expectedPages);
     }
 
     @Test
-    public void getAllMatching_shouldReturnMatchingIndicatorTypes() {
+    public void getAllMatching_shouldReturnMatchingDataResources() {
         List<DataResource> dataResources = dataResourceService.getAllMatching("name", "FacilityA");
         assertNotNull(dataResources);
         assertEquals(1, dataResources.size());
@@ -53,7 +53,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingGivenMap_shouldReturnMatchingIndicatorTypes() {
+    public void getAllMatchingGivenMap_shouldReturnMatchingDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<DataResource> dataResources = dataResourceService.getAllMatching(properties);
         assertNotNull(dataResources);
@@ -63,7 +63,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllOrdered_shouldReturnAllOrderedTypeOfDataIndicators() {
+    public void getAllOrdered_shouldReturnAllOrderedDataResources() {
         List<DataResource> dataResources = dataResourceService.getAllOrdered("id", false);
         assertNotNull(dataResources);
         assertEquals(4, dataResources.size());
@@ -74,7 +74,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllOrderedGivenList_shouldReturnAllOrderedTypeOfDataIndicators() {
+    public void getAllOrderedGivenList_shouldReturnAllOrderedDataResources() {
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getAllOrdered(orderBy, false);
         assertNotNull(dataResources);
@@ -86,7 +86,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrdered_shouldReturnAllMatchingOrderedTypeOfDataIndicators() {
+    public void getAllMatchingOrdered_shouldReturnAllMatchingOrderedDataResources() {
         List<DataResource> dataResources = dataResourceService.getAllMatchingOrdered("name", "FacilityA", "id", false);
         assertNotNull(dataResources);
         assertEquals(1, dataResources.size());
@@ -95,7 +95,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrderedGivenMap_shouldReturnAllMatchingOrderedTypeOfDataIndicators() {
+    public void getAllMatchingOrderedGivenMap_shouldReturnAllMatchingOrderedDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<DataResource> dataResources = dataResourceService.getAllMatchingOrdered(properties, "id", false);
         assertNotNull(dataResources);
@@ -105,7 +105,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrderedGivenList_shouldReturnAllMatchingOrderedTypeOfDataIndicators() {
+    public void getAllMatchingOrderedGivenList_shouldReturnAllMatchingOrderedDataResources() {
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getAllMatchingOrdered("name", "FacilityA", orderBy,
                 false);
@@ -116,7 +116,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrderedGivenMapAndList_shouldReturnAllMatchingOrderedTypeOfDataIndicators() {
+    public void getAllMatchingOrderedGivenMapAndList_shouldReturnAllMatchingOrderedDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getAllMatchingOrdered(properties, orderBy, false);
@@ -127,7 +127,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingPage_shouldReturnPageOfAllMatchingTypeOfDataIndicators() {
+    public void getMatchingPage_shouldReturnPageOfAllMatchingDataResources() {
         List<DataResource> dataResources = dataResourceService.getMatchingPage("name", "FacilityA", 1);
         int expectedPages = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -137,7 +137,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingPageGivenMap_shouldReturnPageOfAllMatchingTypeOfDataIndicators() {
+    public void getMatchingPageGivenMap_shouldReturnPageOfAllMatchingDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<DataResource> dataResources = dataResourceService.getMatchingPage(properties, 1);
         int expectedPages = Integer
@@ -147,7 +147,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getOrderedPage_shouldReturnPageOfAllOrderedTypeOfDataIndicators() {
+    public void getOrderedPage_shouldReturnPageOfAllOrderedDataResources() {
         List<DataResource> dataResources = dataResourceService.getOrderedPage("id", false, 1);
         int expectedPages = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -156,7 +156,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getOrderedPageGivenList_shouldReturnPageOfAllOrderedTypeOfDataIndicators() {
+    public void getOrderedPageGivenList_shouldReturnPageOfAllOrderedDataResources() {
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getOrderedPage(orderBy, false, 1);
         int expectedPages = Integer
@@ -166,7 +166,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPage_shouldReturnPageOfAllOrderedMatchingTypeOfDataIndicators() {
+    public void getMatchingOrderedPage_shouldReturnPageOfAllOrderedMatchingDataResources() {
         List<DataResource> dataResources = dataResourceService.getMatchingOrderedPage("name", "FacilityA", "id", false,
                 1);
         int expectedPages = Integer
@@ -176,7 +176,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPageGivenMap_shouldReturnPageOfAllOrderedMatchingTypeOfDataIndicators() {
+    public void getMatchingOrderedPageGivenMap_shouldReturnPageOfAllOrderedMatchingDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<DataResource> dataResources = dataResourceService.getMatchingOrderedPage(properties, "id", false, 1);
         int expectedPages = Integer
@@ -186,7 +186,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPageGivenList_shouldReturnPageOfAllOrderedMatchingTypeOfDataIndicators() {
+    public void getMatchingOrderedPageGivenList_shouldReturnPageOfAllOrderedMatchingDataResources() {
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getMatchingOrderedPage("name", "FacilityA", orderBy,
                 false, 1);
@@ -197,7 +197,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPageGivenMapAndList_shouldReturnPageOfAllOrderedMatchingTypeOfDataIndicators() {
+    public void getMatchingOrderedPageGivenMapAndList_shouldReturnPageOfAllOrderedMatchingDataResources() {
         Map<String, Object> properties = Map.of("name", "FacilityA");
         List<String> orderBy = List.of("id");
         List<DataResource> dataResources = dataResourceService.getMatchingOrderedPage(properties, orderBy, false, 1);
@@ -208,35 +208,35 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getCount_shouldReturnCountOfAllTypeOfDataIndicators() {
+    public void getCount_shouldReturnCountOfAllDataResources() {
         int count = dataResourceService.getCount();
         assertEquals(4, count);
     }
 
     @Test
-    public void getCountLike_shouldReturnCountOfAllTypeOfDataIndicatorsLike() {
+    public void getCountLike_shouldReturnCountOfAllDataResourcesLike() {
         int count = dataResourceService.getCountLike("name", "FacilityA");
         assertEquals(1, count);
     }
 
     @Test
-    public void getNext_shouldReturnNextDataIndicatorType() {
-        DataResource typeOfDataIndicator = dataResourceService.getNext("1");
-        assertNotNull(typeOfDataIndicator);
-        assertEquals("2", typeOfDataIndicator.getId());
-        assertEquals("FacilityB", typeOfDataIndicator.getName());
+    public void getNext_shouldReturnNextDataResource() {
+        DataResource dataResource = dataResourceService.getNext("1");
+        assertNotNull(dataResource);
+        assertEquals("2", dataResource.getId());
+        assertEquals("FacilityB", dataResource.getName());
     }
 
     @Test
-    public void getPrevious_shouldReturnPreviousDataIndicatorType() {
-        DataResource typeOfDataIndicator = dataResourceService.getPrevious("2");
-        assertNotNull(typeOfDataIndicator);
-        assertEquals("1", typeOfDataIndicator.getId());
-        assertEquals("FacilityA", typeOfDataIndicator.getName());
+    public void getPrevious_shouldReturnPreviousDataResources() {
+        DataResource dataResource = dataResourceService.getPrevious("2");
+        assertNotNull(dataResource);
+        assertEquals("1", dataResource.getId());
+        assertEquals("FacilityA", dataResource.getName());
     }
 
     @Test
-    public void deleteAll_shouldDeleteAllDataIndicatorsTypes() {
+    public void deleteAll_shouldDeleteAllDataResources() {
         List<DataResource> dataResources = dataResourceService.getAll();
         dataResourceService.deleteAll(dataResources);
         List<DataResource> deletedDataResources = dataResourceService.getAll();
@@ -245,7 +245,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void delete_shouldDeleteTypeOfDataIndicator() {
+    public void delete_shouldDeleteDataResource() {
         DataResource resource = dataResourceService.get("1");
         assertNotNull(resource);
         dataResourceService.delete(resource);
@@ -254,7 +254,7 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void insert_shouldInsertDataIndicatorType() {
+    public void insert_shouldInsertDataResource() {
         List<DataResource> dataResources = dataResourceService.getAll();
         dataResourceService.deleteAll(dataResources);
         DataResource newDataResource = new DataResource();
@@ -268,18 +268,18 @@ public class DataResourceServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void update_shouldUpdateTypeOfDataIndicator() {
-        DataResource typeOfDataIndicator = dataResourceService.get("1");
-        assertNotNull(typeOfDataIndicator);
-        typeOfDataIndicator.setName("FacilityX");
-        DataResource resource1 = dataResourceService.update(typeOfDataIndicator);
+    public void update_shouldUpdateDataResource() {
+        DataResource dataResource = dataResourceService.get("1");
+        assertNotNull(dataResource);
+        dataResource.setName("FacilityX");
+        DataResource resource1 = dataResourceService.update(dataResource);
         DataResource updatedResource = dataResourceService.get("1");
         assertNotNull(updatedResource);
         assertEquals(resource1.getName(), updatedResource.getName());
     }
 
     @Test
-    public void save_shouldSaveTypeOfDataIndicator() {
+    public void save_shouldSaveDataResource() {
         List<DataResource> dataResources = dataResourceService.getAll();
         dataResourceService.deleteAll(dataResources);
         DataResource newDataResource = new DataResource();
