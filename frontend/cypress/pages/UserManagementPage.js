@@ -30,7 +30,17 @@ class UserManagementPage {
       tableData: ".cds--data-table",
       header: "#mainHeader",
       menuButton: "[data-cy='menuButton']",
+      enterLoginName: "#loginName",
+      enterPassword: "#password",
     };
+  }
+
+  enterLoginName(value) {
+    cy.get(this.selectors.enterLoginName).clear().type(value);
+  }
+
+  enterPassword(value) {
+    cy.get(this.selectors.enterPassword).clear().type(value);
   }
 
   verifyPageTitle() {

@@ -1,19 +1,14 @@
-[
-  {
-    "username": "google",
-    "password": "adminADMIN!!",
-    "newPass": "@@@@@@@@@",
-    "fName": "Micheal",
-    "lName": "Jordan",
-    "passwordExpiryDate": "01/01/2035",
-    "userTimeout": "500"
-  },
-  {
-    "username": "root",
-    "password": "Password**",
-    "fName": "Ubuntu",
-    "lName": "Distro",
-    "passwordExpiryDate": "02/02/2032",
-    "userTimeout": "450"
-  }
-]
+{
+  "username": "google",
+  "password": "adminADMIN!!",
+  "fName": "Micheal",
+  "lName": "Jordan",
+  "passwordExpiryDate": "01/01/2035",
+  "userTimeout": "500",
+  "usernameT": "root",
+  "passwordT": "Password**",
+  "fNameT": "Ubuntu",
+  "lNameT": "Distro",
+  "passwordExpiryDateT": "02/02/2032",
+  "userTimeoutT": "450"
+}
