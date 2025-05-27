@@ -202,11 +202,11 @@ function TestAdd() {
   const handleNextStep = (newData, final = false) => {
     setFormData((prev) => ({ ...prev, ...newData }));
 
-    if (final) {
+    if (!final) {
       handleTestAddPostCall(formData);
+    } else {
+      setCurrentStep((prevStep) => prevStep + 1);
     }
-
-    setCurrentStep((prevStep) => prevStep + 1);
   };
 
   const handlePreviousStep = (newData) => {
@@ -426,7 +426,7 @@ function TestAdd() {
     );
   };
 
-  const handleTestAddPostCall = ({ values }) => {
+  const handleTestAddPostCall = (values) => {
     if (!values) {
       window.location.reload();
       return;
@@ -435,7 +435,7 @@ function TestAdd() {
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
-      JSON.stringify(jsonWad),
+      JSON.stringify(values),
       (res) => {
         handelTestAddPostCallback(res);
       },
@@ -475,6 +475,7 @@ function TestAdd() {
     <StepOneTestNameAndTestSection
       key="step-1"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       labUnitList={labUnitList}
@@ -487,6 +488,7 @@ function TestAdd() {
     <StepTwoTestPanelAndUom
       key="step-2"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -504,6 +506,7 @@ function TestAdd() {
     <StepThreeTestResultTypeAndLoinc
       key="step-3"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -522,6 +525,7 @@ function TestAdd() {
     <StepFourSelectSampleTypeAndTestDisplayOrder
       key="step-4"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -545,6 +549,7 @@ function TestAdd() {
     <StepFiveSelectListOptionsAndResultOrder
       key="step-5"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -572,6 +577,7 @@ function TestAdd() {
     <StepSixSelectRangeAgeRangeAndSignificantDigits
       key="step-6"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -586,6 +592,7 @@ function TestAdd() {
     <StepSevenDisplayExistingTestSets
       key="step-7"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -602,6 +609,7 @@ function TestAdd() {
     <StepEightFinalDisplayAndSaveConfirmation
       key="step-8"
       formData={formData}
+      setFormData={setFormData}
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
@@ -710,6 +718,7 @@ export default injectIntl(TestAdd);
 
 const StepOneTestNameAndTestSection = ({
   formData,
+  setFormData,
   validationSchema,
   handleNextStep,
   labUnitList,
@@ -747,10 +756,7 @@ const StepOneTestNameAndTestSection = ({
     }));
   };
 
-  console.log(formData);
-
   const handleSubmit = (values) => {
-    console.log("Form Values:", values);
     handleNextStep(values, true);
   };
 
@@ -759,8 +765,11 @@ const StepOneTestNameAndTestSection = ({
       <Formik
         initialValues={formData}
         enableReinitialize={true}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        // validationSchema={validationSchema}
+        onSubmit={(values, actions) => {
+          handleSubmit(values);
+          actions.setSubmitting(false);
+        }}
       >
         {({ values, handleChange, touched, errors, setFieldValue }) => {
           const copyInputValuesFromTestNameEnFr = (values) => {
@@ -774,7 +783,6 @@ const StepOneTestNameAndTestSection = ({
           };
 
           const handelTestSectionSelect = (e) => {
-            console.log("Selected Test Section:", e.target.value);
             setJsonWad((prev) => ({
               ...prev,
               testSection: e.target.value,
@@ -835,10 +843,13 @@ const StepOneTestNameAndTestSection = ({
                       value={values.testNameEnglish}
                       onChange={handleChange}
                       required
+                      invalid={
+                        touched.englishLangPost && !!errors.englishLangPost
+                      }
+                      invalidText={
+                        touched.englishLangPost && errors.englishLangPost
+                      }
                     />
-                    {touched.testNameEnglish && errors.testNameEnglish && (
-                      <div className="error">{errors.testNameEnglish}</div>
-                    )}
                     <br />
                     <FormattedMessage id="french.label" />
                     <br />
@@ -849,10 +860,13 @@ const StepOneTestNameAndTestSection = ({
                       value={values.testNameFrench}
                       onChange={handleChange}
                       required
+                      invalid={
+                        touched.englishLangPost && !!errors.englishLangPost
+                      }
+                      invalidText={
+                        touched.englishLangPost && errors.englishLangPost
+                      }
                     />
-                    {touched.testNameFrench && errors.testNameFrench && (
-                      <div className="error">{errors.testNameFrench}</div>
-                    )}
                   </div>
                   <br />
                   <div>
@@ -935,11 +949,6 @@ const StepOneTestNameAndTestSection = ({
 };
 
 const StepTwoTestPanelAndUom = ({
-  values,
-  handleChange,
-  setFieldValue,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   panelList,
@@ -1010,10 +1019,13 @@ const StepTwoTestPanelAndUom = ({
     <>
       <Formik
         initialValues={formData}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        // validationSchema={validationSchema}
+        onSubmit={(values, actions) => {
+          handleSubmit(values);
+          actions.setSubmitting(false);
+        }}
       >
-        {({ values }) => (
+        {({ values, handleChange, touched, errors, setFieldValue }) => (
           <Form>
             <Grid fullWidth={true}>
               <Column lg={16} md={8} sm={4}>
@@ -1104,11 +1116,6 @@ const StepTwoTestPanelAndUom = ({
 const StepThreeTestResultTypeAndLoinc = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   resultTypeList,
@@ -1193,10 +1200,13 @@ const StepThreeTestResultTypeAndLoinc = ({
     <>
       <Formik
         initialValues={formData}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        // validationSchema={validationSchema}
+        onSubmit={(values, actions) => {
+          handleSubmit(values);
+          actions.setSubmitting(false);
+        }}
       >
-        {({ values }) => (
+        {({ values, handleChange, touched, errors, setFieldValue }) => (
           <Form>
             <Grid fullWidth={true}>
               <Column lg={16} md={8} sm={4}>
@@ -1307,11 +1317,6 @@ const StepThreeTestResultTypeAndLoinc = ({
 const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   sampleTypeList,
@@ -1366,10 +1371,13 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            // validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              handleSubmit(values);
+              actions.setSubmitting(false);
+            }}
           >
-            {({ values }) => (
+            {({ values, handleChange, touched, errors, setFieldValue }) => (
               <Form>
                 <Grid fullWidth={true}>
                   <Column lg={6} md={2} sm={4}>
@@ -1478,11 +1486,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
 const StepFiveSelectListOptionsAndResultOrder = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   groupedDictionaryList,
@@ -1550,10 +1553,13 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            // validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              handleSubmit(values);
+              actions.setSubmitting(false);
+            }}
           >
-            {({ values }) => (
+            {({ values, handleChange, touched, errors, setFieldValue }) => (
               <Form>
                 <Grid>
                   <Column lg={8} md={8} sm={4}>
@@ -1739,11 +1745,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
 const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   ageRangeList,
@@ -1763,10 +1764,13 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            // validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              handleSubmit(values);
+              actions.setSubmitting(false);
+            }}
           >
-            {({ values }) => (
+            {({ values, handleChange, touched, errors, setFieldValue }) => (
               <Form>
                 <Grid fullWidth={true}>
                   <Column lg={16} md={8} sm={4}>
@@ -1956,11 +1960,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
 const StepSevenDisplayExistingTestSets = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handleNextStep,
   handlePreviousStep,
   groupedDictionaryList,
@@ -1980,10 +1979,13 @@ const StepSevenDisplayExistingTestSets = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            // validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              handleSubmit(values);
+              actions.setSubmitting(false);
+            }}
           >
-            {({ values }) => (
+            {({ values, handleChange, touched, errors, setFieldValue }) => (
               <Form>
                 <Grid fullWidth={true}>
                   <Column lg={16} md={8} sm={4}>
@@ -2062,11 +2064,6 @@ const StepSevenDisplayExistingTestSets = ({
 const StepEightFinalDisplayAndSaveConfirmation = ({
   formData,
   validationSchema,
-  values,
-  setFieldValue,
-  handleChange,
-  errors,
-  touched,
   handlePreviousStep,
   handleNextStep,
   jsonWad,
@@ -2080,7 +2077,7 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
   currentStep,
 }) => {
   const handleSubmit = (values) => {
-    handleNextStep(values, true);
+    handleNextStep(values, false);
   };
   return (
     <>
@@ -2088,10 +2085,13 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            // validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              handleSubmit(values);
+              actions.setSubmitting(false);
+            }}
           >
-            {({ values }) => (
+            {({ values, handleChange, touched, errors, setFieldValue }) => (
               <Form>
                 <Grid fullWidth={true}>
                   <Column lg={6} md={8} sm={4}>
