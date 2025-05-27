@@ -16,18 +16,18 @@ before(() => {
 });
 
 describe("User Management", function () {
+  beforeEach(() => {
+    cy.fixture("UserManagement").then((users) => {
+      usersData = users;
+    });
+  });
+
   it("Navigate to User Management Page", function () {
     userMgmnt = adminPage.goToUserManagementPage();
     userMgmnt.verifyPageTitle();
   });
 
   describe("Add User and Exit", function () {
-    beforeEach(() => {
-      cy.fixture("UserManagement").then((users) => {
-        usersData = users;
-      });
-    });
-
     it("Add User", function () {
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
@@ -64,12 +64,6 @@ describe("User Management", function () {
   });
 
   describe("Add Users and Save", function () {
-    beforeEach(() => {
-      cy.fixture("UserManagement").then((users) => {
-        usersData = users;
-      });
-    });
-
     it("Add First User", function () {
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
@@ -108,13 +102,16 @@ describe("User Management", function () {
     });
 
     it("Enter USer details", function () {
-      userMgmnt.typeLoginName(usersData[1].username);
-      userMgmnt.passwordExpiryDate(usersData[1].passwordExpiryDate);
-      userMgmnt.typeLoginPassword(usersData[1].password);
-      userMgmnt.repeatPassword(usersData[1].password);
-      userMgmnt.enterFirstName(usersData[1].fName);
-      userMgmnt.enterLastName(usersData[1].lName);
-      userMgmnt.enterUserTimeout(usersData[1].userTimeout);
+      cy.fixture("UserManagement").then((users) => {
+        usersData = users;
+        userMgmnt.typeLoginName(usersData[1].username);
+        userMgmnt.passwordExpiryDate(usersData[1].passwordExpiryDate);
+        userMgmnt.typeLoginPassword(usersData[1].password);
+        userMgmnt.repeatPassword(usersData[1].password);
+        userMgmnt.enterFirstName(usersData[1].fName);
+        userMgmnt.enterLastName(usersData[1].lName);
+        userMgmnt.enterUserTimeout(usersData[1].userTimeout);
+      });
       userMgmnt.checkAccountLocked();
       userMgmnt.checkAccountDisabled();
       userMgmnt.checkNotActive();
@@ -137,12 +134,6 @@ describe("User Management", function () {
   });
 
   describe("Validate added Users", function () {
-    beforeEach(() => {
-      cy.fixture("UserManagement").then((users) => {
-        usersData = users;
-      });
-    });
-
     it("Search by Username", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
@@ -188,12 +179,6 @@ describe("User Management", function () {
   });
 
   describe("Modify First User", function () {
-    beforeEach(() => {
-      cy.fixture("UserManagement").then((users) => {
-        usersData = users;
-      });
-    });
-
     it("Check user to modify", function () {
       userMgmnt.checkUser(usersData[0].fName);
     });
@@ -225,11 +210,6 @@ describe("User Management", function () {
   //});
 
   describe("Signout, use active/deactivated user to login", () => {
-    beforeEach(() => {
-      cy.fixture("UserManagement").then((users) => {
-        usersData = users;
-      });
-    });
     // it("Login with Deactivated user", () => {
     // userMgmnt = loginPage.signOut();
     // loginPage.enterUsername(usersData[1].username);
@@ -240,10 +220,9 @@ describe("User Management", function () {
     // });
 
     it("Login with Active user", () => {
-      //modified user doesnot login,WIP
       userMgmnt = loginPage.signOut();
-      loginPage.enterUsername(usersData[1].username);
-      loginPage.enterPassword(usersData[1].password); //BUG:there is a password change
+      loginPage.enterUsername(usersData[0].username);
+      loginPage.enterPassword(usersData[0].password); //BUG:there is an auto password change(@@@@@@)
       loginPage.signIn();
     });
 

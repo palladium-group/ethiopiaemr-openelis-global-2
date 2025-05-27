@@ -60,11 +60,11 @@ class UserManagementPage {
   }
 
   typeLoginPassword(value) {
-    cy.get(this.selectors.loginPassword).type(value);
+    cy.get(this.selectors.loginPassword).clear().type(value);
   }
 
   repeatPassword(value) {
-    cy.get(this.selectors.repeatPassword).type(value);
+    cy.get(this.selectors.repeatPassword).clear().type(value);
   }
 
   enterFirstName(value) {
