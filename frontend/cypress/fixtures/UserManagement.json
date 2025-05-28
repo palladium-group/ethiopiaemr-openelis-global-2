@@ -1,17 +1,17 @@
 [
   {
-    "username": "login",
+    "username": "Mich",
     "password": "adminADMIN!!",
-    "fName": "Micheal",
-    "lName": "Jordan",
+    "fName": "Phillip",
+    "lName": "Xavier",
     "passwordExpiryDate": "01/01/2035",
     "userTimeout": "500"
   },
   {
     "username": "user",
     "password": "Password**",
-    "fName": "Xhang",
-    "lName": "Kyrie",
+    "fName": "Chris",
+    "lName": "Colombus",
     "passwordExpiryDate": "02/02/2032",
     "userTimeout": "450"
   }

@@ -59,7 +59,6 @@ class UserManagementPage {
   }
   clickAddButton() {
     cy.get(this.selectors.addButton).click();
-    cy.wait(1000);
   }
 
   modifyUser() {
@@ -72,6 +71,7 @@ class UserManagementPage {
   }
 
   typeLoginName(value) {
+    cy.wait(1500);
     cy.get(this.selectors.loginName).type(value);
   }
 
