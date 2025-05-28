@@ -32,6 +32,7 @@ class UserManagementPage {
       menuButton: "[data-cy='menuButton']",
       enterLoginName: "#loginName",
       enterPassword: "#password",
+      loginButton: "[data-cy='loginButton']",
     };
   }
 
@@ -41,6 +42,10 @@ class UserManagementPage {
 
   enterPassword(value) {
     cy.get(this.selectors.enterPassword).clear().type(value);
+  }
+
+  loginButton() {
+    cy.get(this.selectors.loginButton).click();
   }
 
   verifyPageTitle() {
@@ -54,6 +59,7 @@ class UserManagementPage {
   }
   clickAddButton() {
     cy.get(this.selectors.addButton).click();
+    cy.wait(1000);
   }
 
   modifyUser() {
@@ -183,7 +189,7 @@ class UserManagementPage {
   }
 
   searchUser(value) {
-    cy.get(this.selectors.searchBar).type(value);
+    cy.get(this.selectors.searchBar).clear().type(value);
   }
 
   validateUser(value) {

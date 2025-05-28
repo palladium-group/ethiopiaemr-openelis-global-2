@@ -4,6 +4,7 @@ let loginPage = null;
 let homePage = null;
 let adminPage = null;
 let userMgmnt = null;
+let usersData;
 
 before(() => {
   // Initialize LoginPage object and navigate to Admin Page
@@ -15,6 +16,12 @@ before(() => {
 });
 
 describe("User Management", function () {
+  beforeEach(() => {
+    cy.fixture("UserManagement").then((users) => {
+      usersData = users;
+    });
+  });
+
   it("Navigate to User Management Page", function () {
     userMgmnt = adminPage.goToUserManagementPage();
     userMgmnt.verifyPageTitle();
@@ -27,15 +34,13 @@ describe("User Management", function () {
     });
 
     it("Enter USer details", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.typeLoginName(users.username);
-        userMgmnt.passwordExpiryDate(users.passwordExpiryDate);
-        userMgmnt.typeLoginPassword(users.password);
-        userMgmnt.repeatPassword(users.password);
-        userMgmnt.enterFirstName(users.fName);
-        userMgmnt.enterLastName(users.lName);
-        userMgmnt.enterUserTimeout(users.userTimeout);
-      });
+      userMgmnt.typeLoginName(usersData[0].username);
+      userMgmnt.passwordExpiryDate(usersData[0].passwordExpiryDate);
+      userMgmnt.typeLoginPassword(usersData[0].password);
+      userMgmnt.repeatPassword(usersData[0].password);
+      userMgmnt.enterFirstName(usersData[0].fName);
+      userMgmnt.enterLastName(usersData[0].lName);
+      userMgmnt.enterUserTimeout(usersData[0].userTimeout);
     });
 
     it("Add and Remove Lab Unit Roles", function () {
@@ -62,18 +67,13 @@ describe("User Management", function () {
     it("Add First User", function () {
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
-    });
-
-    it("Enter USer details", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.typeLoginName(users.username);
-        userMgmnt.passwordExpiryDate(users.passwordExpiryDate);
-        userMgmnt.typeLoginPassword(users.password);
-        userMgmnt.repeatPassword(users.password);
-        userMgmnt.enterFirstName(users.fName);
-        userMgmnt.enterLastName(users.lName);
-        userMgmnt.enterUserTimeout(users.userTimeout);
-      });
+      userMgmnt.typeLoginName(usersData[0].username);
+      userMgmnt.passwordExpiryDate(usersData[0].passwordExpiryDate);
+      userMgmnt.typeLoginPassword(usersData[0].password);
+      userMgmnt.repeatPassword(usersData[0].password);
+      userMgmnt.enterFirstName(usersData[0].fName);
+      userMgmnt.enterLastName(usersData[0].lName);
+      userMgmnt.enterUserTimeout(usersData[0].userTimeout);
       userMgmnt.checkAccountLocked();
       userMgmnt.checkAccountDisabled();
       userMgmnt.checkNotActive();
@@ -87,7 +87,7 @@ describe("User Management", function () {
       userMgmnt.allPermissions();
     });
 
-    it("Save Changes", function () {
+    it("Save User", function () {
       userMgmnt.saveChanges();
     });
 
@@ -96,18 +96,13 @@ describe("User Management", function () {
       userMgmnt.verifyPageTitle();
       userMgmnt.clickAddButton();
       userMgmnt.validatePageTitle();
-    });
-
-    it("Enter USer details", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.typeLoginName(users.usernameT);
-        userMgmnt.passwordExpiryDate(users.passwordExpiryDateT);
-        userMgmnt.typeLoginPassword(users.passwordT);
-        userMgmnt.repeatPassword(users.passwordT);
-        userMgmnt.enterFirstName(users.fNameT);
-        userMgmnt.enterLastName(users.lNameT);
-        userMgmnt.enterUserTimeout(users.userTimeoutT);
-      });
+      userMgmnt.typeLoginName(usersData[1].username);
+      userMgmnt.passwordExpiryDate(usersData[1].passwordExpiryDate);
+      userMgmnt.typeLoginPassword(usersData[1].password);
+      userMgmnt.repeatPassword(usersData[1].password);
+      userMgmnt.enterFirstName(usersData[1].fName);
+      userMgmnt.enterLastName(usersData[1].lName);
+      userMgmnt.enterUserTimeout(usersData[1].userTimeout);
       userMgmnt.checkAccountLocked();
       userMgmnt.checkAccountDisabled();
       userMgmnt.checkNotActive();
@@ -124,7 +119,7 @@ describe("User Management", function () {
       userMgmnt.allPermissions();
     });
 
-    it("Save Changes", function () {
+    it("Save User", function () {
       userMgmnt.saveChanges();
     });
   });
@@ -133,70 +128,52 @@ describe("User Management", function () {
     it("Search by Username", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.searchUser(users.username);
-        userMgmnt.validateUser(users.username);
-        cy.reload();
-        userMgmnt.searchUser(users.usernameT);
-        userMgmnt.validateUser(users.usernameT);
-        cy.reload();
-      });
+      cy.wait(1000);
+      userMgmnt.searchUser(usersData[0].username);
+      userMgmnt.validateUser(usersData[0].username);
+      userMgmnt.searchUser(usersData[1].username);
+      userMgmnt.validateUser(usersData[1].username);
     });
 
     it("Search by First Name", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.searchUser(users.fName);
-        userMgmnt.validateUser(users.fName);
-        cy.reload();
-        userMgmnt.searchUser(users.fNameT);
-        userMgmnt.validateUser(users.fNameT);
-        cy.reload();
-      });
+      userMgmnt.searchUser(usersData[0].fName);
+      userMgmnt.validateUser(usersData[0].fName);
+      userMgmnt.searchUser(usersData[1].fName);
+      userMgmnt.validateUser(usersData[1].fName);
     });
 
     it("Search by Last Name", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.searchUser(users.lName);
-        userMgmnt.validateUser(users.lName);
-        cy.reload();
-        userMgmnt.searchUser(users.lNameT);
-        userMgmnt.validateUser(users.lNameT);
-        cy.reload();
-      });
+      userMgmnt.searchUser(usersData[0].lName);
+      userMgmnt.validateUser(usersData[0].lName);
+      userMgmnt.searchUser(usersData[1].lName);
+      userMgmnt.validateUser(usersData[1].lName);
+      cy.reload();
     });
 
     it("Validate active/inactive users", function () {
       userMgmnt.activeUser(); //checks active users
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.inactiveUser(users.fName);
-        userMgmnt.activeUser(users.fNameT);
-        cy.reload();
-      });
+      userMgmnt.inactiveUser(usersData[0].fName);
+      userMgmnt.activeUser(usersData[1].fName);
+      cy.reload();
     });
 
     it("Search by Only Administrator", function () {
       userMgmnt.adminUser();
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.validateUser(users.fName);
-        userMgmnt.validateUser(users.fNameT);
-        cy.reload();
-      });
+      userMgmnt.validateUser(usersData[0].fName);
+      userMgmnt.validateUser(usersData[1].fName);
+      cy.reload();
     });
   });
 
   describe("Modify First User", function () {
     it("Check user to modify", function () {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.checkUser(users.fName);
-      });
+      userMgmnt.checkUser(usersData[0].fName);
     });
 
     it("Modify User and Save", function () {
       userMgmnt.modifyUser();
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.typeLoginPassword(users.password);
-        userMgmnt.repeatPassword(users.password);
-      });
+      userMgmnt.typeLoginPassword(usersData[0].password);
+      userMgmnt.repeatPassword(usersData[0].password);
       userMgmnt.checkAccountNotLocked();
       userMgmnt.checkAccountEnabled();
       userMgmnt.checkActive();
@@ -207,9 +184,7 @@ describe("User Management", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
       userMgmnt.activeUser();
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.activeUser(users.fName);
-      });
+      userMgmnt.activeUser(usersData[0].fName);
     });
   });
 
@@ -233,18 +208,13 @@ describe("User Management", function () {
 
     it("Login with Active user", () => {
       userMgmnt = loginPage.signOut();
-      cy.fixture("UserManagement").then((users) => {
-        loginPage.enterUsername(users.username);
-        loginPage.enterPassword(users.password); //BUG:there is an auto password change(@@@@@@)
-      });
+      loginPage.enterUsername(usersData[0].username);
+      loginPage.enterPassword(usersData[0].password); //BUG:there is a password change
       loginPage.signIn();
     });
 
     it("Navigate back to User Management", () => {
-      cy.fixture("UserManagement").then((users) => {
-        userMgmnt.enterLoginName(users.username);
-        userMgmnt.enterPassword(users.password);
-      });
+      homePage = loginPage.goToHomePage();
       adminPage = homePage.goToAdminPage();
       userMgmnt = adminPage.goToUserManagementPage();
     });
