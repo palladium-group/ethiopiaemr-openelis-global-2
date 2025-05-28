@@ -223,15 +223,25 @@ function TestAdd() {
   };
 
   const validationSchema = Yup.object({
-    testNameEnglish: Yup.string().required("Test Name in English is required"),
-    testNameFrench: Yup.string().required("Test Name in French is required"),
-    testReportNameEnglish: Yup.string().required(
-      "Reporting Test Name in English is required",
-    ),
-    testReportNameFrench: Yup.string().required(
-      "Reporting Test Name in French is required",
-    ),
-    testSection: Yup.string().required("Test Section is required"),
+    testSection: Yup.string()
+      .required("Test section is required")
+      .notOneOf(["0"], "Please select a valid test section"),
+    testNameEnglish: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+      .trim()
+      .required("English test name is required"),
+    testNameFrench: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+      .trim()
+      .required("French test name is required"),
+    testReportNameEnglish: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+      .trim()
+      .required("English report name is required"),
+    testReportNameFrench: Yup.string()
+      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+      .trim()
+      .required("French report name is required"),
     panels: Yup.array().of(
       Yup.object().shape({
         id: Yup.string().required("Panel ID is required"),
@@ -845,13 +855,22 @@ const StepOneTestNameAndTestSection = ({
       <Formik
         initialValues={formData}
         enableReinitialize={true}
-        // validationSchema={validationSchema}
+        validationSchema={validationSchema}
+        validateOnChange={true}
+        validateOnBlur={true}
         onSubmit={(values, actions) => {
           handleSubmit(values);
           actions.setSubmitting(false);
         }}
       >
-        {({ values, handleChange, touched, errors, setFieldValue }) => {
+        {({
+          values,
+          handleChange,
+          handleBlur,
+          touched,
+          errors,
+          setFieldValue,
+        }) => {
           const testNameEn = (e) => {
             setJsonWad((prev) => ({
               ...prev,
@@ -922,6 +941,7 @@ const StepOneTestNameAndTestSection = ({
                       required
                       name="testSection"
                       onChange={handelTestSectionSelect}
+                      onBlur={handleBlur}
                       value={values.testSection}
                     >
                       <SelectItem value="0" text="Select Test Section" />
@@ -950,12 +970,13 @@ const StepOneTestNameAndTestSection = ({
                       name="testNameEnglish"
                       value={values.testNameEnglish}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                       invalid={
-                        touched.englishLangPost && !!errors.englishLangPost
+                        touched.testNameEnglish && !!errors.testNameEnglish
                       }
                       invalidText={
-                        touched.englishLangPost && errors.englishLangPost
+                        touched.testNameEnglish && errors.testNameEnglish
                       }
                     />
                     <br />
@@ -967,6 +988,7 @@ const StepOneTestNameAndTestSection = ({
                       name="testNameFrench"
                       value={values.testNameFrench}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                       invalid={
                         touched.testNameFrench && !!errors.testNameFrench
@@ -1003,6 +1025,7 @@ const StepOneTestNameAndTestSection = ({
                       name="testReportNameEnglish"
                       value={values.testReportNameEnglish}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                       invalid={
                         touched.testReportNameEnglish &&
@@ -1022,6 +1045,7 @@ const StepOneTestNameAndTestSection = ({
                       name="testReportNameFrench"
                       value={values.testReportNameFrench}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                       invalid={
                         touched.testReportNameFrench &&
@@ -1084,14 +1108,23 @@ const StepTwoTestPanelAndUom = ({
     <>
       <Formik
         initialValues={formData}
-        // validationSchema={validationSchema}
+        validationSchema={validationSchema}
         enableReinitialize={true}
+        validateOnChange={true}
+        validateOnBlur={true}
         onSubmit={(values, actions) => {
           handleSubmit(values);
           actions.setSubmitting(false);
         }}
       >
-        {({ values, handleChange, touched, errors, setFieldValue }) => {
+        {({
+          values,
+          handleChange,
+          handleBlur,
+          touched,
+          errors,
+          setFieldValue,
+        }) => {
           const handelPanelSelectSetTag = (e) => {
             const selectedId = e.target.value;
             const selectedValue = e.target.options[e.target.selectedIndex].text;
@@ -1160,6 +1193,7 @@ const StepTwoTestPanelAndUom = ({
                 <Column lg={16} md={8} sm={4}>
                   <FormattedMessage id="field.panel" />
                   <Select
+                    onBlur={handleBlur}
                     id={`select-panel`}
                     onChange={(e) => {
                       handelPanelSelectSetTag(e);
@@ -1204,6 +1238,7 @@ const StepTwoTestPanelAndUom = ({
                   <br />
                   <FormattedMessage id="field.uom" />
                   <Select
+                    onBlur={handleBlur}
                     onChange={(e) => {
                       handelUomSelect(e);
                     }}
@@ -1272,14 +1307,23 @@ const StepThreeTestResultTypeAndLoinc = ({
     <>
       <Formik
         initialValues={formData}
-        // validationSchema={validationSchema}
+        validationSchema={validationSchema}
         enableReinitialize={true}
+        validateOnChange={true}
+        validateOnBlur={true}
         onSubmit={(values, actions) => {
           handleSubmit(values);
           actions.setSubmitting(false);
         }}
       >
-        {({ values, handleChange, touched, errors, setFieldValue }) => {
+        {({
+          values,
+          handleChange,
+          handleBlur,
+          touched,
+          errors,
+          setFieldValue,
+        }) => {
           const handelLonicChange = (e) => {
             const regex = /^(?!-)(?:\d+-)*\d*$/;
 
@@ -1356,6 +1400,7 @@ const StepThreeTestResultTypeAndLoinc = ({
                     </>
                     <br />
                     <Select
+                      onBlur={handleBlur}
                       id={`select-result-type`}
                       hideLabel
                       required
@@ -1486,14 +1531,23 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+            validationSchema={validationSchema}
             enableReinitialize={true}
+            validateOnChange={true}
+            validateOnBlur={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => {
+            {({
+              values,
+              handleChange,
+              handleBlur,
+              touched,
+              errors,
+              setFieldValue,
+            }) => {
               const handleSampleTypeListSelectIdTestTag = (e) => {
                 const selectedId = e.target.value;
                 const selectedSampleTypeObject = sampleTypeList.find(
@@ -1531,6 +1585,7 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       <FormattedMessage id="sample.type" />
                       <br />
                       <Select
+                        onBlur={handleBlur}
                         id={`select-sample-type`}
                         hideLabel
                         required
@@ -1670,14 +1725,23 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+            validationSchema={validationSchema}
             enableReinitialize={true}
+            validateOnChange={true}
+            validateOnBlur={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => {
+            {({
+              values,
+              handleChange,
+              handleBlur,
+              touched,
+              errors,
+              setFieldValue,
+            }) => {
               const handleLabUnitSelect = (e) => {
                 const selectedLabUnitId = e.target.value;
 
@@ -1735,6 +1799,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       {/* map the Select list options */}
                       <br />
                       <Select
+                        onBlur={handleBlur}
                         id={`select-list-options`}
                         hideLabel
                         required
@@ -1795,6 +1860,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <br />
                       {/* single Select */}
                       <Select
+                        onBlur={handleBlur}
                         id={`select-reference-value`}
                         hideLabel
                         required
@@ -1815,6 +1881,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <br />
                       {/* single Select */}
                       <Select
+                        onBlur={handleBlur}
                         id={`select-default-result`}
                         hideLabel
                         required
@@ -1837,6 +1904,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <FormattedMessage id="label.qualifiers" />
                       <br />
                       <Select
+                        onBlur={handleBlur}
                         id={`select-qualifiers`}
                         hideLabel
                         required
@@ -1933,14 +2001,23 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+        validationSchema={validationSchema}
             enableReinitialize={true}
+            validateOnChange={true}
+            validateOnBlur={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => {
+            {({
+              values,
+              handleChange,
+              handleBlur,
+              touched,
+              errors,
+              setFieldValue,
+            }) => {
               return (
                 <Form>
                   <Grid fullWidth={true}>
@@ -1986,6 +2063,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           invalidText={touched.ageRange0 && errors.ageRange0}
                         />
                         <Select
+                          onBlur={handleBlur}
                           id="field.ageRange1"
                           labelText=""
                           hideLabel
@@ -2205,14 +2283,23 @@ const StepSevenDisplayExistingTestSets = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+            validationSchema={validationSchema}
             enableReinitialize={true}
+            validateOnChange={true}
+            validateOnBlur={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => {
+            {({
+              values,
+              handleChange,
+              handleBlur,
+              touched,
+              errors,
+              setFieldValue,
+            }) => {
               return (
                 <Form>
                   <Grid fullWidth={true}>
@@ -2314,14 +2401,23 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+            validationSchema={validationSchema}
             enableReinitialize={true}
+            validateOnChange={true}
+            validateOnBlur={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => {
+            {({
+              values,
+              handleChange,
+              handleBlur,
+              touched,
+              errors,
+              setFieldValue,
+            }) => {
               return (
                 <Form>
                   <Grid fullWidth={true}>
