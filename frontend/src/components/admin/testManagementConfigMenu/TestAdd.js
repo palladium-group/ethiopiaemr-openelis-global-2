@@ -183,11 +183,11 @@ function TestAdd() {
     uom: "",
     loinc: "",
     resultType: "",
-    orderable: "Y",
+    orderable: "",
     notifyResults: "",
     inLabOnly: "",
     antimicrobialResistance: "",
-    active: "Y",
+    active: "",
     sampleTypes: [],
     lowValid: "",
     highValid: "",
@@ -836,34 +836,6 @@ const StepOneTestNameAndTestSection = ({
   jsonWad,
   setJsonWad,
 }) => {
-  const testNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameEnglish: e.target.value,
-    }));
-  };
-
-  const testNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testNameFrench: e.target.value,
-    }));
-  };
-
-  const reportingTestNameEn = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameEnglish: e.target.value,
-    }));
-  };
-
-  const reportingTestNameFr = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      testReportNameFrench: e.target.value,
-    }));
-  };
-
   const handleSubmit = (values) => {
     handleNextStep(values, true);
   };
@@ -880,6 +852,34 @@ const StepOneTestNameAndTestSection = ({
         }}
       >
         {({ values, handleChange, touched, errors, setFieldValue }) => {
+          const testNameEn = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              testNameEnglish: e.target.value,
+            }));
+          };
+
+          const testNameFr = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              testNameFrench: e.target.value,
+            }));
+          };
+
+          const reportingTestNameEn = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              testReportNameEnglish: e.target.value,
+            }));
+          };
+
+          const reportingTestNameFr = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              testReportNameFrench: e.target.value,
+            }));
+          };
+
           const copyInputValuesFromTestNameEnFr = (values) => {
             setJsonWad((prev) => ({
               ...prev,
@@ -969,10 +969,10 @@ const StepOneTestNameAndTestSection = ({
                       onChange={handleChange}
                       required
                       invalid={
-                        touched.englishLangPost && !!errors.englishLangPost
+                        touched.testNameFrench && !!errors.testNameFrench
                       }
                       invalidText={
-                        touched.englishLangPost && errors.englishLangPost
+                        touched.testNameFrench && errors.testNameFrench
                       }
                     />
                   </div>
@@ -1004,13 +1004,15 @@ const StepOneTestNameAndTestSection = ({
                       value={values.testReportNameEnglish}
                       onChange={handleChange}
                       required
+                      invalid={
+                        touched.testReportNameEnglish &&
+                        !!errors.testReportNameEnglish
+                      }
+                      invalidText={
+                        touched.testReportNameEnglish &&
+                        errors.testReportNameEnglish
+                      }
                     />
-                    {touched.testReportNameEnglish &&
-                      errors.testReportNameEnglish && (
-                        <div className="error">
-                          {errors.testReportNameEnglish}
-                        </div>
-                      )}
                     <br />
                     <FormattedMessage id="french.label" />
                     <br />
@@ -1021,13 +1023,15 @@ const StepOneTestNameAndTestSection = ({
                       value={values.testReportNameFrench}
                       onChange={handleChange}
                       required
+                      invalid={
+                        touched.testReportNameFrench &&
+                        !!errors.testReportNameFrench
+                      }
+                      invalidText={
+                        touched.testReportNameFrench &&
+                        errors.testReportNameFrench
+                      }
                     />
-                    {touched.testReportNameFrench &&
-                      errors.testReportNameFrench && (
-                        <div className="error">
-                          {errors.testReportNameFrench}
-                        </div>
-                      )}
                   </div>
                 </Column>
               </Grid>
@@ -1076,146 +1080,168 @@ const StepTwoTestPanelAndUom = ({
     handleNextStep(values, true);
   };
 
-  const handelPanelSelectSetTag = (e) => {
-    const selectedId = e.target.value;
-    const selectedValue = e.target.options[e.target.selectedIndex].text;
-
-    setPanelListTag((prevTags) => {
-      const isTagPresent = prevTags.some((tag) => tag.id === selectedId);
-      if (isTagPresent) return prevTags;
-
-      const newTag = { id: selectedId, value: selectedValue };
-      const updatedTags = [...prevTags, newTag];
-
-      const updatedPanels = [...updatedTags.map((tag) => ({ id: tag.id }))];
-      setJsonWad((prevJsonWad) => ({
-        ...prevJsonWad,
-        panels: updatedPanels,
-      }));
-
-      return updatedTags;
-    });
-  };
-
-  const handlePanelRemoveTag = (idToRemove) => {
-    setPanelListTag((prevTags) => {
-      const updatedTags = prevTags.filter((tag) => tag.id !== idToRemove);
-
-      const updatedPanels = updatedTags.map((tag) => ({ id: tag.id }));
-      setJsonWad((prevJsonWad) => ({
-        ...prevJsonWad,
-        panels: updatedPanels,
-      }));
-
-      return updatedTags;
-    });
-  };
-
-  const handelUomSelect = (e) => {
-    setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
-
-    const selectedUomObject = uomList.find(
-      (item) => item.id === e.target.value,
-    );
-
-    if (selectedUomObject) {
-      setSelectedUomList(selectedUomObject);
-    }
-  };
-
   return (
     <>
       <Formik
         initialValues={formData}
         // validationSchema={validationSchema}
+        enableReinitialize={true}
         onSubmit={(values, actions) => {
           handleSubmit(values);
           actions.setSubmitting(false);
         }}
       >
-        {({ values, handleChange, touched, errors, setFieldValue }) => (
-          <Form>
-            <Grid fullWidth={true}>
-              <Column lg={16} md={8} sm={4}>
-                <FormattedMessage id="field.panel" />
-                <Select
-                  id={`select-panel`}
-                  onChange={(e) => {
-                    handelPanelSelectSetTag(e);
-                  }}
-                  hideLabel
-                  required
-                >
-                  <SelectItem value="0" text="Select Panel" />
-                  {panelList?.map((test) => (
-                    <SelectItem
-                      key={test.id}
-                      value={test.id}
-                      text={`${test.value}`}
-                    />
-                  ))}
-                </Select>
-                <br />
-                {panelListTag && panelListTag.length ? (
-                  <div
-                    className={"select-panel"}
-                    style={{ marginBottom: "1.188rem" }}
+        {({ values, handleChange, touched, errors, setFieldValue }) => {
+          const handelPanelSelectSetTag = (e) => {
+            const selectedId = e.target.value;
+            const selectedValue = e.target.options[e.target.selectedIndex].text;
+
+            setPanelListTag((prevTags) => {
+              const isTagPresent = prevTags.some(
+                (tag) => tag.id === selectedId,
+              );
+              if (isTagPresent) return prevTags;
+
+              const newTag = { id: selectedId, value: selectedValue };
+              const updatedTags = [...prevTags, newTag];
+
+              const updatedPanels = [
+                ...updatedTags.map((tag) => ({ id: tag.id })),
+              ];
+              setJsonWad((prevJsonWad) => ({
+                ...prevJsonWad,
+                panels: updatedPanels,
+              }));
+
+              return updatedTags;
+            });
+
+            setFieldValue("panel", selectedId);
+            setJsonWad((prev) => ({ ...prev, panel: selectedId }));
+            const selectedPanelObject = panelList.find(
+              (item) => item.id === selectedId,
+            );
+            if (selectedPanelObject) {
+              setPanelList((prev) => [...prev, selectedPanelObject]);
+            }
+          };
+
+          const handlePanelRemoveTag = (idToRemove) => {
+            setPanelListTag((prevTags) => {
+              const updatedTags = prevTags.filter(
+                (tag) => tag.id !== idToRemove,
+              );
+
+              const updatedPanels = updatedTags.map((tag) => ({ id: tag.id }));
+              setJsonWad((prevJsonWad) => ({
+                ...prevJsonWad,
+                panels: updatedPanels,
+              }));
+
+              return updatedTags;
+            });
+          };
+
+          const handelUomSelect = (e) => {
+            setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
+
+            const selectedUomObject = uomList.find(
+              (item) => item.id === e.target.value,
+            );
+
+            if (selectedUomObject) {
+              setSelectedUomList(selectedUomObject);
+            }
+          };
+
+          return (
+            <Form>
+              <Grid fullWidth={true}>
+                <Column lg={16} md={8} sm={4}>
+                  <FormattedMessage id="field.panel" />
+                  <Select
+                    id={`select-panel`}
+                    onChange={(e) => {
+                      handelPanelSelectSetTag(e);
+                    }}
+                    hideLabel
+                    required
+                    invalid={touched.panel && !!errors.panel}
+                    invalidText={touched.panel && errors.panel}
                   >
-                    <>
-                      {panelListTag.map((panel) => (
-                        <Tag
-                          filter
-                          key={`panelTags_${panel.id}`}
-                          onClose={() => handlePanelRemoveTag(panel.id)}
-                          style={{ marginRight: "0.5rem" }}
-                          type={"green"}
-                        >
-                          {panel.value}
-                        </Tag>
-                      ))}
-                    </>
-                  </div>
-                ) : (
-                  <></>
-                )}
-                <br />
-                <FormattedMessage id="field.uom" />
-                <Select
-                  onChange={(e) => {
-                    handelUomSelect(e);
-                  }}
-                  id={`select-uom`}
-                  hideLabel
-                  required
-                >
-                  <SelectItem value="0" text="Select Unit Of Measurement" />
-                  {uomList?.map((test) => (
-                    <SelectItem
-                      key={test.id}
-                      value={test.id}
-                      text={`${test.value}`}
-                    />
-                  ))}
-                </Select>
-              </Column>
-            </Grid>
-            <br />
-            <Grid fullWidth={true}>
-              <Column lg={16} md={8} sm={4}>
-                <Button type="submit">
-                  <FormattedMessage id="next.action.button" />
-                </Button>{" "}
-                <Button
-                  onClick={() => handlePreviousStep(values)}
-                  kind="tertiary"
-                  type="button"
-                >
-                  <FormattedMessage id="back.action.button" />
-                </Button>
-              </Column>
-            </Grid>
-          </Form>
-        )}
+                    <SelectItem value="0" text="Select Panel" />
+                    {panelList?.map((test) => (
+                      <SelectItem
+                        key={test.id}
+                        value={test.id}
+                        text={`${test.value}`}
+                      />
+                    ))}
+                  </Select>
+                  <br />
+                  {panelListTag && panelListTag.length ? (
+                    <div
+                      className={"select-panel"}
+                      style={{ marginBottom: "1.188rem" }}
+                    >
+                      <>
+                        {panelListTag.map((panel) => (
+                          <Tag
+                            filter
+                            key={`panelTags_${panel.id}`}
+                            onClose={() => handlePanelRemoveTag(panel.id)}
+                            style={{ marginRight: "0.5rem" }}
+                            type={"green"}
+                          >
+                            {panel.value}
+                          </Tag>
+                        ))}
+                      </>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  <br />
+                  <FormattedMessage id="field.uom" />
+                  <Select
+                    onChange={(e) => {
+                      handelUomSelect(e);
+                    }}
+                    id={`select-uom`}
+                    hideLabel
+                    required
+                    invalid={touched.uom && !!errors.uom}
+                    invalidText={touched.uom && errors.uom}
+                  >
+                    <SelectItem value="0" text="Select Unit Of Measurement" />
+                    {uomList?.map((test) => (
+                      <SelectItem
+                        key={test.id}
+                        value={test.id}
+                        text={`${test.value}`}
+                      />
+                    ))}
+                  </Select>
+                </Column>
+              </Grid>
+              <br />
+              <Grid fullWidth={true}>
+                <Column lg={16} md={8} sm={4}>
+                  <Button type="submit">
+                    <FormattedMessage id="next.action.button" />
+                  </Button>{" "}
+                  <Button
+                    onClick={() => handlePreviousStep(values)}
+                    kind="tertiary"
+                    type="button"
+                  >
+                    <FormattedMessage id="back.action.button" />
+                  </Button>
+                </Column>
+              </Grid>
+            </Form>
+          );
+        }}
       </Formik>
     </>
   );
@@ -1242,181 +1268,189 @@ const StepThreeTestResultTypeAndLoinc = ({
     handleNextStep(values, true);
   };
 
-  const handelLonicChange = (e) => {
-    const regex = /^(?!-)(?:\d+-)*\d*$/;
-
-    const value = e.target.value;
-
-    if (regex.test(value)) {
-      setLonic(value);
-      setJsonWad((prev) => ({ ...prev, loinc: value }));
-    } else {
-      addNotification({
-        title: intl.formatMessage({
-          id: "notification.title",
-        }),
-        message: intl.formatMessage({
-          id: "notification.user.post.save.success",
-        }),
-        kind: NotificationKinds.error,
-      });
-      setNotificationVisible(true);
-    }
-  };
-
-  const handelResultType = (e) => {
-    setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
-
-    const selectedResultTypeObject = resultTypeList.find(
-      (item) => item.id == e.target.value,
-    );
-
-    if (selectedResultTypeObject) {
-      setSelectedResultTypeList(selectedResultTypeObject);
-    }
-  };
-
-  const handleAntimicrobialResistance = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      antimicrobialResistance: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleIsActive = (e) => {
-    setJsonWad((prev) => ({ ...prev, active: e.target.checked ? "Y" : "N" }));
-  };
-  const handleOrderable = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      orderable: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleNotifyPatientofResults = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      notifyResults: e.target.checked ? "Y" : "N",
-    }));
-  };
-  const handleInLabOnly = (e) => {
-    setJsonWad((prev) => ({
-      ...prev,
-      inLabOnly: e.target.checked ? "Y" : "N",
-    }));
-  };
-
   return (
     <>
       <Formik
         initialValues={formData}
         // validationSchema={validationSchema}
+        enableReinitialize={true}
         onSubmit={(values, actions) => {
           handleSubmit(values);
           actions.setSubmitting(false);
         }}
       >
-        {({ values, handleChange, touched, errors, setFieldValue }) => (
-          <Form>
-            <Grid fullWidth={true}>
-              <Column lg={16} md={8} sm={4}>
-                <div>
-                  <>
-                    <FormattedMessage id="field.resultType" />
-                    <span style={{ color: "red" }}>*</span>
-                  </>
+        {({ values, handleChange, touched, errors, setFieldValue }) => {
+          const handelLonicChange = (e) => {
+            const regex = /^(?!-)(?:\d+-)*\d*$/;
+
+            const value = e.target.value;
+
+            if (regex.test(value)) {
+              setLonic(value);
+              setJsonWad((prev) => ({ ...prev, loinc: value }));
+            } else {
+              addNotification({
+                title: intl.formatMessage({
+                  id: "notification.title",
+                }),
+                message: intl.formatMessage({
+                  id: "notification.user.post.save.success",
+                }),
+                kind: NotificationKinds.error,
+              });
+              setNotificationVisible(true);
+            }
+          };
+
+          const handelResultType = (e) => {
+            setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
+
+            const selectedResultTypeObject = resultTypeList.find(
+              (item) => item.id == e.target.value,
+            );
+
+            if (selectedResultTypeObject) {
+              setSelectedResultTypeList(selectedResultTypeObject);
+            }
+          };
+
+          const handleAntimicrobialResistance = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              antimicrobialResistance: e.target.checked ? "Y" : "N",
+            }));
+          };
+          const handleIsActive = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              active: e.target.checked ? "Y" : "N",
+            }));
+          };
+          const handleOrderable = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              orderable: e.target.checked ? "Y" : "N",
+            }));
+          };
+          const handleNotifyPatientofResults = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              notifyResults: e.target.checked ? "Y" : "N",
+            }));
+          };
+          const handleInLabOnly = (e) => {
+            setJsonWad((prev) => ({
+              ...prev,
+              inLabOnly: e.target.checked ? "Y" : "N",
+            }));
+          };
+
+          return (
+            <Form>
+              <Grid fullWidth={true}>
+                <Column lg={16} md={8} sm={4}>
+                  <div>
+                    <>
+                      <FormattedMessage id="field.resultType" />
+                      <span style={{ color: "red" }}>*</span>
+                    </>
+                    <br />
+                    <Select
+                      id={`select-result-type`}
+                      hideLabel
+                      required
+                      onChange={(e) => {
+                        handelResultType(e);
+                      }}
+                      value={values.resultType}
+                      invalid={touched.resultType && !!errors.resultType}
+                      invalidText={touched.resultType && errors.resultType}
+                    >
+                      <SelectItem value="0" text="Select Result Type" />
+                      {resultTypeList?.map((test) => (
+                        <SelectItem
+                          key={test.id}
+                          value={test.id}
+                          text={`${test.value}`}
+                        />
+                      ))}
+                    </Select>
+                  </div>
                   <br />
-                  <Select
-                    id={`select-result-type`}
-                    hideLabel
-                    required
-                    onChange={(e) => {
-                      handelResultType(e);
-                    }}
+                  <div>
+                    <FormattedMessage id="label.loinc" />
+                    <br />
+                    <TextInput
+                      labelText=""
+                      required
+                      id="loinc"
+                      name="loinc"
+                      value={values.lonic}
+                      onChange={(e) => {
+                        handelLonicChange(e);
+                        handleChange(e);
+                      }}
+                      invalid={touched.loinc && !!errors.loinc}
+                      invalidText={touched.loinc && errors.loinc}
+                    />
+                  </div>
+                  <br />
+                  <div>
+                    <Checkbox
+                      labelText={
+                        <FormattedMessage id="test.antimicrobialResistance" />
+                      }
+                      id="antimicrobial-resistance"
+                      onChange={handleAntimicrobialResistance}
+                      checked={values?.antimicrobialResistance === "Y"}
+                    />
+                    <Checkbox
+                      labelText={
+                        <FormattedMessage id="dictionary.category.isActive" />
+                      }
+                      id="is-active"
+                      onChange={handleIsActive}
+                      checked={values?.active === "Y"}
+                    />
+                    <Checkbox
+                      labelText={<FormattedMessage id="label.orderable" />}
+                      id="orderable"
+                      onChange={handleOrderable}
+                      checked={values?.orderable === "Y"}
+                    />
+                    <Checkbox
+                      labelText={<FormattedMessage id="test.notifyResults" />}
+                      id="notify-patient-of-results"
+                      onChange={handleNotifyPatientofResults}
+                      checked={values?.notifyResults === "Y"}
+                    />
+                    <Checkbox
+                      labelText={<FormattedMessage id="test.inLabOnly" />}
+                      id="in-lab-only"
+                      onChange={handleInLabOnly}
+                      checked={values?.inLabOnly === "Y"}
+                    />
+                  </div>
+                </Column>
+              </Grid>
+              <br />
+              <Grid fullWidth={true}>
+                <Column lg={16} md={8} sm={4}>
+                  <Button type="submit">
+                    <FormattedMessage id="next.action.button" />
+                  </Button>{" "}
+                  <Button
+                    onClick={() => handlePreviousStep(values)}
+                    kind="tertiary"
+                    type="button"
                   >
-                    <SelectItem value="0" text="Select Result Type" />
-                    {resultTypeList?.map((test) => (
-                      <SelectItem
-                        key={test.id}
-                        value={test.id}
-                        text={`${test.value}`}
-                      />
-                    ))}
-                  </Select>
-                </div>
-                <br />
-                <div>
-                  <FormattedMessage id="label.loinc" />
-                  <br />
-                  <TextInput
-                    labelText=""
-                    required
-                    id="loinc"
-                    name="loinc"
-                    value={values.lonic}
-                    onChange={(e) => {
-                      handelLonicChange(e);
-                      handleChange(e);
-                    }}
-                  />
-                  {touched.loinc && errors.loinc && (
-                    <div className="error">{errors.loinc}</div>
-                  )}
-                </div>
-                <br />
-                <div>
-                  <Checkbox
-                    labelText={
-                      <FormattedMessage id="test.antimicrobialResistance" />
-                    }
-                    id="antimicrobial-resistance"
-                    onChange={handleAntimicrobialResistance}
-                    checked={jsonWad?.antimicrobialResistance === "Y"}
-                  />
-                  <Checkbox
-                    labelText={
-                      <FormattedMessage id="dictionary.category.isActive" />
-                    }
-                    id="is-active"
-                    onChange={handleIsActive}
-                    checked={jsonWad?.active === "Y"}
-                  />
-                  <Checkbox
-                    labelText={<FormattedMessage id="label.orderable" />}
-                    id="orderable"
-                    onChange={handleOrderable}
-                    checked={jsonWad?.orderable === "Y"}
-                  />
-                  <Checkbox
-                    labelText={<FormattedMessage id="test.notifyResults" />}
-                    id="notify-patient-of-results"
-                    onChange={handleNotifyPatientofResults}
-                    checked={jsonWad?.notifyResults === "Y"}
-                  />
-                  <Checkbox
-                    labelText={<FormattedMessage id="test.inLabOnly" />}
-                    id="in-lab-only"
-                    onChange={handleInLabOnly}
-                    checked={jsonWad?.inLabOnly === "Y"}
-                  />
-                </div>
-              </Column>
-            </Grid>
-            <br />
-            <Grid fullWidth={true}>
-              <Column lg={16} md={8} sm={4}>
-                <Button type="submit">
-                  <FormattedMessage id="next.action.button" />
-                </Button>{" "}
-                <Button
-                  onClick={() => handlePreviousStep(values)}
-                  kind="tertiary"
-                  type="button"
-                >
-                  <FormattedMessage id="back.action.button" />
-                </Button>
-              </Column>
-            </Grid>
-          </Form>
-        )}
+                    <FormattedMessage id="back.action.button" />
+                  </Button>
+                </Column>
+              </Grid>
+            </Form>
+          );
+        }}
       </Formik>
     </>
   );
@@ -1446,33 +1480,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
     handleNextStep(values, true);
   };
 
-  const handleSampleTypeListSelectIdTestTag = (e) => {
-    const selectedId = e.target.value;
-    const selectedSampleTypeObject = sampleTypeList.find(
-      (type) => type.id === selectedId,
-    );
-
-    if (selectedSampleTypeObject) {
-      const isAlreadySelected = selectedSampleType.some(
-        (type) => type.id === selectedSampleTypeObject.id,
-      );
-
-      if (!isAlreadySelected) {
-        setSelectedSampleTypeList([
-          ...selectedSampleTypeList,
-          selectedSampleTypeObject,
-        ]);
-
-        setSampleTestTypeToGetTagList([
-          ...sampleTestTypeToGetTagList,
-          selectedSampleTypeObject,
-        ]);
-
-        setSelectedSampleType((prev) => [...prev, selectedSampleTypeObject]);
-      }
-    }
-  };
-
   return (
     <>
       {currentStep === 3 ? (
@@ -1480,108 +1487,147 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
           <Formik
             initialValues={formData}
             // validationSchema={validationSchema}
+            enableReinitialize={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => (
-              <Form>
-                <Grid fullWidth={true}>
-                  <Column lg={6} md={2} sm={4}>
-                    <FormattedMessage id="sample.type" />
-                    <br />
-                    <Select
-                      id={`select-sample-type`}
-                      hideLabel
-                      required
-                      onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
-                    >
-                      <SelectItem value="0" text="Select Sample Type" />
-                      {sampleTypeList?.map((test) => (
-                        <SelectItem
-                          key={test.id}
-                          value={test.id}
-                          text={`${test.value}`}
-                        />
-                      ))}
-                    </Select>
-                    <br />
-                    {sampleTestTypeToGetTagList &&
-                    sampleTestTypeToGetTagList.length ? (
-                      <div
-                        className={"select-sample-type"}
-                        style={{ marginBottom: "1.188rem" }}
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
+              const handleSampleTypeListSelectIdTestTag = (e) => {
+                const selectedId = e.target.value;
+                const selectedSampleTypeObject = sampleTypeList.find(
+                  (type) => type.id === selectedId,
+                );
+
+                if (selectedSampleTypeObject) {
+                  const isAlreadySelected = selectedSampleType.some(
+                    (type) => type.id === selectedSampleTypeObject.id,
+                  );
+
+                  if (!isAlreadySelected) {
+                    setSelectedSampleTypeList([
+                      ...selectedSampleTypeList,
+                      selectedSampleTypeObject,
+                    ]);
+
+                    setSampleTestTypeToGetTagList([
+                      ...sampleTestTypeToGetTagList,
+                      selectedSampleTypeObject,
+                    ]);
+
+                    setSelectedSampleType((prev) => [
+                      ...prev,
+                      selectedSampleTypeObject,
+                    ]);
+                  }
+                }
+              };
+
+              return (
+                <Form>
+                  <Grid fullWidth={true}>
+                    <Column lg={6} md={2} sm={4}>
+                      <FormattedMessage id="sample.type" />
+                      <br />
+                      <Select
+                        id={`select-sample-type`}
+                        hideLabel
+                        required
+                        onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
                       >
-                        <>
-                          {sampleTestTypeToGetTagList.map((section, index) => (
-                            <Tag
-                              filter
-                              key={`testTags_${index}`}
-                              onClose={() =>
-                                handleRemoveSampleTypeListSelectIdTestTag(index)
-                              }
-                              style={{ marginRight: "0.5rem" }}
-                              type={"green"}
-                            >
-                              {section.value}
-                            </Tag>
-                          ))}
-                        </>
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-                    <br />
-                  </Column>
-                  <Column lg={10} md={6} sm={4}>
-                    <Section>
+                        <SelectItem value="0" text="Select Sample Type" />
+                        {sampleTypeList?.map((test) => (
+                          <SelectItem
+                            key={test.id}
+                            value={test.id}
+                            text={`${test.value}`}
+                          />
+                        ))}
+                      </Select>
+                      <br />
+                      {sampleTestTypeToGetTagList &&
+                      sampleTestTypeToGetTagList.length ? (
+                        <div
+                          className={"select-sample-type"}
+                          style={{ marginBottom: "1.188rem" }}
+                        >
+                          <>
+                            {sampleTestTypeToGetTagList.map(
+                              (section, index) => (
+                                <Tag
+                                  filter
+                                  key={`testTags_${index}`}
+                                  onClose={() =>
+                                    handleRemoveSampleTypeListSelectIdTestTag(
+                                      index,
+                                    )
+                                  }
+                                  style={{ marginRight: "0.5rem" }}
+                                  type={"green"}
+                                >
+                                  {section.value}
+                                </Tag>
+                              ),
+                            )}
+                          </>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      <br />
+                    </Column>
+                    <Column lg={10} md={6} sm={4}>
                       <Section>
                         <Section>
-                          <Heading>
-                            <FormattedMessage id="label.test.display.order" />
-                          </Heading>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="label.test.display.order" />
+                            </Heading>
+                          </Section>
                         </Section>
                       </Section>
-                    </Section>
-                    <br />
-                    {selectedSampleTypeResp.length > 0 ? (
-                      selectedSampleTypeResp.map((item, index) => (
-                        <>
-                          <div className="gridBoundary">
-                            <Section key={index}>
-                              <UnorderedList>
-                                {item.tests.map((test) => (
-                                  <ListItem key={test.id}>{test.name}</ListItem>
-                                ))}
-                              </UnorderedList>
-                            </Section>
-                          </div>
-                          <br />
-                        </>
-                      ))
-                    ) : (
-                      <></>
-                    )}
-                  </Column>
-                </Grid>
-                <br />
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Button type="submit">
-                      <FormattedMessage id="next.action.button" />
-                    </Button>{" "}
-                    <Button
-                      onClick={() => handlePreviousStep(values)}
-                      kind="tertiary"
-                      type="button"
-                    >
-                      <FormattedMessage id="back.action.button" />
-                    </Button>
-                  </Column>
-                </Grid>
-              </Form>
-            )}
+                      <br />
+                      {selectedSampleTypeResp.length > 0 ? (
+                        selectedSampleTypeResp.map((item, index) => (
+                          <>
+                            <div className="gridBoundary">
+                              <Section key={index}>
+                                <UnorderedList>
+                                  {item.tests.map((test) => (
+                                    <ListItem key={test.id}>
+                                      {test.name}
+                                    </ListItem>
+                                  ))}
+                                </UnorderedList>
+                              </Section>
+                            </div>
+                            <br />
+                          </>
+                        ))
+                      ) : (
+                        <></>
+                      )}
+                    </Column>
+                  </Grid>
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Button type="submit">
+                        <FormattedMessage id="next.action.button" />
+                      </Button>{" "}
+                      <Button
+                        onClick={() => handlePreviousStep(values)}
+                        kind="tertiary"
+                        type="button"
+                      >
+                        <FormattedMessage id="back.action.button" />
+                      </Button>
+                    </Column>
+                  </Grid>
+                </Form>
+              );
+            }}
           </Formik>
         </>
       ) : (
@@ -1618,43 +1664,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   const handleSubmit = (values) => {
     handleNextStep(values, true);
   };
-  const handleLabUnitSelect = (e) => {
-    const selectedLabUnitId = e.target.value;
-
-    setJsonWad((prev) => ({ ...prev, testSection: selectedLabUnitId }));
-  };
-
-  const handelSelectListOptions = (e) => {
-    const selectedId = e.target.value;
-
-    const selectedObject = dictionaryList.find(
-      (item) => item.id === selectedId,
-    );
-
-    if (selectedObject) {
-      setSingleSelectDictionaryList((prev) => [...prev, selectedObject]);
-      setMultiSelectDictionaryList((prev) => [...prev, selectedObject]);
-
-      setDictionaryListTag((prev) => [...prev, selectedObject]);
-    }
-
-    //set the data object in jsonWad
-  };
-
-  const handleSelectQualifiersTag = (e) => {
-    const selectedId = e.target.value;
-
-    const selectedObject = multiSelectDictionaryList.find(
-      (item) => item.id === selectedId,
-    );
-
-    if (selectedObject) {
-      setMultiSelectDictionaryListTag((prev) => [...prev, selectedObject]);
-    }
-
-    //set the data object in jsonWad
-  };
-
   return (
     <>
       {currentStep === 4 ? (
@@ -1662,185 +1671,237 @@ const StepFiveSelectListOptionsAndResultOrder = ({
           <Formik
             initialValues={formData}
             // validationSchema={validationSchema}
+            enableReinitialize={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => (
-              <Form>
-                <Grid>
-                  <Column lg={8} md={8} sm={4}>
-                    <FormattedMessage id="label.select.list.options" />
-                    {/* map the Select list options */}
-                    <br />
-                    <Select
-                      id={`select-list-options`}
-                      hideLabel
-                      required
-                      onChange={(e) => handelSelectListOptions(e)} // need a fix
-                    >
-                      <SelectItem value="0" text="Select List Option" />
-                      {dictionaryList?.map((test) => (
-                        <SelectItem
-                          key={test.id}
-                          value={test.id}
-                          text={`${test.value}`}
-                        />
-                      ))}
-                    </Select>
-                    {/* tags need to display */}
-                    <br />
-                    {/* need to add tags */}
-                    {dictionaryListTag && dictionaryListTag.length ? (
-                      <div
-                        className={"select-list-options-tag"}
-                        style={{ marginBottom: "1.188rem" }}
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
+              const handleLabUnitSelect = (e) => {
+                const selectedLabUnitId = e.target.value;
+
+                setJsonWad((prev) => ({
+                  ...prev,
+                  testSection: selectedLabUnitId,
+                }));
+              };
+
+              const handelSelectListOptions = (e) => {
+                const selectedId = e.target.value;
+
+                const selectedObject = dictionaryList.find(
+                  (item) => item.id === selectedId,
+                );
+
+                if (selectedObject) {
+                  setSingleSelectDictionaryList((prev) => [
+                    ...prev,
+                    selectedObject,
+                  ]);
+                  setMultiSelectDictionaryList((prev) => [
+                    ...prev,
+                    selectedObject,
+                  ]);
+
+                  setDictionaryListTag((prev) => [...prev, selectedObject]);
+                }
+
+                //set the data object in jsonWad
+              };
+
+              const handleSelectQualifiersTag = (e) => {
+                const selectedId = e.target.value;
+
+                const selectedObject = multiSelectDictionaryList.find(
+                  (item) => item.id === selectedId,
+                );
+
+                if (selectedObject) {
+                  setMultiSelectDictionaryListTag((prev) => [
+                    ...prev,
+                    selectedObject,
+                  ]);
+                }
+
+                //set the data object in jsonWad
+              };
+
+              return (
+                <Form>
+                  <Grid>
+                    <Column lg={8} md={8} sm={4}>
+                      <FormattedMessage id="label.select.list.options" />
+                      {/* map the Select list options */}
+                      <br />
+                      <Select
+                        id={`select-list-options`}
+                        hideLabel
+                        required
+                        onChange={(e) => handelSelectListOptions(e)} // need a fix
                       >
-                        <>
-                          {dictionaryListTag.map((dict, index) => (
-                            <Tag
-                              filter
-                              key={`list-options_${index}`}
-                              // onClose={() =>
-                              //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                              // }
-                              style={{ marginRight: "0.5rem" }}
-                              type={"green"}
-                            >
-                              {dict.value}
-                            </Tag>
-                          ))}
-                        </>
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-                    <br />
-                  </Column>
-                  <Column lg={8} md={8} sm={4}>
-                    <Section>
+                        <SelectItem value="0" text="Select List Option" />
+                        {dictionaryList?.map((test) => (
+                          <SelectItem
+                            key={test.id}
+                            value={test.id}
+                            text={`${test.value}`}
+                          />
+                        ))}
+                      </Select>
+                      {/* tags need to display */}
+                      <br />
+                      {/* need to add tags */}
+                      {dictionaryListTag && dictionaryListTag.length ? (
+                        <div
+                          className={"select-list-options-tag"}
+                          style={{ marginBottom: "1.188rem" }}
+                        >
+                          <>
+                            {dictionaryListTag.map((dict, index) => (
+                              <Tag
+                                filter
+                                key={`list-options_${index}`}
+                                // onClose={() =>
+                                //   handleRemoveSampleTypeListSelectIdTestTag(index)
+                                // }
+                                style={{ marginRight: "0.5rem" }}
+                                type={"green"}
+                              >
+                                {dict.value}
+                              </Tag>
+                            ))}
+                          </>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      <br />
+                    </Column>
+                    <Column lg={8} md={8} sm={4}>
                       <Section>
                         <Section>
-                          <Heading>
-                            <FormattedMessage id="label.result.order" />
-                          </Heading>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="label.result.order" />
+                            </Heading>
+                          </Section>
                         </Section>
                       </Section>
-                    </Section>
-                    {/* remeder dragable & Select list options */}
-                    <br />
-                    <br />
-                    <FormattedMessage id="label.reference.value" />
-                    <br />
-                    {/* single Select */}
-                    <Select
-                      id={`select-reference-value`}
-                      hideLabel
-                      required
-                      // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
-                    >
-                      <SelectItem value="0" text="Select Reference Value" />
-                      {singleSelectDictionaryList?.map((test) => (
-                        <SelectItem
-                          key={test.id}
-                          value={test.id}
-                          text={`${test.value}`}
-                        />
-                      ))}
-                    </Select>
-                    <br />
-                    <br />
-                    <FormattedMessage id="label.default.result" />
-                    <br />
-                    {/* single Select */}
-                    <Select
-                      id={`select-default-result`}
-                      hideLabel
-                      required
-                      // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
-                    >
-                      <SelectItem
-                        value="0"
-                        text="Select Single Dictionary List"
-                      />
-                      {singleSelectDictionaryList?.map((test) => (
-                        <SelectItem
-                          key={test.id}
-                          value={test.id}
-                          text={`${test.value}`}
-                        />
-                      ))}
-                    </Select>
-                    <br />
-                    <br />
-                    <FormattedMessage id="label.qualifiers" />
-                    <br />
-                    <Select
-                      id={`select-qualifiers`}
-                      hideLabel
-                      required
-                      onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
-                    >
-                      <SelectItem
-                        value="0"
-                        text="Select Multi Dictionary List"
-                      />
-                      {multiSelectDictionaryList?.map((test) => (
-                        <SelectItem
-                          key={test.id}
-                          value={test.id}
-                          text={`${test.value}`}
-                        />
-                      ))}
-                    </Select>
-                    <br />
-                    {/* need to add tags */}
-                    {multiSelectDictionaryListTag &&
-                    multiSelectDictionaryListTag.length ? (
-                      <div
-                        className={"select-qualifiers-tag"}
-                        style={{ marginBottom: "1.188rem" }}
+                      {/* remeder dragable & Select list options */}
+                      <br />
+                      <br />
+                      <FormattedMessage id="label.reference.value" />
+                      <br />
+                      {/* single Select */}
+                      <Select
+                        id={`select-reference-value`}
+                        hideLabel
+                        required
+                        // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
                       >
-                        <>
-                          {multiSelectDictionaryListTag.map((dict, index) => (
-                            <Tag
-                              filter
-                              key={`qualifiers_${index}`}
-                              // onClose={() =>
-                              //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                              // }
-                              style={{ marginRight: "0.5rem" }}
-                              type={"green"}
-                            >
-                              {dict.value}
-                            </Tag>
-                          ))}
-                        </>
-                      </div>
-                    ) : (
-                      <></>
-                    )}
-                    <br />
-                  </Column>
-                </Grid>
-                <br />
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Button type="submit">
-                      <FormattedMessage id="next.action.button" />
-                    </Button>{" "}
-                    <Button
-                      onClick={() => handlePreviousStep(values)}
-                      kind="tertiary"
-                      type="button"
-                    >
-                      <FormattedMessage id="back.action.button" />
-                    </Button>
-                  </Column>
-                </Grid>
-              </Form>
-            )}
+                        <SelectItem value="0" text="Select Reference Value" />
+                        {singleSelectDictionaryList?.map((test) => (
+                          <SelectItem
+                            key={test.id}
+                            value={test.id}
+                            text={`${test.value}`}
+                          />
+                        ))}
+                      </Select>
+                      <br />
+                      <br />
+                      <FormattedMessage id="label.default.result" />
+                      <br />
+                      {/* single Select */}
+                      <Select
+                        id={`select-default-result`}
+                        hideLabel
+                        required
+                        // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
+                      >
+                        <SelectItem
+                          value="0"
+                          text="Select Single Dictionary List"
+                        />
+                        {singleSelectDictionaryList?.map((test) => (
+                          <SelectItem
+                            key={test.id}
+                            value={test.id}
+                            text={`${test.value}`}
+                          />
+                        ))}
+                      </Select>
+                      <br />
+                      <br />
+                      <FormattedMessage id="label.qualifiers" />
+                      <br />
+                      <Select
+                        id={`select-qualifiers`}
+                        hideLabel
+                        required
+                        onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
+                      >
+                        <SelectItem
+                          value="0"
+                          text="Select Multi Dictionary List"
+                        />
+                        {multiSelectDictionaryList?.map((test) => (
+                          <SelectItem
+                            key={test.id}
+                            value={test.id}
+                            text={`${test.value}`}
+                          />
+                        ))}
+                      </Select>
+                      <br />
+                      {/* need to add tags */}
+                      {multiSelectDictionaryListTag &&
+                      multiSelectDictionaryListTag.length ? (
+                        <div
+                          className={"select-qualifiers-tag"}
+                          style={{ marginBottom: "1.188rem" }}
+                        >
+                          <>
+                            {multiSelectDictionaryListTag.map((dict, index) => (
+                              <Tag
+                                filter
+                                key={`qualifiers_${index}`}
+                                // onClose={() =>
+                                //   handleRemoveSampleTypeListSelectIdTestTag(index)
+                                // }
+                                style={{ marginRight: "0.5rem" }}
+                                type={"green"}
+                              >
+                                {dict.value}
+                              </Tag>
+                            ))}
+                          </>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      <br />
+                    </Column>
+                  </Grid>
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Button type="submit">
+                        <FormattedMessage id="next.action.button" />
+                      </Button>{" "}
+                      <Button
+                        onClick={() => handlePreviousStep(values)}
+                        kind="tertiary"
+                        type="button"
+                      >
+                        <FormattedMessage id="back.action.button" />
+                      </Button>
+                    </Column>
+                  </Grid>
+                </Form>
+              );
+            }}
           </Formik>
         </>
       ) : (
@@ -1873,189 +1934,246 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
           <Formik
             initialValues={formData}
             // validationSchema={validationSchema}
+            enableReinitialize={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => (
-              <Form>
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Section>
-                      <Section>
-                        <Section>
-                          <Heading>
-                            <FormattedMessage id="label.button.range" />
-                          </Heading>
-                        </Section>
-                      </Section>
-                    </Section>
-                  </Column>
-                </Grid>
-                <br />
-                <hr />
-                <br />
-                <Grid fullWidth={true} className="gridBoundary">
-                  <Column lg={16} md={8} sm={4}>
-                    <FormattedMessage id="field.ageRange" />
-                    <hr />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <Checkbox
-                        id={"gender"}
-                        labelText={
-                          <FormattedMessage id="label.sex.dependent" />
-                        }
-                        // onChange={() => {}}
-                      />
-                      {/* render male & female on checkbox*/}
-                      <RadioButtonGroup name={"fieldAgeRangeRadioGroup"}>
-                        <RadioButton labelText={"Y"} />
-                        <RadioButton labelText={"M"} />
-                        <RadioButton labelText={"D"} />
-                      </RadioButtonGroup>
-                      <TextInput
-                        id="field.ageRange0"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      <Select
-                        id="field.ageRange1"
-                        labelText=""
-                        hideLabel
-                        required
-                      >
-                        {/* map agerangeList values Form objects inside array */}
-                        {ageRangeList.map((age) => (
-                          <SelectItem
-                            key={age.id}
-                            value={age.id}
-                            text={`${age.value}`}
-                          />
-                        ))}
-                      </Select>
-                    </div>
-                    <hr />
-                    <br />
-                  </Column>
-                  <Column lg={8} md={4} sm={4}>
-                    <FormattedMessage id="field.normalRange" />
-                    <hr />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <TextInput
-                        id="field.normalRange0"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      <TextInput
-                        id="field.normalRange1"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      {/* render  two extra fields for TextInput on Click of Check box */}
-                    </div>
-                  </Column>
-                  <Column lg={8} md={4} sm={4}>
-                    <FormattedMessage id="label.reporting.range" />
-                    <hr />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <TextInput
-                        id="label.reporting.range0"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      <TextInput
-                        id="label.reporting.range1"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                    </div>
-                  </Column>
-                  <Column lg={8} md={4} sm={4}>
-                    <FormattedMessage id="field.validRange" />
-                    <hr />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <TextInput
-                        id="field.validRange0"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      <TextInput
-                        id="field.validRange1"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                    </div>
-                  </Column>
-                  <Column lg={8} md={4} sm={4}>
-                    <FormattedMessage id="label.critical.range" />
-                    <hr />
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      <TextInput
-                        id="label.critical.range0"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                      <TextInput
-                        id="label.critical.range1"
-                        labelText=""
-                        hideLabel
-                        required
-                      />
-                    </div>
-                  </Column>
-                </Grid>
-                <br />
-                <FlexGrid fullWidth={true}>
-                  <Row>
-                    <Column lg={4} md={4} sm={4}>
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
+              return (
+                <Form>
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
                       <Section>
                         <Section>
                           <Section>
                             <Heading>
-                              <FormattedMessage id="field.significantDigits" />
-                              {" : "}
+                              <FormattedMessage id="label.button.range" />
                             </Heading>
                           </Section>
                         </Section>
                       </Section>
                     </Column>
-                    <Column lg={4} md={4} sm={4}>
-                      <NumberInput
-                        id={"significant_digits_num_input"}
-                        max={99}
-                        min={0}
-                        size={"md"}
-                        allowEmpty={true}
-                      />
+                  </Grid>
+                  <br />
+                  <hr />
+                  <br />
+                  <Grid fullWidth={true} className="gridBoundary">
+                    <Column lg={16} md={8} sm={4}>
+                      <FormattedMessage id="field.ageRange" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <Checkbox
+                          id={"gender"}
+                          labelText={
+                            <FormattedMessage id="label.sex.dependent" />
+                          }
+                          // onChange={() => {}}
+                        />
+                        {/* render male & female on checkbox*/}
+                        <RadioButtonGroup name={"fieldAgeRangeRadioGroup"}>
+                          <RadioButton labelText={"Y"} />
+                          <RadioButton labelText={"M"} />
+                          <RadioButton labelText={"D"} />
+                        </RadioButtonGroup>
+                        <TextInput
+                          id="field.ageRange0"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={touched.ageRange0 && !!errors.ageRange0}
+                          invalidText={touched.ageRange0 && errors.ageRange0}
+                        />
+                        <Select
+                          id="field.ageRange1"
+                          labelText=""
+                          hideLabel
+                          required
+                        >
+                          {/* map agerangeList values Form objects inside array */}
+                          {ageRangeList.map((age) => (
+                            <SelectItem
+                              key={age.id}
+                              value={age.id}
+                              text={`${age.value}`}
+                            />
+                          ))}
+                        </Select>
+                      </div>
+                      <hr />
+                      <br />
                     </Column>
-                  </Row>
-                </FlexGrid>
-                <br />
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Button type="submit">
-                      <FormattedMessage id="next.action.button" />
-                    </Button>{" "}
-                    <Button
-                      onClick={() => handlePreviousStep(values)}
-                      kind="tertiary"
-                      type="button"
-                    >
-                      <FormattedMessage id="back.action.button" />
-                    </Button>
-                  </Column>
-                </Grid>
-              </Form>
-            )}
+                    <Column lg={8} md={4} sm={4}>
+                      <FormattedMessage id="field.normalRange" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <TextInput
+                          id="field.normalRange0"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.normalRange0 && !!errors.normalRange0
+                          }
+                          invalidText={
+                            touched.normalRange0 && errors.normalRange0
+                          }
+                        />
+                        <TextInput
+                          id="field.normalRange1"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.normalRange1 && !!errors.normalRange1
+                          }
+                          invalidText={
+                            touched.normalRange1 && errors.normalRange1
+                          }
+                        />
+                        {/* render  two extra fields for TextInput on Click of Check box */}
+                      </div>
+                    </Column>
+                    <Column lg={8} md={4} sm={4}>
+                      <FormattedMessage id="label.reporting.range" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <TextInput
+                          id="label.reporting.range0"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.reportingRange0 && !!errors.reportingRange0
+                          }
+                          invalidText={
+                            touched.reportingRange0 && errors.reportingRange0
+                          }
+                        />
+                        <TextInput
+                          id="label.reporting.range1"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.reportingRange1 && !!errors.reportingRange1
+                          }
+                          invalidText={
+                            touched.reportingRange1 && errors.reportingRange1
+                          }
+                        />
+                      </div>
+                    </Column>
+                    <Column lg={8} md={4} sm={4}>
+                      <FormattedMessage id="field.validRange" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <TextInput
+                          id="field.validRange0"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={touched.validRange0 && !!errors.validRange0}
+                          invalidText={
+                            touched.validRange0 && errors.validRange0
+                          }
+                        />
+                        <TextInput
+                          id="field.validRange1"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={touched.validRange1 && !!errors.validRange1}
+                          invalidText={
+                            touched.validRange1 && errors.validRange1
+                          }
+                        />
+                      </div>
+                    </Column>
+                    <Column lg={8} md={4} sm={4}>
+                      <FormattedMessage id="label.critical.range" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <TextInput
+                          id="label.critical.range0"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.criticalRange0 && !!errors.criticalRange0
+                          }
+                          invalidText={
+                            touched.criticalRange0 && errors.criticalRange0
+                          }
+                        />
+                        <TextInput
+                          id="label.critical.range1"
+                          labelText=""
+                          hideLabel
+                          required
+                          invalid={
+                            touched.criticalRange1 && !!errors.criticalRange1
+                          }
+                          invalidText={
+                            touched.criticalRange1 && errors.criticalRange1
+                          }
+                        />
+                      </div>
+                    </Column>
+                  </Grid>
+                  <br />
+                  <FlexGrid fullWidth={true}>
+                    <Row>
+                      <Column lg={4} md={4} sm={4}>
+                        <Section>
+                          <Section>
+                            <Section>
+                              <Heading>
+                                <FormattedMessage id="field.significantDigits" />
+                                {" : "}
+                              </Heading>
+                            </Section>
+                          </Section>
+                        </Section>
+                      </Column>
+                      <Column lg={4} md={4} sm={4}>
+                        <NumberInput
+                          id={"significant_digits_num_input"}
+                          max={99}
+                          min={0}
+                          size={"md"}
+                          allowEmpty={true}
+                          invalid={
+                            touched.significantDigits &&
+                            !!errors.significantDigits
+                          }
+                          invalidText={
+                            touched.significantDigits &&
+                            errors.significantDigits
+                          }
+                        />
+                      </Column>
+                    </Row>
+                  </FlexGrid>
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Button type="submit">
+                        <FormattedMessage id="next.action.button" />
+                      </Button>{" "}
+                      <Button
+                        onClick={() => handlePreviousStep(values)}
+                        kind="tertiary"
+                        type="button"
+                      >
+                        <FormattedMessage id="back.action.button" />
+                      </Button>
+                    </Column>
+                  </Grid>
+                </Form>
+              );
+            }}
           </Formik>
         </>
       ) : (
@@ -2088,78 +2206,81 @@ const StepSevenDisplayExistingTestSets = ({
           <Formik
             initialValues={formData}
             // validationSchema={validationSchema}
+            enableReinitialize={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => (
-              <Form>
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Section>
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
+              return (
+                <Form>
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
                       <Section>
                         <Section>
-                          <Heading>
-                            <FormattedMessage id="label.existing.test.sets" />
-                          </Heading>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="label.existing.test.sets" />
+                            </Heading>
+                          </Section>
                         </Section>
                       </Section>
-                    </Section>
-                  </Column>
-                </Grid>
-                <br />
-                <hr />
-                <br />
-                <Grid fullWidth={true}>
-                  {groupedDictionaryList.map((innerArray, outerIndex) => (
-                    <>
-                      <Column
-                        key={`list-${outerIndex}`}
-                        lg={4}
-                        md={4}
-                        sm={4}
-                        onClick={() => {
-                          setSelectedGroupedDictionaryList([
-                            ...selectedGroupedDictionaryList,
-                            innerArray,
-                          ]);
-                        }}
+                    </Column>
+                  </Grid>
+                  <br />
+                  <hr />
+                  <br />
+                  <Grid fullWidth={true}>
+                    {groupedDictionaryList.map((innerArray, outerIndex) => (
+                      <>
+                        <Column
+                          key={`list-${outerIndex}`}
+                          lg={4}
+                          md={4}
+                          sm={4}
+                          onClick={() => {
+                            setSelectedGroupedDictionaryList([
+                              ...selectedGroupedDictionaryList,
+                              innerArray,
+                            ]);
+                          }}
+                        >
+                          <Section>
+                            <UnorderedList>
+                              {innerArray.map((item) => (
+                                <ListItem
+                                  key={`listItem-${outerIndex}-${item.id}`}
+                                >
+                                  {item.value}
+                                </ListItem>
+                              ))}
+                              {/* need to fix console log here */}
+                            </UnorderedList>
+                          </Section>
+                          <br />
+                        </Column>
+                      </>
+                    ))}
+                  </Grid>
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Button type="submit">
+                        <FormattedMessage id="next.action.button" />
+                      </Button>{" "}
+                      <Button
+                        onClick={() => handlePreviousStep(values)}
+                        kind="tertiary"
+                        type="button"
                       >
-                        <Section>
-                          <UnorderedList>
-                            {innerArray.map((item) => (
-                              <ListItem
-                                key={`listItem-${outerIndex}-${item.id}`}
-                              >
-                                {item.value}
-                              </ListItem>
-                            ))}
-                            {/* need to fix console log here */}
-                          </UnorderedList>
-                        </Section>
-                        <br />
-                      </Column>
-                    </>
-                  ))}
-                </Grid>
-                <br />
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Button type="submit">
-                      <FormattedMessage id="next.action.button" />
-                    </Button>{" "}
-                    <Button
-                      onClick={() => handlePreviousStep(values)}
-                      kind="tertiary"
-                      type="button"
-                    >
-                      <FormattedMessage id="back.action.button" />
-                    </Button>
-                  </Column>
-                </Grid>
-              </Form>
-            )}
+                        <FormattedMessage id="back.action.button" />
+                      </Button>
+                    </Column>
+                  </Grid>
+                </Form>
+              );
+            }}
           </Formik>
         </>
       ) : (
@@ -2194,151 +2315,154 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
           <Formik
             initialValues={formData}
             // validationSchema={validationSchema}
+            enableReinitialize={true}
             onSubmit={(values, actions) => {
               handleSubmit(values);
               actions.setSubmitting(false);
             }}
           >
-            {({ values, handleChange, touched, errors, setFieldValue }) => (
-              <Form>
-                <Grid fullWidth={true}>
-                  <Column lg={6} md={8} sm={4}>
-                    <FormattedMessage id="sample.entry.project.testName" />
-                    <br />
-                    <FormattedMessage id="english.label" />
-                    {" : "}
-                    {jsonWad?.testNameEnglish}
-                    <br />
-                    <FormattedMessage id="french.label" />
-                    {" : "}
-                    {jsonWad?.testNameFrench}
-                    <br />
-                    <br />
-                    <FormattedMessage id="reporting.label.testName" />
-                    <br />
-                    <FormattedMessage id="english.label" />
-                    {" : "}
-                    {jsonWad?.reportingTestNameEn}
-                    <br />
-                    <FormattedMessage id="french.label" />
-                    {" : "}
-                    {jsonWad?.reportingTestNameFr}
-                    <br />
-                    <br />
-                    <FormattedMessage id="test.section.label" />
-                    {" : "}
-                    {selectedLabUnitList?.value}
-                    <br />
-                    <br />
-                    <FormattedMessage id="field.panel" />
-                    {" : "}
-                    {/* map the  {panelList[0].value} in and there values in line*/}
-                    {panelListTag.length > 0 ? (
-                      <UnorderedList>
-                        {panelListTag.map((tag) => (
-                          <div key={tag.id} style={{ marginRight: "0.5rem" }}>
-                            <ListItem>{tag.value}</ListItem>
-                          </div>
-                        ))}
-                      </UnorderedList>
-                    ) : (
-                      <></>
-                    )}
-                    <br />
-                    <br />
-                    <FormattedMessage id="field.uom" />
-                    {" : "}
-                    {selectedUomList?.value}
-                    <br />
-                    <br />
-                    <FormattedMessage id="label.loinc" />
-                    {" : "}
-                    {jsonWad?.loinc}
-                    <br />
-                    <br />
-                    <FormattedMessage id="field.resultType" />
-                    {" : "}
-                    {selectedResultTypeList.value}
-                    <br />
-                    <br />
-                    <FormattedMessage id="test.antimicrobialResistance" />
-                    {" : "}
-                    {jsonWad?.antimicrobialResistance}
-                    <br />
-                    <br />
-                    <FormattedMessage id="dictionary.category.isActive" />
-                    {" : "}
-                    {jsonWad?.active}
-                    <br />
-                    <br />
-                    <FormattedMessage id="label.orderable" />
-                    {" : "}
-                    {jsonWad?.orderable}
-                    <br />
-                    <br />
-                    <FormattedMessage id="test.notifyResults" />
-                    {" : "}
-                    {jsonWad?.notifyResults}
-                    <br />
-                    <br />
-                    <FormattedMessage id="test.inLabOnly" />
-                    {" : "}
-                    {jsonWad?.inLabOnly}
-                    <br />
-                  </Column>
-                  <Column lg={10} md={8} sm={4}>
-                    <FormattedMessage id="sample.type.and.test.sort.order" />
-                    {/* Mapp the combbination of the selecte[sampleType] & tests of [sampleType] in sorted order */}
-                    <br />
-                    {selectedSampleTypeList.length > 0 ? (
-                      <UnorderedList nested={true}>
-                        {selectedSampleTypeList.map((type, index) => (
-                          <div key={`selectedSampleType_${index}`}>
-                            <ListItem>{type.value}</ListItem>
-                            <br />
-                            {selectedSampleTypeResp
-                              .filter((resp) => resp.sampleTypeId === type.id)
-                              .map((item, respIndex) => (
-                                <div
-                                  key={`selectedSampleTypeResp_${respIndex}`}
-                                  className="gridBoundary"
-                                >
-                                  <Section>
-                                    <UnorderedList nested>
-                                      {item.tests.map((test) => (
-                                        <ListItem key={`test_${test.id}`}>
-                                          {test.name}
-                                        </ListItem>
-                                      ))}
-                                    </UnorderedList>
-                                  </Section>
-                                </div>
-                              ))}
-                          </div>
-                        ))}
-                      </UnorderedList>
-                    ) : (
-                      <></>
-                    )}
-                  </Column>
-                </Grid>
-                <br />
-                <Grid fullWidth={true}>
-                  <Column lg={16} md={8} sm={4}>
-                    <Button type="submit">
-                      <FormattedMessage id="accept.action.button" />
-                    </Button>{" "}
-                    <Button
-                      onClick={() => handlePreviousStep(values)}
-                      kind="tertiary"
-                      type="button"
-                    >
-                      <FormattedMessage id="back.action.button" />
-                    </Button>
-                  </Column>
-                </Grid>
-              </Form>
-            )}
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
+              return (
+                <Form>
+                  <Grid fullWidth={true}>
+                    <Column lg={6} md={8} sm={4}>
+                      <FormattedMessage id="sample.entry.project.testName" />
+                      <br />
+                      <FormattedMessage id="english.label" />
+                      {" : "}
+                      {values?.testNameEnglish}
+                      <br />
+                      <FormattedMessage id="french.label" />
+                      {" : "}
+                      {values?.testNameFrench}
+                      <br />
+                      <br />
+                      <FormattedMessage id="reporting.label.testName" />
+                      <br />
+                      <FormattedMessage id="english.label" />
+                      {" : "}
+                      {values?.reportingTestNameEn}
+                      <br />
+                      <FormattedMessage id="french.label" />
+                      {" : "}
+                      {values?.reportingTestNameFr}
+                      <br />
+                      <br />
+                      <FormattedMessage id="test.section.label" />
+                      {" : "}
+                      {selectedLabUnitList?.value}
+                      <br />
+                      <br />
+                      <FormattedMessage id="field.panel" />
+                      {" : "}
+                      {/* map the  {panelList[0].value} in and there values in line*/}
+                      {panelListTag.length > 0 ? (
+                        <UnorderedList>
+                          {panelListTag.map((tag) => (
+                            <div key={tag.id} style={{ marginRight: "0.5rem" }}>
+                              <ListItem>{tag.value}</ListItem>
+                            </div>
+                          ))}
+                        </UnorderedList>
+                      ) : (
+                        <></>
+                      )}
+                      <br />
+                      <br />
+                      <FormattedMessage id="field.uom" />
+                      {" : "}
+                      {selectedUomList?.value}
+                      <br />
+                      <br />
+                      <FormattedMessage id="label.loinc" />
+                      {" : "}
+                      {values?.loinc}
+                      <br />
+                      <br />
+                      <FormattedMessage id="field.resultType" />
+                      {" : "}
+                      {selectedResultTypeList.value}
+                      <br />
+                      <br />
+                      <FormattedMessage id="test.antimicrobialResistance" />
+                      {" : "}
+                      {values?.antimicrobialResistance}
+                      <br />
+                      <br />
+                      <FormattedMessage id="dictionary.category.isActive" />
+                      {" : "}
+                      {values?.active}
+                      <br />
+                      <br />
+                      <FormattedMessage id="label.orderable" />
+                      {" : "}
+                      {values?.orderable}
+                      <br />
+                      <br />
+                      <FormattedMessage id="test.notifyResults" />
+                      {" : "}
+                      {values?.notifyResults}
+                      <br />
+                      <br />
+                      <FormattedMessage id="test.inLabOnly" />
+                      {" : "}
+                      {values?.inLabOnly}
+                      <br />
+                    </Column>
+                    <Column lg={10} md={8} sm={4}>
+                      <FormattedMessage id="sample.type.and.test.sort.order" />
+                      {/* Mapp the combbination of the selecte[sampleType] & tests of [sampleType] in sorted order */}
+                      <br />
+                      {selectedSampleTypeList.length > 0 ? (
+                        <UnorderedList nested={true}>
+                          {selectedSampleTypeList.map((type, index) => (
+                            <div key={`selectedSampleType_${index}`}>
+                              <ListItem>{type.value}</ListItem>
+                              <br />
+                              {selectedSampleTypeResp
+                                .filter((resp) => resp.sampleTypeId === type.id)
+                                .map((item, respIndex) => (
+                                  <div
+                                    key={`selectedSampleTypeResp_${respIndex}`}
+                                    className="gridBoundary"
+                                  >
+                                    <Section>
+                                      <UnorderedList nested>
+                                        {item.tests.map((test) => (
+                                          <ListItem key={`test_${test.id}`}>
+                                            {test.name}
+                                          </ListItem>
+                                        ))}
+                                      </UnorderedList>
+                                    </Section>
+                                  </div>
+                                ))}
+                            </div>
+                          ))}
+                        </UnorderedList>
+                      ) : (
+                        <></>
+                      )}
+                    </Column>
+                  </Grid>
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Button type="submit">
+                        <FormattedMessage id="accept.action.button" />
+                      </Button>{" "}
+                      <Button
+                        onClick={() => handlePreviousStep(values)}
+                        kind="tertiary"
+                        type="button"
+                      >
+                        <FormattedMessage id="back.action.button" />
+                      </Button>
+                    </Column>
+                  </Grid>
+                </Form>
+              );
+            }}
           </Formik>
         </>
       ) : (
