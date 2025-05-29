@@ -33,6 +33,8 @@ class UserManagementPage {
       enterLoginName: "#loginName",
       enterPassword: "#password",
       loginButton: "[data-cy='loginButton']",
+      uncheckActiveUser: "#only-active",
+      uncheckAdminUser: "#only-administrator",
     };
   }
 
@@ -205,7 +207,7 @@ class UserManagementPage {
 
   uncheckActiveUser() {
     cy.wait(900);
-    cy.contains(this.selectors.span, "Only Active").click();
+    cy.get(this.selectors.uncheckActiveUser).uncheck();
   }
 
   checkUser(value) {
@@ -217,7 +219,7 @@ class UserManagementPage {
 
   uncheckAdminUser() {
     cy.wait(900);
-    cy.contains(this.selectors.span, "Only Administrator").click();
+    cy.get(this.selectors.uncheckAdminUser).uncheck();
   }
 
   incorrectCredentials() {
