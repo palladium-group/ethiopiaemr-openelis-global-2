@@ -203,10 +203,20 @@ class UserManagementPage {
     cy.contains(this.selectors.span, "Only Active").click();
   }
 
+  uncheckActiveUser() {
+    cy.wait(900);
+    cy.contains(this.selectors.span, "Only Active").click();
+  }
+
   checkUser(value) {
     cy.contains("td", value).click();
   }
   adminUser() {
+    cy.contains(this.selectors.span, "Only Administrator").click();
+  }
+
+  uncheckAdminUser() {
+    cy.wait(900);
     cy.contains(this.selectors.span, "Only Administrator").click();
   }
 

@@ -154,14 +154,14 @@ describe("User Management", function () {
       userMgmnt.activeUser(); //checks active users
       userMgmnt.inactiveUser(usersData[0].fName);
       userMgmnt.activeUser(usersData[1].fName);
-      cy.reload();
+      userMgmnt.uncheckActiveUser();
     });
 
     it("Search by Only Administrator", function () {
       userMgmnt.adminUser();
       userMgmnt.validateUser(usersData[0].fName);
       userMgmnt.validateUser(usersData[1].fName);
-      cy.reload();
+      userMgmnt.uncheckAdminUser();
     });
   });
 
@@ -214,7 +214,6 @@ describe("User Management", function () {
     });
 
     it("Navigate back to User Management", () => {
-      homePage = loginPage.goToHomePage();
       adminPage = homePage.goToAdminPage();
       userMgmnt = adminPage.goToUserManagementPage();
     });
