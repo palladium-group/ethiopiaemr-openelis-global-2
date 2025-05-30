@@ -50,6 +50,7 @@ import PageBreadCrumb from "../../common/PageBreadCrumb.js";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { CustomShowGuide } from "./customComponents/CustomShowGuide.js";
+import { CustomCommonSortableOrderList } from "./sortableListComponent/SortableList.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -171,7 +172,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(4);
 
   const [formData, setFormData] = useState({
     testNameEnglish: "",
@@ -188,6 +189,9 @@ function TestAdd() {
     inLabOnly: "",
     antimicrobialResistance: "",
     active: "",
+    dictionary: [],
+    dictionaryReference: "",
+    defaultTestResult: "",
     sampleTypes: [],
     lowValid: "",
     highValid: "",
@@ -758,6 +762,8 @@ function TestAdd() {
     );
   }
 
+  console.log(formData);
+
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
@@ -855,7 +861,27 @@ const StepOneTestNameAndTestSection = ({
       <Formik
         initialValues={formData}
         enableReinitialize={true}
-        validationSchema={validationSchema}
+        validationSchema={Yup.object({
+          testSection: Yup.string()
+            .required("Test section is required")
+            .notOneOf(["0"], "Please select a valid test section"),
+          testNameEnglish: Yup.string()
+            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+            .trim()
+            .required("English test name is required"),
+          testNameFrench: Yup.string()
+            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+            .trim()
+            .required("French test name is required"),
+          testReportNameEnglish: Yup.string()
+            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+            .trim()
+            .required("English report name is required"),
+          testReportNameFrench: Yup.string()
+            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
+            .trim()
+            .required("French report name is required"),
+        })}
         validateOnChange={true}
         validateOnBlur={true}
         onSubmit={(values, actions) => {
@@ -1108,7 +1134,26 @@ const StepTwoTestPanelAndUom = ({
     <>
       <Formik
         initialValues={formData}
-        validationSchema={validationSchema}
+        validationSchema={Yup.object({
+          panels: Yup.array()
+            .min(1, "At least one panel must be selected")
+            .of(
+              Yup.object().shape({
+                id: Yup.string()
+                  .required("Panel ID is required")
+                  .oneOf(
+                    panelList.map((item) => item.id),
+                    "Please select a valid panel",
+                  ),
+              }),
+            ),
+          uom: Yup.string()
+            .min(1, "At least one unit of measurement must be selected")
+            .oneOf(
+              uomList.map((item) => String(item.id)),
+              "Please select a valid unit of measurement",
+            ),
+        })}
         enableReinitialize={true}
         validateOnChange={true}
         validateOnBlur={true}
@@ -1149,7 +1194,10 @@ const StepTwoTestPanelAndUom = ({
               return updatedTags;
             });
 
-            setFieldValue("panel", selectedId);
+            // setFieldValue("panel", selectedId);
+
+            setFieldValue("panels", [...values.panels, { id: selectedId }]);
+
             setJsonWad((prev) => ({ ...prev, panel: selectedId }));
             const selectedPanelObject = panelList.find(
               (item) => item.id === selectedId,
@@ -1182,6 +1230,8 @@ const StepTwoTestPanelAndUom = ({
               (item) => item.id === e.target.value,
             );
 
+            setFieldValue("uom", e.target.value);
+
             if (selectedUomObject) {
               setSelectedUomList(selectedUomObject);
             }
@@ -1195,6 +1245,7 @@ const StepTwoTestPanelAndUom = ({
                   <Select
                     onBlur={handleBlur}
                     id={`select-panel`}
+                    name="panel"
                     onChange={(e) => {
                       handelPanelSelectSetTag(e);
                     }}
@@ -1243,6 +1294,7 @@ const StepTwoTestPanelAndUom = ({
                       handelUomSelect(e);
                     }}
                     id={`select-uom`}
+                    name="uom"
                     hideLabel
                     required
                     invalid={touched.uom && !!errors.uom}
@@ -1307,7 +1359,31 @@ const StepThreeTestResultTypeAndLoinc = ({
     <>
       <Formik
         initialValues={formData}
-        validationSchema={validationSchema}
+        validationSchema={Yup.object({
+          resultType: Yup.string()
+            .oneOf(
+              resultTypeList.map((item) => item.id),
+              "Please select a valid Result Type",
+            )
+            .required("Result Type is required"),
+          loinc: Yup.string()
+            .matches(/^(?!-)(?:\d+-)*\d*$/, "Loinc must contain only numbers")
+            .required("Loinc is required"),
+          orderable: Yup.string().oneOf(["Y", "N"], "Orderable must be Y or N"),
+          notifyResults: Yup.string().oneOf(
+            ["Y", "N"],
+            "Notify Results must be Y or N",
+          ),
+          inLabOnly: Yup.string().oneOf(
+            ["Y", "N"],
+            "In Lab Only must be Y or N",
+          ),
+          antimicrobialResistance: Yup.string().oneOf(
+            ["Y", "N"],
+            "Antimicrobial Resistance must be Y or N",
+          ),
+          active: Yup.string().oneOf(["Y", "N"], "Active must be Y or N"),
+        })}
         enableReinitialize={true}
         validateOnChange={true}
         validateOnBlur={true}
@@ -1328,6 +1404,8 @@ const StepThreeTestResultTypeAndLoinc = ({
             const regex = /^(?!-)(?:\d+-)*\d*$/;
 
             const value = e.target.value;
+
+            setFieldValue("loinc", value);
 
             if (regex.test(value)) {
               setLonic(value);
@@ -1353,6 +1431,8 @@ const StepThreeTestResultTypeAndLoinc = ({
               (item) => item.id == e.target.value,
             );
 
+            setFieldValue("resultType", e.target.value);
+
             if (selectedResultTypeObject) {
               setSelectedResultTypeList(selectedResultTypeObject);
             }
@@ -1363,30 +1443,39 @@ const StepThreeTestResultTypeAndLoinc = ({
               ...prev,
               antimicrobialResistance: e.target.checked ? "Y" : "N",
             }));
+
+            setFieldValue(
+              "antimicrobialResistance",
+              e.target.checked ? "Y" : "N",
+            );
           };
           const handleIsActive = (e) => {
             setJsonWad((prev) => ({
               ...prev,
               active: e.target.checked ? "Y" : "N",
             }));
+            setFieldValue("active", e.target.checked ? "Y" : "N");
           };
           const handleOrderable = (e) => {
             setJsonWad((prev) => ({
               ...prev,
               orderable: e.target.checked ? "Y" : "N",
             }));
+            setFieldValue("orderable", e.target.checked ? "Y" : "N");
           };
           const handleNotifyPatientofResults = (e) => {
             setJsonWad((prev) => ({
               ...prev,
               notifyResults: e.target.checked ? "Y" : "N",
             }));
+            setFieldValue("notifyResults", e.target.checked ? "Y" : "N");
           };
           const handleInLabOnly = (e) => {
             setJsonWad((prev) => ({
               ...prev,
               inLabOnly: e.target.checked ? "Y" : "N",
             }));
+            setFieldValue("inLabOnly", e.target.checked ? "Y" : "N");
           };
 
           return (
@@ -1430,7 +1519,8 @@ const StepThreeTestResultTypeAndLoinc = ({
                       required
                       id="loinc"
                       name="loinc"
-                      value={values.lonic}
+                      value={values.loinc}
+                      placeholder={`Example : 430-0, 43166-0, 43167-8`}
                       onChange={(e) => {
                         handelLonicChange(e);
                         handleChange(e);
@@ -1531,7 +1621,22 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
+            validationSchema={Yup.object({
+              sampleTypes: Yup.array()
+                .min(1, "At least one sample type must be selected")
+                .of(
+                  Yup.object().shape({
+                    id: Yup.string().required("Sample Type ID is required"),
+                    value: Yup.string().required(
+                      "Sample Type Value is required",
+                    ),
+                    // typeId: Yup.string().required("Sample Type ID is required"),
+                    // tests: Yup.string().required(
+                    //   "Sample Type Value is required",
+                    // ),
+                  }),
+                ),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -1554,29 +1659,74 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                   (type) => type.id === selectedId,
                 );
 
-                if (selectedSampleTypeObject) {
-                  const isAlreadySelected = selectedSampleType.some(
-                    (type) => type.id === selectedSampleTypeObject.id,
-                  );
+                if (!selectedSampleTypeObject) return;
 
-                  if (!isAlreadySelected) {
-                    setSelectedSampleTypeList([
-                      ...selectedSampleTypeList,
-                      selectedSampleTypeObject,
-                    ]);
+                const isAlreadySelected = selectedSampleType.some(
+                  (type) => type.id === selectedSampleTypeObject.id,
+                );
 
-                    setSampleTestTypeToGetTagList([
-                      ...sampleTestTypeToGetTagList,
-                      selectedSampleTypeObject,
-                    ]);
+                if (!isAlreadySelected) {
+                  const updatedList = [
+                    ...selectedSampleTypeList,
+                    selectedSampleTypeObject,
+                  ];
 
-                    setSelectedSampleType((prev) => [
-                      ...prev,
-                      selectedSampleTypeObject,
-                    ]);
-                  }
+                  setSelectedSampleTypeList(updatedList);
+                  setFieldValue("sampleTypes", updatedList);
+                  setSampleTestTypeToGetTagList((prev) => [
+                    ...prev,
+                    selectedSampleTypeObject,
+                  ]);
+                  setSelectedSampleType((prev) => [
+                    ...prev,
+                    selectedSampleTypeObject,
+                  ]);
                 }
               };
+
+              const handleRemoveSampleTypeListSelectIdTestTag = (
+                indexToRemove,
+              ) => {
+                setFieldValue("sampleTypes", [
+                  ...selectedSampleTypeList.filter(
+                    (_, index) => index !== indexToRemove,
+                  ),
+                ]);
+
+                setSampleTestTypeToGetTagList((prevTags) => {
+                  const updatedTags = prevTags.filter(
+                    (_, index) => index !== indexToRemove,
+                  );
+
+                  const updatedReplace = updatedTags.map((item) => item.id);
+                  setJsonWad((prevJsonWad) => ({
+                    ...prevJsonWad,
+                    replace: updatedReplace,
+                  }));
+
+                  return updatedTags;
+                });
+
+                setSelectedSampleTypeList((prevList) => {
+                  const updatedList = prevList.filter(
+                    (_, index) => index !== indexToRemove,
+                  );
+                  return updatedList;
+                });
+
+                setSelectedSampleType((prevList) => {
+                  const updatedList = prevList.filter(
+                    (_, index) => index !== indexToRemove,
+                  );
+                  return updatedList;
+                });
+
+                setSelectedSampleTypeResp((prevState) =>
+                  prevState.filter((_, index) => index !== indexToRemove),
+                );
+              };
+
+              console.log("Selected Sample Type Resp:", values.sampleTypes);
 
               return (
                 <Form>
@@ -1587,9 +1737,12 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       <Select
                         onBlur={handleBlur}
                         id={`select-sample-type`}
+                        name="sampleTypes"
                         hideLabel
                         required
                         onChange={(e) => handleSampleTypeListSelectIdTestTag(e)}
+                        invalid={touched.sampleTypes && !!errors.sampleTypes}
+                        invalidText={touched.sampleTypes && errors.sampleTypes}
                       >
                         <SelectItem value="0" text="Select Sample Type" />
                         {sampleTypeList?.map((test) => (
@@ -1647,7 +1800,7 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                         selectedSampleTypeResp.map((item, index) => (
                           <>
                             <div className="gridBoundary">
-                              <Section key={index}>
+                              {/* <Section key={index}>
                                 <UnorderedList>
                                   {item.tests.map((test) => (
                                     <ListItem key={test.id}>
@@ -1655,6 +1808,15 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                                     </ListItem>
                                   ))}
                                 </UnorderedList>
+                              </Section> */}
+                              <Section key={index}>
+                                <CustomCommonSortableOrderList
+                                  test={item.tests}
+                                  onSort={(updatedList) => {
+                                    // console.log("Updated List:", updatedList);
+                                  }}
+                                  disableSorting={false}
+                                />
                               </Section>
                             </div>
                             <br />
@@ -1725,7 +1887,30 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
+            validationSchema={Yup.object({
+              dictionary: Yup.array()
+                .min(1, "At least one dictionary option must be selected")
+                .of(
+                  Yup.object().shape({
+                    value: Yup.string()
+                      .required("Dictionary ID is required")
+                      .oneOf(
+                        dictionaryList.map((item) => item.id),
+                        "Please select a valid dictionary option",
+                      ),
+                    qualified: Yup.string().oneOf(
+                      ["Y", "N"],
+                      "Qualified must be Y or N",
+                    ),
+                  }),
+                ),
+              dictionaryReference: Yup.string().required(
+                "Dictionary Reference is required",
+              ),
+              dictionaryDefault: Yup.string().required(
+                "Dictionary Default is required",
+              ),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -1742,14 +1927,14 @@ const StepFiveSelectListOptionsAndResultOrder = ({
               errors,
               setFieldValue,
             }) => {
-              const handleLabUnitSelect = (e) => {
-                const selectedLabUnitId = e.target.value;
+              // const handleLabUnitSelect = (e) => {
+              //   const selectedLabUnitId = e.target.value;
 
-                setJsonWad((prev) => ({
-                  ...prev,
-                  testSection: selectedLabUnitId,
-                }));
-              };
+              //   setJsonWad((prev) => ({
+              //     ...prev,
+              //     testSection: selectedLabUnitId,
+              //   }));
+              // };
 
               const handelSelectListOptions = (e) => {
                 const selectedId = e.target.value;
@@ -1801,6 +1986,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <Select
                         onBlur={handleBlur}
                         id={`select-list-options`}
+                        name="dictionary"
                         hideLabel
                         required
                         onChange={(e) => handelSelectListOptions(e)} // need a fix
@@ -1862,6 +2048,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <Select
                         onBlur={handleBlur}
                         id={`select-reference-value`}
+                        name="dictionaryReference"
                         hideLabel
                         required
                         // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
@@ -1883,6 +2070,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <Select
                         onBlur={handleBlur}
                         id={`select-default-result`}
+                        name="dictionaryDefault"
                         hideLabel
                         required
                         // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
@@ -2001,7 +2189,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-        validationSchema={validationSchema}
+            // validationSchema={validationSchema}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2283,7 +2471,7 @@ const StepSevenDisplayExistingTestSets = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
+            // validationSchema={validationSchema}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2401,7 +2589,7 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={validationSchema}
+            // validationSchema={validationSchema}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2567,3 +2755,9 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
     </>
   );
 };
+
+// step 6  merging with 7
+// compitative selection
+// validation schema flow fix for each step
+// func moving to form ground
+// fucntion buildup for 5-6-7-8 step
