@@ -32,6 +32,7 @@ import {
   RadioButtonGroup,
   RadioButton,
   Toggle,
+  ClickableTile,
 } from "@carbon/react";
 import {
   getFromOpenElisServer,
@@ -172,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(4);
+  const [currentStep, setCurrentStep] = useState(6);
 
   const [formData, setFormData] = useState({
     testNameEnglish: "",
@@ -611,25 +612,8 @@ function TestAdd() {
       setJsonWad={setJsonWad}
       currentStep={currentStep}
     />,
-    <StepSevenDisplayExistingTestSets
+    <StepSevenFinalDisplayAndSaveConfirmation
       key="step-7"
-      formData={formData}
-      setFormData={setFormData}
-      validationSchema={validationSchema}
-      handleNextStep={handleNextStep}
-      handlePreviousStep={handlePreviousStep}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
-      groupedDictionaryList={groupedDictionaryList}
-      setGroupedDictionaryList={setGroupedDictionaryList}
-      selectedGroupedDictionaryList={selectedGroupedDictionaryList}
-      setSelectedGroupedDictionaryList={setSelectedGroupedDictionaryList}
-      selectedSampleTypeList={selectedSampleTypeList}
-      setSelectedSampleTypeList={setSelectedSampleTypeList}
-      currentStep={currentStep}
-    />,
-    <StepEightFinalDisplayAndSaveConfirmation
-      key="step-8"
       formData={formData}
       setFormData={setFormData}
       validationSchema={validationSchema}
@@ -1887,30 +1871,30 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={Yup.object({
-              dictionary: Yup.array()
-                .min(1, "At least one dictionary option must be selected")
-                .of(
-                  Yup.object().shape({
-                    value: Yup.string()
-                      .required("Dictionary ID is required")
-                      .oneOf(
-                        dictionaryList.map((item) => item.id),
-                        "Please select a valid dictionary option",
-                      ),
-                    qualified: Yup.string().oneOf(
-                      ["Y", "N"],
-                      "Qualified must be Y or N",
-                    ),
-                  }),
-                ),
-              dictionaryReference: Yup.string().required(
-                "Dictionary Reference is required",
-              ),
-              dictionaryDefault: Yup.string().required(
-                "Dictionary Default is required",
-              ),
-            })}
+            // validationSchema={Yup.object({
+            //   dictionary: Yup.array()
+            //     .min(1, "At least one dictionary option must be selected")
+            //     .of(
+            //       Yup.object().shape({
+            //         value: Yup.string()
+            //           .required("Dictionary ID is required")
+            //           .oneOf(
+            //             dictionaryList.map((item) => item.id),
+            //             "Please select a valid dictionary option",
+            //           ),
+            //         qualified: Yup.string().oneOf(
+            //           ["Y", "N"],
+            //           "Qualified must be Y or N",
+            //         ),
+            //       }),
+            //     ),
+            //   dictionaryReference: Yup.string().required(
+            //     "Dictionary Reference is required",
+            //   ),
+            //   dictionaryDefault: Yup.string().required(
+            //     "Dictionary Default is required",
+            //   ),
+            // })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2040,6 +2024,16 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         </Section>
                       </Section>
                       {/* remeder dragable & Select list options */}
+                      {multiSelectDictionaryList &&
+                        multiSelectDictionaryList?.length && (
+                          <CustomCommonSortableOrderList
+                            test={multiSelectDictionaryList}
+                            disableSorting={false}
+                            onSort={(updatedList) => {
+                              // console.log(updatedList);
+                            }}
+                          />
+                        )}
                       <br />
                       <br />
                       <FormattedMessage id="label.reference.value" />
@@ -2139,6 +2133,70 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       )}
                       <br />
                     </Column>
+                  </Grid>
+                  <br />
+                  <hr />
+                  <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Section>
+                        <Section>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="label.existing.test.sets" />
+                            </Heading>
+                          </Section>
+                        </Section>
+                      </Section>
+                    </Column>
+                  </Grid>
+                  <br />
+                  <hr />
+                  <br />
+                  <Grid fullWidth={true}>
+                    {groupedDictionaryList &&
+                      groupedDictionaryList.map((gdl, index) => {
+                        return (
+                          <Column
+                            style={{ margin: "2px" }}
+                            key={`grouped-dictionary-list-${index}`}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                          >
+                            <ClickableTile
+                              onClick={() => {
+                                // setSelectedGroupedDictionaryList([
+                                //   ...selectedGroupedDictionaryList,
+                                //   innerArray,
+                                // ]);
+                              }}
+                            >
+                              <Section>
+                                <Section>
+                                  <Section>
+                                    <Section>
+                                      <Heading
+                                        style={{
+                                          textDecoration: "underline",
+                                        }}
+                                      >
+                                        Select
+                                      </Heading>
+                                    </Section>
+                                  </Section>
+                                </Section>
+                              </Section>
+                              {gdl &&
+                                gdl.map((gdlVal) => {
+                                  return (
+                                    <div key={gdlVal.id}>{gdlVal.value}</div>
+                                  );
+                                })}
+                            </ClickableTile>
+                          </Column>
+                        );
+                      })}
                   </Grid>
                   <br />
                   <Grid fullWidth={true}>
@@ -2449,123 +2507,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   );
 };
 
-const StepSevenDisplayExistingTestSets = ({
-  formData,
-  validationSchema,
-  handleNextStep,
-  handlePreviousStep,
-  groupedDictionaryList,
-  setGroupedDictionaryList,
-  selectedGroupedDictionaryList,
-  setSelectedGroupedDictionaryList,
-  jsonWad,
-  setJsonWad,
-  currentStep,
-}) => {
-  const handleSubmit = (values) => {
-    handleNextStep(values, true);
-  };
-  return (
-    <>
-      {currentStep === 6 ? (
-        <>
-          <Formik
-            initialValues={formData}
-            // validationSchema={validationSchema}
-            enableReinitialize={true}
-            validateOnChange={true}
-            validateOnBlur={true}
-            onSubmit={(values, actions) => {
-              handleSubmit(values);
-              actions.setSubmitting(false);
-            }}
-          >
-            {({
-              values,
-              handleChange,
-              handleBlur,
-              touched,
-              errors,
-              setFieldValue,
-            }) => {
-              return (
-                <Form>
-                  <Grid fullWidth={true}>
-                    <Column lg={16} md={8} sm={4}>
-                      <Section>
-                        <Section>
-                          <Section>
-                            <Heading>
-                              <FormattedMessage id="label.existing.test.sets" />
-                            </Heading>
-                          </Section>
-                        </Section>
-                      </Section>
-                    </Column>
-                  </Grid>
-                  <br />
-                  <hr />
-                  <br />
-                  <Grid fullWidth={true}>
-                    {groupedDictionaryList.map((innerArray, outerIndex) => (
-                      <>
-                        <Column
-                          key={`list-${outerIndex}`}
-                          lg={4}
-                          md={4}
-                          sm={4}
-                          onClick={() => {
-                            setSelectedGroupedDictionaryList([
-                              ...selectedGroupedDictionaryList,
-                              innerArray,
-                            ]);
-                          }}
-                        >
-                          <Section>
-                            <UnorderedList>
-                              {innerArray.map((item) => (
-                                <ListItem
-                                  key={`listItem-${outerIndex}-${item.id}`}
-                                >
-                                  {item.value}
-                                </ListItem>
-                              ))}
-                              {/* need to fix console log here */}
-                            </UnorderedList>
-                          </Section>
-                          <br />
-                        </Column>
-                      </>
-                    ))}
-                  </Grid>
-                  <br />
-                  <Grid fullWidth={true}>
-                    <Column lg={16} md={8} sm={4}>
-                      <Button type="submit">
-                        <FormattedMessage id="next.action.button" />
-                      </Button>{" "}
-                      <Button
-                        onClick={() => handlePreviousStep(values)}
-                        kind="tertiary"
-                        type="button"
-                      >
-                        <FormattedMessage id="back.action.button" />
-                      </Button>
-                    </Column>
-                  </Grid>
-                </Form>
-              );
-            }}
-          </Formik>
-        </>
-      ) : (
-        <></>
-      )}
-    </>
-  );
-};
-
-const StepEightFinalDisplayAndSaveConfirmation = ({
+const StepSevenFinalDisplayAndSaveConfirmation = ({
   formData,
   validationSchema,
   handlePreviousStep,
@@ -2585,7 +2527,7 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
   };
   return (
     <>
-      {currentStep === 8 - 1 ? (
+      {currentStep === 7 - 1 ? (
         <>
           <Formik
             initialValues={formData}
@@ -2756,7 +2698,6 @@ const StepEightFinalDisplayAndSaveConfirmation = ({
   );
 };
 
-// step 6  merging with 7
 // compitative selection
 // validation schema flow fix for each step
 // func moving to form ground
