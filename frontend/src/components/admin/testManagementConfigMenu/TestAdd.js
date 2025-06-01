@@ -174,6 +174,7 @@ function TestAdd() {
   );
 
   const [currentStep, setCurrentStep] = useState(5);
+  const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
     testNameEnglish: "",
@@ -611,6 +612,8 @@ function TestAdd() {
       jsonWad={jsonWad}
       setJsonWad={setJsonWad}
       currentStep={currentStep}
+      ageRangeFields={ageRangeFields}
+      setAgeRangeFields={setAgeRangeFields}
     />,
     <StepSevenFinalDisplayAndSaveConfirmation
       key="step-7"
@@ -2237,6 +2240,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   jsonWad,
   setJsonWad,
   currentStep,
+  ageRangeFields,
+  setAgeRangeFields,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, true);
@@ -2264,8 +2269,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               errors,
               setFieldValue,
             }) => {
-              const [ageRangeFields, setAgeRangeFields] = useState([0]);
-
               const handleAddAgeRangeFillUp = () => {
                 setAgeRangeFields((prev) => [...prev, prev.length]);
               };
