@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(6);
+  const [currentStep, setCurrentStep] = useState(5);
 
   const [formData, setFormData] = useState({
     testNameEnglish: "",
@@ -2264,6 +2264,18 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               errors,
               setFieldValue,
             }) => {
+              const [ageRangeFields, setAgeRangeFields] = useState([0]);
+
+              const handleAddAgeRangeFillUp = () => {
+                setAgeRangeFields((prev) => [...prev, prev.length]);
+              };
+
+              const handleRemoveAgeRangeFillUp = (indexToRemove) => {
+                setAgeRangeFields((prev) =>
+                  prev.filter((_, i) => i !== indexToRemove),
+                );
+              };
+
               return (
                 <Form>
                   <Grid fullWidth={true}>
@@ -2286,164 +2298,330 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     <Column lg={16} md={8} sm={4}>
                       <FormattedMessage id="field.ageRange" />
                       <hr />
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <Checkbox
-                          id={"gender"}
-                          labelText={
-                            <FormattedMessage id="label.sex.dependent" />
-                          }
-                          // onChange={() => {}}
-                        />
-                        {/* render male & female on checkbox*/}
-                        <RadioButtonGroup name={"fieldAgeRangeRadioGroup"}>
-                          <RadioButton labelText={"Y"} />
-                          <RadioButton labelText={"M"} />
-                          <RadioButton labelText={"D"} />
-                        </RadioButtonGroup>
-                        <TextInput
-                          id="field.ageRange0"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={touched.ageRange0 && !!errors.ageRange0}
-                          invalidText={touched.ageRange0 && errors.ageRange0}
-                        />
-                        <Select
-                          onBlur={handleBlur}
-                          id="field.ageRange1"
-                          labelText=""
-                          hideLabel
-                          required
+                    </Column>
+                    {ageRangeFields.map((_, index) => (
+                      <React.Fragment key={index}>
+                        <Column
+                          key={index}
+                          lg={4}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
                         >
-                          {/* map agerangeList values Form objects inside array */}
-                          {ageRangeList.map((age) => (
-                            <SelectItem
-                              key={age.id}
-                              value={age.id}
-                              text={`${age.value}`}
+                          <Checkbox
+                            id={`gender-${index}`}
+                            name={`gender-${index}`}
+                            labelText={
+                              <FormattedMessage id="label.sex.dependent" />
+                            }
+                            // onChange={() => {}}
+                          />
+                          {/* render male & female on checkbox*/}
+                          {/* { ? 'Male/Female' : ''} */}
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={4}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <RadioButtonGroup
+                            id={`fieldAgeRangeRadioGroup-${index}`}
+                            name={`fieldAgeRangeRadioGroup-${index}`}
+                          >
+                            <RadioButton labelText={"Y"} />
+                            <RadioButton labelText={"M"} />
+                            <RadioButton labelText={"D"} />
+                          </RadioButtonGroup>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={4}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <TextInput
+                            id={`ageRangeFields[${index}].ageRange0`}
+                            name={`ageRangeFields[${index}].ageRange0`}
+                            onBlur={handleBlur}
+                            labelText=""
+                            hideLabel
+                            required
+                            invalid={
+                              touched?.ageRangeFields?.[index]?.ageRange0 &&
+                              !!errors?.ageRangeFields?.[index]?.ageRange0
+                            }
+                            invalidText={
+                              touched?.ageRangeFields?.[index]?.ageRange0 &&
+                              errors?.ageRangeFields?.[index]?.ageRange0
+                            }
+                          />
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={4}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <Select
+                            onBlur={handleBlur}
+                            id={`ageRangeFields[${index}].ageRange1`}
+                            name={`ageRangeFields[${index}].ageRange1`}
+                            labelText=""
+                            hideLabel
+                            required
+                            invalid={
+                              touched?.ageRangeFields?.[index]?.ageRange1 &&
+                              !!errors?.ageRangeFields?.[index]?.ageRange1
+                            }
+                            invalidText={
+                              touched?.ageRangeFields?.[index]?.ageRange1 &&
+                              errors?.ageRangeFields?.[index]?.ageRange1
+                            }
+                          >
+                            {/* map agerangeList values Form objects inside array */}
+                            {ageRangeList.map((age) => (
+                              <SelectItem
+                                key={age.id}
+                                value={age.id}
+                                text={`${age.value}`}
+                              />
+                            ))}
+                          </Select>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={8}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <FormattedMessage id="field.normalRange" />
+                          <hr />
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <TextInput
+                              id={`ageRangeFields[${index}].normalRange0`}
+                              name={`ageRangeFields[${index}].normalRange0`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.normalRange0 &&
+                                !!errors?.ageRangeFields?.[index]?.normalRange0
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.normalRange0 &&
+                                errors?.ageRangeFields?.[index]?.normalRange0
+                              }
                             />
-                          ))}
-                        </Select>
-                      </div>
-                      <hr />
-                      <br />
-                    </Column>
-                    <Column lg={8} md={4} sm={4}>
-                      <FormattedMessage id="field.normalRange" />
-                      <hr />
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <TextInput
-                          id="field.normalRange0"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.normalRange0 && !!errors.normalRange0
-                          }
-                          invalidText={
-                            touched.normalRange0 && errors.normalRange0
-                          }
-                        />
-                        <TextInput
-                          id="field.normalRange1"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.normalRange1 && !!errors.normalRange1
-                          }
-                          invalidText={
-                            touched.normalRange1 && errors.normalRange1
-                          }
-                        />
-                        {/* render  two extra fields for TextInput on Click of Check box */}
-                      </div>
-                    </Column>
-                    <Column lg={8} md={4} sm={4}>
-                      <FormattedMessage id="label.reporting.range" />
-                      <hr />
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <TextInput
-                          id="label.reporting.range0"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.reportingRange0 && !!errors.reportingRange0
-                          }
-                          invalidText={
-                            touched.reportingRange0 && errors.reportingRange0
-                          }
-                        />
-                        <TextInput
-                          id="label.reporting.range1"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.reportingRange1 && !!errors.reportingRange1
-                          }
-                          invalidText={
-                            touched.reportingRange1 && errors.reportingRange1
-                          }
-                        />
-                      </div>
-                    </Column>
-                    <Column lg={8} md={4} sm={4}>
-                      <FormattedMessage id="field.validRange" />
-                      <hr />
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <TextInput
-                          id="field.validRange0"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={touched.validRange0 && !!errors.validRange0}
-                          invalidText={
-                            touched.validRange0 && errors.validRange0
-                          }
-                        />
-                        <TextInput
-                          id="field.validRange1"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={touched.validRange1 && !!errors.validRange1}
-                          invalidText={
-                            touched.validRange1 && errors.validRange1
-                          }
-                        />
-                      </div>
-                    </Column>
-                    <Column lg={8} md={4} sm={4}>
-                      <FormattedMessage id="label.critical.range" />
-                      <hr />
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <TextInput
-                          id="label.critical.range0"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.criticalRange0 && !!errors.criticalRange0
-                          }
-                          invalidText={
-                            touched.criticalRange0 && errors.criticalRange0
-                          }
-                        />
-                        <TextInput
-                          id="label.critical.range1"
-                          labelText=""
-                          hideLabel
-                          required
-                          invalid={
-                            touched.criticalRange1 && !!errors.criticalRange1
-                          }
-                          invalidText={
-                            touched.criticalRange1 && errors.criticalRange1
-                          }
-                        />
-                      </div>
+                            <TextInput
+                              id={`ageRangeFields[${index}].normalRange1`}
+                              name={`ageRangeFields[${index}].normalRange1`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.normalRange1 &&
+                                !!errors?.ageRangeFields?.[index]?.normalRange1
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.normalRange1 &&
+                                errors?.ageRangeFields?.[index]?.normalRange1
+                              }
+                            />
+                            {/* render  two extra fields for TextInput on Click of Check box */}
+                          </div>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={8}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <FormattedMessage id="label.reporting.range" />
+                          <hr />
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <TextInput
+                              id={`ageRangeFields[${index}].reportingRange0`}
+                              name={`ageRangeFields[${index}].reportingRange0`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.reportingRange0 &&
+                                !!errors?.ageRangeFields?.[index]
+                                  ?.reportingRange0
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.reportingRange0 &&
+                                errors?.ageRangeFields?.[index]?.reportingRange0
+                              }
+                            />
+                            <TextInput
+                              id={`ageRangeFields[${index}].reportingRange1`}
+                              name={`ageRangeFields[${index}].reportingRange1`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.reportingRange1 &&
+                                !!errors?.ageRangeFields?.[index]
+                                  ?.reportingRange1
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.reportingRange1 &&
+                                errors?.ageRangeFields?.[index]?.reportingRange1
+                              }
+                            />
+                          </div>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={8}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <FormattedMessage id="field.validRange" />
+                          <hr />
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <TextInput
+                              id={`ageRangeFields[${index}].validRange0`}
+                              name={`ageRangeFields[${index}].validRange0`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]?.validRange0 &&
+                                !!errors?.ageRangeFields?.[index]?.validRange0
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]?.validRange0 &&
+                                errors?.ageRangeFields?.[index]?.validRange0
+                              }
+                            />
+                            <TextInput
+                              id={`ageRangeFields[${index}].validRange1`}
+                              name={`ageRangeFields[${index}].validRange1`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]?.validRange1 &&
+                                !!errors?.ageRangeFields?.[index]?.validRange1
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]?.validRange1 &&
+                                errors?.ageRangeFields?.[index]?.validRange1
+                              }
+                            />
+                          </div>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={8}
+                          md={4}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <FormattedMessage id="label.critical.range" />
+                          <hr />
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <TextInput
+                              id={`ageRangeFields[${index}].criticalRange0`}
+                              name={`ageRangeFields[${index}].criticalRange0`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.criticalRange0 &&
+                                !!errors?.ageRangeFields?.[index]
+                                  ?.criticalRange0
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.criticalRange0 &&
+                                errors?.ageRangeFields?.[index]?.criticalRange0
+                              }
+                            />
+                            <TextInput
+                              id={`ageRangeFields[${index}].criticalRange1`}
+                              name={`ageRangeFields[${index}].criticalRange1`}
+                              onBlur={handleBlur}
+                              labelText=""
+                              hideLabel
+                              required
+                              invalid={
+                                touched?.ageRangeFields?.[index]
+                                  ?.criticalRange1 &&
+                                !!errors?.ageRangeFields?.[index]
+                                  ?.criticalRange1
+                              }
+                              invalidText={
+                                touched?.ageRangeFields?.[index]
+                                  ?.criticalRange1 &&
+                                errors?.ageRangeFields?.[index]?.criticalRange1
+                              }
+                            />
+                          </div>
+                        </Column>
+                        <Column
+                          key={index}
+                          lg={16}
+                          md={8}
+                          sm={4}
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <div
+                            key={`remove-age-range-fill-up-${index}`}
+                            style={{
+                              display: "flex",
+                              justifyContent: "flex-end",
+                            }}
+                          >
+                            <Button
+                              id={`remove-age-range-fill-up-${index}`}
+                              name={`remove-age-range-fill-up-${index}`}
+                              kind="danger"
+                              type="button"
+                              onClick={() => handleRemoveAgeRangeFillUp(index)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </Column>
+                      </React.Fragment>
+                    ))}
+                    <Column lg={16} md={8} sm={4} style={{ marginTop: "1rem" }}>
+                      <Button
+                        onClick={() => {
+                          handleAddAgeRangeFillUp();
+                        }}
+                        kind="tertiary"
+                        type="button"
+                      >
+                        <FormattedMessage id="Add +" />
+                      </Button>
                     </Column>
                   </Grid>
                   <br />
@@ -2701,4 +2879,5 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
 // compitative selection
 // validation schema flow fix for each step
 // func moving to form ground
-// fucntion buildup for 5-6-7-8 step
+// fucntion buildup for 5-6-7 step
+// better formating at the end of the step 7
