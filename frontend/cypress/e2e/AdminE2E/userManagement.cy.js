@@ -116,7 +116,16 @@ describe("User Management", function () {
       //userMgmnt.applyChanges();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.addNewPermission();
+      userMgmnt.allPermissions({ multiple: true });
     });
 
     it("Save User", function () {
@@ -147,7 +156,7 @@ describe("User Management", function () {
       userMgmnt.validateUser(usersData[0].lName);
       userMgmnt.searchUser(usersData[1].lName);
       userMgmnt.validateUser(usersData[1].lName);
-      cy.reload();
+      userMgmnt.clearSearchBar();
     });
 
     it("Validate active/inactive users", function () {
@@ -162,6 +171,28 @@ describe("User Management", function () {
       userMgmnt.validateUser(usersData[0].fName);
       userMgmnt.validateUser(usersData[1].fName);
       userMgmnt.uncheckAdminUser();
+    });
+
+    it("Search by Lab Unit Roles", function () {
+      userMgmnt.searchByLabUnitroles(usersData[1].bioChem);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].hematology);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].seroImmuno);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].immunology);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].molecularBio);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].cyto);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].viro);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].patho);
+      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.searchByLabUnitroles(usersData[1].immunoHisto);
+      userMgmnt.validateUser(usersData[1].fName);
+      cy.reload();
     });
   });
 

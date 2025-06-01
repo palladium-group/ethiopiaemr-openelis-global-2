@@ -27,6 +27,7 @@ class UserManagementPage {
       saveButton: "[data-cy='saveButton']",
       exitButton: "[data-cy='exitButton']",
       searchBar: "#user-name-search-bar",
+      filters: "#filters",
       tableData: ".cds--data-table",
       header: "#mainHeader",
       menuButton: "[data-cy='menuButton']",
@@ -192,6 +193,14 @@ class UserManagementPage {
 
   searchUser(value) {
     cy.get(this.selectors.searchBar).clear().type(value);
+  }
+
+  clearSearchBar() {
+    cy.get(this.selectors.searchBar).clear();
+  }
+
+  searchByFilters(value) {
+    cy.get(this.selectors.filters).select(vallue);
   }
 
   validateUser(value) {

@@ -13,6 +13,16 @@
     "fName": "Chris",
     "lName": "Colombus",
     "passwordExpiryDate": "02/02/2032",
+    "bioChem": "Biochemistry",
+    "hematology": "Hematology",
+    "seroImmuno": "Serology-Immunology",
+    "immunology": "Immunology",
+    "molecularBio": "Molecular Biology",
+    "cyto": "Cytology",
+    "serology": "Serology",
+    "viro": "Virology",
+    "patho": "Pathology",
+    "immunoHisto": "Immunohistochemistry",
     "userTimeout": "450"
   }
 ]
