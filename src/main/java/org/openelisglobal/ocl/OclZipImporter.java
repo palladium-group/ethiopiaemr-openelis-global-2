@@ -47,10 +47,10 @@ public class OclZipImporter {
         // Use the first zip file found
         String zipPath = zipFiles[0].getAbsolutePath();
         log.info("Importing OCL ZIP package from: {}", zipPath);
-        
+
         List<JsonNode> nodes = importOclPackage(zipPath);
         log.info("Successfully parsed {} nodes from OCL package", nodes.size());
-        
+
         return nodes;
     }
 
@@ -70,7 +70,7 @@ public class OclZipImporter {
         List<JsonNode> jsonNodes = new ArrayList<>();
         try (ZipFile zipFile = new ZipFile(file)) {
             log.debug("ZIP file details: size={} bytes, entries={}", file.length(), zipFile.size());
-            
+
             zipFile.stream().forEach(entry -> {
                 try {
                     log.debug("Parsing entry: {}", entry.getName());
@@ -78,7 +78,7 @@ public class OclZipImporter {
                         log.debug("Skipping directory: {}", entry.getName());
                         return;
                     }
-                    
+
                     JsonNode node = null;
                     if (entry.getName().endsWith(".json")) {
                         node = parseJsonEntry(zipFile, entry);
@@ -88,7 +88,7 @@ public class OclZipImporter {
                         log.warn("Skipping unsupported file: {}", entry.getName());
                         return;
                     }
-                    
+
                     if (node != null) {
                         jsonNodes.add(node);
                         log.info("Successfully parsed entry: {}", entry.getName());
@@ -102,7 +102,7 @@ public class OclZipImporter {
                 }
             });
         }
-        
+
         return jsonNodes;
     }
 
@@ -122,11 +122,9 @@ public class OclZipImporter {
         try {
             log.debug("Parsing CSV file: {}", entry.getName());
             CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader();
-            List<Object> rows = csvMapper.readerFor(Map.class)
-                    .with(schema)
-                    .readValues(zipFile.getInputStream(entry))
+            List<Object> rows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
                     .readAll();
-            
+
             JsonNode node = objectMapper.valueToTree(rows);
             if (!rows.isEmpty()) {
                 Map<?, ?> firstRow = (Map<?, ?>) rows.get(0);

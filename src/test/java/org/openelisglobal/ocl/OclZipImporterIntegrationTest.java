@@ -44,14 +44,14 @@ public class OclZipImporterIntegrationTest {
             fail("OclZipImporter bean not autowired. Check Spring configuration.");
         }
         log.info("Configured OCL ZIP path: {}", configuredOclZipPath);
-        
+
         // Check OCL directory
         File oclDir = new File(OCL_DIR);
         if (!oclDir.exists()) {
             log.info("Creating OCL directory: {}", OCL_DIR);
             oclDir.mkdirs();
         }
-        
+
         if (oclDir.exists() && oclDir.isDirectory()) {
             log.info("Found OCL directory: {}", OCL_DIR);
             File[] files = oclDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
@@ -64,7 +64,7 @@ public class OclZipImporterIntegrationTest {
         } else {
             log.warn("OCL directory not found or is not a directory: {}", OCL_DIR);
         }
-        
+
         // Check configured path
         File configuredFile = new File(configuredOclZipPath);
         if (configuredFile.exists()) {
@@ -96,7 +96,7 @@ public class OclZipImporterIntegrationTest {
         for (JsonNode node : nodes) {
             log.info("Node content: {}", node.toPrettyString());
         }
-        
+
         assertEquals("Should import two JSON files", 2, nodes.size());
         assertEquals("First JSON should have name 'file1'", "file1", nodes.get(0).get("name").asText());
         assertEquals("Second JSON should have name 'file2'", "file2", nodes.get(1).get("name").asText());
@@ -113,7 +113,7 @@ public class OclZipImporterIntegrationTest {
         for (JsonNode node : nodes) {
             log.info("Node content: {}", node.toPrettyString());
         }
-        
+
         assertEquals("Should import only one JSON file", 1, nodes.size());
         assertEquals("JSON file should have name 'file1'", "file1", nodes.get(0).get("name").asText());
     }
@@ -145,7 +145,7 @@ public class OclZipImporterIntegrationTest {
         for (JsonNode node : nodes) {
             log.info("Node content: {}", node.toPrettyString());
         }
-        
+
         assertEquals("Should import two files (JSON and CSV)", 2, nodes.size());
 
         // Assuming the order is file1.json then file2.csv
@@ -167,9 +167,8 @@ public class OclZipImporterIntegrationTest {
     public void testImportOclZip() throws IOException {
         // Create a test ZIP file with some sample data
         byte[] zipData = createZipWithFiles(
-            new String[] { "concepts.json", "{\"name\": \"Test Concept\", \"type\": \"Test\"}" },
-            new String[] { "mappings.csv", "id,from_concept_code,to_concept_code\n1,LAB123,LOINC123" }
-        );
+                new String[] { "concepts.json", "{\"name\": \"Test Concept\", \"type\": \"Test\"}" },
+                new String[] { "mappings.csv", "id,from_concept_code,to_concept_code\n1,LAB123,LOINC123" });
         String tempZipPath = createTempZipFile(zipData);
 
         // Test the import
@@ -178,14 +177,14 @@ public class OclZipImporterIntegrationTest {
         for (JsonNode node : nodes) {
             log.info("Node content: {}", node.toPrettyString());
         }
-        
+
         assertEquals("Should import two files (JSON and CSV)", 2, nodes.size());
-        
+
         // Verify JSON content
         JsonNode jsonNode = nodes.get(0);
         assertEquals("Test Concept", jsonNode.get("name").asText());
         assertEquals("Test", jsonNode.get("type").asText());
-        
+
         // Verify CSV content
         JsonNode csvNode = nodes.get(1);
         assertTrue(csvNode.isArray());
@@ -205,7 +204,8 @@ public class OclZipImporterIntegrationTest {
                 if (zipFiles != null && zipFiles.length > 0) {
                     for (File zipFile : zipFiles) {
                         try {
-                            log.info("Attempting to import OCL ZIP from configured directory: {}", zipFile.getAbsolutePath());
+                            log.info("Attempting to import OCL ZIP from configured directory: {}",
+                                    zipFile.getAbsolutePath());
                             List<JsonNode> nodes = oclZipImporter.importOclPackage(zipFile.getAbsolutePath());
                             log.info("Parsed {} nodes from {}:", nodes.size(), zipFile.getName());
                             for (JsonNode node : nodes) {
