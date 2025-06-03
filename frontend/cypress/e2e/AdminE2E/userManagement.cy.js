@@ -80,8 +80,6 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      //userMgmnt.copyPermisionsFromUser();
-      //userMgmnt.applyChanges();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
       userMgmnt.allPermissions();
@@ -112,7 +110,7 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      //userMgmnt.copyPermisionsFromUser();
+      //userMgmnt.copyPermisionsFromUser(usersData[0].fName);
       //userMgmnt.applyChanges();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
@@ -148,7 +146,7 @@ describe("User Management", function () {
     it("Search by Username", function () {
       userMgmnt = adminPage.goToUserManagementPage();
       userMgmnt.verifyPageTitle();
-      cy.wait(1000);
+      cy.wait(500);
       userMgmnt.searchUser(usersData[0].username);
       userMgmnt.validateUser(usersData[0].username);
       userMgmnt.searchUser(usersData[1].username);
@@ -174,10 +172,10 @@ describe("User Management", function () {
       userMgmnt.adminUser();
       userMgmnt.validateUser(usersData[0].fName);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.uncheckAdminUser();
     });
 
     it("Search by Lab Unit Roles", function () {
+      cy.reload();
       userMgmnt.searchByFilters(usersData[1].bioChem);
       userMgmnt.validateUser(usersData[1].fName);
       userMgmnt.searchByFilters(usersData[1].hematology);

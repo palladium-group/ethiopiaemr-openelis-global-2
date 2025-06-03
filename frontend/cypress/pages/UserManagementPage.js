@@ -21,6 +21,7 @@ class UserManagementPage {
       isActive: "[for='radio-5']",
       isNotActive: "[for='radio-6']",
       copyPermisionsFromUser: "#copy-permissions",
+      autoSuggestion: "[data-cy='auto-suggestion']",
       applyButton: "[data-cy='apply-button']",
       addNewPermission: "[data-cy='addNewPermission']",
       removePermission: "[data-cy='removePermission']",
@@ -139,6 +140,7 @@ class UserManagementPage {
 
   copyPermisionsFromUser(value) {
     cy.get(this.selectors.copyPermisionsFromUser).type(value);
+    cy.contains(this.selectors.autoSuggestion, value).click();
   }
 
   applyChanges() {

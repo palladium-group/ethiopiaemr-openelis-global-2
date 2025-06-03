@@ -1,17 +1,17 @@
 [
   {
-    "username": "Mich",
+    "username": "clear",
     "password": "adminADMIN!!",
-    "fName": "Phillip",
-    "lName": "Xavier",
+    "fName": "Deen",
+    "lName": "Dean",
     "passwordExpiryDate": "01/01/2035",
     "userTimeout": "500"
   },
   {
-    "username": "user",
+    "username": "devis",
     "password": "Password**",
-    "fName": "Chris",
-    "lName": "Colombus",
+    "fName": "Jason",
+    "lName": "Ben",
     "passwordExpiryDate": "02/02/2032",
     "bioChem": "Biochemistry",
     "hematology": "Hematology",
