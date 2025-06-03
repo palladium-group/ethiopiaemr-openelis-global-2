@@ -168,12 +168,6 @@ describe("User Management", function () {
       userMgmnt.clearSearchBar();
     });
 
-    it("Search by Only Administrator", function () {
-      userMgmnt.adminUser(); //adding two admin users?
-      userMgmnt.validateUser(usersData[0].fName);
-      userMgmnt.nonAdminUser(usersData[1].fName);
-    });
-
     it("Search by Lab Unit Roles", function () {
       cy.reload();
       userMgmnt.searchByFilters(usersData[1].bioChem);
@@ -225,6 +219,12 @@ describe("User Management", function () {
       userMgmnt.verifyPageTitle();
       userMgmnt.activeUser();
       userMgmnt.activeUser(usersData[0].fName);
+    });
+
+    it("Search by Only Administrator", function () {
+      userMgmnt.adminUser(); //adding two admin users?
+      userMgmnt.validateUser(usersData[0].fName);
+      userMgmnt.nonAdminUser(usersData[1].fName);
     });
   });
 
