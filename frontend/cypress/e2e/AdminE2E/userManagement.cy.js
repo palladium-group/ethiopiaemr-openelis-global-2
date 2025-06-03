@@ -223,7 +223,8 @@ describe("User Management", function () {
 
     it("Search by Only Administrator", function () {
       userMgmnt.adminUser(); //adding two admin users?
-      userMgmnt.validateUser(usersData[0].fName);
+      userMgmnt.validateUser(usersData[0].defaultAdmin);
+      userMgmnt.nonAdminUser(usersData[0].fName);
       userMgmnt.nonAdminUser(usersData[1].fName);
     });
   });

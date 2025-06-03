@@ -1,6 +1,7 @@
 [
   {
     "username": "clear",
+    "defaultAdmin": "admin",
     "password": "adminADMIN!!",
     "fName": "Deen",
     "lName": "Dean",
