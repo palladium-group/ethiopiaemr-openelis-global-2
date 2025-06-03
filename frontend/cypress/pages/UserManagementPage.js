@@ -263,6 +263,11 @@ class UserManagementPage {
   inactiveUser(value) {
     cy.get(this.selectors.tableData).should("not.contain", value);
   }
+
+  nonAdminUser(value) {
+    cy.get(this.selectors.tableData).should("not.contain", value);
+  }
+
   activeUser() {
     cy.contains(this.selectors.span, "Only Active").click();
   }

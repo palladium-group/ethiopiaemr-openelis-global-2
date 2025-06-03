@@ -169,9 +169,9 @@ describe("User Management", function () {
     });
 
     it("Search by Only Administrator", function () {
-      userMgmnt.adminUser();
+      userMgmnt.adminUser(); //adding two admin users?
       userMgmnt.validateUser(usersData[0].fName);
-      userMgmnt.validateUser(usersData[1].fName);
+      userMgmnt.nonAdminUser(usersData[1].fName);
     });
 
     it("Search by Lab Unit Roles", function () {
