@@ -33,6 +33,17 @@ class UserManagementPage {
       menuButton: "[data-cy='menuButton']",
       enterLoginName: "#loginName",
       enterPassword: "#password",
+      allPermissions: "#all-permissions-AllLabUnits",
+      allBioPermissions: "#all-permissions-56",
+      allHemaPermissions: "#all-permissions-36",
+      allSeroPermissions: "#all-permissions-117",
+      allImmunoPermissions: "#all-permissions-59",
+      allMolecularPermissions: "#all-permissions-136",
+      allCytoPermissions: "#all-permissions-165",
+      allSerologyPermissions: "#all-permissions-97",
+      allViroPermissions: "#all-permissions-76",
+      allPathoPermissions: "#all-permissions-163",
+      allImmunoHistoPermissions: "#all-permissions-164",
       loginButton: "[data-cy='loginButton']",
       uncheckActiveUser: "#only-active",
       uncheckAdminUser: "#only-administrator",
@@ -143,7 +154,47 @@ class UserManagementPage {
   }
 
   allPermissions() {
-    cy.contains(this.selectors.span, "All Permissions").click();
+    cy.get(this.selectors.allPermissions).check({ force: true });
+  }
+
+  allBioPermissions() {
+    cy.get(this.selectors.allBioPermissions).check({ force: true });
+  }
+
+  allHemaPermissions() {
+    cy.get(this.selectors.allHemaPermissions).check({ force: true });
+  }
+
+  allSeroPermissions() {
+    cy.get(this.selectors.allSeroPermissions).check({ force: true });
+  }
+
+  allImmunoPermissions() {
+    cy.get(this.selectors.allImmunoPermissions).check({ force: true });
+  }
+
+  allMolecularPermissions() {
+    cy.get(this.selectors.allMolecularPermissions).check({ force: true });
+  }
+
+  allCytoPermissions() {
+    cy.get(this.selectors.allCytoPermissions).check({ force: true });
+  }
+
+  allSerologyPermissions() {
+    cy.get(this.selectors.allSerologyPermissions).check({ force: true });
+  }
+
+  allViroPermissions() {
+    cy.get(this.selectors.allViroPermissions).check({ force: true });
+  }
+
+  allPathoPermissions() {
+    cy.get(this.selectors.allPathoPermissions).check({ force: true });
+  }
+
+  allImmunoHistoPermissions() {
+    cy.get(this.selectors.allImmunoHistoPermissions).check({ force: true });
   }
 
   reception() {
@@ -200,7 +251,7 @@ class UserManagementPage {
   }
 
   searchByFilters(value) {
-    cy.get(this.selectors.filters).select(vallue);
+    cy.get(this.selectors.filters).select(value);
   }
 
   validateUser(value) {
@@ -216,7 +267,7 @@ class UserManagementPage {
 
   uncheckActiveUser() {
     cy.wait(900);
-    cy.get(this.selectors.uncheckActiveUser).uncheck();
+    cy.get(this.selectors.uncheckActiveUser).uncheck({ force: true });
   }
 
   checkUser(value) {
@@ -228,7 +279,7 @@ class UserManagementPage {
 
   uncheckAdminUser() {
     cy.wait(900);
-    cy.get(this.selectors.uncheckAdminUser).uncheck();
+    cy.get(this.selectors.uncheckAdminUser).uncheck({ force: true });
   }
 
   incorrectCredentials() {

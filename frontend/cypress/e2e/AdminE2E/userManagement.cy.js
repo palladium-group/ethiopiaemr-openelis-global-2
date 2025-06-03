@@ -116,16 +116,27 @@ describe("User Management", function () {
       //userMgmnt.applyChanges();
       userMgmnt.globalAdministrator();
       userMgmnt.addNewPermission();
+      userMgmnt.allPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allBioPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allHemaPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allSeroPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allImmunoPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allMolecularPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allCytoPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allSerologyPermissions();
       userMgmnt.addNewPermission();
+      userMgmnt.allViroPermissions();
       userMgmnt.addNewPermission();
-      userMgmnt.allPermissions({ multiple: true });
+      userMgmnt.allPathoPermissions();
+      userMgmnt.addNewPermission();
+      userMgmnt.allImmunoHistoPermissions();
     });
 
     it("Save User", function () {
@@ -159,13 +170,6 @@ describe("User Management", function () {
       userMgmnt.clearSearchBar();
     });
 
-    it("Validate active/inactive users", function () {
-      userMgmnt.activeUser(); //checks active users
-      userMgmnt.inactiveUser(usersData[0].fName);
-      userMgmnt.activeUser(usersData[1].fName);
-      userMgmnt.uncheckActiveUser();
-    });
-
     it("Search by Only Administrator", function () {
       userMgmnt.adminUser();
       userMgmnt.validateUser(usersData[0].fName);
@@ -174,24 +178,31 @@ describe("User Management", function () {
     });
 
     it("Search by Lab Unit Roles", function () {
-      userMgmnt.searchByLabUnitroles(usersData[1].bioChem);
+      userMgmnt.searchByFilters(usersData[1].bioChem);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].hematology);
+      userMgmnt.searchByFilters(usersData[1].hematology);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].seroImmuno);
+      userMgmnt.searchByFilters(usersData[1].seroImmuno);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].immunology);
+      userMgmnt.searchByFilters(usersData[1].immunology);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].molecularBio);
+      userMgmnt.searchByFilters(usersData[1].molecularBio);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].cyto);
+      userMgmnt.searchByFilters(usersData[1].cyto);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].viro);
+      userMgmnt.searchByFilters(usersData[1].viro);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].patho);
+      userMgmnt.searchByFilters(usersData[1].patho);
       userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByLabUnitroles(usersData[1].immunoHisto);
+      userMgmnt.searchByFilters(usersData[1].immunoHisto);
       userMgmnt.validateUser(usersData[1].fName);
+      cy.reload();
+    });
+
+    it("Validate active/inactive users", function () {
+      userMgmnt.activeUser(); //checks active users
+      userMgmnt.inactiveUser(usersData[0].fName);
+      userMgmnt.activeUser(usersData[1].fName);
       cy.reload();
     });
   });
