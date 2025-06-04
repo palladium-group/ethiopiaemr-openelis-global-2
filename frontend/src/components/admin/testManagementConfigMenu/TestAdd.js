@@ -2314,6 +2314,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <Checkbox
                             id={`gender-${index}`}
                             name={`gender-${index}`}
+                            disabled={true}
                             labelText={
                               <FormattedMessage id="label.sex.dependent" />
                             }
@@ -2345,17 +2346,22 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           sm={4}
                           style={{ marginTop: "1rem" }}
                         >
-                          <TextInput
+                          <NumberInput
                             id={`ageRangeFields[${index}].ageRange0`}
                             name={`ageRangeFields[${index}].ageRange0`}
                             onBlur={handleBlur}
-                            labelText=""
+                            label="Age Range"
                             hideLabel
+                            size={"md"}
+                            min={0}
+                            max={100} // dependent to selecting
                             required
-                            invalid={
-                              touched?.ageRangeFields?.[index]?.ageRange0 &&
-                              !!errors?.ageRangeFields?.[index]?.ageRange0
-                            }
+                            step={1}
+                            value={0}
+                            // invalid={
+                            //   touched?.ageRangeFields?.[index]?.ageRange0 &&
+                            //   !!errors?.ageRangeFields?.[index]?.ageRange0
+                            // }
                             invalidText={
                               touched?.ageRangeFields?.[index]?.ageRange0 &&
                               errors?.ageRangeFields?.[index]?.ageRange0
@@ -2375,17 +2381,23 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             name={`ageRangeFields[${index}].ageRange1`}
                             labelText=""
                             hideLabel
+                            size={"md"}
+                            min={0}
+                            max={100} // dependent to selecting
                             required
-                            invalid={
-                              touched?.ageRangeFields?.[index]?.ageRange1 &&
-                              !!errors?.ageRangeFields?.[index]?.ageRange1
-                            }
+                            step={1}
+                            value={0}
+                            // invalid={
+                            //   touched?.ageRangeFields?.[index]?.ageRange1 &&
+                            //   !!errors?.ageRangeFields?.[index]?.ageRange1
+                            // }
                             invalidText={
                               touched?.ageRangeFields?.[index]?.ageRange1 &&
                               errors?.ageRangeFields?.[index]?.ageRange1
                             }
                           >
                             {/* map agerangeList values Form objects inside array */}
+                            <SelectItem value={"0"} text={`Select Age Range`} />
                             {ageRangeList.map((age) => (
                               <SelectItem
                                 key={age.id}
@@ -2405,36 +2417,44 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <FormattedMessage id="field.normalRange" />
                           <hr />
                           <div style={{ display: "flex", gap: "4px" }}>
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].normalRange0`}
                               name={`ageRangeFields[${index}].normalRange0`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Lower Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.normalRange0 &&
-                                !!errors?.ageRangeFields?.[index]?.normalRange0
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.normalRange0 &&
+                              //   !!errors?.ageRangeFields?.[index]?.normalRange0
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.normalRange0 &&
                                 errors?.ageRangeFields?.[index]?.normalRange0
                               }
                             />
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].normalRange1`}
                               name={`ageRangeFields[${index}].normalRange1`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Higher Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.normalRange1 &&
-                                !!errors?.ageRangeFields?.[index]?.normalRange1
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.normalRange1 &&
+                              //   !!errors?.ageRangeFields?.[index]?.normalRange1
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.normalRange1 &&
@@ -2454,38 +2474,46 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <FormattedMessage id="label.reporting.range" />
                           <hr />
                           <div style={{ display: "flex", gap: "4px" }}>
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].reportingRange0`}
                               name={`ageRangeFields[${index}].reportingRange0`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Lower Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.reportingRange0 &&
-                                !!errors?.ageRangeFields?.[index]
-                                  ?.reportingRange0
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.reportingRange0 &&
+                              //   !!errors?.ageRangeFields?.[index]
+                              //     ?.reportingRange0
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.reportingRange0 &&
                                 errors?.ageRangeFields?.[index]?.reportingRange0
                               }
                             />
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].reportingRange1`}
                               name={`ageRangeFields[${index}].reportingRange1`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Higher Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.reportingRange1 &&
-                                !!errors?.ageRangeFields?.[index]
-                                  ?.reportingRange1
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.reportingRange1 &&
+                              //   !!errors?.ageRangeFields?.[index]
+                              //     ?.reportingRange1
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.reportingRange1 &&
@@ -2504,33 +2532,41 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <FormattedMessage id="field.validRange" />
                           <hr />
                           <div style={{ display: "flex", gap: "4px" }}>
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].validRange0`}
                               name={`ageRangeFields[${index}].validRange0`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Lower Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]?.validRange0 &&
-                                !!errors?.ageRangeFields?.[index]?.validRange0
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]?.validRange0 &&
+                              //   !!errors?.ageRangeFields?.[index]?.validRange0
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]?.validRange0 &&
                                 errors?.ageRangeFields?.[index]?.validRange0
                               }
                             />
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].validRange1`}
                               name={`ageRangeFields[${index}].validRange1`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Higher Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]?.validRange1 &&
-                                !!errors?.ageRangeFields?.[index]?.validRange1
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]?.validRange1 &&
+                              //   !!errors?.ageRangeFields?.[index]?.validRange1
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]?.validRange1 &&
                                 errors?.ageRangeFields?.[index]?.validRange1
@@ -2548,38 +2584,46 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <FormattedMessage id="label.critical.range" />
                           <hr />
                           <div style={{ display: "flex", gap: "4px" }}>
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].criticalRange0`}
                               name={`ageRangeFields[${index}].criticalRange0`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Lower Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.criticalRange0 &&
-                                !!errors?.ageRangeFields?.[index]
-                                  ?.criticalRange0
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.criticalRange0 &&
+                              //   !!errors?.ageRangeFields?.[index]
+                              //     ?.criticalRange0
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.criticalRange0 &&
                                 errors?.ageRangeFields?.[index]?.criticalRange0
                               }
                             />
-                            <TextInput
+                            <NumberInput
                               id={`ageRangeFields[${index}].criticalRange1`}
                               name={`ageRangeFields[${index}].criticalRange1`}
                               onBlur={handleBlur}
-                              labelText=""
-                              hideLabel
+                              label="Higher Range"
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
                               required
-                              invalid={
-                                touched?.ageRangeFields?.[index]
-                                  ?.criticalRange1 &&
-                                !!errors?.ageRangeFields?.[index]
-                                  ?.criticalRange1
-                              }
+                              step={1}
+                              value={0}
+                              // invalid={
+                              //   touched?.ageRangeFields?.[index]
+                              //     ?.criticalRange1 &&
+                              //   !!errors?.ageRangeFields?.[index]
+                              //     ?.criticalRange1
+                              // }
                               invalidText={
                                 touched?.ageRangeFields?.[index]
                                   ?.criticalRange1 &&
