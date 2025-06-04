@@ -2252,7 +2252,59 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
+            validationSchema={Yup.object().shape({
+              resultLimits: Yup.array().of(
+                Yup.object().shape({
+                  highAgeRange: Yup.string().required("Required"),
+                  gender: Yup.boolean().required("Required"),
+                  lowNormal: Yup.number()
+                    .min(0, "Minimum 0")
+                    .max(100, "Maximum 100")
+                    .required("Required"),
+                  highNormal: Yup.number()
+                    .min(
+                      Yup.ref("lowNormal"),
+                      "Must be greater than or equal to lowNormal",
+                    )
+                    .max(100, "Maximum 100")
+                    .required("Required"),
+                }),
+              ),
+              lowReportingRange: Yup.number()
+                .min(0)
+                .max(100)
+                .required("Required"),
+              highReportingRange: Yup.number()
+                .min(
+                  Yup.ref("lowReportingRange"),
+                  "Must be greater or equal to lower reporting range",
+                )
+                .max(100)
+                .required("Required"),
+              lowValid: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+              highValid: Yup.number()
+                .min(
+                  Yup.ref("lowValid"),
+                  "Must be greater than or equal to Lower Valid Range",
+                )
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+              lowCritical: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+              highCritical: Yup.number()
+                .min(
+                  Yup.ref("lowCritical"),
+                  "Must be greater than or equal to Lower Critical Range",
+                )
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+              significantDigits: Yup.number().min(0).max(99).nullable(),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2277,6 +2329,18 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 setAgeRangeFields((prev) =>
                   prev.filter((_, i) => i !== indexToRemove),
                 );
+              };
+
+              const handleRangeChange = (index, field, value) => {
+                const updatedLimits = [...values.resultLimits];
+                updatedLimits[index] = {
+                  ...updatedLimits[index],
+                  [field]: value,
+                };
+
+                setFieldValue("resultLimits", updatedLimits);
+
+                // Optional: trigger field-level validation manually if needed
               };
 
               return (
@@ -2347,8 +2411,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           style={{ marginTop: "1rem" }}
                         >
                           <NumberInput
-                            id={`ageRangeFields[${index}].ageRange0`}
-                            name={`ageRangeFields[${index}].ageRange0`}
+                            id={`resultLimits[${index}].highAgeRange`}
+                            name={`resultLimits[${index}].highAgeRange`}
                             onBlur={handleBlur}
                             label="Age Range"
                             hideLabel
@@ -2357,14 +2421,23 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             max={100} // dependent to selecting
                             required
                             step={1}
-                            value={0}
-                            // invalid={
-                            //   touched?.ageRangeFields?.[index]?.ageRange0 &&
-                            //   !!errors?.ageRangeFields?.[index]?.ageRange0
-                            // }
+                            value={
+                              values.resultLimits?.[index]?.highAgeRange || 0
+                            }
+                            invalid={
+                              touched?.resultLimits?.[index]?.highAgeRange &&
+                              !!errors?.resultLimits?.[index]?.highAgeRange
+                            }
                             invalidText={
-                              touched?.ageRangeFields?.[index]?.ageRange0 &&
-                              errors?.ageRangeFields?.[index]?.ageRange0
+                              touched?.resultLimits?.[index]?.highAgeRange &&
+                              errors?.resultLimits?.[index]?.highAgeRange
+                            }
+                            onChange={(e) =>
+                              handleRangeChange(
+                                index,
+                                "highAgeRange",
+                                Number(e.imaginaryTarget?.value),
+                              )
                             }
                           />
                         </Column>
@@ -2377,8 +2450,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                         >
                           <Select
                             onBlur={handleBlur}
-                            id={`ageRangeFields[${index}].ageRange1`}
-                            name={`ageRangeFields[${index}].ageRange1`}
+                            id={`resultLimits[${index}].ageRange1`}
+                            name={`resultLimits[${index}].ageRange1`}
                             labelText=""
                             hideLabel
                             size={"md"}
@@ -2386,14 +2459,16 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             max={100} // dependent to selecting
                             required
                             step={1}
-                            value={0}
-                            // invalid={
-                            //   touched?.ageRangeFields?.[index]?.ageRange1 &&
-                            //   !!errors?.ageRangeFields?.[index]?.ageRange1
-                            // }
+                            value={
+                              values.resultLimits?.[index]?.ageRange1 || "0"
+                            }
+                            invalid={
+                              touched?.resultLimits?.[index]?.ageRange1 &&
+                              !!errors?.resultLimits?.[index]?.ageRange1
+                            }
                             invalidText={
-                              touched?.ageRangeFields?.[index]?.ageRange1 &&
-                              errors?.ageRangeFields?.[index]?.ageRange1
+                              touched?.resultLimits?.[index]?.ageRange1 &&
+                              errors?.resultLimits?.[index]?.ageRange1
                             }
                           >
                             {/* map agerangeList values Form objects inside array */}
@@ -2418,8 +2493,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           <hr />
                           <div style={{ display: "flex", gap: "4px" }}>
                             <NumberInput
-                              id={`ageRangeFields[${index}].normalRange0`}
-                              name={`ageRangeFields[${index}].normalRange0`}
+                              id={`resultLimits[${index}].lowNormal`}
+                              name={`resultLimits[${index}].lowNormal`}
                               onBlur={handleBlur}
                               label="Lower Range"
                               size={"md"}
@@ -2427,21 +2502,28 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               max={100} // dependent to selecting
                               required
                               step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.normalRange0 &&
-                              //   !!errors?.ageRangeFields?.[index]?.normalRange0
-                              // }
+                              value={
+                                values.resultLimits?.[index]?.lowNormal || 0
+                              }
+                              invalid={
+                                touched?.resultLimits?.[index]?.lowNormal &&
+                                !!errors?.resultLimits?.[index]?.lowNormal
+                              }
                               invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.normalRange0 &&
-                                errors?.ageRangeFields?.[index]?.normalRange0
+                                touched?.resultLimits?.[index]?.lowNormal &&
+                                errors?.resultLimits?.[index]?.lowNormal
+                              }
+                              onChange={(e) =>
+                                handleRangeChange(
+                                  index,
+                                  "lowNormal",
+                                  Number(e.imaginaryTarget?.value),
+                                )
                               }
                             />
                             <NumberInput
-                              id={`ageRangeFields[${index}].normalRange1`}
-                              name={`ageRangeFields[${index}].normalRange1`}
+                              id={`resultLimits[${index}].highNormal`}
+                              name={`resultLimits[${index}].highNormal`}
                               onBlur={handleBlur}
                               label="Higher Range"
                               size={"md"}
@@ -2449,187 +2531,26 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               max={100} // dependent to selecting
                               required
                               step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.normalRange1 &&
-                              //   !!errors?.ageRangeFields?.[index]?.normalRange1
-                              // }
+                              value={
+                                values.resultLimits?.[index]?.highNormal || 0
+                              }
+                              invalid={
+                                touched?.resultLimits?.[index]?.highNormal &&
+                                !!errors?.resultLimits?.[index]?.highNormal
+                              }
                               invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.normalRange1 &&
-                                errors?.ageRangeFields?.[index]?.normalRange1
+                                touched?.resultLimits?.[index]?.highNormal &&
+                                errors?.resultLimits?.[index]?.highNormal
+                              }
+                              onChange={(e) =>
+                                handleRangeChange(
+                                  index,
+                                  "highNormal",
+                                  Number(e.imaginaryTarget?.value),
+                                )
                               }
                             />
                             {/* render  two extra fields for TextInput on Click of Check box */}
-                          </div>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={8}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <FormattedMessage id="label.reporting.range" />
-                          <hr />
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <NumberInput
-                              id={`ageRangeFields[${index}].reportingRange0`}
-                              name={`ageRangeFields[${index}].reportingRange0`}
-                              onBlur={handleBlur}
-                              label="Lower Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.reportingRange0 &&
-                              //   !!errors?.ageRangeFields?.[index]
-                              //     ?.reportingRange0
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.reportingRange0 &&
-                                errors?.ageRangeFields?.[index]?.reportingRange0
-                              }
-                            />
-                            <NumberInput
-                              id={`ageRangeFields[${index}].reportingRange1`}
-                              name={`ageRangeFields[${index}].reportingRange1`}
-                              onBlur={handleBlur}
-                              label="Higher Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.reportingRange1 &&
-                              //   !!errors?.ageRangeFields?.[index]
-                              //     ?.reportingRange1
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.reportingRange1 &&
-                                errors?.ageRangeFields?.[index]?.reportingRange1
-                              }
-                            />
-                          </div>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={8}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <FormattedMessage id="field.validRange" />
-                          <hr />
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <NumberInput
-                              id={`ageRangeFields[${index}].validRange0`}
-                              name={`ageRangeFields[${index}].validRange0`}
-                              onBlur={handleBlur}
-                              label="Lower Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]?.validRange0 &&
-                              //   !!errors?.ageRangeFields?.[index]?.validRange0
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]?.validRange0 &&
-                                errors?.ageRangeFields?.[index]?.validRange0
-                              }
-                            />
-                            <NumberInput
-                              id={`ageRangeFields[${index}].validRange1`}
-                              name={`ageRangeFields[${index}].validRange1`}
-                              onBlur={handleBlur}
-                              label="Higher Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]?.validRange1 &&
-                              //   !!errors?.ageRangeFields?.[index]?.validRange1
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]?.validRange1 &&
-                                errors?.ageRangeFields?.[index]?.validRange1
-                              }
-                            />
-                          </div>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={8}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <FormattedMessage id="label.critical.range" />
-                          <hr />
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <NumberInput
-                              id={`ageRangeFields[${index}].criticalRange0`}
-                              name={`ageRangeFields[${index}].criticalRange0`}
-                              onBlur={handleBlur}
-                              label="Lower Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.criticalRange0 &&
-                              //   !!errors?.ageRangeFields?.[index]
-                              //     ?.criticalRange0
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.criticalRange0 &&
-                                errors?.ageRangeFields?.[index]?.criticalRange0
-                              }
-                            />
-                            <NumberInput
-                              id={`ageRangeFields[${index}].criticalRange1`}
-                              name={`ageRangeFields[${index}].criticalRange1`}
-                              onBlur={handleBlur}
-                              label="Higher Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={0}
-                              // invalid={
-                              //   touched?.ageRangeFields?.[index]
-                              //     ?.criticalRange1 &&
-                              //   !!errors?.ageRangeFields?.[index]
-                              //     ?.criticalRange1
-                              // }
-                              invalidText={
-                                touched?.ageRangeFields?.[index]
-                                  ?.criticalRange1 &&
-                                errors?.ageRangeFields?.[index]?.criticalRange1
-                              }
-                            />
                           </div>
                         </Column>
                         <Column
@@ -2672,6 +2593,151 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     </Column>
                   </Grid>
                   <br />
+                  <Grid fullWidth={true}>
+                    <Column lg={8} md={4} sm={4} style={{ marginTop: "1rem" }}>
+                      <FormattedMessage id="label.reporting.range" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <NumberInput
+                          id={`lowReportingRange`}
+                          name={`lowReportingRange`}
+                          onBlur={handleBlur}
+                          label="Lower Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.lowReportingRange || 0}
+                          invalid={
+                            touched?.lowReportingRange &&
+                            !!errors?.lowReportingRange
+                          }
+                          invalidText={
+                            touched?.lowReportingRange &&
+                            errors?.lowReportingRange
+                          }
+                          onChange={(e) =>
+                            setFieldValue("lowReportingRange", e.target.value)
+                          }
+                        />
+                        <NumberInput
+                          id={`highReportingRange`}
+                          name={`highReportingRange`}
+                          onBlur={handleBlur}
+                          label="Higher Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.highReportingRange || 0}
+                          invalid={
+                            touched?.highReportingRange &&
+                            !!errors?.highReportingRange
+                          }
+                          invalidText={
+                            touched?.highReportingRange &&
+                            errors?.highReportingRange
+                          }
+                          onChange={(e) =>
+                            setFieldValue("highReportingRange", e.target.value)
+                          }
+                        />
+                      </div>
+                    </Column>
+                    <Column lg={8} md={4} sm={4} style={{ marginTop: "1rem" }}>
+                      <FormattedMessage id="field.validRange" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <NumberInput
+                          id={`lowValid`}
+                          name={`lowValid`}
+                          onBlur={handleBlur}
+                          label="Lower Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.lowValid || 0}
+                          invalid={touched?.lowValid && !!errors?.lowValid}
+                          invalidText={touched?.lowValid && errors?.lowValid}
+                          onChange={(e) =>
+                            setFieldValue("lowValid", e.target.value)
+                          }
+                        />
+                        <NumberInput
+                          id={`highValid`}
+                          name={`highValid`}
+                          onBlur={handleBlur}
+                          label="Higher Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.highValid || 0}
+                          invalid={touched?.highValid && !!errors?.highValid}
+                          invalidText={touched?.highValid && errors?.highValid}
+                          onChange={(e) =>
+                            setFieldValue("highValid", e.target.value)
+                          }
+                        />
+                      </div>
+                    </Column>
+                    <Column lg={8} md={4} sm={4} style={{ marginTop: "1rem" }}>
+                      <FormattedMessage id="label.critical.range" />
+                      <hr />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <NumberInput
+                          id={`lowCritical`}
+                          name={`lowCritical`}
+                          onBlur={handleBlur}
+                          label="Lower Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.lowCritical || 0}
+                          invalid={
+                            touched?.lowCritical && !!errors?.lowCritical
+                          }
+                          invalidText={
+                            touched?.lowCritical && errors?.lowCritical
+                          }
+                          onChange={(e) =>
+                            setFieldValue("lowCritical", e.target.value)
+                          }
+                        />
+                        <NumberInput
+                          id={`highCritical`}
+                          name={`highCritical`}
+                          onBlur={handleBlur}
+                          label="Higher Range"
+                          size={"md"}
+                          min={0}
+                          max={100} // dependent to selecting
+                          required
+                          step={1}
+                          value={values.highCritical || 0}
+                          invalid={
+                            touched?.highCritical && !!errors?.highCritical
+                          }
+                          invalidText={
+                            touched?.highCritical && errors?.highCritical
+                          }
+                          onChange={(e) =>
+                            setFieldValue("highCritical", e.target.value)
+                          }
+                        />
+                      </div>
+                    </Column>
+                  </Grid>
+                  <br />
+                  <hr />
+                  <br />
                   <FlexGrid fullWidth={true}>
                     <Row>
                       <Column lg={4} md={4} sm={4}>
@@ -2689,6 +2755,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <Column lg={4} md={4} sm={4}>
                         <NumberInput
                           id={"significant_digits_num_input"}
+                          name={"significantDigits"}
                           max={99}
                           min={0}
                           size={"md"}
