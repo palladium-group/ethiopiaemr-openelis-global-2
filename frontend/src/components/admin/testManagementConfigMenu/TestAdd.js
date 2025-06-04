@@ -202,9 +202,8 @@ function TestAdd() {
     lowCritical: "",
     highCritical: "",
     significantDigits: "",
-    resultLimits:
-      [] ||
-      '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]',
+    resultLimits: [],
+    // '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]',
   });
 
   const [showGuide, setShowGuide] = useState(false);
@@ -2255,6 +2254,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
             validationSchema={Yup.object().shape({
               resultLimits: Yup.array().of(
                 Yup.object().shape({
+                  ageRange: Yup.string().required("Age range is required"),
                   highAgeRange: Yup.string().required("Required"),
                   gender: Yup.boolean().required("Required"),
                   lowNormal: Yup.number()
@@ -2332,16 +2332,10 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               };
 
               const handleRangeChange = (index, field, value) => {
-                const updatedLimits = [...values.resultLimits];
-                updatedLimits[index] = {
-                  ...updatedLimits[index],
-                  [field]: value,
-                };
-
-                setFieldValue("resultLimits", updatedLimits);
-
-                // Optional: trigger field-level validation manually if needed
+                setFieldValue(`resultLimits[${index}].${field}`, value);
               };
+
+              console.log(values.resultLimits);
 
               return (
                 <Form>
@@ -2366,231 +2360,233 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <FormattedMessage id="field.ageRange" />
                       <hr />
                     </Column>
-                    {ageRangeFields.map((_, index) => (
-                      <React.Fragment key={index}>
-                        <Column
-                          key={index}
-                          lg={4}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <Checkbox
-                            id={`gender-${index}`}
-                            name={`gender-${index}`}
-                            disabled={true}
-                            labelText={
-                              <FormattedMessage id="label.sex.dependent" />
-                            }
-                            // onChange={() => {}}
-                          />
-                          {/* render male & female on checkbox*/}
-                          {/* { ? 'Male/Female' : ''} */}
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={4}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <RadioButtonGroup
-                            id={`fieldAgeRangeRadioGroup-${index}`}
-                            name={`fieldAgeRangeRadioGroup-${index}`}
+                    {ageRangeFields.map((_, index) => {
+                      const selectedAgeRanges = values.resultLimits
+                        .map((item) => item.ageRange)
+                        .filter((val, idx) => idx !== index && val);
+                      const availableAgeRanges = ageRangeList.filter(
+                        (age) => !selectedAgeRanges.includes(age.id),
+                      );
+                      return (
+                        <React.Fragment key={index}>
+                          <Column
+                            key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
                           >
-                            <RadioButton labelText={"Y"} />
-                            <RadioButton labelText={"M"} />
-                            <RadioButton labelText={"D"} />
-                          </RadioButtonGroup>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={4}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <NumberInput
-                            id={`resultLimits[${index}].highAgeRange`}
-                            name={`resultLimits[${index}].highAgeRange`}
-                            onBlur={handleBlur}
-                            label="Age Range"
-                            hideLabel
-                            size={"md"}
-                            min={0}
-                            max={100} // dependent to selecting
-                            required
-                            step={1}
-                            value={
-                              values.resultLimits?.[index]?.highAgeRange || 0
-                            }
-                            invalid={
-                              touched?.resultLimits?.[index]?.highAgeRange &&
-                              !!errors?.resultLimits?.[index]?.highAgeRange
-                            }
-                            invalidText={
-                              touched?.resultLimits?.[index]?.highAgeRange &&
-                              errors?.resultLimits?.[index]?.highAgeRange
-                            }
-                            onChange={(e) =>
-                              handleRangeChange(
-                                index,
-                                "highAgeRange",
-                                Number(e.imaginaryTarget?.value),
-                              )
-                            }
-                          />
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={4}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <Select
-                            onBlur={handleBlur}
-                            id={`resultLimits[${index}].ageRange1`}
-                            name={`resultLimits[${index}].ageRange1`}
-                            labelText=""
-                            hideLabel
-                            size={"md"}
-                            min={0}
-                            max={100} // dependent to selecting
-                            required
-                            step={1}
-                            value={
-                              values.resultLimits?.[index]?.ageRange1 || "0"
-                            }
-                            invalid={
-                              touched?.resultLimits?.[index]?.ageRange1 &&
-                              !!errors?.resultLimits?.[index]?.ageRange1
-                            }
-                            invalidText={
-                              touched?.resultLimits?.[index]?.ageRange1 &&
-                              errors?.resultLimits?.[index]?.ageRange1
-                            }
-                          >
-                            {/* map agerangeList values Form objects inside array */}
-                            <SelectItem value={"0"} text={`Select Age Range`} />
-                            {ageRangeList.map((age) => (
-                              <SelectItem
-                                key={age.id}
-                                value={age.id}
-                                text={`${age.value}`}
-                              />
-                            ))}
-                          </Select>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={8}
-                          md={4}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <FormattedMessage id="field.normalRange" />
-                          <hr />
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            <NumberInput
-                              id={`resultLimits[${index}].lowNormal`}
-                              name={`resultLimits[${index}].lowNormal`}
-                              onBlur={handleBlur}
-                              label="Lower Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={
-                                values.resultLimits?.[index]?.lowNormal || 0
+                            <Checkbox
+                              id={`gender-${index}`}
+                              name={`gender-${index}`}
+                              disabled={true}
+                              labelText={
+                                <FormattedMessage id="label.sex.dependent" />
                               }
-                              invalid={
-                                touched?.resultLimits?.[index]?.lowNormal &&
-                                !!errors?.resultLimits?.[index]?.lowNormal
-                              }
-                              invalidText={
-                                touched?.resultLimits?.[index]?.lowNormal &&
-                                errors?.resultLimits?.[index]?.lowNormal
-                              }
-                              onChange={(e) =>
-                                handleRangeChange(
-                                  index,
-                                  "lowNormal",
-                                  Number(e.imaginaryTarget?.value),
-                                )
-                              }
+                              // onChange={() => {}}
                             />
-                            <NumberInput
-                              id={`resultLimits[${index}].highNormal`}
-                              name={`resultLimits[${index}].highNormal`}
-                              onBlur={handleBlur}
-                              label="Higher Range"
-                              size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
-                              required
-                              step={1}
-                              value={
-                                values.resultLimits?.[index]?.highNormal || 0
-                              }
-                              invalid={
-                                touched?.resultLimits?.[index]?.highNormal &&
-                                !!errors?.resultLimits?.[index]?.highNormal
-                              }
-                              invalidText={
-                                touched?.resultLimits?.[index]?.highNormal &&
-                                errors?.resultLimits?.[index]?.highNormal
-                              }
-                              onChange={(e) =>
-                                handleRangeChange(
-                                  index,
-                                  "highNormal",
-                                  Number(e.imaginaryTarget?.value),
-                                )
-                              }
-                            />
-                            {/* render  two extra fields for TextInput on Click of Check box */}
-                          </div>
-                        </Column>
-                        <Column
-                          key={index}
-                          lg={16}
-                          md={8}
-                          sm={4}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <div
-                            key={`remove-age-range-fill-up-${index}`}
-                            style={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                            }}
+                            {/* render male & female on checkbox*/}
+                            {/* { ? 'Male/Female' : ''} */}
+                          </Column>
+                          <Column
+                            key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
                           >
-                            <Button
-                              id={`remove-age-range-fill-up-${index}`}
-                              name={`remove-age-range-fill-up-${index}`}
-                              kind="danger"
-                              type="button"
-                              onClick={() => handleRemoveAgeRangeFillUp(index)}
+                            <RadioButtonGroup
+                              id={`fieldAgeRangeRadioGroup-${index}`}
+                              name={`fieldAgeRangeRadioGroup-${index}`}
                             >
-                              Remove
-                            </Button>
-                          </div>
-                        </Column>
-                      </React.Fragment>
-                    ))}
-                    <Column lg={16} md={8} sm={4} style={{ marginTop: "1rem" }}>
-                      <Button
-                        onClick={() => {
-                          handleAddAgeRangeFillUp();
-                        }}
-                        kind="tertiary"
-                        type="button"
-                      >
-                        <FormattedMessage id="Add +" />
-                      </Button>
-                    </Column>
+                              <RadioButton labelText={"Y"} />
+                              <RadioButton labelText={"M"} />
+                              <RadioButton labelText={"D"} />
+                            </RadioButtonGroup>
+                          </Column>
+                          <Column
+                            key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            <NumberInput
+                              id={`resultLimits[${index}].highAgeRange`}
+                              name={`resultLimits[${index}].highAgeRange`}
+                              onBlur={handleBlur}
+                              label="Age Range"
+                              hideLabel
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
+                              required
+                              step={1}
+                              value={
+                                values.resultLimits?.[index]?.highAgeRange || 0
+                              }
+                              invalid={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                !!errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              invalidText={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              onChange={(_, { value }) =>
+                                handleRangeChange(index, "highAgeRange", value)
+                              }
+                            />
+                          </Column>
+                          <Column
+                            key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            {/* ageRange removal from the end data */}
+                            <Select
+                              onBlur={handleBlur}
+                              id={`resultLimits[${index}].ageRange`}
+                              name={`resultLimits[${index}].ageRange`}
+                              labelText=""
+                              hideLabel
+                              size={"md"}
+                              min={0}
+                              max={100} // dependent to selecting
+                              required
+                              step={1}
+                              value={
+                                values.resultLimits?.[index]?.ageRange || ""
+                              }
+                              onChange={(e) => {
+                                setFieldValue(
+                                  `resultLimits[${index}].ageRange`,
+                                  e.target.value,
+                                );
+                                handleAddAgeRangeFillUp();
+                              }}
+                              invalid={
+                                touched?.resultLimits?.[index]?.ageRange &&
+                                !!errors?.resultLimits?.[index]?.ageRange
+                              }
+                              invalidText={
+                                touched?.resultLimits?.[index]?.ageRange &&
+                                errors?.resultLimits?.[index]?.ageRange
+                              }
+                            >
+                              {/* map agerangeList values Form objects inside array */}
+                              <SelectItem
+                                value={"0"}
+                                text={`Select Age Range`}
+                              />
+                              {availableAgeRanges.map((age) => (
+                                <SelectItem
+                                  key={age.id}
+                                  value={age.id}
+                                  text={`${age.value}`}
+                                />
+                              ))}
+                            </Select>
+                          </Column>
+                          <Column
+                            key={index}
+                            lg={8}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            <FormattedMessage id="field.normalRange" />
+                            <hr />
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              <NumberInput
+                                id={`resultLimits[${index}].lowNormal`}
+                                name={`resultLimits[${index}].lowNormal`}
+                                onBlur={handleBlur}
+                                label="Lower Range"
+                                size={"md"}
+                                min={0}
+                                max={100} // dependent to selecting
+                                required
+                                step={1}
+                                value={
+                                  values.resultLimits?.[index]?.lowNormal || 0
+                                }
+                                invalid={
+                                  touched?.resultLimits?.[index]?.lowNormal &&
+                                  !!errors?.resultLimits?.[index]?.lowNormal
+                                }
+                                invalidText={
+                                  touched?.resultLimits?.[index]?.lowNormal &&
+                                  errors?.resultLimits?.[index]?.lowNormal
+                                }
+                                onChange={(_, { value }) =>
+                                  handleRangeChange(index, "lowNormal", value)
+                                }
+                              />
+                              <NumberInput
+                                id={`resultLimits[${index}].highNormal`}
+                                name={`resultLimits[${index}].highNormal`}
+                                onBlur={handleBlur}
+                                label="Higher Range"
+                                size={"md"}
+                                min={0}
+                                max={100} // dependent to selecting
+                                required
+                                step={1}
+                                value={
+                                  values.resultLimits?.[index]?.highNormal || 0
+                                }
+                                invalid={
+                                  touched?.resultLimits?.[index]?.highNormal &&
+                                  !!errors?.resultLimits?.[index]?.highNormal
+                                }
+                                invalidText={
+                                  touched?.resultLimits?.[index]?.highNormal &&
+                                  errors?.resultLimits?.[index]?.highNormal
+                                }
+                                onChange={(_, { value }) =>
+                                  handleRangeChange(index, "highNormal", value)
+                                }
+                              />
+                              {/* render  two extra fields for TextInput on Click of Check box */}
+                            </div>
+                          </Column>
+                          {ageRangeFields.length > 1 ? (
+                            <Column
+                              key={index}
+                              lg={16}
+                              md={8}
+                              sm={4}
+                              style={{ marginTop: "1rem" }}
+                            >
+                              <div
+                                key={`remove-age-range-fill-up-${index}`}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                }}
+                              >
+                                <Button
+                                  id={`remove-age-range-fill-up-${index}`}
+                                  name={`remove-age-range-fill-up-${index}`}
+                                  kind="danger"
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveAgeRangeFillUp(index)
+                                  }
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            </Column>
+                          ) : (
+                            <></>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </Grid>
                   <br />
                   <Grid fullWidth={true}>
