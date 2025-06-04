@@ -2378,15 +2378,21 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           >
                             <Checkbox
                               id={`gender-${index}`}
-                              name={`gender-${index}`}
-                              disabled={true}
+                              name={`gender`}
                               labelText={
                                 <FormattedMessage id="label.sex.dependent" />
                               }
-                              // onChange={() => {}}
+                              checked={
+                                values.resultLimits?.[index]?.gender || false
+                              }
+                              onChange={(e) =>
+                                handleRangeChange(
+                                  index,
+                                  "gender",
+                                  e.target.checked,
+                                )
+                              }
                             />
-                            {/* render male & female on checkbox*/}
-                            {/* { ? 'Male/Female' : ''} */}
                           </Column>
                           <Column
                             key={index}
@@ -2497,7 +2503,14 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             sm={4}
                             style={{ marginTop: "1rem" }}
                           >
-                            <FormattedMessage id="field.normalRange" />
+                            <FormattedMessage id="field.normalRange" />{" "}
+                            {values.resultLimits?.[index]?.gender ? (
+                              <>
+                                <FormattedMessage id="patient.male" />
+                              </>
+                            ) : (
+                              <></>
+                            )}
                             <hr />
                             <div style={{ display: "flex", gap: "4px" }}>
                               <NumberInput
@@ -2550,9 +2563,95 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   handleRangeChange(index, "highNormal", value)
                                 }
                               />
-                              {/* render  two extra fields for TextInput on Click of Check box */}
                             </div>
                           </Column>
+                          {values.resultLimits?.[index]?.gender ? (
+                            <>
+                              <Column
+                                key={index}
+                                lg={8}
+                                md={4}
+                                sm={4}
+                                style={{ marginTop: "1rem" }}
+                              >
+                                <FormattedMessage id="field.normalRange" />{" "}
+                                <FormattedMessage id="patient.female" />
+                                <hr />
+                                <div style={{ display: "flex", gap: "4px" }}>
+                                  <NumberInput
+                                    id={`resultLimits[${index}].lowNormalFemale`}
+                                    name={`resultLimits[${index}].lowNormalFemale`}
+                                    onBlur={handleBlur}
+                                    label="Lower Range"
+                                    size={"md"}
+                                    min={0}
+                                    max={100} // dependent to selecting
+                                    required
+                                    step={1}
+                                    value={
+                                      values.resultLimits?.[index]
+                                        ?.lowNormalFemale || 0
+                                    }
+                                    invalid={
+                                      touched?.resultLimits?.[index]
+                                        ?.lowNormalFemale &&
+                                      !!errors?.resultLimits?.[index]
+                                        ?.lowNormalFemale
+                                    }
+                                    invalidText={
+                                      touched?.resultLimits?.[index]
+                                        ?.lowNormalFemale &&
+                                      errors?.resultLimits?.[index]
+                                        ?.lowNormalFemale
+                                    }
+                                    onChange={(_, { value }) =>
+                                      handleRangeChange(
+                                        index,
+                                        "lowNormalFemale",
+                                        value,
+                                      )
+                                    }
+                                  />
+                                  <NumberInput
+                                    id={`resultLimits[${index}].highNormalFemale`}
+                                    name={`resultLimits[${index}].highNormalFemale`}
+                                    onBlur={handleBlur}
+                                    label="Higher Range"
+                                    size={"md"}
+                                    min={0}
+                                    max={100} // dependent to selecting
+                                    required
+                                    step={1}
+                                    value={
+                                      values.resultLimits?.[index]
+                                        ?.highNormalFemale || 0
+                                    }
+                                    invalid={
+                                      touched?.resultLimits?.[index]
+                                        ?.highNormalFemale &&
+                                      !!errors?.resultLimits?.[index]
+                                        ?.highNormalFemale
+                                    }
+                                    invalidText={
+                                      touched?.resultLimits?.[index]
+                                        ?.highNormalFemale &&
+                                      errors?.resultLimits?.[index]
+                                        ?.highNormalFemale
+                                    }
+                                    onChange={(_, { value }) =>
+                                      handleRangeChange(
+                                        index,
+                                        "highNormalFemale",
+                                        value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </Column>
+                            </>
+                          ) : (
+                            <></>
+                          )}
                           {ageRangeFields.length > 1 ? (
                             <Column
                               key={index}
