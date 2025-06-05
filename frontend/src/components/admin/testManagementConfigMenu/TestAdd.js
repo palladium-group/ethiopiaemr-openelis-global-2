@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(4);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
@@ -1786,15 +1786,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                         selectedSampleTypeResp.map((item, index) => (
                           <>
                             <div className="gridBoundary">
-                              {/* <Section key={index}>
-                                <UnorderedList>
-                                  {item.tests.map((test) => (
-                                    <ListItem key={test.id}>
-                                      {test.name}
-                                    </ListItem>
-                                  ))}
-                                </UnorderedList>
-                              </Section> */}
                               <Section key={index}>
                                 <CustomCommonSortableOrderList
                                   test={item.tests}
@@ -1913,15 +1904,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
               errors,
               setFieldValue,
             }) => {
-              // const handleLabUnitSelect = (e) => {
-              //   const selectedLabUnitId = e.target.value;
-
-              //   setJsonWad((prev) => ({
-              //     ...prev,
-              //     testSection: selectedLabUnitId,
-              //   }));
-              // };
-
               const handelSelectListOptions = (e) => {
                 const selectedId = e.target.value;
 
@@ -1940,6 +1922,14 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   ]);
 
                   setDictionaryListTag((prev) => [...prev, selectedObject]);
+
+                  setFieldValue(
+                    "dictionary",
+                    values.dictionary?.map((item) => ({
+                      id: item.id,
+                      qualified: "N",
+                    })),
+                  );
                 }
 
                 //set the data object in jsonWad
@@ -1957,9 +1947,81 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                     ...prev,
                     selectedObject,
                   ]);
+
+                  setFieldValue(
+                    "dictionary",
+                    values.dictionary?.map((item) => ({
+                      id: item.id,
+                      qualified: item.id.toString() === selectedId ? "Y" : "N",
+                    })),
+                  );
                 }
 
                 //set the data object in jsonWad
+              };
+
+              const handleRemoveMultiSelectDictionaryListTagSelectIdTestTag = (
+                index,
+              ) => {
+                setMultiSelectDictionaryListTag((prevTags) => {
+                  const updatedTags = prevTags.filter(
+                    (_, idx) => idx !== index,
+                  );
+
+                  const updatedMultiSelectList = updatedTags.map((tag) => ({
+                    id: tag.id,
+                    value: tag.value,
+                  }));
+
+                  setJsonWad((prevJsonWad) => ({
+                    ...prevJsonWad,
+                    dictionary: updatedMultiSelectList,
+                  }));
+
+                  return updatedTags;
+                });
+
+                setMultiSelectDictionaryList((prevList) =>
+                  prevList.filter((_, idx) => idx !== index),
+                );
+
+                setFieldValue(
+                  "dictionary",
+                  values.dictionary.filter((_, idx) => idx !== index),
+                );
+              };
+
+              const handleRemoveDictionaryListSelectIdTestTag = (index) => {
+                setDictionaryListTag((prevTags) => {
+                  const updatedTags = prevTags.filter(
+                    (_, idx) => idx !== index,
+                  );
+
+                  const updatedDictionaryList = updatedTags.map((tag) => ({
+                    id: tag.id,
+                    value: tag.value,
+                  }));
+
+                  setJsonWad((prevJsonWad) => ({
+                    ...prevJsonWad,
+                    dictionary: updatedDictionaryList,
+                  }));
+
+                  return updatedTags;
+                });
+
+                setSingleSelectDictionaryList((prevList) =>
+                  prevList.filter((_, idx) => idx !== index),
+                );
+
+                setMultiSelectDictionaryList((prevList) =>
+                  prevList.filter((_, idx) => idx !== index),
+                );
+
+                setFieldValue(
+                  "dictionary",
+                  values.dictionary.filter((_, idx) => idx !== index),
+                );
               };
 
               return (
@@ -1967,7 +2029,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   <Grid>
                     <Column lg={8} md={8} sm={4}>
                       <FormattedMessage id="label.select.list.options" />
-                      {/* map the Select list options */}
                       <br />
                       <Select
                         onBlur={handleBlur}
@@ -1975,7 +2036,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         name="dictionary"
                         hideLabel
                         required
-                        onChange={(e) => handelSelectListOptions(e)} // need a fix
+                        onChange={(e) => handelSelectListOptions(e)}
                       >
                         <SelectItem value="0" text="Select List Option" />
                         {dictionaryList?.map((test) => (
@@ -1986,9 +2047,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                           />
                         ))}
                       </Select>
-                      {/* tags need to display */}
                       <br />
-                      {/* need to add tags */}
                       {dictionaryListTag && dictionaryListTag.length ? (
                         <div
                           className={"select-list-options-tag"}
@@ -1999,9 +2058,11 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                               <Tag
                                 filter
                                 key={`list-options_${index}`}
-                                // onClose={() =>
-                                //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                                // }
+                                onClose={() =>
+                                  handleRemoveDictionaryListSelectIdTestTag(
+                                    index,
+                                  )
+                                }
                                 style={{ marginRight: "0.5rem" }}
                                 type={"green"}
                               >
@@ -2025,9 +2086,8 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                           </Section>
                         </Section>
                       </Section>
-                      {/* remeder dragable & Select list options */}
                       {multiSelectDictionaryList &&
-                        multiSelectDictionaryList?.length && (
+                        multiSelectDictionaryList?.length > 0 && (
                           <CustomCommonSortableOrderList
                             test={multiSelectDictionaryList}
                             disableSorting={false}
@@ -2040,14 +2100,15 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <br />
                       <FormattedMessage id="label.reference.value" />
                       <br />
-                      {/* single Select */}
                       <Select
                         onBlur={handleBlur}
                         id={`select-reference-value`}
                         name="dictionaryReference"
                         hideLabel
                         required
-                        // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
+                        onChange={(e) =>
+                          setFieldValue("dictionaryReference", e.target.value)
+                        }
                       >
                         <SelectItem value="0" text="Select Reference Value" />
                         {singleSelectDictionaryList?.map((test) => (
@@ -2062,14 +2123,15 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <br />
                       <FormattedMessage id="label.default.result" />
                       <br />
-                      {/* single Select */}
                       <Select
                         onBlur={handleBlur}
                         id={`select-default-result`}
                         name="dictionaryDefault"
                         hideLabel
                         required
-                        // onChange={(e) => handleSampleTypeListSelectIdTestTag(e)} // need to fix
+                        onChange={(e) =>
+                          setFieldValue("defaultTestResult", e.target.value)
+                        }
                       >
                         <SelectItem
                           value="0"
@@ -2092,7 +2154,9 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         id={`select-qualifiers`}
                         hideLabel
                         required
-                        onChange={(e) => handleSelectQualifiersTag(e)} // need to fix
+                        onChange={(e) => {
+                          handleSelectQualifiersTag(e);
+                        }}
                       >
                         <SelectItem
                           value="0"
@@ -2107,7 +2171,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         ))}
                       </Select>
                       <br />
-                      {/* need to add tags */}
                       {multiSelectDictionaryListTag &&
                       multiSelectDictionaryListTag.length ? (
                         <div
@@ -2119,9 +2182,11 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                               <Tag
                                 filter
                                 key={`qualifiers_${index}`}
-                                // onClose={() =>
-                                //   handleRemoveSampleTypeListSelectIdTestTag(index)
-                                // }
+                                onClose={() =>
+                                  handleRemoveMultiSelectDictionaryListTagSelectIdTestTag(
+                                    index,
+                                  )
+                                }
                                 style={{ marginRight: "0.5rem" }}
                                 type={"green"}
                               >
@@ -2168,10 +2233,31 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                           >
                             <ClickableTile
                               onClick={() => {
-                                // setSelectedGroupedDictionaryList([
-                                //   ...selectedGroupedDictionaryList,
-                                //   innerArray,
-                                // ]);
+                                setSelectedGroupedDictionaryList(
+                                  gdl.map((gdlVal) => gdlVal.id),
+                                );
+
+                                setMultiSelectDictionaryList(
+                                  gdl.map((gdlVal) => ({
+                                    id: gdlVal.id,
+                                    value: gdlVal.value,
+                                  })),
+                                );
+
+                                setSingleSelectDictionaryList(
+                                  gdl.map((gdlVal) => ({
+                                    id: gdlVal.id,
+                                    value: gdlVal.value,
+                                  })),
+                                );
+
+                                setFieldValue(
+                                  "dictionary",
+                                  gdl.map((gdlVal) => ({
+                                    id: gdlVal.id,
+                                    qualified: "N",
+                                  })),
+                                );
                               }}
                             >
                               <Section>
@@ -2303,7 +2389,11 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 )
                 .max(100, "Maximum value is 100")
                 .required("Required"),
-              significantDigits: Yup.number().min(0).max(99).nullable(),
+              significantDigits: Yup.number()
+                .min(0)
+                .max(99)
+                .nullable()
+                .required("Required"),
             })}
             enableReinitialize={true}
             validateOnChange={true}
@@ -2482,7 +2572,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 errors?.resultLimits?.[index]?.ageRange
                               }
                             >
-                              {/* map agerangeList values Form objects inside array */}
                               <SelectItem
                                 value={"0"}
                                 text={`Select Age Range`}
@@ -2688,6 +2777,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     })}
                   </Grid>
                   <br />
+                  <hr />
                   <Grid fullWidth={true}>
                     <Column lg={8} md={4} sm={4} style={{ marginTop: "1rem" }}>
                       <FormattedMessage id="label.reporting.range" />
