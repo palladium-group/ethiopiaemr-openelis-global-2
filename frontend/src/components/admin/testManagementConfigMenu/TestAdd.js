@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(4);
+  const [currentStep, setCurrentStep] = useState(5);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
@@ -203,7 +203,6 @@ function TestAdd() {
     highCritical: "",
     significantDigits: "",
     resultLimits: [],
-    // '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]',
   });
 
   const [showGuide, setShowGuide] = useState(false);
@@ -384,69 +383,6 @@ function TestAdd() {
       }
       return prev;
     });
-  };
-
-  // const handleSampleTypeListSelectIdTestTag = (e) => {
-  //   const selectedTestId = e.target.value;
-  //   const testName = e.target.options[e.target.selectedIndex].text;
-
-  //   const existingIndex = sampleTestTypeToGetTagList.findIndex(
-  //     (item) => item.id === selectedTestId,
-  //   );
-
-  //   let updatedList;
-  //   if (existingIndex !== -1) {
-  //     updatedList = [...sampleTestTypeToGetTagList];
-  //     updatedList.splice(existingIndex, 1);
-  //     setSampleTestTypeToGetTagList(updatedList);
-  //   } else {
-  //     const selectedTest = {
-  //       id: selectedTestId,
-  //       name: testName,
-  //     };
-  //     updatedList = [...sampleTestTypeToGetTagList, selectedTest];
-  //     setSampleTestTypeToGetTagList(updatedList);
-  //   }
-
-  //   const updatedReplace = updatedList.map((item) => item.id);
-  //   setJsonWad((prevJsonWad) => ({
-  //     ...prevJsonWad,
-  //     replace: updatedReplace,
-  //   }));
-  // };
-
-  const handleRemoveSampleTypeListSelectIdTestTag = (indexToRemove) => {
-    setSampleTestTypeToGetTagList((prevTags) => {
-      const updatedTags = prevTags.filter(
-        (_, index) => index !== indexToRemove,
-      );
-
-      const updatedReplace = updatedTags.map((item) => item.id);
-      setJsonWad((prevJsonWad) => ({
-        ...prevJsonWad,
-        replace: updatedReplace,
-      }));
-
-      return updatedTags;
-    });
-
-    setSelectedSampleTypeList((prevList) => {
-      const updatedList = prevList.filter(
-        (_, index) => index !== indexToRemove,
-      );
-      return updatedList;
-    });
-
-    setSelectedSampleType((prevList) => {
-      const updatedList = prevList.filter(
-        (_, index) => index !== indexToRemove,
-      );
-      return updatedList;
-    });
-
-    setSelectedSampleTypeResp((prevState) =>
-      prevState.filter((_, index) => index !== indexToRemove),
-    );
   };
 
   const handleTestAddPostCall = (values) => {
@@ -747,8 +683,6 @@ function TestAdd() {
       </>
     );
   }
-
-  console.log(formData);
 
   return (
     <>
@@ -1673,46 +1607,25 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
               const handleRemoveSampleTypeListSelectIdTestTag = (
                 indexToRemove,
               ) => {
-                setFieldValue("sampleTypes", [
-                  ...selectedSampleTypeList.filter(
-                    (_, index) => index !== indexToRemove,
-                  ),
-                ]);
+                const filterByIndex = (_, index) => index !== indexToRemove;
+
+                setFieldValue(
+                  "sampleTypes",
+                  selectedSampleTypeList.filter(filterByIndex),
+                );
+                setSelectedSampleTypeList((prev) => prev.filter(filterByIndex));
+                setSelectedSampleType((prev) => prev.filter(filterByIndex));
+                setSelectedSampleTypeResp((prev) => prev.filter(filterByIndex));
 
                 setSampleTestTypeToGetTagList((prevTags) => {
-                  const updatedTags = prevTags.filter(
-                    (_, index) => index !== indexToRemove,
-                  );
-
-                  const updatedReplace = updatedTags.map((item) => item.id);
-                  setJsonWad((prevJsonWad) => ({
-                    ...prevJsonWad,
-                    replace: updatedReplace,
+                  const updatedTags = prevTags.filter(filterByIndex);
+                  setJsonWad((prev) => ({
+                    ...prev,
+                    replace: updatedTags.map((item) => item.id),
                   }));
-
                   return updatedTags;
                 });
-
-                setSelectedSampleTypeList((prevList) => {
-                  const updatedList = prevList.filter(
-                    (_, index) => index !== indexToRemove,
-                  );
-                  return updatedList;
-                });
-
-                setSelectedSampleType((prevList) => {
-                  const updatedList = prevList.filter(
-                    (_, index) => index !== indexToRemove,
-                  );
-                  return updatedList;
-                });
-
-                setSelectedSampleTypeResp((prevState) =>
-                  prevState.filter((_, index) => index !== indexToRemove),
-                );
               };
-
-              console.log("Selected Sample Type Resp:", values.sampleTypes);
 
               return (
                 <Form>
@@ -1864,30 +1777,30 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={Yup.object({
-            //   dictionary: Yup.array()
-            //     .min(1, "At least one dictionary option must be selected")
-            //     .of(
-            //       Yup.object().shape({
-            //         value: Yup.string()
-            //           .required("Dictionary ID is required")
-            //           .oneOf(
-            //             dictionaryList.map((item) => item.id),
-            //             "Please select a valid dictionary option",
-            //           ),
-            //         qualified: Yup.string().oneOf(
-            //           ["Y", "N"],
-            //           "Qualified must be Y or N",
-            //         ),
-            //       }),
-            //     ),
-            //   dictionaryReference: Yup.string().required(
-            //     "Dictionary Reference is required",
-            //   ),
-            //   dictionaryDefault: Yup.string().required(
-            //     "Dictionary Default is required",
-            //   ),
-            // })}
+            validationSchema={Yup.object({
+              dictionary: Yup.array()
+                .min(1, "At least one dictionary option must be selected")
+                .of(
+                  Yup.object().shape({
+                    value: Yup.string()
+                      .required("Dictionary ID is required")
+                      .oneOf(
+                        dictionaryList.map((item) => item.id),
+                        "Please select a valid dictionary option",
+                      ),
+                    qualified: Yup.string().oneOf(
+                      ["Y", "N"],
+                      "Qualified must be Y or N",
+                    ),
+                  }),
+                ),
+              dictionaryReference: Yup.string().required(
+                "Dictionary Reference is required",
+              ),
+              dictionaryDefault: Yup.string().required(
+                "Dictionary Default is required",
+              ),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -1911,25 +1824,30 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   (item) => item.id === selectedId,
                 );
 
-                if (selectedObject) {
-                  setSingleSelectDictionaryList((prev) => [
-                    ...prev,
-                    selectedObject,
-                  ]);
-                  setMultiSelectDictionaryList((prev) => [
-                    ...prev,
-                    selectedObject,
-                  ]);
+                if (selectedObject) return;
 
-                  setDictionaryListTag((prev) => [...prev, selectedObject]);
+                setSingleSelectDictionaryList((prev) => [
+                  ...prev,
+                  selectedObject,
+                ]);
 
-                  setFieldValue(
-                    "dictionary",
-                    values.dictionary?.map((item) => ({
-                      id: item.id,
-                      qualified: "N",
-                    })),
-                  );
+                setMultiSelectDictionaryList((prev) => [
+                  ...prev,
+                  selectedObject,
+                ]);
+
+                setDictionaryListTag((prev) => [...prev, selectedObject]);
+
+                if (
+                  selectedObject &&
+                  !values.dictionary?.some(
+                    (item) => item.id === selectedObject.id,
+                  )
+                ) {
+                  setFieldValue("dictionary", [
+                    ...(values.dictionary || []),
+                    { id: selectedObject.id, qualified: "N" },
+                  ]);
                 }
 
                 //set the data object in jsonWad
@@ -1942,20 +1860,21 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   (item) => item.id === selectedId,
                 );
 
-                if (selectedObject) {
-                  setMultiSelectDictionaryListTag((prev) => [
-                    ...prev,
-                    selectedObject,
-                  ]);
+                if (!selectedObject) return;
 
-                  setFieldValue(
-                    "dictionary",
-                    values.dictionary?.map((item) => ({
-                      id: item.id,
-                      qualified: item.id.toString() === selectedId ? "Y" : "N",
-                    })),
-                  );
-                }
+                setMultiSelectDictionaryListTag((prev) =>
+                  prev.some((item) => item.id === selectedObject.id)
+                    ? prev
+                    : [...prev, selectedObject],
+                );
+
+                setFieldValue(
+                  "dictionary",
+                  (values.dictionary || []).map((item) => ({
+                    id: item.id,
+                    qualified: item.id === selectedObject.id ? "Y" : "N",
+                  })),
+                );
 
                 //set the data object in jsonWad
               };
@@ -2023,6 +1942,8 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   values.dictionary.filter((_, idx) => idx !== index),
                 );
               };
+
+              console.log(values);
 
               return (
                 <Form>
@@ -2424,8 +2345,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               const handleRangeChange = (index, field, value) => {
                 setFieldValue(`resultLimits[${index}].${field}`, value);
               };
-
-              console.log(values.resultLimits);
 
               return (
                 <Form>
