@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(0);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
@@ -498,9 +498,6 @@ function TestAdd() {
       setSelectedSampleType={setSelectedSampleType}
       selectedSampleTypeResp={selectedSampleTypeResp}
       setSelectedSampleTypeResp={setSelectedSampleTypeResp}
-      handleRemoveSampleTypeListSelectIdTestTag={
-        handleRemoveSampleTypeListSelectIdTestTag
-      }
       jsonWad={jsonWad}
       setJsonWad={setJsonWad}
       currentStep={currentStep}
@@ -526,9 +523,6 @@ function TestAdd() {
       setMultiSelectDictionaryList={setMultiSelectDictionaryList}
       multiSelectDictionaryListTag={multiSelectDictionaryListTag}
       setMultiSelectDictionaryListTag={setMultiSelectDictionaryListTag}
-      handleRemoveSampleTypeListSelectIdTestTag={
-        handleRemoveSampleTypeListSelectIdTestTag
-      }
       jsonWad={jsonWad}
       setJsonWad={setJsonWad}
       currentStep={currentStep}
@@ -1114,8 +1108,6 @@ const StepTwoTestPanelAndUom = ({
               return updatedTags;
             });
 
-            // setFieldValue("panel", selectedId);
-
             setFieldValue("panels", [...values.panels, { id: selectedId }]);
 
             setJsonWad((prev) => ({ ...prev, panel: selectedId }));
@@ -1525,7 +1517,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   selectedSampleType,
   setSelectedSampleType,
   selectedSampleTypeResp,
-  handleRemoveSampleTypeListSelectIdTestTag,
   setSelectedSampleTypeResp,
   jsonWad,
   setJsonWad,
@@ -1763,7 +1754,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   setMultiSelectDictionaryList,
   multiSelectDictionaryListTag,
   setMultiSelectDictionaryListTag,
-  handleRemoveSampleTypeListSelectIdTestTag,
   jsonWad,
   setJsonWad,
   currentStep,
@@ -1777,30 +1767,30 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={Yup.object({
-              dictionary: Yup.array()
-                .min(1, "At least one dictionary option must be selected")
-                .of(
-                  Yup.object().shape({
-                    value: Yup.string()
-                      .required("Dictionary ID is required")
-                      .oneOf(
-                        dictionaryList.map((item) => item.id),
-                        "Please select a valid dictionary option",
-                      ),
-                    qualified: Yup.string().oneOf(
-                      ["Y", "N"],
-                      "Qualified must be Y or N",
-                    ),
-                  }),
-                ),
-              dictionaryReference: Yup.string().required(
-                "Dictionary Reference is required",
-              ),
-              dictionaryDefault: Yup.string().required(
-                "Dictionary Default is required",
-              ),
-            })}
+            // validationSchema={Yup.object({
+            //   dictionary: Yup.array()
+            //     .min(1, "At least one dictionary option must be selected")
+            //     .of(
+            //       Yup.object().shape({
+            //         id: Yup.string()
+            //           .required("Dictionary ID is required")
+            //           .oneOf(
+            //             dictionaryList.map((item) => item.id),
+            //             "Please select a valid dictionary option",
+            //           ),
+            //         qualified: Yup.string().oneOf(
+            //           ["Y", "N"],
+            //           "Qualified must be Y or N",
+            //         ),
+            //       }),
+            //     ),
+            //   dictionaryReference: Yup.string().required(
+            //     "Dictionary Reference is required",
+            //   ),
+            //   dictionaryDefault: Yup.string().required(
+            //     "Dictionary Default is required",
+            //   ),
+            // })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -1824,7 +1814,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   (item) => item.id === selectedId,
                 );
 
-                if (selectedObject) return;
+                if (!selectedObject) return;
 
                 setSingleSelectDictionaryList((prev) => [
                   ...prev,
@@ -1871,8 +1861,9 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                 setFieldValue(
                   "dictionary",
                   (values.dictionary || []).map((item) => ({
-                    id: item.id,
-                    qualified: item.id === selectedObject.id ? "Y" : "N",
+                    ...item,
+                    qualified:
+                      item.id === selectedObject.id ? "Y" : item.qualified,
                   })),
                 );
 
@@ -1943,8 +1934,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                 );
               };
 
-              console.log(values);
-
               return (
                 <Form>
                   <Grid>
@@ -2007,10 +1996,10 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                           </Section>
                         </Section>
                       </Section>
-                      {multiSelectDictionaryList &&
-                        multiSelectDictionaryList?.length > 0 && (
+                      {singleSelectDictionaryList &&
+                        singleSelectDictionaryList?.length > 0 && (
                           <CustomCommonSortableOrderList
-                            test={multiSelectDictionaryList}
+                            test={singleSelectDictionaryList}
                             disableSorting={false}
                             onSort={(updatedList) => {
                               // console.log(updatedList);
@@ -2154,6 +2143,9 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                           >
                             <ClickableTile
                               onClick={() => {
+                                setDictionaryListTag([]);
+                                setMultiSelectDictionaryListTag([]);
+
                                 setSelectedGroupedDictionaryList(
                                   gdl.map((gdlVal) => gdlVal.id),
                                 );
@@ -2166,6 +2158,13 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                                 );
 
                                 setSingleSelectDictionaryList(
+                                  gdl.map((gdlVal) => ({
+                                    id: gdlVal.id,
+                                    value: gdlVal.value,
+                                  })),
+                                );
+
+                                setDictionaryListTag(
                                   gdl.map((gdlVal) => ({
                                     id: gdlVal.id,
                                     value: gdlVal.value,
@@ -2258,64 +2257,64 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-            validationSchema={Yup.object().shape({
-              resultLimits: Yup.array().of(
-                Yup.object().shape({
-                  ageRange: Yup.string().required("Age range is required"),
-                  highAgeRange: Yup.string().required("Required"),
-                  gender: Yup.boolean().required("Required"),
-                  lowNormal: Yup.number()
-                    .min(0, "Minimum 0")
-                    .max(100, "Maximum 100")
-                    .required("Required"),
-                  highNormal: Yup.number()
-                    .min(
-                      Yup.ref("lowNormal"),
-                      "Must be greater than or equal to lowNormal",
-                    )
-                    .max(100, "Maximum 100")
-                    .required("Required"),
-                }),
-              ),
-              lowReportingRange: Yup.number()
-                .min(0)
-                .max(100)
-                .required("Required"),
-              highReportingRange: Yup.number()
-                .min(
-                  Yup.ref("lowReportingRange"),
-                  "Must be greater or equal to lower reporting range",
-                )
-                .max(100)
-                .required("Required"),
-              lowValid: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
-                .required("Required"),
-              highValid: Yup.number()
-                .min(
-                  Yup.ref("lowValid"),
-                  "Must be greater than or equal to Lower Valid Range",
-                )
-                .max(100, "Maximum value is 100")
-                .required("Required"),
-              lowCritical: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
-                .required("Required"),
-              highCritical: Yup.number()
-                .min(
-                  Yup.ref("lowCritical"),
-                  "Must be greater than or equal to Lower Critical Range",
-                )
-                .max(100, "Maximum value is 100")
-                .required("Required"),
-              significantDigits: Yup.number()
-                .min(0)
-                .max(99)
-                .nullable()
-                .required("Required"),
-            })}
+            // validationSchema={Yup.object().shape({
+            //   resultLimits: Yup.array().of(
+            //     Yup.object().shape({
+            //       ageRange: Yup.string().required("Age range is required"),
+            //       highAgeRange: Yup.string().required("Required"),
+            //       gender: Yup.boolean().required("Required"),
+            //       lowNormal: Yup.number()
+            //         .min(0, "Minimum 0")
+            //         .max(100, "Maximum 100")
+            //         .required("Required"),
+            //       highNormal: Yup.number()
+            //         .min(
+            //           Yup.ref("lowNormal"),
+            //           "Must be greater than or equal to lowNormal",
+            //         )
+            //         .max(100, "Maximum 100")
+            //         .required("Required"),
+            //     }),
+            //   ),
+            //   lowReportingRange: Yup.number()
+            //     .min(0)
+            //     .max(100)
+            //     .required("Required"),
+            //   highReportingRange: Yup.number()
+            //     .min(
+            //       Yup.ref("lowReportingRange"),
+            //       "Must be greater or equal to lower reporting range",
+            //     )
+            //     .max(100)
+            //     .required("Required"),
+            //   lowValid: Yup.number()
+            //     .min(0, "Minimum value is 0")
+            //     .max(100, "Maximum value is 100")
+            //     .required("Required"),
+            //   highValid: Yup.number()
+            //     .min(
+            //       Yup.ref("lowValid"),
+            //       "Must be greater than or equal to Lower Valid Range",
+            //     )
+            //     .max(100, "Maximum value is 100")
+            //     .required("Required"),
+            //   lowCritical: Yup.number()
+            //     .min(0, "Minimum value is 0")
+            //     .max(100, "Maximum value is 100")
+            //     .required("Required"),
+            //   highCritical: Yup.number()
+            //     .min(
+            //       Yup.ref("lowCritical"),
+            //       "Must be greater than or equal to Lower Critical Range",
+            //     )
+            //     .max(100, "Maximum value is 100")
+            //     .required("Required"),
+            //   significantDigits: Yup.number()
+            //     .min(0)
+            //     .max(99)
+            //     .nullable()
+            //     .required("Required"),
+            // })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2948,7 +2947,15 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
                 <Form>
                   <Grid fullWidth={true}>
                     <Column lg={6} md={8} sm={4}>
-                      <FormattedMessage id="sample.entry.project.testName" />
+                      <Section>
+                        <Section>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="sample.entry.project.testName" />
+                            </Heading>
+                          </Section>
+                        </Section>
+                      </Section>
                       <br />
                       <FormattedMessage id="english.label" />
                       {" : "}
@@ -2959,7 +2966,15 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
                       {values?.testNameFrench}
                       <br />
                       <br />
-                      <FormattedMessage id="reporting.label.testName" />
+                      <Section>
+                        <Section>
+                          <Section>
+                            <Heading>
+                              <FormattedMessage id="reporting.label.testName" />
+                            </Heading>
+                          </Section>
+                        </Section>
+                      </Section>
                       <br />
                       <FormattedMessage id="english.label" />
                       {" : "}
@@ -3065,6 +3080,14 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
                       ) : (
                         <></>
                       )}
+                      <br />
+                      <FormattedMessage id="field.referenceValue" />
+                      {" : "}
+                      {values?.dictionaryReference}
+                      <br />
+                      <FormattedMessage id="label.default.result" />
+                      {" : "}
+                      {values?.defaultTestResult}
                     </Column>
                   </Grid>
                   <br />
