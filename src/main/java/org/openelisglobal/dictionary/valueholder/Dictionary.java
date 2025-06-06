@@ -26,6 +26,9 @@ import org.openelisglobal.localization.valueholder.Localization;
 public class Dictionary extends BaseObject<String> {
 
     private static final long serialVersionUID = 1L;
+    private String loincCode;
+    private String loincDisplay;
+    private String loincSystem = "http://loinc.org";
 
     public class ComparatorLocalizedName implements Comparator<Dictionary> {
         @Override
@@ -152,4 +155,29 @@ public class Dictionary extends BaseObject<String> {
     public String toString() {
         return "Dictionary [id=" + id + ", localAbbreviation=" + localAbbreviation + ", nameKey=" + getNameKey() + "]";
     }
+
+    public String getLoincCode() {
+        return loincCode;
+    }
+
+    public void setLoincCode(String loincCode) {
+        this.loincCode = loincCode;
+    }
+
+    public String getLoincDisplay() {
+        return loincDisplay;
+    }
+
+    public void setLoincDisplay(String loincDisplay) {
+        this.loincDisplay = loincDisplay;
+    }
+
+    public String getLoincSystem() {
+        return loincSystem;
+    }
+
+    public void setLoincSystem(String loincSystem) {
+        this.loincSystem = loincSystem;
+    }
+
 }

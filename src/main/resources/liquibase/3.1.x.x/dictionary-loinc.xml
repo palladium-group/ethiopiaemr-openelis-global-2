@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="seed_dictionary_loinc" author="Agaba_Derrick">
+        <update tableName="dictionary" schemaName="clinlims">
+            <column name="loinc_code" value="LA13522-5"/>
+            <column name="loinc_display" value="Invalid Result"/>
+            <where>dict_entry = 'Invalid'</where>
+        </update>
+        <insert tableName="dictionary" schemaName="clinlims">
+            <column name="id" valueComputed="nextval('dictionary_seq')"/>
+            <column name="dict_entry" value="Indeterminate"/>
+            <column name="is_active" value="Y"/>
+            <column name="loinc_code" value="LA12688-0"/>
+            <column name="loinc_display" value="Indeterminate Result"/>
+            <column name="loinc_system" value="http://loinc.org"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
