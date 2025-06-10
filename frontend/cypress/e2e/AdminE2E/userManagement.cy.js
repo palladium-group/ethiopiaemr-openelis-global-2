@@ -3,7 +3,7 @@ import LoginPage from "../../pages/LoginPage";
 let loginPage = null;
 let homePage = null;
 let adminPage = null;
-let userMgmnt = null;
+let userManagement = null;
 let usersData;
 
 before(() => {
@@ -23,232 +23,232 @@ describe("User Management", function () {
   });
 
   it("Navigate to User Management Page", function () {
-    userMgmnt = adminPage.goToUserManagementPage();
-    userMgmnt.verifyPageTitle();
+    userManagement = adminPage.goToUserManagementPage();
+    userManagement.verifyPageTitle();
   });
 
   describe("Add User and Exit", function () {
     it("Add User", function () {
-      userMgmnt.clickAddButton();
-      userMgmnt.validatePageTitle();
+      userManagement.clickAddButton();
+      userManagement.validatePageTitle();
     });
 
-    it("Enter USer details", function () {
-      userMgmnt.typeLoginName(usersData[0].username);
-      userMgmnt.passwordExpiryDate(usersData[0].passwordExpiryDate);
-      userMgmnt.typeLoginPassword(usersData[0].password);
-      userMgmnt.repeatPassword(usersData[0].password);
-      userMgmnt.enterFirstName(usersData[0].fName);
-      userMgmnt.enterLastName(usersData[0].lName);
-      userMgmnt.enterUserTimeout(usersData[0].userTimeout);
+    it("Enter User details", function () {
+      userManagement.typeLoginName(usersData[0].username);
+      userManagement.passwordExpiryDate(usersData[0].passwordExpiryDate);
+      userManagement.typeLoginPassword(usersData[0].password);
+      userManagement.repeatPassword(usersData[0].password);
+      userManagement.enterFirstName(usersData[0].fName);
+      userManagement.enterLastName(usersData[0].lName);
+      userManagement.enterUserTimeout(usersData[0].userTimeout);
     });
 
     it("Add and Remove Lab Unit Roles", function () {
-      userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
-      userMgmnt.removePermission();
+      userManagement.addNewPermission();
+      userManagement.allPermissions();
+      userManagement.removePermission();
     });
 
     it("Apply Roles and Permissions", function () {
-      //userMgmnt.copyPermisionsFromUser();
-      //userMgmnt.applyChanges();
-      userMgmnt.analyzerImport();
-      userMgmnt.globalAdministrator();
-      userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
+      //userManagement.copyPermisionsFromUser();
+      //userManagement.applyChanges();
+      userManagement.analyzerImport();
+      userManagement.globalAdministrator();
+      userManagement.addNewPermission();
+      userManagement.allPermissions();
     });
 
     it("Exit", function () {
-      userMgmnt.exitChanges();
+      userManagement.exitChanges();
     });
   });
 
   describe("Add Users and Save", function () {
     it("Add First User", function () {
-      userMgmnt.clickAddButton();
-      userMgmnt.validatePageTitle();
-      userMgmnt.typeLoginName(usersData[0].username);
-      userMgmnt.passwordExpiryDate(usersData[0].passwordExpiryDate);
-      userMgmnt.typeLoginPassword(usersData[0].password);
-      userMgmnt.repeatPassword(usersData[0].password);
-      userMgmnt.enterFirstName(usersData[0].fName);
-      userMgmnt.enterLastName(usersData[0].lName);
-      userMgmnt.enterUserTimeout(usersData[0].userTimeout);
-      userMgmnt.checkAccountLocked();
-      userMgmnt.checkAccountDisabled();
-      userMgmnt.checkNotActive();
+      userManagement.clickAddButton();
+      userManagement.validatePageTitle();
+      userManagement.typeLoginName(usersData[0].username);
+      userManagement.passwordExpiryDate(usersData[0].passwordExpiryDate);
+      userManagement.typeLoginPassword(usersData[0].password);
+      userManagement.repeatPassword(usersData[0].password);
+      userManagement.enterFirstName(usersData[0].fName);
+      userManagement.enterLastName(usersData[0].lName);
+      userManagement.enterUserTimeout(usersData[0].userTimeout);
+      userManagement.checkAccountLocked();
+      userManagement.checkAccountDisabled();
+      userManagement.checkNotActive();
     });
 
     it("Apply Roles and Permissions", function () {
-      userMgmnt.globalAdministrator();
-      userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
+      userManagement.globalAdministrator();
+      userManagement.addNewPermission();
+      userManagement.allPermissions();
     });
 
     it("Save User", function () {
-      userMgmnt.saveChanges();
+      userManagement.saveChanges();
     });
 
     it("Add Second User", function () {
-      userMgmnt = adminPage.goToUserManagementPage();
-      userMgmnt.verifyPageTitle();
-      userMgmnt.clickAddButton();
-      userMgmnt.validatePageTitle();
-      userMgmnt.typeLoginName(usersData[1].username);
-      userMgmnt.passwordExpiryDate(usersData[1].passwordExpiryDate);
-      userMgmnt.typeLoginPassword(usersData[1].password);
-      userMgmnt.repeatPassword(usersData[1].password);
-      userMgmnt.enterFirstName(usersData[1].fName);
-      userMgmnt.enterLastName(usersData[1].lName);
-      userMgmnt.enterUserTimeout(usersData[1].userTimeout);
-      userMgmnt.checkAccountLocked();
-      userMgmnt.checkAccountDisabled();
-      userMgmnt.checkNotActive();
-      userMgmnt.checkAccountNotLocked();
-      userMgmnt.checkAccountEnabled();
-      userMgmnt.checkActive();
+      userManagement = adminPage.goToUserManagementPage();
+      userManagement.verifyPageTitle();
+      userManagement.clickAddButton();
+      userManagement.validatePageTitle();
+      userManagement.typeLoginName(usersData[1].username);
+      userManagement.passwordExpiryDate(usersData[1].passwordExpiryDate);
+      userManagement.typeLoginPassword(usersData[1].password);
+      userManagement.repeatPassword(usersData[1].password);
+      userManagement.enterFirstName(usersData[1].fName);
+      userManagement.enterLastName(usersData[1].lName);
+      userManagement.enterUserTimeout(usersData[1].userTimeout);
+      userManagement.checkAccountLocked();
+      userManagement.checkAccountDisabled();
+      userManagement.checkNotActive();
+      userManagement.checkAccountNotLocked();
+      userManagement.checkAccountEnabled();
+      userManagement.checkActive();
     });
 
     it("Apply Roles and Permissions", function () {
-      //userMgmnt.copyPermisionsFromUser(usersData[0].fName);
-      //userMgmnt.applyChanges();
-      userMgmnt.globalAdministrator();
-      userMgmnt.addNewPermission();
-      userMgmnt.allPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allBioPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allHemaPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allSeroPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allImmunoPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allMolecularPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allCytoPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allSerologyPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allViroPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allPathoPermissions();
-      userMgmnt.addNewPermission();
-      userMgmnt.allImmunoHistoPermissions();
+      //userManagement.copyPermisionsFromUser(usersData[0].fName);
+      //userManagement.applyChanges();
+      userManagement.globalAdministrator();
+      userManagement.addNewPermission();
+      userManagement.allPermissions();
+      userManagement.addNewPermission();
+      userManagement.allBioPermissions();
+      userManagement.addNewPermission();
+      userManagement.allHemaPermissions();
+      userManagement.addNewPermission();
+      userManagement.allSeroPermissions();
+      userManagement.addNewPermission();
+      userManagement.allImmunoPermissions();
+      userManagement.addNewPermission();
+      userManagement.allMolecularPermissions();
+      userManagement.addNewPermission();
+      userManagement.allCytoPermissions();
+      userManagement.addNewPermission();
+      userManagement.allSerologyPermissions();
+      userManagement.addNewPermission();
+      userManagement.allViroPermissions();
+      userManagement.addNewPermission();
+      userManagement.allPathoPermissions();
+      userManagement.addNewPermission();
+      userManagement.allImmunoHistoPermissions();
     });
 
     it("Save User", function () {
-      userMgmnt.saveChanges();
+      userManagement.saveChanges();
     });
   });
 
   describe("Validate added Users", function () {
-    it("Search by Username", function () {
-      userMgmnt = adminPage.goToUserManagementPage();
-      userMgmnt.verifyPageTitle();
+    it("Search users by Usernames", function () {
+      userManagement = adminPage.goToUserManagementPage();
+      userManagement.verifyPageTitle();
       cy.wait(500);
-      userMgmnt.searchUser(usersData[0].username);
-      userMgmnt.validateUser(usersData[0].username);
-      userMgmnt.searchUser(usersData[1].username);
-      userMgmnt.validateUser(usersData[1].username);
+      userManagement.searchUser(usersData[0].username);
+      userManagement.validateUser(usersData[0].username);
+      userManagement.searchUser(usersData[1].username);
+      userManagement.validateUser(usersData[1].username);
     });
 
     it("Search by First Name", function () {
-      userMgmnt.searchUser(usersData[0].fName);
-      userMgmnt.validateUser(usersData[0].fName);
-      userMgmnt.searchUser(usersData[1].fName);
-      userMgmnt.validateUser(usersData[1].fName);
+      userManagement.searchUser(usersData[0].fName);
+      userManagement.validateUser(usersData[0].fName);
+      userManagement.searchUser(usersData[1].fName);
+      userManagement.validateUser(usersData[1].fName);
     });
 
     it("Search by Last Name", function () {
-      userMgmnt.searchUser(usersData[0].lName);
-      userMgmnt.validateUser(usersData[0].lName);
-      userMgmnt.searchUser(usersData[1].lName);
-      userMgmnt.validateUser(usersData[1].lName);
-      userMgmnt.clearSearchBar();
+      userManagement.searchUser(usersData[0].lName);
+      userManagement.validateUser(usersData[0].lName);
+      userManagement.searchUser(usersData[1].lName);
+      userManagement.validateUser(usersData[1].lName);
+      userManagement.clearSearchBar();
     });
 
     it("Search by Lab Unit Roles", function () {
       cy.reload();
-      userMgmnt.searchByFilters(usersData[1].bioChem);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].hematology);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].seroImmuno);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].immunology);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].molecularBio);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].cyto);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].viro);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].patho);
-      userMgmnt.validateUser(usersData[1].fName);
-      userMgmnt.searchByFilters(usersData[1].immunoHisto);
-      userMgmnt.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].bioChem);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].hematology);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].seroImmuno);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].immunology);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].molecularBio);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].cyto);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].viro);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].patho);
+      userManagement.validateUser(usersData[1].fName);
+      userManagement.searchByFilters(usersData[1].immunoHisto);
+      userManagement.validateUser(usersData[1].fName);
       cy.reload();
     });
 
     it("Validate active/inactive users", function () {
-      userMgmnt.activeUser(); //checks active users
-      userMgmnt.inactiveUser(usersData[0].fName);
-      userMgmnt.activeUser(usersData[1].fName);
+      userManagement.activeUser(); //checks active users
+      userManagement.inactiveUser(usersData[0].fName);
+      userManagement.activeUser(usersData[1].fName);
       cy.reload();
     });
   });
 
   describe("Modify First User", function () {
     it("Check user to modify", function () {
-      userMgmnt.checkUser(usersData[0].fName);
+      userManagement.checkUser(usersData[0].fName);
     });
 
     it("Modify User and Save", function () {
-      userMgmnt.modifyUser();
-      userMgmnt.typeLoginPassword(usersData[0].password);
-      userMgmnt.repeatPassword(usersData[0].password);
-      userMgmnt.checkAccountNotLocked();
-      userMgmnt.checkAccountEnabled();
-      userMgmnt.checkActive();
-      userMgmnt.saveChanges();
+      userManagement.modifyUser();
+      userManagement.typeLoginPassword(usersData[0].password);
+      userManagement.repeatPassword(usersData[0].password);
+      userManagement.checkAccountNotLocked();
+      userManagement.checkAccountEnabled();
+      userManagement.checkActive();
+      userManagement.saveChanges();
     });
 
     it("Validate user is activated", function () {
-      userMgmnt = adminPage.goToUserManagementPage();
-      userMgmnt.verifyPageTitle();
-      userMgmnt.activeUser();
-      userMgmnt.activeUser(usersData[0].fName);
+      userManagement = adminPage.goToUserManagementPage();
+      userManagement.verifyPageTitle();
+      userManagement.activeUser();
+      userManagement.activeUser(usersData[0].fName);
     });
 
     it("Search by Only Administrator", function () {
-      userMgmnt.adminUser(); //adding two admin users?
-      userMgmnt.validateUser(usersData[0].defaultAdmin);
-      userMgmnt.nonAdminUser(usersData[0].fName);
-      userMgmnt.nonAdminUser(usersData[1].fName);
+      userManagement.adminUser(); //adding two admin users?
+      userManagement.validateUser(usersData[0].defaultAdmin);
+      userManagement.nonAdminUser(usersData[0].fName);
+      userManagement.nonAdminUser(usersData[1].fName);
     });
   });
 
   //describe("Deactivate User", function () {
   //it("Check User and deactivate", function () {
-  //userMgmnt.checkUser(usersData[1].fName);
-  //userMgmnt.deactivateUser();
+  //userManagement.checkUser(usersData[1].fName);
+  //userManagement.deactivateUser();
   //});
   //it("Validate deactivated user", ()=>{});
   //});
 
   describe("Signout, use active/deactivated user to login", () => {
     // it("Login with Deactivated user", () => {
-    // userMgmnt = loginPage.signOut();
+    // userManagement = loginPage.signOut();
     // loginPage.enterUsername(usersData[1].username);
     // loginPage.enterPassword(usersData[1].password);
     // loginPage.signIn();
     // cy.contains("Username or Password are incorrect").should("be.visible");
-    //userMgmnt.incorrectCredentials();
+    //userManagement.incorrectCredentials();
     // });
 
     it("Login with Active user", () => {
-      userMgmnt = loginPage.signOut();
+      userManagement = loginPage.signOut();
       loginPage.enterUsername(usersData[0].username);
       loginPage.enterPassword(usersData[0].password); //BUG:there is a password change
       loginPage.signIn();
@@ -256,7 +256,7 @@ describe("User Management", function () {
 
     it("Navigate back to User Management", () => {
       adminPage = homePage.goToAdminPage();
-      userMgmnt = adminPage.goToUserManagementPage();
+      userManagement = adminPage.goToUserManagementPage();
     });
   });
 });
