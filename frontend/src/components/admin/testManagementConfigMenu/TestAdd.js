@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(5);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
@@ -879,6 +879,8 @@ const StepOneTestNameAndTestSection = ({
                       id={`select-test-section`}
                       hideLabel
                       required
+                      invalid={touched.testSection && !!errors.testSection}
+                      invalidText={touched.testSection && errors.testSection}
                       name="testSection"
                       onChange={handelTestSectionSelect}
                       onBlur={handleBlur}
@@ -1060,13 +1062,14 @@ const StepTwoTestPanelAndUom = ({
                     "Please select a valid panel",
                   ),
               }),
+            )
+            .notOneOf(
+              [Yup.array().of(Yup.object().shape({ id: "0" }))],
+              "Please select a valid panel",
             ),
           uom: Yup.string()
-            .min(1, "At least one unit of measurement must be selected")
-            .oneOf(
-              uomList.map((item) => String(item.id)),
-              "Please select a valid unit of measurement",
-            ),
+            .notOneOf(["0", ""], "Please select a valid unit of measurement")
+            .required("Unit of measurement is required"),
         })}
         enableReinitialize={true}
         validateOnChange={true}
@@ -1157,14 +1160,14 @@ const StepTwoTestPanelAndUom = ({
                   <Select
                     onBlur={handleBlur}
                     id={`select-panel`}
-                    name="panel"
+                    name="panels"
                     onChange={(e) => {
                       handelPanelSelectSetTag(e);
                     }}
                     hideLabel
                     required
-                    invalid={touched.panel && !!errors.panel}
-                    invalidText={touched.panel && errors.panel}
+                    invalid={touched.panels && !!errors.panels}
+                    invalidText={touched.panels && errors.panels}
                   >
                     <SelectItem value="0" text="Select Panel" />
                     {panelList?.map((test) => (
@@ -1211,6 +1214,7 @@ const StepTwoTestPanelAndUom = ({
                     required
                     invalid={touched.uom && !!errors.uom}
                     invalidText={touched.uom && errors.uom}
+                    value={values.uom}
                   >
                     <SelectItem value="0" text="Select Unit Of Measurement" />
                     {uomList?.map((test) => (
@@ -1273,10 +1277,7 @@ const StepThreeTestResultTypeAndLoinc = ({
         initialValues={formData}
         validationSchema={Yup.object({
           resultType: Yup.string()
-            .oneOf(
-              resultTypeList.map((item) => item.id),
-              "Please select a valid Result Type",
-            )
+            .notOneOf(["0", ""], "Please select a valid Result Type")
             .required("Result Type is required"),
           loinc: Yup.string()
             .matches(/^(?!-)(?:\d+-)*\d*$/, "Loinc must contain only numbers")
@@ -1313,7 +1314,7 @@ const StepThreeTestResultTypeAndLoinc = ({
           setFieldValue,
         }) => {
           const handelLonicChange = (e) => {
-            const regex = /^(?!-)(?:\d+-)*\d*$/;
+            const regex = /^(?!-)(?:\d+-)*\d+$/;
 
             const value = e.target.value;
 
@@ -1403,6 +1404,7 @@ const StepThreeTestResultTypeAndLoinc = ({
                     <Select
                       onBlur={handleBlur}
                       id={`select-result-type`}
+                      name="resultType"
                       hideLabel
                       required
                       onChange={(e) => {
@@ -1448,6 +1450,7 @@ const StepThreeTestResultTypeAndLoinc = ({
                         <FormattedMessage id="test.antimicrobialResistance" />
                       }
                       id="antimicrobial-resistance"
+                      name="antimicrobialResistance"
                       onChange={handleAntimicrobialResistance}
                       checked={values?.antimicrobialResistance === "Y"}
                     />
@@ -1456,24 +1459,28 @@ const StepThreeTestResultTypeAndLoinc = ({
                         <FormattedMessage id="dictionary.category.isActive" />
                       }
                       id="is-active"
+                      name="active"
                       onChange={handleIsActive}
                       checked={values?.active === "Y"}
                     />
                     <Checkbox
                       labelText={<FormattedMessage id="label.orderable" />}
                       id="orderable"
+                      name="orderable"
                       onChange={handleOrderable}
                       checked={values?.orderable === "Y"}
                     />
                     <Checkbox
                       labelText={<FormattedMessage id="test.notifyResults" />}
                       id="notify-patient-of-results"
+                      name="notifyResults"
                       onChange={handleNotifyPatientofResults}
                       checked={values?.notifyResults === "Y"}
                     />
                     <Checkbox
                       labelText={<FormattedMessage id="test.inLabOnly" />}
                       id="in-lab-only"
+                      name="inLabOnly"
                       onChange={handleInLabOnly}
                       checked={values?.inLabOnly === "Y"}
                     />
@@ -1767,35 +1774,43 @@ const StepFiveSelectListOptionsAndResultOrder = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={Yup.object({
-            //   dictionary: Yup.array()
-            //     .min(1, "At least one dictionary option must be selected")
-            //     .of(
-            //       Yup.object().shape({
-            //         id: Yup.string()
-            //           .required("Dictionary ID is required")
-            //           .oneOf(
-            //             dictionaryList.map((item) => item.id),
-            //             "Please select a valid dictionary option",
-            //           ),
-            //         qualified: Yup.string().oneOf(
-            //           ["Y", "N"],
-            //           "Qualified must be Y or N",
-            //         ),
-            //       }),
-            //     ),
-            //   dictionaryReference: Yup.string().required(
-            //     "Dictionary Reference is required",
-            //   ),
-            //   dictionaryDefault: Yup.string().required(
-            //     "Dictionary Default is required",
-            //   ),
-            // })}
+            validationSchema={Yup.object({
+              dictionary: Yup.array()
+                .min(1, "At least one dictionary option must be selected")
+                .of(
+                  Yup.object().shape({
+                    id: Yup.string().required(),
+                    qualified: Yup.string().oneOf(["Y", "N"]),
+                  }),
+                )
+                .test(
+                  "at-least-one-qualified",
+                  "At least one dictionary item must be qualified as 'Y'",
+                  (arr) => arr && arr.some((item) => item.qualified === "Y"),
+                ),
+              dictionaryReference: Yup.string().required(
+                "Dictionary Reference is required",
+              ),
+              defaultTestResult: Yup.string().required(
+                "Dictionary Default is required",
+              ),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
             onSubmit={(values, actions) => {
-              handleSubmit(values);
+              const transformedDictionary = (values.dictionary || []).map(
+                (item) => ({
+                  value: item.id,
+                  qualified: item.qualified,
+                }),
+              );
+
+              const payload = {
+                ...values,
+                dictionary: transformedDictionary,
+              };
+              handleSubmit(payload);
               actions.setSubmitting(false);
             }}
           >
@@ -1947,6 +1962,9 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         hideLabel
                         required
                         onChange={(e) => handelSelectListOptions(e)}
+                        invalid={touched.dictionary && !!errors.dictionary}
+                        invalidText={touched.dictionary && errors.dictionary}
+                        value={values.dictionary.map((item) => item.id)}
                       >
                         <SelectItem value="0" text="Select List Option" />
                         {dictionaryList?.map((test) => (
@@ -2019,6 +2037,15 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         onChange={(e) =>
                           setFieldValue("dictionaryReference", e.target.value)
                         }
+                        invalid={
+                          touched.dictionaryReference &&
+                          !!errors.dictionaryReference
+                        }
+                        invalidText={
+                          touched.dictionaryReference &&
+                          errors.dictionaryReference
+                        }
+                        value={values.dictionaryReference}
                       >
                         <SelectItem value="0" text="Select Reference Value" />
                         {singleSelectDictionaryList?.map((test) => (
@@ -2036,12 +2063,20 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       <Select
                         onBlur={handleBlur}
                         id={`select-default-result`}
-                        name="dictionaryDefault"
+                        name="defaultTestResult"
                         hideLabel
                         required
                         onChange={(e) =>
                           setFieldValue("defaultTestResult", e.target.value)
                         }
+                        invalid={
+                          touched.defaultTestResult &&
+                          !!errors.defaultTestResult
+                        }
+                        invalidText={
+                          touched.defaultTestResult && errors.defaultTestResult
+                        }
+                        value={values.defaultTestResult}
                       >
                         <SelectItem
                           value="0"
@@ -2067,6 +2102,29 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         onChange={(e) => {
                           handleSelectQualifiersTag(e);
                         }}
+                        invalid={
+                          touched.dictionary &&
+                          (typeof errors.dictionary === "string" ||
+                            (Array.isArray(errors.dictionary) &&
+                              errors.dictionary.some(
+                                (item) => item.qualified === "Y",
+                              )))
+                        }
+                        invalidText={
+                          touched.dictionary &&
+                          (typeof errors.dictionary === "string"
+                            ? errors.dictionary
+                            : Array.isArray(errors.dictionary) &&
+                                errors.dictionary.some(
+                                  (item) => item.qualified === "Y",
+                                )
+                              ? "At least one dictionary item must be qualified as 'Y'"
+                              : "")
+                        }
+                        value={values.dictionary
+                          .filter((item) => item.qualified === "Y")
+                          .map((item) => item.id)}
+                        name="dictionary"
                       >
                         <SelectItem
                           value="0"
@@ -2257,64 +2315,134 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={Yup.object().shape({
-            //   resultLimits: Yup.array().of(
-            //     Yup.object().shape({
-            //       ageRange: Yup.string().required("Age range is required"),
-            //       highAgeRange: Yup.string().required("Required"),
-            //       gender: Yup.boolean().required("Required"),
-            //       lowNormal: Yup.number()
-            //         .min(0, "Minimum 0")
-            //         .max(100, "Maximum 100")
-            //         .required("Required"),
-            //       highNormal: Yup.number()
-            //         .min(
-            //           Yup.ref("lowNormal"),
-            //           "Must be greater than or equal to lowNormal",
-            //         )
-            //         .max(100, "Maximum 100")
-            //         .required("Required"),
-            //     }),
-            //   ),
-            //   lowReportingRange: Yup.number()
-            //     .min(0)
-            //     .max(100)
-            //     .required("Required"),
-            //   highReportingRange: Yup.number()
-            //     .min(
-            //       Yup.ref("lowReportingRange"),
-            //       "Must be greater or equal to lower reporting range",
-            //     )
-            //     .max(100)
-            //     .required("Required"),
-            //   lowValid: Yup.number()
-            //     .min(0, "Minimum value is 0")
-            //     .max(100, "Maximum value is 100")
-            //     .required("Required"),
-            //   highValid: Yup.number()
-            //     .min(
-            //       Yup.ref("lowValid"),
-            //       "Must be greater than or equal to Lower Valid Range",
-            //     )
-            //     .max(100, "Maximum value is 100")
-            //     .required("Required"),
-            //   lowCritical: Yup.number()
-            //     .min(0, "Minimum value is 0")
-            //     .max(100, "Maximum value is 100")
-            //     .required("Required"),
-            //   highCritical: Yup.number()
-            //     .min(
-            //       Yup.ref("lowCritical"),
-            //       "Must be greater than or equal to Lower Critical Range",
-            //     )
-            //     .max(100, "Maximum value is 100")
-            //     .required("Required"),
-            //   significantDigits: Yup.number()
-            //     .min(0)
-            //     .max(99)
-            //     .nullable()
-            //     .required("Required"),
-            // })}
+            validationSchema={Yup.object().shape({
+              resultLimits: Yup.array().of(
+                Yup.object().shape({
+                  ageRange: Yup.string().required("Age range is required"),
+                  highAgeRange: Yup.string().required("Required"),
+                  gender: Yup.boolean().required("Required"),
+                  lowNormal: Yup.number().min(0).max(100).required("Required"),
+                  highNormal: Yup.number()
+                    .min(Yup.ref("lowNormal"))
+                    .max(100)
+                    .required("Required"),
+                  lowCritical: Yup.number()
+                    .min(0)
+                    .max(100)
+                    .required("Required")
+                    .test(
+                      "lowCritical-range",
+                      "Low critical must be between lowValid and lowNormal",
+                      function (value) {
+                        const { lowValid, lowNormal } = this.parent;
+                        if (
+                          value == null ||
+                          lowValid == null ||
+                          lowNormal == null
+                        )
+                          return true;
+                        return value >= lowValid && value <= lowNormal;
+                      },
+                    ),
+                  highCritical: Yup.number()
+                    .min(0)
+                    .max(100)
+                    .required("Required")
+                    .test(
+                      "highCritical-range",
+                      "High critical must be between highNormal and highValid",
+                      function (value) {
+                        const { highValid, highNormal } = this.parent;
+                        if (
+                          value == null ||
+                          highValid == null ||
+                          highNormal == null
+                        )
+                          return true;
+                        return value >= highNormal && value <= highValid;
+                      },
+                    ),
+                }),
+              ),
+              lowReportingRange: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+
+              highReportingRange: Yup.number()
+                .min(
+                  Yup.ref("lowReportingRange"),
+                  "Must be greater or equal to lower reporting range",
+                )
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+
+              lowValid: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+
+              highValid: Yup.number()
+                .min(
+                  Yup.ref("lowValid"),
+                  "Must be greater than or equal to Lower Valid Range",
+                )
+                .max(100, "Maximum value is 100")
+                .required("Required"),
+
+              lowCritical: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required")
+                // Custom test: lowCritical >= lowValid and <= lowNormal in the matching resultLimit (age/gender)
+                .test(
+                  "lowCritical-range",
+                  "Low critical must be between lowValid and lowNormal",
+                  function (value) {
+                    const { lowValid, resultLimits } = this.parent;
+                    if (value == null || lowValid == null) return true; // skip if not filled yet
+
+                    // Find corresponding lowNormal from resultLimits for cross-checking — assuming only one or based on some index
+                    // If you have multiple resultLimits, you need to pass index or context for matching lowNormal
+                    // For demo, check against first lowNormal
+                    const lowNormal =
+                      resultLimits && resultLimits.length > 0
+                        ? resultLimits[0].lowNormal
+                        : null;
+                    if (lowNormal == null) return true;
+
+                    return value >= lowValid && value <= lowNormal;
+                  },
+                ),
+
+              highCritical: Yup.number()
+                .min(0, "Minimum value is 0")
+                .max(100, "Maximum value is 100")
+                .required("Required")
+                // Custom test: highCritical >= highNormal and <= highValid (similar to above)
+                .test(
+                  "highCritical-range",
+                  "High critical must be between highNormal and highValid",
+                  function (value) {
+                    const { highValid, resultLimits } = this.parent;
+                    if (value == null || highValid == null) return true;
+
+                    const highNormal =
+                      resultLimits && resultLimits.length > 0
+                        ? resultLimits[0].highNormal
+                        : null;
+                    if (highNormal == null) return true;
+
+                    return value >= highNormal && value <= highValid;
+                  },
+                ),
+
+              significantDigits: Yup.number()
+                .min(0)
+                .max(4)
+                .nullable()
+                .required("Required"),
+            })}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -2859,7 +2987,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                         <NumberInput
                           id={"significant_digits_num_input"}
                           name={"significantDigits"}
-                          max={99}
+                          max={4}
                           min={0}
                           size={"md"}
                           allowEmpty={true}
@@ -2871,6 +2999,11 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             touched.significantDigits &&
                             errors.significantDigits
                           }
+                          onBlur={handleBlur}
+                          onChange={(e) =>
+                            setFieldValue("significantDigits", e.target.value)
+                          }
+                          value={values.significantDigits || ""}
                         />
                       </Column>
                     </Row>
