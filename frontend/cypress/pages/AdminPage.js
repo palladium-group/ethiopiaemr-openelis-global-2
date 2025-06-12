@@ -5,11 +5,8 @@ import BarcodeConfigPage from "./BarcodeConfigPage";
 import ProgramEntryPage from "./ProgramEntryPage";
 import ProviderManagementPage from "./ProviderManagementPage";
 import OrganizationManagementPage from "./OrganizationManagementPage";
-<<<<<<< reflex-E2E
 import ReflexTestsConfigPage from "./ReflexTestsConfigPage";
-=======
 import DictionaryMenuPage from "./DictionaryMenu";
->>>>>>> develop
 
 class AdminPage {
   constructor() {}
@@ -69,18 +66,15 @@ class AdminPage {
     return new ProgramEntryPage();
   }
 
-<<<<<<< reflex-E2E
+  goToDictionaryMenuPage() {
+    cy.get("[data-cy='dictMenu']").should("be.visible").click();
+    return new DictionaryMenuPage();
+  }
+
   goToReflexTestsManagement() {
     cy.contains("span", "Reflex Tests Configuration").click();
     cy.get("[data-cy='reflex']").click();
     return new ReflexTestsConfigPage();
-=======
-  goToDictionaryMenuPage() {
-    cy.get("[data-cy='dictMenu']").should("be.visible").click();
-
-    return new DictionaryMenuPage();
->>>>>>> develop
   }
 }
-
 export default AdminPage;
