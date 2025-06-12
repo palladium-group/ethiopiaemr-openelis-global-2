@@ -6,6 +6,7 @@ import ProgramEntryPage from "./ProgramEntryPage";
 import ProviderManagementPage from "./ProviderManagementPage";
 import OrganizationManagementPage from "./OrganizationManagementPage";
 import UserManagementPage from "./UserManagementPage";
+import DictionaryMenuPage from "./DictionaryMenu";
 
 class AdminPage {
   constructor() {
@@ -67,6 +68,11 @@ class AdminPage {
   goToUserManagementPage() {
     cy.get(this.selectors.userManagement).click();
     return new UserManagementPage();
+
+  goToDictionaryMenuPage() {
+    cy.get("[data-cy='dictMenu']").should("be.visible").click();
+
+    return new DictionaryMenuPage();
   }
 }
 
