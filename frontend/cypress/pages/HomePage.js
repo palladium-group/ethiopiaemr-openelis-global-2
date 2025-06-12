@@ -6,6 +6,7 @@ import WorkPlan from "./WorkPlan";
 import NonConform from "./NonConformPage";
 import Result from "./ResultsPage";
 import Validation from "./Validation";
+import BarcodeConfigPage from "./BarcodeConfigPage";
 import BatchOrderEntry from "./BatchOrderEntryPage";
 import RoutineReportPage from "./RoutineReportPage";
 import StudyReportPage from "./StudyReportPage";
@@ -89,6 +90,13 @@ class HomePage {
     cy.get(this.selectors.sampleMenu).click();
     cy.get(this.selectors.batchEntry).click();
     return new BatchOrderEntry();
+  }
+
+  goToBarcode() {
+    this.openNavigationMenu();
+    cy.get("#menu_sample").click();
+    cy.get("[data-cy='menu_sample_print_barcode']").click();
+    return new BarcodeConfigPage();
   }
 
   // Patient Entry related functions
