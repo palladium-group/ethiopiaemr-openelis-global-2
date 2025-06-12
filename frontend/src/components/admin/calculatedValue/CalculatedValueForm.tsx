@@ -1012,6 +1012,7 @@ const CalculatedValue: React.FC<CalculatedValueProps> = () => {
             </Form>
             {calculationList.length - 1 === index && (
               <IconButton
+                data-cy="calcRule"
                 onClick={handleRuleAdd}
                 label={<FormattedMessage id="rulebuilder.label.addRule" />}
                 size="md"

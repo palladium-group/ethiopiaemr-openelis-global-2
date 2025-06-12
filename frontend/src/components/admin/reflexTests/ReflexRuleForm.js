@@ -951,6 +951,7 @@ function ReflexRule() {
                           <Grid key={index + "_" + action_index}>
                             <Column lg={3} sm={4}>
                               <Select
+                                data-cy="selectSample"
                                 id={index + "_" + action_index + "_sample"}
                                 name="sampleId"
                                 labelText={
@@ -1163,6 +1164,7 @@ function ReflexRule() {
             </Form>
             {ruleList.length - 1 === index && (
               <IconButton
+                data-cy="rule"
                 onClick={handleRuleAdd}
                 label={intl.formatMessage({ id: "rulebuilder.label.addRule" })}
                 size="md"

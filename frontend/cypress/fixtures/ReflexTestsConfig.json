@@ -1,0 +1,12 @@
+{
+  "toggleOn": "On",
+  "toggleOff": "Off",
+  "ruleName": "Test Rule",
+  "overAllOptions": "All",
+  "sample": "Serum",
+  "searchTest": "Amylase(Serum)",
+  "relation": "Equals",
+  "numericValue": "5",
+  "internalNote": "Internal Use Only",
+  "externalNote": "External Use Only"
+}
