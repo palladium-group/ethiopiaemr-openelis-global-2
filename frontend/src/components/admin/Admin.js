@@ -114,13 +114,14 @@ function Admin() {
       >
         <SideNavItems className="adminSideNav">
           <SideNavMenu
+            data-cy="reflexTestsConfig"
             renderIcon={Microscope}
             title={intl.formatMessage({ id: "sidenav.label.admin.testmgt" })}
           >
-            <SideNavMenuItem href="#reflex">
+            <SideNavMenuItem data-cy="reflex" href="#reflex">
               <FormattedMessage id="sidenav.label.admin.testmgt.reflex" />
             </SideNavMenuItem>
-            <SideNavMenuItem href="#calculatedValue">
+            <SideNavMenuItem data-cy="calculatedValue" href="#calculatedValue">
               <FormattedMessage id="sidenav.label.admin.testmgt.calculated" />
             </SideNavMenuItem>
           </SideNavMenu>

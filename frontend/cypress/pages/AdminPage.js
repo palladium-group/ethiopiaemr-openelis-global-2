@@ -5,6 +5,7 @@ import BarcodeConfigPage from "./BarcodeConfigPage";
 import ProgramEntryPage from "./ProgramEntryPage";
 import ProviderManagementPage from "./ProviderManagementPage";
 import OrganizationManagementPage from "./OrganizationManagementPage";
+import ReflexTestsConfigPage from "./ReflexTestsConfigPage";
 
 class AdminPage {
   constructor() {}
@@ -62,6 +63,12 @@ class AdminPage {
     cy.get("[data-cy='programEntry']").click();
 
     return new ProgramEntryPage();
+  }
+
+  goToReflexTestsManagement() {
+    cy.contains("span", "Reflex Tests Configuration").click();
+    cy.get("[data-cy='reflex']").click();
+    return new ReflexTestsConfigPage();
   }
 }
 
