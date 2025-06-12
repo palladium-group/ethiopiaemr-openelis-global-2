@@ -1,9 +1,9 @@
 package org.openelisglobal.sample.event;
 
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import org.openelisglobal.patient.action.bean.PatientManagementInfo;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
-import java.time.OffsetDateTime;
 
 @Getter
 public class SamplePatientUpdateDataCreatedEvent {

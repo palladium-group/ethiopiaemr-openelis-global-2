@@ -1,5 +1,6 @@
 package org.openelisglobal.sample.event.listener;
 
+import jakarta.annotation.PostConstruct;
 import org.openelisglobal.common.event.bus.EventBus;
 import org.openelisglobal.common.event.bus.EventSubscriber;
 import org.openelisglobal.common.log.LogEvent;
@@ -9,11 +10,11 @@ import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import jakarta.annotation.PostConstruct;
 
 @Component
 @SuppressWarnings("unused")
-public class SamplePatientUpdateDataCreatedEventListener implements EventSubscriber<SamplePatientUpdateDataCreatedEvent> {
+public class SamplePatientUpdateDataCreatedEventListener
+        implements EventSubscriber<SamplePatientUpdateDataCreatedEvent> {
 
     @Autowired
     private EventBus<SamplePatientUpdateDataCreatedEvent> eventBus;
@@ -33,17 +34,16 @@ public class SamplePatientUpdateDataCreatedEventListener implements EventSubscri
         try {
             SamplePatientUpdateData updateData = event.getUpdateData();
             PatientManagementInfo patientInfo = event.getPatientInfo();
-            
+
             // TODO: Implement Odoo integration
-            
-            LogEvent.logInfo(this.getClass().getSimpleName(), "onEvent", 
-                String.format("Sample created with accession number: %s at %s", 
-                    updateData.getAccessionNumber(),
-                    event.getCreatedAt()));
-                
+
+            LogEvent.logInfo(this.getClass().getSimpleName(), "onEvent",
+                    String.format("Sample created with accession number: %s at %s", updateData.getAccessionNumber(),
+                            event.getCreatedAt()));
+
         } catch (Exception e) {
-            LogEvent.logError(this.getClass().getSimpleName(), "onEvent", 
-                "Error processing sample creation event: " + e.getMessage());
+            LogEvent.logError(this.getClass().getSimpleName(), "onEvent",
+                    "Error processing sample creation event: " + e.getMessage());
         }
     }
 }

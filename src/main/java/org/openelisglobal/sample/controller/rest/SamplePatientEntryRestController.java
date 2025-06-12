@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.constants.Constants;
+import org.openelisglobal.common.event.bus.EventBus;
 import org.openelisglobal.common.exception.LIMSRuntimeException;
 import org.openelisglobal.common.formfields.FormFields;
 import org.openelisglobal.common.log.LogEvent;
@@ -47,6 +48,7 @@ import org.openelisglobal.provider.valueholder.Provider;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.sample.bean.SampleOrderItem;
 import org.openelisglobal.sample.controller.BaseSampleEntryController;
+import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
 import org.openelisglobal.sample.form.SamplePatientEntryForm;
 import org.openelisglobal.sample.service.PatientManagementUpdate;
 import org.openelisglobal.sample.service.SamplePatientEntryService;
@@ -75,8 +77,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
-import org.openelisglobal.common.event.bus.EventBus;
 
 @Controller
 @RequestMapping(value = "/rest/")
@@ -284,9 +284,10 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
         try {
             samplePatientService.persistData(updateData, patientUpdate, patientInfo, form, request);
             try {
-                SamplePatientUpdateDataCreatedEvent event = new SamplePatientUpdateDataCreatedEvent(updateData, patientInfo);
+                SamplePatientUpdateDataCreatedEvent event = new SamplePatientUpdateDataCreatedEvent(updateData,
+                        patientInfo);
                 eventBus.publish(event);
-                
+
                 fhirTransformService.transformPersistOrderEntryFhirObjects(updateData, patientInfo,
                         form.getUseReferral(), form.getReferralItems());
             } catch (FhirTransformationException | FhirPersistanceException e) {
