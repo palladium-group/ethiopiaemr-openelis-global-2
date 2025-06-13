@@ -42,7 +42,8 @@ describe("Reflex Tests Management", () => {
   });
 
   it("Validate Added Rule", () => {
-    cy.reload();
+    reflexTestsConfigPage.calcPage();
+    reflexTestsConfigPage.reflexMgnt();
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
       reflexTestsConfigPage.validateRuleName(test.ruleName);

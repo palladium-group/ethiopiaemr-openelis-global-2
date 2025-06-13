@@ -558,6 +558,7 @@ function ReflexRule() {
                           <Grid key={index + "_" + condition_index}>
                             <Column lg={3} sm={4}>
                               <Select
+                                data-cy="addSample"
                                 id={index + "_" + condition_index + "_sample"}
                                 name="sampleId"
                                 labelText={

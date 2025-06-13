@@ -24,7 +24,7 @@ describe("Calculated Value Tests Management", () => {
       reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
       reflexTestsConfigPage.enterCalcName(test.ruleName);
       reflexTestsConfigPage.verifyRemoveOperationButton();
-      reflexTestsConfigPage.selectSample(test.sample);
+      reflexTestsConfigPage.selectFourthSample(test.sample);
       reflexTestsConfigPage.searchNumTest(test.searchTest);
     });
   });
@@ -60,7 +60,8 @@ describe("Calculated Value Tests Management", () => {
   });
 
   it("Validate Added Rule", () => {
-    cy.reload();
+    reflexTestsConfigPage.reflexMgnt();
+    reflexTestsConfigPage.calcPage();
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
       reflexTestsConfigPage.validateCalcName(test.ruleName);

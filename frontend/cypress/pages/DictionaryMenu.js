@@ -1,6 +1,8 @@
 class DictionaryMenuPage {
   constructor() {
     this.selectors = {
+      barcodePage: "[data-cy='barcodeConfig']",
+      dictPage: "[data-cy='dictMenu']",
       title: "h2",
       modal: ".cds--modal-container",
       add: "[data-cy='addButton']",
@@ -40,7 +42,6 @@ class DictionaryMenuPage {
 
   clickDeactivateButton() {
     cy.get(this.selectors.deactivate).should("be.enabled").click();
-    cy.reload();
   }
 
   addButton() {
@@ -100,6 +101,11 @@ class DictionaryMenuPage {
 
   checkFirstDict() {
     cy.get(this.selectors.radioButton).click({ multiple: true });
+  }
+
+  navigateToDictPage() {
+    cy.get(this.selectors.barcodePage).click();
+    cy.get(this.selectors.dictPage).click();
   }
 }
 

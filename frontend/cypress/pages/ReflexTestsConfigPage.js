@@ -1,11 +1,13 @@
 class ReflexTestsConfigPage {
   constructor() {
     this.selectors = {
+      calcPage: "[data-cy='calculatedValue']",
+      reflexMgnt: "[data-cy='reflex']",
       ruleName: '[id="0_rulename"]',
       toggleSwitch: ".cds--toggle__switch",
       validateToggle: ".cds--toggle__text",
       overAllOption: '[id="0_overall"]',
-      selectSample: '[id="0_0_sample"]',
+      selectSample: "[data-cy='addSample']",
       searchTest: '[id="0_0_conditionTestId"]',
       relation: '[id="0_0_relation"]',
       numericValue: '[id="0_0_value"]',
@@ -30,6 +32,7 @@ class ReflexTestsConfigPage {
       patientAttribute: '[id="0_3_patientattribute"]',
       insertFouOperation: '[id="0_3_addoperation"]',
       thirdSample: '[id="0_sample"]',
+      fourthSample: "[data-cy='add-Sample']",
       finalResult: '[id="0_finalresult"]',
       addNote: '[id="0_note"]',
     };
@@ -39,6 +42,11 @@ class ReflexTestsConfigPage {
     cy.contains("h2", value).should("be.visible");
   }
   //Reflex Tests Management
+
+  reflexMgnt() {
+    cy.get(this.selectors.reflexMgnt).click();
+  }
+
   enterRuleName(value) {
     cy.get(this.selectors.ruleName).type(value);
   }
@@ -98,6 +106,10 @@ class ReflexTestsConfigPage {
 
   //Calculated Value Tests Management
 
+  calcPage() {
+    cy.get(this.selectors.calcPage).click();
+  }
+
   enterCalcName(value) {
     cy.get(this.selectors.calcName).type(value);
   }
@@ -140,6 +152,10 @@ class ReflexTestsConfigPage {
 
   selectThirdSample(value) {
     cy.get(this.selectors.thirdSample).select(value);
+  }
+
+  selectFourthSample(value) {
+    cy.get(this.selectors.fourthSample).select(value);
   }
 
   enterFinalResult(value) {

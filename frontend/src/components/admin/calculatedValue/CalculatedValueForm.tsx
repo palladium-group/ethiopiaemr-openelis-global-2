@@ -437,6 +437,7 @@ const CalculatedValue: React.FC<CalculatedValueProps> = () => {
           <>
             <Column lg={5} md={2} sm={1}>
               <Select
+                data-cy="add-sample"
                 id={index + "_" + operationIndex + "_sample"}
                 name="sampleId"
                 labelText={
@@ -920,6 +921,7 @@ const CalculatedValue: React.FC<CalculatedValueProps> = () => {
                           </Column>
                           <Column lg={4}>
                             <Select
+                              data-cy="calc-sample"
                               id={index + "_sample"}
                               name="sampleId"
                               labelText={
