@@ -1,4 +1,6 @@
 {
+  "calcValue": "Calculated Value Tests Management",
+  "reflexTets": "Reflex Tests Management",
   "toggleOn": "On",
   "toggleOff": "Off",
   "ruleName": "Test Rule",
@@ -8,5 +10,8 @@
   "relation": "Equals",
   "numericValue": "5",
   "internalNote": "Internal Use Only",
-  "externalNote": "External Use Only"
+  "externalNote": "External Use Only",
+  "mtcFunction": "Minus",
+  "patientAttribute": "Patient Age(Years)",
+  "finalResult": "Completed Successfully"
 }

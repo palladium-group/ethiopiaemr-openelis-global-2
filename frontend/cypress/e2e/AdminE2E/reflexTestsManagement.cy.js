@@ -11,7 +11,6 @@ const navigateToReflexTestsManagement = () => {
   homePage = loginPage.goToHomePage();
   adminPage = homePage.goToAdminPageProgram();
   reflexTestsConfigPage = adminPage.goToReflexTestsManagement();
-  reflexTestsConfigPage.verifyPageLoads();
 };
 
 before(() => {
@@ -21,6 +20,7 @@ before(() => {
 describe("Reflex Tests Management", () => {
   it("Add Reflex Rule Conditions", () => {
     cy.fixture("ReflexTestsConfig").then((test) => {
+      reflexTestsConfigPage.verifyPageLoads(test.reflexTets);
       reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
       reflexTestsConfigPage.enterRuleName(test.ruleName);
       reflexTestsConfigPage.selectOverAllOptions(test.overAllOptions);

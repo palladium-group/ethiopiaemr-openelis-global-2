@@ -16,13 +16,29 @@ class ReflexTestsConfigPage {
       secondSample: "[data-cy='selectSample']",
       addRule: "[data-cy='rule']",
       autosuggestion: ".suggestion-active",
+      calcName: '[id="0_name"]',
+      removeOperation: '[id="0_removeoperation"]',
+      searchNumTest: '[id="0_0_testresult"]',
+      insertOperation: '[id="0_0_addoperation"]',
+      mathFunctionButton: '[id="0_mathfunction"]',
+      mathFunction: '[id="0_1_mathfunction"]',
+      insertSecOperation: '[id="0_1_addoperation"]',
+      integerButton: '[id="0_integer"]',
+      integer: '[id="0_2_integer"]',
+      insertThiOperation: '[id="0_2_addoperation"]',
+      patientAttributeButton: '[id="0_patientattribute"]',
+      patientAttribute: '[id="0_3_patientattribute"]',
+      insertFouOperation: '[id="0_3_addoperation"]',
+      thirdSample: '[id="0_sample"]',
+      finalResult: '[id="0_finalresult"]',
+      addNote: '[id="0_note"]',
     };
   }
 
-  verifyPageLoads() {
-    cy.contains("h2", "Reflex Tests Management").should("be.visible");
+  verifyPageLoads(value) {
+    cy.contains("h2", value).should("be.visible");
   }
-
+  //Reflex Tests Management
   enterRuleName(value) {
     cy.get(this.selectors.ruleName).type(value);
   }
@@ -78,6 +94,60 @@ class ReflexTestsConfigPage {
 
   addRule() {
     cy.get(this.selectors.addRule).click();
+  }
+
+  //Calculated Value Tests Management
+
+  enterCalcName(value) {
+    cy.get(this.selectors.calcName).type(value);
+  }
+
+  validateCalcName(value) {
+    cy.contains(this.selectors.calcName, value);
+  }
+
+  verifyRemoveOperationButton() {
+    cy.get(this.selectors.removeOperation).should("be.visible");
+  }
+
+  searchNumTest(value) {
+    cy.get(this.selectors.searchNumTest).type(value);
+  }
+
+  mathFunction(value) {
+    cy.get(this.selectors.mathFunction).select(value);
+  }
+
+  clickMathFunctionButton() {
+    cy.get(this.selectors.mathFunctionButton).click();
+  }
+
+  clickIntegerButton() {
+    cy.get(this.selectors.integerButton).click();
+  }
+
+  enterInteger(value) {
+    cy.get(this.selectors.integer).type(value);
+  }
+
+  clickPatientAttributeButton() {
+    cy.get(this.selectors.patientAttributeButton).click();
+  }
+
+  selectPatientAttribute(value) {
+    cy.get(this.selectors.patientAttribute).select(value);
+  }
+
+  selectThirdSample(value) {
+    cy.get(this.selectors.thirdSample).select(value);
+  }
+
+  enterFinalResult(value) {
+    cy.get(this.selectors.finalResult).type(value);
+  }
+
+  addFinalExternatNote(value) {
+    cy.get(this.selectors.addNote).type(value);
   }
 }
 export default ReflexTestsConfigPage;

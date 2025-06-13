@@ -76,5 +76,11 @@ class AdminPage {
     cy.get("[data-cy='reflex']").click();
     return new ReflexTestsConfigPage();
   }
+
+  goToCalculatedValueTestsManagement() {
+    cy.contains("span", "Reflex Tests Configuration").click();
+    cy.get("[data-cy='calculatedValue']").click();
+    return new ReflexTestsConfigPage();
+  }
 }
 export default AdminPage;
