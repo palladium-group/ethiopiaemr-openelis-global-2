@@ -4,7 +4,6 @@ let loginPage = null;
 let homePage = null;
 let adminPage = null;
 let reflexTestsConfigPage = null;
-let testData;
 
 const navigateToReflexTestsManagement = () => {
   loginPage = new LoginPage();
@@ -20,33 +19,33 @@ before(() => {
 });
 
 describe("Reflex Tests Management", () => {
-  beforeEach(() => {
+  it("Add Reflex Rule Conditions", () => {
     cy.fixture("ReflexTestsConfig").then((test) => {
-      testData = test;
+      reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
+      reflexTestsConfigPage.enterRuleName(test.ruleName);
+      reflexTestsConfigPage.selectOverAllOptions(test.overAllOptions);
+      reflexTestsConfigPage.selectSample(test.sample);
+      reflexTestsConfigPage.searchTest(test.searchTest);
+      reflexTestsConfigPage.selectRelation(test.relation);
+      reflexTestsConfigPage.enterNumericValue(test.numericValue);
     });
   });
 
-  it("Add Reflex Rule Conditions", () => {
-    reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
-    reflexTestsConfigPage.enterRuleName(test.ruleName);
-    reflexTestsConfigPage.selectOverAllOptions(test.overAllOptions);
-    reflexTestsConfigPage.selectSample(test.sample);
-    reflexTestsConfigPage.searchTest(test.searchTest);
-    reflexTestsConfigPage.selectRelation(test.relation);
-    reflexTestsConfigPage.enterNumericValue(test.numericValue);
-  });
-
   it("Perform the following actions", () => {
-    reflexTestsConfigPage.selectSecondSample(test.sample);
-    reflexTestsConfigPage.searchReflexTest(test.searchTest);
-    reflexTestsConfigPage.addInternatNote(test.internalNote);
-    reflexTestsConfigPage.addExternatNote(test.externalNote);
-    reflexTestsConfigPage.submitButton();
+    cy.fixture("ReflexTestsConfig").then((test) => {
+      reflexTestsConfigPage.selectSecondSample(test.sample);
+      reflexTestsConfigPage.searchReflexTest(test.searchTest);
+      reflexTestsConfigPage.addInternatNote(test.internalNote);
+      reflexTestsConfigPage.addExternatNote(test.externalNote);
+      reflexTestsConfigPage.submitButton();
+    });
   });
 
   it("Validate Added Rule", () => {
     cy.reload();
-    reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
-    reflexTestsConfigPage.validateRuleName(test.ruleName);
+    cy.fixture("ReflexTestsConfig").then((test) => {
+      reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
+      reflexTestsConfigPage.validateRuleName(test.ruleName);
+    });
   });
 });

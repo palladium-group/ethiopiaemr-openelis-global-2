@@ -75,5 +75,9 @@ class ReflexTestsConfigPage {
   submitButton() {
     cy.get(this.selectors.submit).click();
   }
+
+  addRule() {
+    cy.get(this.selectors.addRule).click();
+  }
 }
 export default ReflexTestsConfigPage;
