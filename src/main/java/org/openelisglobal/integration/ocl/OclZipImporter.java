@@ -46,10 +46,10 @@ public class OclZipImporter {
 
         // Use the first zip file found
         String zipPath = zipFiles[0].getAbsolutePath();
-        log.info("Importing OCL ZIP package from: {}", zipPath);
+        log.info("Found OCL ZIP package: {}", zipPath);
 
         List<JsonNode> nodes = importOclPackage(zipPath);
-        log.info("Successfully parsed {} nodes from OCL package", nodes.size());
+        log.info("Finished importing OCL package. Parsed {} nodes.", nodes.size());
 
         return nodes;
     }
@@ -73,7 +73,7 @@ public class OclZipImporter {
 
             zipFile.stream().forEach(entry -> {
                 try {
-                    log.debug("Parsing entry: {}", entry.getName());
+                    log.info("Processing ZIP entry: {}", entry.getName());
                     if (entry.isDirectory()) {
                         log.debug("Skipping directory: {}", entry.getName());
                         return;
@@ -81,23 +81,27 @@ public class OclZipImporter {
 
                     JsonNode node = null;
                     if (entry.getName().endsWith(".json")) {
+                        log.info("Parsing as JSON: {}", entry.getName());
                         node = parseJsonEntry(zipFile, entry);
                     } else if (entry.getName().endsWith(".csv")) {
+                        log.info("Parsing as CSV: {}", entry.getName());
                         node = parseCsvEntry(zipFile, entry);
                     } else {
-                        log.warn("Skipping unsupported file: {}", entry.getName());
+                        log.warn("Skipping unsupported file type: {}", entry.getName());
                         return;
                     }
 
                     if (node != null) {
                         jsonNodes.add(node);
-                        log.info("Successfully parsed entry: {}", entry.getName());
-                        // Log sample of the parsed data
-                        if (node.isArray() && node.size() > 0) {
-                            log.debug("Sample entry from {}: {}", entry.getName(), node.get(0).toString());
+                        log.info("Successfully parsed entry: {}. Node added to list.", entry.getName());
+                        if (log.isDebugEnabled()) {
+                            String contentSample = node.toString();
+                            log.debug("Parsed content sample: {}", contentSample.substring(0, Math.min(contentSample.length(), 200)));
                         }
+                    } else {
+                        log.warn("Parsing returned null for entry: {}", entry.getName());
                     }
-                } catch (RuntimeException e) {
+                } catch (Exception e) {
                     log.error("Error parsing entry: {}", entry.getName(), e);
                 }
             });
