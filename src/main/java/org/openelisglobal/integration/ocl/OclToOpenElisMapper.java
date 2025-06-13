@@ -1,9 +1,9 @@
 package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.TestAddParams;
 import java.util.ArrayList;
 import java.util.List;
+import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.TestAddParams;
 
 public class OclToOpenElisMapper {
     public List<TestAddParams> mapConceptToTestParams(JsonNode concept) {
@@ -60,13 +60,16 @@ public class OclToOpenElisMapper {
             // 5. Ranges, units, significant digits from extras (only if string/number)
             JsonNode extras = concept.get("extras");
             if (extras != null) {
-                if (extras.has("low_absolute") && (extras.get("low_absolute").isNumber() || extras.get("low_absolute").isTextual())) {
+                if (extras.has("low_absolute")
+                        && (extras.get("low_absolute").isNumber() || extras.get("low_absolute").isTextual())) {
                     params.lowValid = extras.get("low_absolute").asText();
                 }
-                if (extras.has("hi_normal") && (extras.get("hi_normal").isNumber() || extras.get("hi_normal").isTextual())) {
+                if (extras.has("hi_normal")
+                        && (extras.get("hi_normal").isNumber() || extras.get("hi_normal").isTextual())) {
                     params.highValid = extras.get("hi_normal").asText();
                 }
-                if (extras.has("significant_digits") && (extras.get("significant_digits").isInt() || extras.get("significant_digits").isTextual())) {
+                if (extras.has("significant_digits")
+                        && (extras.get("significant_digits").isInt() || extras.get("significant_digits").isTextual())) {
                     params.significantDigits = extras.get("significant_digits").asText();
                 }
                 if (extras.has("units") && extras.get("units").isTextual()) {
@@ -120,16 +123,26 @@ public class OclToOpenElisMapper {
             // DEBUG LOGGING: Print all mapped fields and their types for concept id '1006'
             if (params.testId != null && params.testId.equals("1006")) {
                 System.out.println("DEBUG OCL MAPPING FOR 1006:");
-                System.out.println("  testId: " + params.testId + " (" + (params.testId != null ? params.testId.getClass() : "null") + ")");
-                System.out.println("  loinc: " + params.loinc + " (" + (params.loinc != null ? params.loinc.getClass() : "null") + ")");
-                System.out.println("  testNameEnglish: " + params.testNameEnglish + " (" + (params.testNameEnglish != null ? params.testNameEnglish.getClass() : "null") + ")");
-                System.out.println("  testNameFrench: " + params.testNameFrench + " (" + (params.testNameFrench != null ? params.testNameFrench.getClass() : "null") + ")");
-                System.out.println("  significantDigits: " + params.significantDigits + " (" + (params.significantDigits != null ? params.significantDigits.getClass() : "null") + ")");
-                System.out.println("  lowValid: " + params.lowValid + " (" + (params.lowValid != null ? params.lowValid.getClass() : "null") + ")");
-                System.out.println("  highValid: " + params.highValid + " (" + (params.highValid != null ? params.highValid.getClass() : "null") + ")");
-                System.out.println("  uomId: " + params.uomId + " (" + (params.uomId != null ? params.uomId.getClass() : "null") + ")");
-                System.out.println("  resultTypeId: " + params.resultTypeId + " (" + (params.resultTypeId != null ? params.resultTypeId.getClass() : "null") + ")");
-                System.out.println("  testSectionId: " + params.testSectionId + " (" + (params.testSectionId != null ? params.testSectionId.getClass() : "null") + ")");
+                System.out.println("  testId: " + params.testId + " ("
+                        + (params.testId != null ? params.testId.getClass() : "null") + ")");
+                System.out.println("  loinc: " + params.loinc + " ("
+                        + (params.loinc != null ? params.loinc.getClass() : "null") + ")");
+                System.out.println("  testNameEnglish: " + params.testNameEnglish + " ("
+                        + (params.testNameEnglish != null ? params.testNameEnglish.getClass() : "null") + ")");
+                System.out.println("  testNameFrench: " + params.testNameFrench + " ("
+                        + (params.testNameFrench != null ? params.testNameFrench.getClass() : "null") + ")");
+                System.out.println("  significantDigits: " + params.significantDigits + " ("
+                        + (params.significantDigits != null ? params.significantDigits.getClass() : "null") + ")");
+                System.out.println("  lowValid: " + params.lowValid + " ("
+                        + (params.lowValid != null ? params.lowValid.getClass() : "null") + ")");
+                System.out.println("  highValid: " + params.highValid + " ("
+                        + (params.highValid != null ? params.highValid.getClass() : "null") + ")");
+                System.out.println("  uomId: " + params.uomId + " ("
+                        + (params.uomId != null ? params.uomId.getClass() : "null") + ")");
+                System.out.println("  resultTypeId: " + params.resultTypeId + " ("
+                        + (params.resultTypeId != null ? params.resultTypeId.getClass() : "null") + ")");
+                System.out.println("  testSectionId: " + params.testSectionId + " ("
+                        + (params.testSectionId != null ? params.testSectionId.getClass() : "null") + ")");
             }
             paramsList.add(params);
             return paramsList;

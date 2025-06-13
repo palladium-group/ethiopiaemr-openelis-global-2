@@ -96,7 +96,8 @@ public class OclZipImporter {
                         log.info("Successfully parsed entry: {}. Node added to list.", entry.getName());
                         if (log.isDebugEnabled()) {
                             String contentSample = node.toString();
-                            log.debug("Parsed content sample: {}", contentSample.substring(0, Math.min(contentSample.length(), 200)));
+                            log.debug("Parsed content sample: {}",
+                                    contentSample.substring(0, Math.min(contentSample.length(), 200)));
                         }
                     } else {
                         log.warn("Parsing returned null for entry: {}", entry.getName());

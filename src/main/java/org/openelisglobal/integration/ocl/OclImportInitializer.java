@@ -1,47 +1,41 @@
 // Java standard library
 package org.openelisglobal.integration.ocl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
+import java.util.List;
+import org.openelisglobal.common.services.DisplayListService;
+import org.openelisglobal.common.util.StringUtil;
+import org.openelisglobal.localization.service.LocalizationServiceImpl;
+import org.openelisglobal.localization.valueholder.Localization;
+import org.openelisglobal.panel.service.PanelService;
+import org.openelisglobal.panelitem.valueholder.PanelItem;
+import org.openelisglobal.resultlimits.valueholder.ResultLimit;
+import org.openelisglobal.spring.util.SpringContext;
+import org.openelisglobal.test.service.TestSectionService;
+import org.openelisglobal.test.service.TestService;
+import org.openelisglobal.test.valueholder.Test;
+import org.openelisglobal.test.valueholder.TestSection;
+import org.openelisglobal.testconfiguration.controller.TestAddController;
+import org.openelisglobal.testconfiguration.controller.TestAddController.TestSet;
+import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.DictionaryParams;
+import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.ResultLimitParams;
+import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.TestAddParams;
+import org.openelisglobal.testconfiguration.service.TestAddService;
+import org.openelisglobal.testresult.valueholder.TestResult;
+import org.openelisglobal.typeofsample.service.TypeOfSampleService;
+import org.openelisglobal.typeofsample.valueholder.TypeOfSample;
+import org.openelisglobal.typeofsample.valueholder.TypeOfSampleTest;
+import org.openelisglobal.typeoftestresult.service.TypeOfTestResultService;
+import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl;
+import org.openelisglobal.unitofmeasure.service.UnitOfMeasureService;
+import org.openelisglobal.unitofmeasure.valueholder.UnitOfMeasure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
-import java.util.List;
-import java.util.ArrayList;
-
-// OpenELIS model and service classes
-import org.openelisglobal.testconfiguration.controller.TestAddController.TestSet;
-import org.openelisglobal.panelitem.valueholder.PanelItem;
-import org.openelisglobal.testresult.valueholder.TestResult;
-import org.openelisglobal.resultlimits.valueholder.ResultLimit;
-import org.openelisglobal.localization.valueholder.Localization;
-import org.openelisglobal.spring.util.SpringContext;
-import org.openelisglobal.testconfiguration.service.TestAddService;
-import org.openelisglobal.integration.ocl.OclToOpenElisMapper;
-import org.openelisglobal.integration.ocl.OclZipImporter;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.TestAddParams;
-import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.DictionaryParams;
-import org.openelisglobal.testconfiguration.controller.rest.TestAddRestController.ResultLimitParams;
-
-import org.openelisglobal.unitofmeasure.service.UnitOfMeasureService;
-import org.openelisglobal.unitofmeasure.valueholder.UnitOfMeasure;
-import org.openelisglobal.test.valueholder.TestSection;
-import org.openelisglobal.test.service.TestSectionService;
-import org.openelisglobal.common.util.StringUtil;
-import org.openelisglobal.typeofsample.valueholder.TypeOfSample;
-import org.openelisglobal.typeofsample.service.TypeOfSampleService;
-import org.openelisglobal.panel.service.PanelService;
-import org.openelisglobal.test.valueholder.Test;
-import org.openelisglobal.test.service.TestService;
-import org.openelisglobal.typeofsample.valueholder.TypeOfSampleTest;
-import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl;
-import org.openelisglobal.typeoftestresult.service.TypeOfTestResultService;
-import org.openelisglobal.common.services.DisplayListService;
-import org.openelisglobal.localization.service.LocalizationServiceImpl;
-import org.openelisglobal.testconfiguration.controller.TestAddController;
 
 @Component
 public class OclImportInitializer implements ApplicationListener<ContextRefreshedEvent> {
@@ -66,8 +60,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                     log.info("OCL Import: Node has a concepts array of size {}.", node.get("concepts").size());
                     for (JsonNode concept : node.get("concepts")) {
                         conceptCount++;
-                        log.info("OCL Import: Processing concept #{} with id: {}, display_name: {}",
-                                conceptCount, concept.get("id"), concept.get("display_name"));
+                        log.info("OCL Import: Processing concept #{} with id: {}, display_name: {}", conceptCount,
+                                concept.get("id"), concept.get("display_name"));
 
                         List<TestAddParams> paramsList = mapper.mapConceptToTestParams(concept);
                         if (paramsList == null || paramsList.isEmpty()) {
@@ -75,7 +69,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                             continue;
                         }
 
-                        log.info("OCL Import: Mapped concept id {} to {} TestAddParams.", concept.get("id"), paramsList.size());
+                        log.info("OCL Import: Mapped concept id {} to {} TestAddParams.", concept.get("id"),
+                                paramsList.size());
 
                         for (TestAddParams params : paramsList) {
                             try {
@@ -85,13 +80,11 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                                 List<TestSet> testSets = createTestSets(params);
                                 // 2. Create localizations
                                 Localization nameLoc = LocalizationServiceImpl.createNewLocalization(
-                                    params.testNameEnglish, params.testNameFrench,
-                                    LocalizationServiceImpl.LocalizationType.TEST_NAME
-                                );
+                                        params.testNameEnglish, params.testNameFrench,
+                                        LocalizationServiceImpl.LocalizationType.TEST_NAME);
                                 Localization reportLoc = LocalizationServiceImpl.createNewLocalization(
-                                    params.testReportNameEnglish, params.testReportNameFrench,
-                                    LocalizationServiceImpl.LocalizationType.REPORTING_TEST_NAME
-                                );
+                                        params.testReportNameEnglish, params.testReportNameFrench,
+                                        LocalizationServiceImpl.LocalizationType.REPORTING_TEST_NAME);
                                 // 3. Persist using addTests (use system user)
                                 testAddService.addTests(testSets, nameLoc, reportLoc, "system");
                                 log.info("Persisted test via addTests: {} ({})", params.testNameEnglish, params.testId);
@@ -132,7 +125,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         Double highCritical = null;
         String significantDigits = testAddParams.significantDigits;
         boolean numericResults = TypeOfTestResultServiceImpl.ResultType.isNumericById(testAddParams.resultTypeId);
-        boolean dictionaryResults = TypeOfTestResultServiceImpl.ResultType.isDictionaryVarientById(testAddParams.resultTypeId);
+        boolean dictionaryResults = TypeOfTestResultServiceImpl.ResultType
+                .isDictionaryVarientById(testAddParams.resultTypeId);
         List<TestSet> testSets = new ArrayList<>();
         UnitOfMeasure uom = null;
         if (testAddParams.uomId != null && !testAddParams.uomId.isEmpty()) {
@@ -149,7 +143,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         TestSection testSection = null;
         if (testAddParams.testSectionId != null && !testAddParams.testSectionId.isEmpty()) {
             TestSectionService testSectionService = SpringContext.getBean(TestSectionService.class);
-            // The testSectionId from OCL mapping is a name (e.g., "TEST", "PANEL"), not a numeric ID.
+            // The testSectionId from OCL mapping is a name (e.g., "TEST", "PANEL"), not a
+            // numeric ID.
             // Use getTestSectionByName to retrieve the TestSection by its name.
             testSection = testSectionService.getTestSectionByName(testAddParams.testSectionId);
             if (testSection != null) {
@@ -167,7 +162,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             highCritical = StringUtil.doubleWithInfinity(testAddParams.highCritical);
         }
         for (int i = 0; i < testAddParams.sampleList.size(); i++) {
-            TypeOfSample typeOfSample = SpringContext.getBean(TypeOfSampleService.class).getTypeOfSampleById(testAddParams.sampleList.get(i).sampleTypeId);
+            TypeOfSample typeOfSample = SpringContext.getBean(TypeOfSampleService.class)
+                    .getTypeOfSampleById(testAddParams.sampleList.get(i).sampleTypeId);
             if (typeOfSample == null) {
                 continue;
             } else {
@@ -206,7 +202,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             createPanelItems(testSet.panelItems, testAddParams);
             createTestResults(testSet.testResults, significantDigits, testAddParams);
             if (numericResults) {
-                testSet.resultLimits = new ArrayList<>(createResultLimits(lowValid, highValid, lowReportingRange, highReportingRange, testAddParams, highCritical, lowCritical));
+                testSet.resultLimits = new ArrayList<>(createResultLimits(lowValid, highValid, lowReportingRange,
+                        highReportingRange, testAddParams, highCritical, lowCritical));
             } else if (dictionaryResults) {
                 testSet.resultLimits = new ArrayList<>(createDictionaryResultLimit(testAddParams));
             }
@@ -224,10 +221,13 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         }
     }
 
-    private void createTestResults(List<TestResult> testResults, String significantDigits, TestAddParams testAddParams) {
+    private void createTestResults(List<TestResult> testResults, String significantDigits,
+            TestAddParams testAddParams) {
         TypeOfTestResultService typeOfTestResultService = SpringContext.getBean(TypeOfTestResultService.class);
-        TypeOfTestResultServiceImpl.ResultType type = typeOfTestResultService.getResultTypeById(testAddParams.resultTypeId);
-        if (TypeOfTestResultServiceImpl.ResultType.isTextOnlyVariant(type) || TypeOfTestResultServiceImpl.ResultType.isNumeric(type)) {
+        TypeOfTestResultServiceImpl.ResultType type = typeOfTestResultService
+                .getResultTypeById(testAddParams.resultTypeId);
+        if (TypeOfTestResultServiceImpl.ResultType.isTextOnlyVariant(type)
+                || TypeOfTestResultServiceImpl.ResultType.isNumeric(type)) {
             TestResult testResult = new TestResult();
             testResult.setTestResultType(type.getCharacterValue());
             testResult.setSortOrder("1");
@@ -250,7 +250,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         }
     }
 
-    private List<ResultLimit> createResultLimits(Double lowValid, Double highValid, Double lowReportingRange, Double highReportingRange, TestAddParams testAddParams, Double highCritical, Double lowCritical) {
+    private List<ResultLimit> createResultLimits(Double lowValid, Double highValid, Double lowReportingRange,
+            Double highReportingRange, TestAddParams testAddParams, Double highCritical, Double lowCritical) {
         List<ResultLimit> resultLimits = new ArrayList<>();
         for (ResultLimitParams params : testAddParams.limits) {
             ResultLimit limit = new ResultLimit();
