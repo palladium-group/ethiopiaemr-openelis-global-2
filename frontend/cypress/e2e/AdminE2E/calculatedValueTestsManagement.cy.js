@@ -63,7 +63,7 @@ describe("Calculated Value Tests Management", () => {
     reflexTestsConfigPage.reflexMgnt();
     reflexTestsConfigPage.calcPage();
     cy.fixture("ReflexTestsConfig").then((test) => {
-      reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
+      reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
       reflexTestsConfigPage.validateCalcName(test.ruleName);
     });
   });

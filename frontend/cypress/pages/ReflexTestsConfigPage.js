@@ -32,7 +32,7 @@ class ReflexTestsConfigPage {
       patientAttribute: '[id="0_3_patientattribute"]',
       insertFouOperation: '[id="0_3_addoperation"]',
       thirdSample: '[id="0_sample"]',
-      fourthSample: "[data-cy='add-Sample']",
+      fourthSample: "[data-cy='add-sample']",
       finalResult: '[id="0_finalresult"]',
       addNote: '[id="0_note"]',
     };
