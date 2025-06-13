@@ -53,7 +53,7 @@ let breadcrumbs = [
   },
   {
     label: "configuration.panel.manage",
-    link: "/MasterListsPage#SampleTypeManagement",
+    link: "/MasterListsPage#PanelManagement",
   },
   {
     label: "configuration.panel.create",
