@@ -1,0 +1,18 @@
+odoo:
+  server:
+    url: ${ODOO_SERVER_URL:http://localhost:8069}
+  database:
+    name: ${ODOO_DATABASE_NAME:openelis}
+  username: ${ODOO_USERNAME:admin}
+  password: ${ODOO_PASSWORD:admin}
+  connection:
+    pool:
+      size: ${ODOO_CONNECTION_POOL_SIZE:10}
+      timeout:
+        connection: ${ODOO_CONNECTION_TIMEOUT:5000}
+        reply: ${ODOO_REPLY_TIMEOUT:30000}
+  test:
+    product:
+      mapping: ${ODOO_TEST_PRODUCT_MAPPING:test1=1,test2=2,test3=3}
+    price:
+      mapping: ${ODOO_TEST_PRICE_MAPPING:test1=100.0,test2=150.0,test3=200.0} 
