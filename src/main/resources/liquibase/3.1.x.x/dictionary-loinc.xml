@@ -1,63 +1,58 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
 
-    <!-- STEP 1: Add LOINC columns -->
-    <changeSet id="add-loinc-columns-to-dictionary" author="agaba-derrick">
+    <changeSet id="1" author="csteele">
+        <validCheckSum>8:bc3102f55e943fbbb61b69324a5d6eb0</validCheckSum>
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="dictionary" schemaName="clinlims"/>
             <not>
-                <columnExists tableName="dictionary" columnName="loinc_code" schemaName="clinlims"/>
+                <columnExists columnName="loinc" schemaName="clinlims"
+                              tableName="panel" />
             </not>
         </preConditions>
-        <addColumn tableName="dictionary" schemaName="clinlims">
-            <column name="loinc_code" type="varchar(20)"/>
-            <column name="loinc_display" type="varchar(100)"/>
-            <column name="loinc_system" type="varchar(255)" defaultValue="http://loinc.org"/>
+        <comment>Adds loinc columns to panel</comment>
+        <addColumn tableName="panel">
+            <column name="loinc" type="character varying(10)"></column>
         </addColumn>
     </changeSet>
 
-    <!-- STEP 2: Populate values -->
-    <changeSet id="populate-loinc-values" author="agaba-derrick">
+    <changeSet id="add-dictionary-loinc-mapping" author="agaba-derrick">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="dictionary" columnName="loinc_code" schemaName="clinlims"/>
+            <not>
+                <columnExists columnName="loinc_code" schemaName="clinlims"
+                              tableName="dictionary" />
+            </not>
         </preConditions>
+        <comment>Adds LOINC mapping columns to dictionary</comment>
+        <addColumn tableName="dictionary">
+            <column name="loinc_code" type="character varying(20)"/>
+            <column name="loinc_display" type="character varying(100)"/>
+            <column name="loinc_system" type="character varying(255)" defaultValue="http://loinc.org"/>
+        </addColumn>
+    </changeSet>
 
-        <!-- Ensure dict_entry rows exist -->
-        <update tableName="dictionary" schemaName="clinlims">
+    <!-- Add common LOINC mappings -->
+    <changeSet id="seed-common-result-loinc-mappings" author="agaba-derrick">
+        <preConditions onFail="MARK_RAN">
+            <columnExists columnName="loinc_code" schemaName="clinlims"
+                          tableName="dictionary" />
+        </preConditions>
+        <comment>Seed common result LOINC mappings</comment>
+        <update tableName="dictionary">
             <column name="loinc_code" value="LA13522-5"/>
             <column name="loinc_display" value="Invalid Result"/>
             <where>dict_entry = 'Invalid'</where>
         </update>
-
-        <update tableName="dictionary" schemaName="clinlims">
+        <update tableName="dictionary">
             <column name="loinc_code" value="LA9663-1"/>
             <column name="loinc_display" value="Detected"/>
             <where>dict_entry = 'Positive'</where>
         </update>
-
-        <update tableName="dictionary" schemaName="clinlims">
+        <update tableName="dictionary">
             <column name="loinc_code" value="LA9664-9"/>
             <column name="loinc_display" value="Not Detected"/>
             <where>dict_entry = 'Negative'</where>
         </update>
-
-        <!-- Only insert if missing -->
-        <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM clinlims.dictionary WHERE dict_entry = 'Indeterminate'
-            </sqlCheck>
-        </preConditions>
-        <insert tableName="dictionary" schemaName="clinlims">
-            <column name="id" valueComputed="nextval('dictionary_seq')"/>
-            <column name="dict_entry" value="Indeterminate"/>
-            <column name="is_active" value="Y"/>
-            <column name="loinc_code" value="LA12688-0"/>
-            <column name="loinc_display" value="Indeterminate Result"/>
-            <column name="loinc_system" value="http://loinc.org"/>
-        </insert>
     </changeSet>
 </databaseChangeLog>
