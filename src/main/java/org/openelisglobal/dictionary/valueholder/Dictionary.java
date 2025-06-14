@@ -224,7 +224,7 @@ public class Dictionary extends BaseObject<String> {
     }
 
     public String getLoincDisplay() {
-        return loincDisplay;
+        return loincDisplay != null ? loincDisplay : this.getLocalizedName();
     }
 
     public void setLoincDisplay(String loincDisplay) {
