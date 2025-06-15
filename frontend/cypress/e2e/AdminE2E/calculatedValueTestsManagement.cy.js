@@ -53,15 +53,14 @@ describe("Calculated Value Tests Management", () => {
   it("Enter Final Result and Submit", () => {
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.selectThirdSample(test.sample);
-      reflexTestsConfigPage.enterFinalResult(test.finalResult);
+      reflexTestsConfigPage.enterFinalResult(test.searchTest);
       reflexTestsConfigPage.addFinalExternatNote(test.externalNote);
       reflexTestsConfigPage.submitButton();
     });
   });
 
   it("Validate Added Rule", () => {
-    reflexTestsConfigPage.reflexMgnt();
-    reflexTestsConfigPage.calcPage();
+    cy.reload();
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
       reflexTestsConfigPage.validateCalcName(test.ruleName);

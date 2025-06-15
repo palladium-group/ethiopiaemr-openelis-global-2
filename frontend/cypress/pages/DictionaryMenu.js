@@ -96,16 +96,11 @@ class DictionaryMenuPage {
   }
 
   validateDictEntry(value) {
-    cy.contains("td", value);
+    cy.get("td").should("have.value", value);
   }
 
   checkFirstDict() {
     cy.get(this.selectors.radioButton).click({ multiple: true });
-  }
-
-  navigateToDictPage() {
-    cy.get(this.selectors.barcodePage).click();
-    cy.get(this.selectors.dictPage).click();
   }
 }
 

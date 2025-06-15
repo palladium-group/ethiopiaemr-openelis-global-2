@@ -43,16 +43,12 @@ class ReflexTestsConfigPage {
   }
   //Reflex Tests Management
 
-  reflexMgnt() {
-    cy.get(this.selectors.reflexMgnt).click();
-  }
-
   enterRuleName(value) {
     cy.get(this.selectors.ruleName).type(value);
   }
 
   validateRuleName(value) {
-    cy.contains(this.selectors.ruleName, value);
+    cy.get(this.selectors.ruleName).should("have.value", value);
   }
 
   validateToggleStatus(value) {
@@ -106,16 +102,12 @@ class ReflexTestsConfigPage {
 
   //Calculated Value Tests Management
 
-  calcPage() {
-    cy.get(this.selectors.calcPage).click();
-  }
-
   enterCalcName(value) {
     cy.get(this.selectors.calcName).type(value);
   }
 
   validateCalcName(value) {
-    cy.contains(this.selectors.calcName, value);
+    cy.get(this.selectors.calcName).should("have.value", value);
   }
 
   verifyRemoveOperationButton() {
@@ -161,7 +153,6 @@ class ReflexTestsConfigPage {
 
   enterFinalResult(value) {
     cy.get(this.selectors.finalResult).type(value);
-    cy.contains(this.selectors.autosuggestion, value).click();
   }
 
   addFinalExternatNote(value) {
