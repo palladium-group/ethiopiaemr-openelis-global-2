@@ -21,9 +21,10 @@ class ReflexTestsConfigPage {
       calcName: '[id="0_name"]',
       removeOperation: '[id="0_removeoperation"]',
       searchNumTest: '[id="0_0_testresult"]',
-      insertOperation: '[id="0_0_addoperation"]',
+      insertOperation: '[id="0_2_addoperation"]',
       mathFunctionButton: '[id="0_mathfunction"]',
       mathFunction: '[id="0_1_mathfunction"]',
+      secMathFunction: '[id="0_3_mathfunction"]',
       insertSecOperation: '[id="0_1_addoperation"]',
       integerButton: '[id="0_integer"]',
       integer: '[id="0_2_integer"]',
@@ -115,6 +116,10 @@ class ReflexTestsConfigPage {
     cy.get(this.selectors.calcName).should("have.value", value);
   }
 
+  selectMathOperation(value) {
+    cy.get(this.selectors.insertOperation).select(value);
+  }
+
   verifyRemoveOperationButton() {
     cy.get(this.selectors.removeOperation).should("be.visible");
   }
@@ -126,6 +131,10 @@ class ReflexTestsConfigPage {
 
   mathFunction(value) {
     cy.get(this.selectors.mathFunction).select(value);
+  }
+
+  secMathFunction(value) {
+    cy.get(this.selectors.secMathFunction).select(value);
   }
 
   clickMathFunctionButton() {

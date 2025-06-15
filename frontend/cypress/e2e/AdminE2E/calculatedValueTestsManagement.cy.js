@@ -36,17 +36,24 @@ describe("Calculated Value Tests Management", () => {
     });
   });
 
-  it("Add Integer", () => {
-    cy.fixture("ReflexTestsConfig").then((test) => {
-      reflexTestsConfigPage.clickIntegerButton();
-      reflexTestsConfigPage.enterInteger(test.numericValue);
-    });
-  });
-
   it("Add Patient Attribute", () => {
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.clickPatientAttributeButton();
       reflexTestsConfigPage.selectPatientAttribute(test.patientAttribute);
+    });
+  });
+
+  it("Add Mathematical Function Option", () => {
+    cy.fixture("ReflexTestsConfig").then((test) => {
+      reflexTestsConfigPage.selectMathFunction(test.mathFunction);
+      reflexTestsConfigPage.secMathFunction(test.secMtcFunction);
+    });
+  });
+
+  it("Add Integer", () => {
+    cy.fixture("ReflexTestsConfig").then((test) => {
+      reflexTestsConfigPage.clickIntegerButton();
+      reflexTestsConfigPage.enterInteger(test.numericValue);
     });
   });
 

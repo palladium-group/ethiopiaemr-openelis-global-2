@@ -7,11 +7,13 @@
   "overAllOptions": "All",
   "sample": "Serum",
   "searchTest": "Amylase(Serum)",
-  "relation": "Equals",
-  "numericValue": "5",
+  "relation": "Is greater than",
+  "numericValue": "0",
   "internalNote": "Internal Use Only",
   "externalNote": "External Use Only",
-  "mtcFunction": "Minus",
+  "mtcFunction": "Plus",
+  "secMtcFunction": "Does Not Equal",
+  "mathFunction": "Mathematical Function",
   "patientAttribute": "Patient Age(Years)",
   "finalResult": "Completed Successfully"
 }
