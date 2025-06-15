@@ -125,7 +125,6 @@ class ReflexTestsConfigPage {
   searchNumTest(value) {
     cy.get(this.selectors.searchNumTest).type(value);
     cy.contains(this.selectors.autosuggestion, value).click();
-
   }
 
   mathFunction(value) {
@@ -163,7 +162,6 @@ class ReflexTestsConfigPage {
   enterFinalResult(value) {
     cy.get(this.selectors.finalResult).type(value);
     cy.contains(this.selectors.autosuggestion, value).click();
-
   }
 
   addFinalExternatNote(value) {
