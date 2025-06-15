@@ -167,6 +167,7 @@ class ReflexTestsConfigPage {
 
   enterFinalResult(value) {
     cy.get(this.selectors.finalResult).type(value);
+    cy.contains(this.selectors.autosuggestion, value).click();
   }
 
   addFinalExternatNote(value) {
