@@ -27,7 +27,7 @@ class ReflexTestsConfigPage {
       secMathFunction: '[id="0_3_mathfunction"]',
       insertSecOperation: '[id="0_1_addoperation"]',
       integerButton: '[id="0_integer"]',
-      integer: '[id="0_3_integer"]',
+      integer: '[id="0_4_integer"]',
       insertThiOperation: '[id="0_2_addoperation"]',
       patientAttributeButton: '[id="0_patientattribute"]',
       patientAttribute: '[id="0_2_patientattribute"]',
