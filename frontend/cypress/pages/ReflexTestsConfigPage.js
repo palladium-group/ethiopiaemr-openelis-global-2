@@ -27,10 +27,10 @@ class ReflexTestsConfigPage {
       secMathFunction: '[id="0_3_mathfunction"]',
       insertSecOperation: '[id="0_1_addoperation"]',
       integerButton: '[id="0_integer"]',
-      integer: '[id="0_2_integer"]',
+      integer: '[id="0_3_integer"]',
       insertThiOperation: '[id="0_2_addoperation"]',
       patientAttributeButton: '[id="0_patientattribute"]',
-      patientAttribute: '[id="0_3_patientattribute"]',
+      patientAttribute: '[id="0_2_patientattribute"]',
       insertFouOperation: '[id="0_3_addoperation"]',
       thirdSample: '[id="0_sample"]',
       fourthSample: "[data-cy='add-sample']",
@@ -116,7 +116,7 @@ class ReflexTestsConfigPage {
     cy.get(this.selectors.calcName).should("have.value", value);
   }
 
-  selectMathOperation(value) {
+  selectMathFunction(value) {
     cy.get(this.selectors.insertOperation).select(value);
   }
 

@@ -1,8 +1,6 @@
 class DictionaryMenuPage {
   constructor() {
     this.selectors = {
-      barcodePage: "[data-cy='barcodeConfig']",
-      dictPage: "[data-cy='dictMenu']",
       title: "h2",
       modal: ".cds--modal-container",
       add: "[data-cy='addButton']",
