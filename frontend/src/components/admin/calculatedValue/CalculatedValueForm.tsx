@@ -867,7 +867,7 @@ const CalculatedValue: React.FC<CalculatedValueProps> = () => {
                                     index +
                                     "_" +
                                     operation_index +
-                                    "_addopeartion"
+                                    "_addoperation"
                                   }
                                   name="addoperation"
                                   labelText={
