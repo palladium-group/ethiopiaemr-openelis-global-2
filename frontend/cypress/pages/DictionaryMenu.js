@@ -96,7 +96,7 @@ class DictionaryMenuPage {
   }
 
   validateDictEntry(value) {
-    cy.get("td").should("have.value", value);
+    cy.contains("td", value);
   }
 
   checkFirstDict() {

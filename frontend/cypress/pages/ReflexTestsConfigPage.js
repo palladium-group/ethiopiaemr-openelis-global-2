@@ -38,6 +38,11 @@ class ReflexTestsConfigPage {
     };
   }
 
+  reloadAndWait() {
+    cy.reload();
+    cy.wait(200);
+  }
+
   verifyPageLoads(value) {
     cy.contains("h2", value).should("be.visible");
   }

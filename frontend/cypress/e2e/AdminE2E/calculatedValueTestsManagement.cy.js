@@ -60,7 +60,7 @@ describe("Calculated Value Tests Management", () => {
   });
 
   it("Validate Added Rule", () => {
-    cy.reload();
+    reflexTestsConfigPage.reloadAndWait();
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.validateToggleStatus(test.toggleOff);
       reflexTestsConfigPage.validateCalcName(test.ruleName);
