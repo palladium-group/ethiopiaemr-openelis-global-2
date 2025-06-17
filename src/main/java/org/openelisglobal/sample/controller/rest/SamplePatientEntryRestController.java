@@ -16,7 +16,6 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Task;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.constants.Constants;
-import org.openelisglobal.common.event.bus.EventBus;
 import org.openelisglobal.common.exception.LIMSRuntimeException;
 import org.openelisglobal.common.formfields.FormFields;
 import org.openelisglobal.common.log.LogEvent;
@@ -63,6 +62,7 @@ import org.openelisglobal.systemuser.service.UserService;
 import org.openelisglobal.userrole.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -175,7 +175,7 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
     private SampleService sampleService;
 
     @Autowired
-    private EventBus<SamplePatientUpdateDataCreatedEvent> eventBus;
+    private ApplicationEventPublisher eventPublisher;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -284,9 +284,9 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
         try {
             samplePatientService.persistData(updateData, patientUpdate, patientInfo, form, request);
             try {
-                SamplePatientUpdateDataCreatedEvent event = new SamplePatientUpdateDataCreatedEvent(updateData,
+                SamplePatientUpdateDataCreatedEvent event = new SamplePatientUpdateDataCreatedEvent(this, updateData,
                         patientInfo);
-                eventBus.publish(event);
+                eventPublisher.publishEvent(event);
 
                 fhirTransformService.transformPersistOrderEntryFhirObjects(updateData, patientInfo,
                         form.getUseReferral(), form.getReferralItems());

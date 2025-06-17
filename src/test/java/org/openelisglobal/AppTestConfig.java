@@ -12,8 +12,6 @@ import org.jasypt.util.text.TextEncryptor;
 import org.mockito.Mockito;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.barcode.controller.PrintBarcodeController;
-import org.openelisglobal.common.event.bus.DefaultEventBus;
-import org.openelisglobal.common.event.bus.EventBus;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
@@ -34,7 +32,6 @@ import org.openelisglobal.organization.service.OrganizationTypeService;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
-import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -277,12 +274,6 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("Test")
     public OrganizationTypeService OrganizationTypeService() {
         return mock(OrganizationTypeService.class);
-    }
-
-    @Bean
-    @Profile("test")
-    public EventBus<SamplePatientUpdateDataCreatedEvent> sampleEventBus() {
-        return new DefaultEventBus<>();
     }
 
     @Override
