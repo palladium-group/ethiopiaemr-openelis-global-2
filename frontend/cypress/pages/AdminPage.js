@@ -65,14 +65,15 @@ class AdminPage {
     return new ProgramEntryPage();
   }
 
-  goToUserManagementPage() {
-    cy.get(this.selectors.userManagement).click();
-    return new UserManagementPage();
-
   goToDictionaryMenuPage() {
     cy.get("[data-cy='dictMenu']").should("be.visible").click();
 
     return new DictionaryMenuPage();
+  }
+
+  goToUserManagementPage() {
+    cy.get(this.selectors.userManagement).click();
+    return new UserManagementPage();
   }
 }
 
