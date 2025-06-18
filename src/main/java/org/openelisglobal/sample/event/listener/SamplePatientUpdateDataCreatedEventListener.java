@@ -5,11 +5,13 @@ import org.openelisglobal.patient.action.bean.PatientManagementInfo;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SamplePatientUpdateDataCreatedEventListener {
 
+    @Async
     @EventListener
     public void handleSamplePatientUpdateDataCreatedEvent(SamplePatientUpdateDataCreatedEvent event) {
         try {

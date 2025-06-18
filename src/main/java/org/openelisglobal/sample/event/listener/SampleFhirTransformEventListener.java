@@ -10,6 +10,7 @@ import org.openelisglobal.sample.event.SamplePatientUpdateDataCreatedEvent;
 import org.openelisglobal.sample.form.SamplePatientEntryForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,6 +19,7 @@ public class SampleFhirTransformEventListener {
     @Autowired
     private FhirTransformService fhirTransformService;
 
+    @Async
     @EventListener
     public void handleSamplePatientUpdateDataCreatedEvent(SamplePatientUpdateDataCreatedEvent event) {
         try {
