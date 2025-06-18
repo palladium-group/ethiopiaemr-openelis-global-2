@@ -28,8 +28,6 @@ import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.common.validator.BaseErrors;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
-import org.openelisglobal.dataexchange.fhir.exception.FhirPersistanceException;
-import org.openelisglobal.dataexchange.fhir.exception.FhirTransformationException;
 import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
@@ -285,12 +283,9 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
             samplePatientService.persistData(updateData, patientUpdate, patientInfo, form, request);
             try {
                 SamplePatientUpdateDataCreatedEvent event = new SamplePatientUpdateDataCreatedEvent(this, updateData,
-                        patientInfo);
+                        patientInfo, form);
                 eventPublisher.publishEvent(event);
-
-                fhirTransformService.transformPersistOrderEntryFhirObjects(updateData, patientInfo,
-                        form.getUseReferral(), form.getReferralItems());
-            } catch (FhirTransformationException | FhirPersistanceException e) {
+            } catch (Exception e) {
                 LogEvent.logError(e);
             }
 
