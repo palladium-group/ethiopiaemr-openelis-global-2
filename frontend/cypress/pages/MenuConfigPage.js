@@ -1,5 +1,15 @@
-class GlobalMenuConfigPage {
-  constructor() {}
+class MenuConfigPage {
+  constructor() {
+    this.selectors = {
+      nonConformMenu: "#menu_nonconformity",
+      nonConformReport: "#menu_non_conforming_report",
+      nonConformView: "#menu_non_conforming_view",
+      correctiveAction: "#menu_non_conforming_corrective_actions",
+      toggleText: ".cds--toggle_text",
+      toggleOn: "div.cds--toggle__switch",
+      toggleOff: "div.cds--toggle label div > div",
+    };
+  }
 
   // This method is used to visit the page
   visit() {
@@ -7,11 +17,30 @@ class GlobalMenuConfigPage {
   }
 
   turnOffToggleSwitch() {
-    cy.get("div.cds--toggle__switch").click();
+    cy.get(this.selectors.toggleOff).click();
   }
 
   turnOnToggleSwitch() {
-    cy.get("div.cds--toggle label div > div").should("be.visible").click();
+    cy.get(this.selectors.toggleOn).should("be.visible").click();
+  }
+
+  validateToggleStatus(value) {
+    cy.contains(this.selectors.toggleText, value);
+  }
+
+  validateNonConformOff() {
+    cy.get(this.selectors.nonConformMenu).should("not.be.visible");
+  }
+
+  validateNonConformOn() {
+    cy.get(this.selectors.nonConformMenu).should("be.visible").click();
+    cy.get(this.selectors.nonConformReport).should("be.visible");
+    cy.get(this.selectors.nonConformView).should("be.visible");
+    cy.get(this.selectors.correctiveAction).should("be.visible");
+  }
+
+  submitButton() {
+    cy.contains("button", "Submit").click();
   }
 
   checkMenuItem = function (menuItem) {
@@ -30,6 +59,9 @@ class GlobalMenuConfigPage {
       help: "#menu_help_checkbox",
       patient: "#menu_patient_checkbox",
       nonConform: "#menu_nonconformity_checkbox",
+      reportNCE: "#menu_non_conforming_report_checkbox",
+      viewNCE: "#menu_non_conforming_view_checkbox",
+      correctiveAction: "#menu_non_conforming_corrective_actions_checkbox",
       workplan: "#menu_workplan_checkbox",
       pathology: "#menu_pathology_checkbox",
     };
@@ -45,10 +77,6 @@ class GlobalMenuConfigPage {
       cy.log("Invalid menu item");
     }
   };
-
-  submitButton() {
-    cy.contains("button", "Submit").click();
-  }
 }
 
-export default GlobalMenuConfigPage;
+export default MenuConfigPage;

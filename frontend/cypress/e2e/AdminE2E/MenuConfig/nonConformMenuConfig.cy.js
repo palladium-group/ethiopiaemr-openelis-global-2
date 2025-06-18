@@ -1,0 +1,58 @@
+import LoginPage from "../../../pages/LoginPage";
+
+let loginPage = null;
+let homePage = null;
+let adminPage = null;
+let menuConfigPage = null;
+
+before(() => {
+  // Initialize LoginPage object and navigate to Admin Page
+  loginPage = new LoginPage();
+  loginPage.visit();
+
+  homePage = loginPage.goToHomePage();
+  adminPage = homePage.goToAdminPage();
+});
+
+describe("Non-Conform Menu Configuration", function () {
+  it("User navigates to the Non-Conform Menu Configuration page", function () {
+    menuConfigPage = adminPage.goToNonConformConfigPage();
+  });
+
+  describe("Deactivate Non-Conform Menu", () => {
+    it("Deactivate Non-Conform Menu and submit", function () {
+      menuConfigPage.validateToggleStatus("Off");
+      menuConfigPage.checkMenuItem("nonConform");
+      menuConfigPage.submitButton();
+      cy.reload();
+    });
+
+    it("Validate Non-Conform is Deactivated", () => {
+      menuConfigPage = homePage.openNavigationMenu();
+      menuConfigPage.validateNonConformOff();
+    });
+  });
+
+  describe("Activate Non-Conform Menu", () => {
+    it("User turns on the toggle switch", function () {
+      adminPage = homePage.goToAdminPage();
+      menuConfigPage = adminPage.goToNonConformConfigPage();
+      menuConfigPage.turnOnToggleSwitch();
+      menuConfigPage.validateToggleStatus("On");
+    });
+
+    it("User checks the menu items and submits", function () {
+      menuConfigPage.checkMenuItem("nonConform");
+      menuConfigPage.checkMenuItem("reportNCE");
+      menuConfigPage.checkMenuItem("viewNCE");
+      menuConfigPage.checkMenuItem("correctiveAction");
+      menuConfigPage.submitButton();
+      cy.reload();
+    });
+
+    it("Verify menu changes", function () {
+      menuConfigPage = homePage.openNavigationMenu();
+      menuConfigPage.validateNonConformOn();
+    });
+  });
+});
