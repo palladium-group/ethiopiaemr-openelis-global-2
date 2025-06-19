@@ -14,10 +14,7 @@
 package org.openelisglobal.dictionary.valueholder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
-import org.hl7.fhir.r4.model.Coding;
 import org.openelisglobal.common.action.IActionConstants;
 import org.openelisglobal.common.util.StringUtil;
 import org.openelisglobal.common.valueholder.BaseObject;
@@ -29,9 +26,8 @@ import org.openelisglobal.localization.valueholder.Localization;
 public class Dictionary extends BaseObject<String> {
 
     private static final long serialVersionUID = 1L;
-    private String loincCode;
-    private String loincDisplay;
-    private String loincSystem = "http://loinc.org";
+
+    private String loincSystem;
 
     public class ComparatorLocalizedName implements Comparator<Dictionary> {
         @Override
@@ -76,62 +72,6 @@ public class Dictionary extends BaseObject<String> {
         super();
         this.dictionaryCategory = new ValueHolder();
         this.localizedDictionaryName = new ValueHolder();
-    }
-
-    /**
-     * Generates FHIR Coding list including both OpenELIS and LOINC codes
-     * 
-     * @return List of Coding objects (never null)
-     */
-    @JsonIgnore
-    public List<Coding> getFhirCodings() {
-        List<Coding> codings = new ArrayList<>(2);
-
-        Coding openelisCoding = new Coding();
-        openelisCoding.setSystem("http://openelis-global.org/dictionary_entry");
-        openelisCoding.setCode(this.dictEntry != null ? this.dictEntry : "");
-        openelisCoding.setDisplay(this.getDisplayValue() != null ? this.getDisplayValue() : "");
-        codings.add(openelisCoding);
-
-        if (!StringUtil.isNullorNill(this.loincCode)) {
-            Coding loincCoding = new Coding();
-            loincCoding.setSystem(this.loincSystem != null ? this.loincSystem : "http://loinc.org");
-            loincCoding.setCode(this.loincCode);
-
-            String displayText = !StringUtil.isNullorNill(this.loincDisplay) ? this.loincDisplay
-                    : this.getDisplayValue();
-            loincCoding.setDisplay(displayText != null ? displayText : "");
-
-            codings.add(loincCoding);
-        }
-
-        return codings;
-    }
-
-    /**
-     * Gets the preferred FHIR coding (LOINC if available, otherwise OpenELIS)
-     * 
-     * @return Coding object (never null)
-     */
-    @JsonIgnore
-    public Coding getPreferredFhirCoding() {
-        Coding coding = new Coding();
-
-        if (!StringUtil.isNullorNill(this.loincCode)) {
-            coding.setSystem(this.loincSystem != null ? this.loincSystem : "http://loinc.org");
-            coding.setCode(this.loincCode);
-
-            String displayText = !StringUtil.isNullorNill(this.loincDisplay) ? this.loincDisplay
-                    : this.getDisplayValue();
-            coding.setDisplay(displayText != null ? displayText : "");
-        } else {
-
-            coding.setSystem("http://openelis-global.org/dictionary_entry");
-            coding.setCode(this.dictEntry != null ? this.dictEntry : "");
-            coding.setDisplay(this.getDisplayValue() != null ? this.getDisplayValue() : "");
-        }
-
-        return coding;
     }
 
     @Override
@@ -213,22 +153,6 @@ public class Dictionary extends BaseObject<String> {
     @Override
     public String toString() {
         return "Dictionary [id=" + id + ", localAbbreviation=" + localAbbreviation + ", nameKey=" + getNameKey() + "]";
-    }
-
-    public String getLoincCode() {
-        return loincCode;
-    }
-
-    public void setLoincCode(String loincCode) {
-        this.loincCode = loincCode;
-    }
-
-    public String getLoincDisplay() {
-        return loincDisplay != null ? loincDisplay : this.getLocalizedName();
-    }
-
-    public void setLoincDisplay(String loincDisplay) {
-        this.loincDisplay = loincDisplay;
     }
 
     public String getLoincSystem() {
