@@ -23,12 +23,12 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     private ActionService actionService;
 
     private List<Action> actionList;
-    private final String PROPERTY_NAME = "code";
-    private final Object PROPERTY_VALUE = "ACT001";
-    private final String ORDER_PROPERTY = "code";
+    private static final String PROPERTY_NAME = "code";
+    private static final Object PROPERTY_VALUE = "ACT001";
+    private static final String ORDER_PROPERTY = "code";
     private int EXPECTED_PAGES = 0;
-    private final boolean IS_DESCENDING = false;
-    private final int STARTING_REC_NO = 1;
+    private static final boolean IS_DESCENDING = false;
+    private static final int STARTING_REC_NO = 1;
     private List<String> orderProperties;
     private Map<String, Object> propertyValues;
 
