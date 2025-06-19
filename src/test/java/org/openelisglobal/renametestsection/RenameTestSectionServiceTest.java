@@ -56,7 +56,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetTestSections_UsingFilter() {
-
         testSections = renameTestSectionService.getTestSections("Micro");
 
         assertEquals(1, testSections.size());
@@ -64,7 +63,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetTestSectionByName() {
-
         RenameTestSection testSection = new RenameTestSection();
         testSection.setTestSectionName("Microbiology");
 
@@ -77,7 +75,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetPageOfTestSections_ReturnsTestSections() {
-
         testSections = renameTestSectionService.getPageOfTestSections(1);
 
         int expectedNumberOfPages = Integer
@@ -88,7 +85,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetTotalTestSectionCount() {
-
         assertEquals(3, renameTestSectionService.getTotalTestSectionCount().intValue());
     }
 
@@ -105,7 +101,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetTestSectionById_ReturnsRestSectionWithGivenId() {
-
         RenameTestSection testSection = renameTestSectionService.getTestSectionById("3");
 
         assertEquals("Toxicology", testSection.getTestSectionName());
@@ -115,7 +110,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetLocalizationForRenameTestSection() {
-
         Localization localization = renameTestSectionService.getLocalizationForRenameTestSection("3");
 
         assertEquals("203", localization.getId());
