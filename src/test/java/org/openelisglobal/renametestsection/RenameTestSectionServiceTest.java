@@ -58,6 +58,7 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
         testSections = renameTestSectionService.getTestSections("Micro");
 
         assertEquals(1, testSections.size());
+        assertEquals("2", testSections.get(0).getId());
     }
 
     @Test
