@@ -21,10 +21,10 @@ describe("Billing Menu Configuration", function () {
 
   describe("Deactivate Billing Menu", () => {
     it("Deactivate Billing Menu and submit", function () {
+      menuConfigPage.uncheckBillingMenu();
       menuConfigPage.billingAddress(
         "https://united-nations-development-programme.odoo.com/odoo/accounting",
       );
-      menuConfigPage.uncheckBillingMenu();
       menuConfigPage.submitButton();
       cy.reload();
     });

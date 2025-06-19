@@ -28,6 +28,7 @@ class MenuConfigPage {
 
   navigateToMainMenu() {
     cy.get(this.selectors.menuButton).click();
+    cy.wait(2000);
   }
 
   turnOffToggleSwitch() {
@@ -43,7 +44,7 @@ class MenuConfigPage {
   }
 
   uncheckNonConform() {
-    cy.get(this.selectors.nonConformCheck).uncheck();
+    cy.get(this.selectors.nonConformCheck).uncheck({ force: true });
   }
 
   validateNonConformOff() {
@@ -58,7 +59,7 @@ class MenuConfigPage {
   }
 
   uncheckPatientMenu() {
-    cy.get(this.selectors.patientCheck).uncheck();
+    cy.get(this.selectors.patientCheck).uncheck({ force: true });
   }
 
   validatePatientMenuOff() {
@@ -85,7 +86,7 @@ class MenuConfigPage {
   }
 
   uncheckBillingMenu() {
-    cy.get(this.selectors.billingMenuCheck).uncheck();
+    cy.get(this.selectors.billingMenuCheck).uncheck({ force: true });
   }
 
   submitButton() {
