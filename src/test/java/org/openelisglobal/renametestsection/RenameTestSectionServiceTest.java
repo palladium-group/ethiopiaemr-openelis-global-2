@@ -37,7 +37,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
         assertEquals("Toxic substances analysis", testSection.getDescription());
         assertEquals(Timestamp.valueOf("2025-06-10 10:30:00"), testSection.getLastupdated());
         assertEquals("Y", testSection.getIsActive());
-
     }
 
     @Test
@@ -70,7 +69,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
         assertEquals("2", newTestSection.getId());
         assertEquals("Infectious diseases", newTestSection.getDescription());
         assertEquals("Y", newTestSection.getIsActive());
-
     }
 
     @Test
@@ -96,7 +94,6 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
         assertEquals("1", testSections.get(0).getId());
         assertEquals("2", testSections.get(1).getId());
         assertEquals("3", testSections.get(2).getId());
-
     }
 
     @Test
@@ -114,6 +111,5 @@ public class RenameTestSectionServiceTest extends BaseWebContextSensitiveTest {
 
         assertEquals("203", localization.getId());
         assertEquals("Test Description 3", localization.getDescription());
-
     }
 }
