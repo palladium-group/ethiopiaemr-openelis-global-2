@@ -48,7 +48,7 @@ class MenuConfigPage {
   }
 
   validateNonConformOff() {
-    cy.get(this.selectors.nonConformMenu).should("not.be.visible");
+    cy.get(this.selectors.nonConformMenu).should("not.exist");
   }
 
   validateNonConformOn() {
@@ -63,7 +63,7 @@ class MenuConfigPage {
   }
 
   validatePatientMenuOff() {
-    cy.get(this.selectors.patientMenu).should("not.be.visible");
+    cy.get(this.selectors.patientMenu).should("not.exist");
   }
 
   validatePatientMenuOn() {
@@ -78,7 +78,7 @@ class MenuConfigPage {
   }
 
   validateBillingMenuOff() {
-    cy.get(this.selectors.billingMenu).should("not.be.visible");
+    cy.get(this.selectors.billingMenu).should("not.exist");
   }
 
   billingAddress(value) {
