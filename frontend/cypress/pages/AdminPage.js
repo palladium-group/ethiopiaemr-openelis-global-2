@@ -59,6 +59,27 @@ class AdminPage {
     return new MenuConfigPage();
   }
 
+  goToPatientConfigPage() {
+    cy.contains("span", "Menu Configuration").click();
+    cy.get("[data-cy='patientMenuMgmnt']").click();
+
+    return new MenuConfigPage();
+  }
+
+  goToStudyConfigPage() {
+    cy.contains("span", "Menu Configuration").click();
+    cy.get("[data-cy='studyMenuMgmnt']").click();
+
+    return new MenuConfigPage();
+  }
+
+  goToBillingConfigPage() {
+    cy.contains("span", "Menu Configuration").click();
+    cy.get("[data-cy='billingMenuMgmnt']").click();
+
+    return new MenuConfigPage();
+  }
+
   goToBarcodeConfigPage() {
     cy.get("[data-cy='barcodeConfig']").should("be.visible").click();
 

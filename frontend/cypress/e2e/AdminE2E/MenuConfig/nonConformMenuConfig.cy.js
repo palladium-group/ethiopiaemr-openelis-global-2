@@ -28,15 +28,18 @@ describe("Non-Conform Menu Configuration", function () {
     });
 
     it("Validate Non-Conform is Deactivated", () => {
-      menuConfigPage = homePage.openNavigationMenu();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage.validateNonConformOff();
     });
   });
 
   describe("Activate Non-Conform Menu", () => {
-    it("User turns on the toggle switch", function () {
+    it("Navigate to Non-Conform Menu Page", () => {
       adminPage = homePage.goToAdminPage();
       menuConfigPage = adminPage.goToNonConformConfigPage();
+    });
+
+    it("User turns on the toggle switch", function () {
       menuConfigPage.turnOnToggleSwitch();
       menuConfigPage.validateToggleStatus("On");
     });
@@ -51,7 +54,7 @@ describe("Non-Conform Menu Configuration", function () {
     });
 
     it("Verify menu changes", function () {
-      menuConfigPage = homePage.openNavigationMenu();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage.validateNonConformOn();
     });
   });
