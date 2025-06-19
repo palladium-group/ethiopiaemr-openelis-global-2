@@ -24,7 +24,7 @@ describe("Billing Menu Configuration", function () {
       menuConfigPage.billingAddress(
         "https://united-nations-development-programme.odoo.com/odoo/accounting",
       );
-      menuConfigPage.checkMenuItem("billingMenu");
+      menuConfigPage.uncheckBillingMenu();
       menuConfigPage.submitButton();
       cy.reload();
     });
@@ -37,14 +37,11 @@ describe("Billing Menu Configuration", function () {
 
   describe("Activate Billing Menu", () => {
     it("Navigate to Billing Menu Page", () => {
-      adminPage = homePage.goToAdminPage();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage = adminPage.goToBillingConfigPage();
     });
 
     it("User checks the menu items and submits", function () {
-      menuConfigPage.billingAddress(
-        "https://united-nations-development-programme.odoo.com/odoo/accounting",
-      );
       menuConfigPage.checkMenuItem("billingMenu");
       menuConfigPage.submitButton();
       cy.reload();

@@ -34,7 +34,7 @@ describe("Study Menu Configuration", function () {
 
   describe("Activate Study Menu", () => {
     it("Navigate to Study Menu Page", () => {
-      adminPage = homePage.goToAdminPage();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage = adminPage.goToStudyConfigPage();
     });
 

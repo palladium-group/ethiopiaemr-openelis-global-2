@@ -3,6 +3,7 @@ class MenuConfigPage {
     this.selectors = {
       menuButton: "[data-cy='menuButton']",
       nonConformMenu: "#menu_nonconformity",
+      nonConformCheck: "#menu_nonconformity_checkbox",
       nonConformReport: "#menu_non_conforming_report",
       nonConformView: "#menu_non_conforming_view",
       correctiveAction: "#menu_non_conforming_corrective_actions",
@@ -12,6 +13,8 @@ class MenuConfigPage {
       studyPatient: "#menu_patient_create",
       enterBillingAddress: "#billing_address",
       billingMenu: "#menu_billing",
+      patientCheck: "#menu_patient_checkbox",
+      billingMenuCheck: "#billing_active",
       toggleText: ".cds--toggle__text",
       toggleOn: "div.cds--toggle__switch",
       toggleOff: "div.cds--toggle label div > div",
@@ -39,6 +42,10 @@ class MenuConfigPage {
     cy.contains(this.selectors.toggleText, value);
   }
 
+  uncheckNonConform() {
+    cy.get(this.selectors.nonConformCheck).uncheck();
+  }
+
   validateNonConformOff() {
     cy.get(this.selectors.nonConformMenu).should("not.be.visible");
   }
@@ -48,6 +55,10 @@ class MenuConfigPage {
     cy.get(this.selectors.nonConformReport).should("be.visible");
     cy.get(this.selectors.nonConformView).should("be.visible");
     cy.get(this.selectors.correctiveAction).should("be.visible");
+  }
+
+  uncheckPatientMenu() {
+    cy.get(this.selectors.patientCheck).uncheck();
   }
 
   validatePatientMenuOff() {
@@ -71,6 +82,10 @@ class MenuConfigPage {
 
   billingAddress(value) {
     cy.get(this.selectors.enterBillingAddress).type(value);
+  }
+
+  uncheckBillingMenu() {
+    cy.get(this.selectors.billingMenuCheck).uncheck();
   }
 
   submitButton() {

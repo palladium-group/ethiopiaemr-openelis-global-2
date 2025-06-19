@@ -22,7 +22,7 @@ describe("Non-Conform Menu Configuration", function () {
   describe("Deactivate Non-Conform Menu", () => {
     it("Deactivate Non-Conform Menu and submit", function () {
       menuConfigPage.validateToggleStatus("Off");
-      menuConfigPage.checkMenuItem("nonConform");
+      menuConfigPage.uncheckNonConform();
       menuConfigPage.submitButton();
       cy.reload();
     });
@@ -35,7 +35,7 @@ describe("Non-Conform Menu Configuration", function () {
 
   describe("Activate Non-Conform Menu", () => {
     it("Navigate to Non-Conform Menu Page", () => {
-      adminPage = homePage.goToAdminPage();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage = adminPage.goToNonConformConfigPage();
     });
 

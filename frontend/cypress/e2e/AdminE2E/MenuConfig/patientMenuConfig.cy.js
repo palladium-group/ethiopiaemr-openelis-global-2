@@ -22,7 +22,7 @@ describe("Patient Menu Configuration", function () {
   describe("Deactivate Patient Menu", () => {
     it("Deactivate Patient Menu and submit", function () {
       menuConfigPage.validateToggleStatus("Off");
-      menuConfigPage.checkMenuItem("patient");
+      menuConfigPage.uncheckPatientMenu();
       menuConfigPage.submitButton();
       cy.reload();
     });
@@ -35,7 +35,7 @@ describe("Patient Menu Configuration", function () {
 
   describe("Activate Patient Menu", () => {
     it("Navigate to Patient Menu Page", () => {
-      adminPage = homePage.goToAdminPage();
+      menuConfigPage.navigateToMainMenu();
       menuConfigPage = adminPage.goToPatientConfigPage();
     });
 
