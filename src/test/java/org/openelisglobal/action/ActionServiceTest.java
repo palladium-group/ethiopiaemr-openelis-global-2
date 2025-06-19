@@ -35,10 +35,8 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSetWithStateManagement("testdata/action.xml");
-
         orderProperties = new ArrayList<>();
         orderProperties.add(PROPERTY_NAME);
-
         propertyValues = new HashMap<>();
         propertyValues.put(PROPERTY_NAME, PROPERTY_VALUE);
     }
@@ -46,7 +44,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAll_ReturnsAllActions() {
         actionList = actionService.getAll();
-
         assertNotNull(actionList);
         assertEquals(4, actionList.size());
         assertEquals("1", actionList.get(0).getId());
@@ -59,7 +56,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatching_UsingPropertyNameAndValue() {
         actionList = actionService.getAllMatching(PROPERTY_NAME, PROPERTY_VALUE);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("REG", actionList.get(0).getType());
@@ -68,7 +64,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatching_UsingMap() {
         actionList = actionService.getAllMatching(propertyValues);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("REG", actionList.get(0).getType());
@@ -78,7 +73,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllOrdered_UsingStringAndBoolean() {
         actionList = actionService.getAllOrdered(ORDER_PROPERTY, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(4, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -90,7 +84,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllOrdered_UsingListAndBoolean() {
         actionList = actionService.getAllOrdered(orderProperties, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(4, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -102,7 +95,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatchingOrdered_UsingOrderPropertyString() {
         actionList = actionService.getAllMatchingOrdered(PROPERTY_NAME, PROPERTY_VALUE, ORDER_PROPERTY, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -111,7 +103,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatchingOrdered_UsingOrderPropertiesList() {
         actionList = actionService.getAllMatchingOrdered(PROPERTY_NAME, PROPERTY_VALUE, orderProperties, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -120,7 +111,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatchingOrdered_UsingPropertyValuesMap() {
         actionList = actionService.getAllMatchingOrdered(propertyValues, PROPERTY_NAME, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -129,7 +119,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetAllMatchingOrdered_UsingBothMapAndList() {
         actionList = actionService.getAllMatchingOrdered(propertyValues, orderProperties, IS_DESCENDING);
-
         assertNotNull(actionList);
         assertEquals(1, actionList.size());
         assertEquals("ACT001", actionList.get(0).getCode());
@@ -138,7 +127,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetPage() {
         actionList = actionService.getPage(STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -147,7 +135,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetMatchingPage_UsingPROPERTY_NAMEAndValue() {
         actionList = actionService.getMatchingPage(PROPERTY_NAME, PROPERTY_VALUE, STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -156,7 +143,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetMatchingPage_UsingMap() {
         actionList = actionService.getMatchingPage(propertyValues, STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -165,7 +151,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetOrderedPage_UsingOrderPropertyString() {
         actionList = actionService.getOrderedPage(PROPERTY_NAME, IS_DESCENDING, STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -174,7 +159,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetOrderedPage_UsingOrderPropertiesList() {
         actionList = actionService.getOrderedPage(orderProperties, IS_DESCENDING, STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -184,7 +168,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     public void testGetMatchingOrderedPage_UsingPropertyNameAndValueAndOrderProperty() {
         actionList = actionService.getMatchingOrderedPage(PROPERTY_NAME, PROPERTY_VALUE, ORDER_PROPERTY, IS_DESCENDING,
                 STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -194,7 +177,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     public void testGetMatchingOrderedPage_UsingOrderPropertiesList() {
         actionList = actionService.getMatchingOrderedPage(PROPERTY_NAME, PROPERTY_VALUE, orderProperties, IS_DESCENDING,
                 STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -204,7 +186,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     public void testGetMatchingOrderedPage_UsingPropertiesValuesMap() {
         actionList = actionService.getMatchingOrderedPage(propertyValues, PROPERTY_NAME, IS_DESCENDING,
                 STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -214,7 +195,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     public void testGetMatchingOrderedPage_UsingBothMapAndList() {
         actionList = actionService.getMatchingOrderedPage(propertyValues, orderProperties, IS_DESCENDING,
                 STARTING_REC_NO);
-
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         assertTrue(actionList.size() <= EXPECTED_PAGES);
@@ -225,9 +205,7 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
         Action action = actionService.getAll().get(0);
         action.setCode("ACT005");
         action.setType("UPDATEDREG");
-
         Action updatedAction = actionService.update(action);
-
         assertEquals("ACT005", updatedAction.getCode());
         assertEquals("UPDATEDREG", updatedAction.getType());
     }
@@ -236,7 +214,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     public void deleteAction() {
         Action action = actionService.getAll().get(0);
         actionService.delete(action);
-
         List<Action> deletedAction = actionService.getAll();
         assertEquals(3, deletedAction.size());
     }
@@ -244,7 +221,6 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void deleteAllActions() {
         actionService.deleteAll(actionService.getAll());
-
         List<Action> delectedActions = actionService.getAll();
         assertNotNull(delectedActions);
         assertEquals(0, delectedActions.size());
