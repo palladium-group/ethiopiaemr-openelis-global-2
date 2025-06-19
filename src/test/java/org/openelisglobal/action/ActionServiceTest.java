@@ -1,6 +1,10 @@
 
 package org.openelisglobal.action;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,25 +17,18 @@ import org.openelisglobal.action.valueholder.Action;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-
-
-
 public class ActionServiceTest extends BaseWebContextSensitiveTest {
 
     @Autowired
     private ActionService actionService;
 
     private List<Action> actionList;
-    private final String PROPERTY_NAME ="code";
-    private final Object PROPERTY_VALUE ="ACT001";
-    private final String ORDER_PROPERTY ="code";
-    private int EXPECTED_PAGES= 0;
-    private final boolean IS_DESCENDING=false;
-    private final int STARTING_REC_NO= 1;
+    private final String PROPERTY_NAME = "code";
+    private final Object PROPERTY_VALUE = "ACT001";
+    private final String ORDER_PROPERTY = "code";
+    private int EXPECTED_PAGES = 0;
+    private final boolean IS_DESCENDING = false;
+    private final int STARTING_REC_NO = 1;
     private List<String> orderProperties;
     private Map<String, Object> propertyValues;
 
@@ -225,7 +222,8 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void testGetMatchingOrderedPage_UsingPropertiesValuesMap() {
-        actionList = actionService.getMatchingOrderedPage(propertyValues, PROPERTY_NAME, IS_DESCENDING, STARTING_REC_NO);
+        actionList = actionService.getMatchingOrderedPage(propertyValues, PROPERTY_NAME, IS_DESCENDING,
+                STARTING_REC_NO);
 
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -236,7 +234,8 @@ public class ActionServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void testGetMatchingOrderedPage_UsingBothMapAndList() {
 
-        actionList = actionService.getMatchingOrderedPage(propertyValues, orderProperties, IS_DESCENDING, STARTING_REC_NO);
+        actionList = actionService.getMatchingOrderedPage(propertyValues, orderProperties, IS_DESCENDING,
+                STARTING_REC_NO);
 
         EXPECTED_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
