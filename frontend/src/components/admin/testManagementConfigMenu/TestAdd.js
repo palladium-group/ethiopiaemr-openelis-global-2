@@ -173,7 +173,7 @@ function TestAdd() {
     },
   );
 
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(0);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
   const [formData, setFormData] = useState({
@@ -1699,7 +1699,14 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                             <div className="gridBoundary">
                               <Section key={index}>
                                 <CustomCommonSortableOrderList
-                                  test={item.tests}
+                                  test={[
+                                    ...item.tests,
+                                    {
+                                      id: "0",
+                                      name: values.testNameEnglish,
+                                      userBenchChoice: false,
+                                    },
+                                  ]}
                                   onSort={(updatedList) => {
                                     // console.log("Updated List:", updatedList);
                                   }}
@@ -2440,7 +2447,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               significantDigits: Yup.number()
                 .min(0)
                 .max(4)
-                .nullable()
                 .required("Required"),
             })}
             enableReinitialize={true}
@@ -2990,7 +2996,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           max={4}
                           min={0}
                           size={"md"}
-                          allowEmpty={true}
+                          step={1}
+                          required
                           invalid={
                             touched.significantDigits &&
                             !!errors.significantDigits
@@ -3003,7 +3010,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           onChange={(e) =>
                             setFieldValue("significantDigits", e.target.value)
                           }
-                          value={values.significantDigits || ""}
+                          value={values.significantDigits || 0}
                         />
                       </Column>
                     </Row>
