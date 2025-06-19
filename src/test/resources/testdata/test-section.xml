@@ -3,10 +3,13 @@
 
     <localization id="201" description="Test Description 1"
         english="TB" french="TB" />
+
     <localization id="202" description="Test Description 2"
         english="Urinalysis" french="Urinalysis" />
+
     <localization id="203" description="Test Description 3"
         english="blood test" french="Merci" />
+
     <organization id="1001" name="Central Health Lab"
         city="Algiers" zip_code="16000" mls_sentinel_lab_flag="Y"
         short_name="CHL" multiple_unit="Unit A" street_address="123 Lab St"
@@ -32,10 +35,6 @@
         local_abbrev="WDC01" code="WDC-CODE" datim_org_code="DATIM-WDC"
         datim_org_name="DATIM West Diagnostic Center" />
 
-
-
-
-
     <test_section id="1" name="Hematology"
         description="Blood-related tests" org_id="1001" is_external="N"
         lastupdated="2025-06-10 10:00:00" sort_order="1" is_active="Y"
@@ -50,6 +49,5 @@
         description="Toxic substances analysis" org_id="1003" is_external="Y"
         lastupdated="2025-06-10 10:30:00" sort_order="3" is_active="Y"
         name_localization_id="203" display_key="section.toxicology" />
-
 
 </dataset>
