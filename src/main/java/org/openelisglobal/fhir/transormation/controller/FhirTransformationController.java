@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.itech.fhir.dataexport.api.service.DataExportService;
 import org.itech.fhir.dataexport.core.model.DataExportTask;
 import org.itech.fhir.dataexport.core.service.DataExportTaskService;
@@ -15,7 +14,6 @@ import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
 import org.openelisglobal.dataexchange.fhir.exception.FhirPersistanceException;
 import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
-import org.openelisglobal.dictionary.valueholder.Dictionary;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
@@ -294,11 +292,5 @@ public class FhirTransformationController extends BaseController {
         public int threads; // ignored if waitForResults is false
         public boolean checkAll;
         public boolean waitForResults;
-    }
-
-    private CodeableConcept createCodeableConcept(Dictionary dictionary) {
-        CodeableConcept concept = new CodeableConcept();
-        concept.setCoding(dictionary.getFhirCodings());
-        return concept;
     }
 }

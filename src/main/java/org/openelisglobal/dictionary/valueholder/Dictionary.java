@@ -27,7 +27,7 @@ public class Dictionary extends BaseObject<String> {
 
     private static final long serialVersionUID = 1L;
 
-    private String loincSystem;
+    private String loincCode;
 
     public class ComparatorLocalizedName implements Comparator<Dictionary> {
         @Override
@@ -155,12 +155,12 @@ public class Dictionary extends BaseObject<String> {
         return "Dictionary [id=" + id + ", localAbbreviation=" + localAbbreviation + ", nameKey=" + getNameKey() + "]";
     }
 
-    public String getLoincSystem() {
-        return loincSystem;
+    public String getLoincCode() {
+        return loincCode;
     }
 
-    public void setLoincSystem(String loincSystem) {
-        this.loincSystem = loincSystem;
+    public void setLoincCode(String loincCode) {
+        this.loincCode = loincCode;
     }
 
 }

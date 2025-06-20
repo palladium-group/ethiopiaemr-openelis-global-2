@@ -3,55 +3,35 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
 
-    <changeSet id="1" author="agaba-derrick">
-        <validCheckSum>8:bc3102f55e943fbbb61b69324a5d6eb0</validCheckSum>
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists columnName="loinc" schemaName="clinlims"
-                              tableName="panel" />
-            </not>
-        </preConditions>
-        <comment>Adds loinc columns to panel</comment>
-        <addColumn tableName="panel">
-            <column name="loinc" type="character varying(10)"></column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="add-dictionary-loinc-mapping" author="agaba-derrick">
+    <changeSet id="add-dictionary-loinc-code" author="agaba-derrick">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists columnName="loinc_code" schemaName="clinlims"
-                              tableName="dictionary" />
+                              tableName="dictionary"/>
             </not>
         </preConditions>
-        <comment>Adds LOINC mapping columns to dictionary</comment>
+        <comment>Adds LOINC code column to dictionary for result mappings</comment>
         <addColumn tableName="dictionary">
-            <column name="loinc_code" type="character varying(20)"/>
-            <column name="loinc_display" type="character varying(100)"/>
-            <column name="loinc_system" type="character varying(255)" defaultValue="http://loinc.org"/>
+            <column name="loinc_code" type="VARCHAR(20)"/>
         </addColumn>
     </changeSet>
 
-    <!-- Add common LOINC mappings -->
-    <changeSet id="seed-common-result-loinc-mappings" author="agaba-derrick">
+    <changeSet id="seed-common-loinc-codes" author="agaba-derrick">
         <preConditions onFail="MARK_RAN">
             <columnExists columnName="loinc_code" schemaName="clinlims"
-                          tableName="dictionary" />
+                          tableName="dictionary"/>
         </preConditions>
-        <comment>Seed common result LOINC mappings</comment>
+        <comment>Seed common LOINC code mappings</comment>
         <update tableName="dictionary">
             <column name="loinc_code" value="LA13522-5"/>
-            <column name="loinc_display" value="Invalid Result"/>
             <where>dict_entry = 'Invalid'</where>
         </update>
         <update tableName="dictionary">
             <column name="loinc_code" value="LA9663-1"/>
-            <column name="loinc_display" value="Detected"/>
             <where>dict_entry = 'Positive'</where>
         </update>
         <update tableName="dictionary">
             <column name="loinc_code" value="LA9664-9"/>
-            <column name="loinc_display" value="Not Detected"/>
             <where>dict_entry = 'Negative'</where>
         </update>
     </changeSet>
