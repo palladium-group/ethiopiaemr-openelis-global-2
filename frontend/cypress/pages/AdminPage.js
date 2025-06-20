@@ -5,6 +5,7 @@ import BarcodeConfigPage from "./BarcodeConfigPage";
 import ProgramEntryPage from "./ProgramEntryPage";
 import ProviderManagementPage from "./ProviderManagementPage";
 import OrganizationManagementPage from "./OrganizationManagementPage";
+import ReflexTestsConfigPage from "./ReflexTestsConfigPage";
 import DictionaryMenuPage from "./DictionaryMenu";
 
 class AdminPage {
@@ -67,9 +68,19 @@ class AdminPage {
 
   goToDictionaryMenuPage() {
     cy.get("[data-cy='dictMenu']").should("be.visible").click();
-
     return new DictionaryMenuPage();
   }
-}
 
+  goToReflexTestsManagement() {
+    cy.contains("span", "Reflex Tests Configuration").click();
+    cy.get("[data-cy='reflex']").click();
+    return new ReflexTestsConfigPage();
+  }
+
+  goToCalculatedValueTestsManagement() {
+    cy.contains("span", "Reflex Tests Configuration").click();
+    cy.get("[data-cy='calculatedValue']").click();
+    return new ReflexTestsConfigPage();
+  }
+}
 export default AdminPage;
