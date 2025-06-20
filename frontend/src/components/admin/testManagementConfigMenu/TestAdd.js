@@ -534,6 +534,7 @@ function TestAdd() {
       validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
+      selectedResultTypeList={selectedResultTypeList}
       ageRangeList={ageRangeList}
       setAgeRangeList={setAgeRangeList}
       gotSelectedAgeRangeList={gotSelectedAgeRangeList}
@@ -2303,6 +2304,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   validationSchema,
   handleNextStep,
   handlePreviousStep,
+  selectedResultTypeList,
   ageRangeList,
   setAgeRangeList,
   gotSelectedAgeRangeList,
@@ -2318,7 +2320,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   };
   return (
     <>
-      {currentStep === 5 ? (
+      {currentStep === 5 && selectedResultTypeList?.id === "4" ? (
         <>
           <Formik
             initialValues={formData}
@@ -2327,7 +2329,15 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 Yup.object().shape({
                   ageRange: Yup.string().required("Age range is required"),
                   highAgeRange: Yup.string().required("Required"),
-                  gender: Yup.boolean().required("Required"),
+                  // gender: Yup.boolean().when("lowNormalFemale", {
+                  //   is: (val) => val !== undefined,
+                  //   then: (schema) => schema.required("Required"),
+                  //   otherwise: (schema) => schema.notRequired(),
+                  // }),
+                  gender: Yup.boolean().oneOf(
+                    [true, false],
+                    "Gender is required",
+                  ),
                   lowNormal: Yup.number().min(0).max(100).required("Required"),
                   highNormal: Yup.number()
                     .min(Yup.ref("lowNormal"))
@@ -2465,8 +2475,13 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               errors,
               setFieldValue,
             }) => {
-              const handleAddAgeRangeFillUp = () => {
-                setAgeRangeFields((prev) => [...prev, prev.length]);
+              const handleAddAgeRangeFillUp = (index) => {
+                setAgeRangeFields((prev) => {
+                  if (index === prev.length - 1) {
+                    return [...prev, prev.length];
+                  }
+                  return prev;
+                });
               };
 
               const handleRemoveAgeRangeFillUp = (indexToRemove) => {
@@ -2478,6 +2493,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               const handleRangeChange = (index, field, value) => {
                 setFieldValue(`resultLimits[${index}].${field}`, value);
               };
+
+              console.log(values);
 
               return (
                 <Form>
@@ -2520,20 +2537,27 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           >
                             <Checkbox
                               id={`gender-${index}`}
-                              name={`gender`}
+                              name={`resultLimits[${index}].gender`}
                               labelText={
                                 <FormattedMessage id="label.sex.dependent" />
                               }
                               checked={
                                 values.resultLimits?.[index]?.gender || false
                               }
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                if (!values.resultLimits?.[index]) {
+                                  const updatedLimits = [
+                                    ...(values.resultLimits || []),
+                                  ];
+                                  updatedLimits[index] = { gender: false };
+                                  setFieldValue("resultLimits", updatedLimits);
+                                }
                                 handleRangeChange(
                                   index,
                                   "gender",
                                   e.target.checked,
-                                )
-                              }
+                                );
+                              }}
                             />
                           </Column>
                           <Column
@@ -2601,10 +2625,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               labelText=""
                               hideLabel
                               size={"md"}
-                              min={0}
-                              max={100} // dependent to selecting
                               required
-                              step={1}
                               value={
                                 values.resultLimits?.[index]?.ageRange || ""
                               }
@@ -2613,7 +2634,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   `resultLimits[${index}].ageRange`,
                                   e.target.value,
                                 );
-                                handleAddAgeRangeFillUp();
+                                handleAddAgeRangeFillUp(index);
                               }}
                               invalid={
                                 touched?.resultLimits?.[index]?.ageRange &&
@@ -2854,8 +2875,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             touched?.lowReportingRange &&
                             errors?.lowReportingRange
                           }
-                          onChange={(e) =>
-                            setFieldValue("lowReportingRange", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("lowReportingRange", value)
                           }
                         />
                         <NumberInput
@@ -2877,8 +2898,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             touched?.highReportingRange &&
                             errors?.highReportingRange
                           }
-                          onChange={(e) =>
-                            setFieldValue("highReportingRange", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("highReportingRange", value)
                           }
                         />
                       </div>
@@ -2900,8 +2921,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           value={values.lowValid || 0}
                           invalid={touched?.lowValid && !!errors?.lowValid}
                           invalidText={touched?.lowValid && errors?.lowValid}
-                          onChange={(e) =>
-                            setFieldValue("lowValid", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("lowValid", value)
                           }
                         />
                         <NumberInput
@@ -2917,8 +2938,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           value={values.highValid || 0}
                           invalid={touched?.highValid && !!errors?.highValid}
                           invalidText={touched?.highValid && errors?.highValid}
-                          onChange={(e) =>
-                            setFieldValue("highValid", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("highValid", value)
                           }
                         />
                       </div>
@@ -2944,8 +2965,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           invalidText={
                             touched?.lowCritical && errors?.lowCritical
                           }
-                          onChange={(e) =>
-                            setFieldValue("lowCritical", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("lowCritical", value)
                           }
                         />
                         <NumberInput
@@ -2965,8 +2986,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           invalidText={
                             touched?.highCritical && errors?.highCritical
                           }
-                          onChange={(e) =>
-                            setFieldValue("highCritical", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("highCritical", value)
                           }
                         />
                       </div>
@@ -3007,8 +3028,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             errors.significantDigits
                           }
                           onBlur={handleBlur}
-                          onChange={(e) =>
-                            setFieldValue("significantDigits", e.target.value)
+                          onChange={(_, { value }) =>
+                            setFieldValue("significantDigits", value)
                           }
                           value={values.significantDigits || 0}
                         />
@@ -3036,7 +3057,36 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
           </Formik>
         </>
       ) : (
-        <></>
+        <>
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="process.testAdd.pressNext" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Button type="submit">
+                <FormattedMessage id="next.action.button" />
+              </Button>{" "}
+              <Button
+                onClick={() => handlePreviousStep(values)}
+                kind="tertiary"
+                type="button"
+              >
+                <FormattedMessage id="back.action.button" />
+              </Button>
+            </Column>
+          </Grid>
+        </>
       )}
     </>
   );
