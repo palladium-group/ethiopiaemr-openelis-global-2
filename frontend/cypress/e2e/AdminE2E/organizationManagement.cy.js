@@ -16,7 +16,7 @@ describe("Add Organization and Institute", function () {
     adminPage = homePage.goToAdminPageProgram();
   });
 
-  it("Navidate to organisation Management", function () {
+  it("Navigate to organisation Management", function () {
     orgMgmnt = adminPage.goToOrganizationManagement();
   });
 
@@ -30,7 +30,7 @@ describe("Add Organization and Institute", function () {
     orgMgmnt.saveOrganization();
   });
 
-  it("Validates the added site/organization", function () {
+  it("Validate added site/organization", function () {
     orgMgmnt = adminPage.goToOrganizationManagement();
     orgMgmnt.searchOrganzation();
     orgMgmnt.confirmOrganization();
@@ -46,7 +46,7 @@ describe("Add Organization and Institute", function () {
     orgMgmnt.saveOrganization();
   });
 
-  it("Validates the added institute", function () {
+  it("Validate added institute", function () {
     orgMgmnt = adminPage.goToOrganizationManagement();
     orgMgmnt.searchInstitute();
     orgMgmnt.confirmInstitute();
