@@ -554,6 +554,7 @@ function TestAdd() {
       jsonWad={jsonWad}
       setJsonWad={setJsonWad}
       currentStep={currentStep}
+      setCurrentStep={setCurrentStep}
       ageRangeFields={ageRangeFields}
       setAgeRangeFields={setAgeRangeFields}
     />,
@@ -2335,6 +2336,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   jsonWad,
   setJsonWad,
   currentStep,
+  setCurrentStep,
   ageRangeFields,
   setAgeRangeFields,
 }) => {
@@ -3152,7 +3154,11 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 <FormattedMessage id="next.action.button" />
               </Button>{" "}
               <Button
-                onClick={() => handlePreviousStep(values)}
+                onClick={() => {
+                  setCurrentStep((prev) => {
+                    prev - 1;
+                  });
+                }}
                 kind="tertiary"
                 type="button"
               >
@@ -3180,6 +3186,7 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
   selectedSampleTypeList,
   selectedSampleTypeResp,
   currentStep,
+  setCurrentStep,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, false);
