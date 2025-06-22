@@ -14,7 +14,7 @@ class MenuConfigPage {
       enterBillingAddress: "#billing_address",
       billingMenu: "#menu_billing",
       patientCheck: "#menu_patient_checkbox",
-      billingMenuCheck: "#billing_active",
+      billingMenuCheck: "Billing Menu Active",
       toggleText: ".cds--toggle__text",
       toggleOn: "div.cds--toggle__switch",
       toggleOff: "div.cds--toggle label div > div",
@@ -28,7 +28,7 @@ class MenuConfigPage {
 
   navigateToMainMenu() {
     cy.get(this.selectors.menuButton).click();
-    cy.wait(2000);
+    cy.wait(5000);
   }
 
   turnOffToggleSwitch() {
@@ -82,11 +82,11 @@ class MenuConfigPage {
   }
 
   billingAddress(value) {
-    cy.get(this.selectors.enterBillingAddress).type(value);
+    cy.get(this.selectors.enterBillingAddress).clear().type(value);
   }
 
   uncheckBillingMenu() {
-    cy.get(this.selectors.billingMenuCheck).uncheck({ force: true });
+    cy.contains("span", this.selectors.billingMenuCheck).click();
   }
 
   submitButton() {
