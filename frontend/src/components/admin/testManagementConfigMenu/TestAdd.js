@@ -371,12 +371,24 @@ function TestAdd() {
         res.sampleTypeId,
       );
 
+      const extraTestItem = {
+        id: "0",
+        name: formData.testNameEnglish,
+        userBenchChoice: false,
+      };
+
       if (isInSelectedSampleType) {
         const isAlreadyPresent = prev.some(
           (item) => item.sampleTypeId === res.sampleTypeId,
         );
         if (!isAlreadyPresent) {
-          return [...prev, res];
+          return [
+            ...prev,
+            {
+              ...res,
+              tests: [...(res.tests || []), extraTestItem],
+            },
+          ];
         }
       } else {
         return prev.filter((item) => item.sampleTypeId !== res.sampleTypeId);
@@ -558,6 +570,8 @@ function TestAdd() {
       setPanelListTag={setPanelListTag}
       selectedUomList={selectedUomList}
       setSelectedUomList={setSelectedUomList}
+      selectedLabUnitList={selectedLabUnitList}
+      setSelectedLabUnitList={setSelectedLabUnitList}
       selectedResultTypeList={selectedResultTypeList}
       setSelectedResultTypeList={setSelectedResultTypeList}
       selectedSampleTypeList={selectedSampleTypeList}
@@ -1700,16 +1714,24 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                             <div className="gridBoundary">
                               <Section key={index}>
                                 <CustomCommonSortableOrderList
-                                  test={[
-                                    ...item.tests,
-                                    {
-                                      id: "0",
-                                      name: values.testNameEnglish,
-                                      userBenchChoice: false,
-                                    },
-                                  ]}
+                                  test={item.tests}
                                   onSort={(updatedList) => {
-                                    // console.log("Updated List:", updatedList);
+                                    const newList = selectedSampleTypeResp.map(
+                                      (sampleType) => {
+                                        if (
+                                          sampleType.sampleTypeId ===
+                                          item.sampleTypeId
+                                        ) {
+                                          return {
+                                            ...sampleType,
+                                            tests: updatedList,
+                                          };
+                                        }
+                                        return sampleType;
+                                      },
+                                    );
+                                    setSelectedSampleTypeResp(newList);
+                                    // setFieldValue("sampleTypes", newList);
                                   }}
                                   disableSorting={false}
                                 />
@@ -1809,7 +1831,8 @@ const StepFiveSelectListOptionsAndResultOrder = ({
             onSubmit={(values, actions) => {
               const transformedDictionary = (values.dictionary || []).map(
                 (item) => ({
-                  value: item.id,
+                  // value: item.id,
+                  id: item.id, // maybe a fix
                   qualified: item.qualified,
                 }),
               );
@@ -2328,7 +2351,9 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               resultLimits: Yup.array().of(
                 Yup.object().shape({
                   ageRange: Yup.string().required("Age range is required"),
-                  highAgeRange: Yup.string().required("Required"),
+                  highAgeRange: Yup.string().required(
+                    "High age range is required",
+                  ),
                   // gender: Yup.boolean().when("lowNormalFemale", {
                   //   is: (val) => val !== undefined,
                   //   then: (schema) => schema.required("Required"),
@@ -2338,52 +2363,69 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     [true, false],
                     "Gender is required",
                   ),
-                  lowNormal: Yup.number().min(0).max(100).required("Required"),
+                  lowNormal: Yup.number()
+                    // .min(0)
+                    // .max(100)
+                    .required("Low Normal is required"),
                   highNormal: Yup.number()
                     .min(Yup.ref("lowNormal"))
-                    .max(100)
-                    .required("Required"),
-                  lowCritical: Yup.number()
-                    .min(0)
-                    .max(100)
-                    .required("Required")
-                    .test(
-                      "lowCritical-range",
-                      "Low critical must be between lowValid and lowNormal",
-                      function (value) {
-                        const { lowValid, lowNormal } = this.parent;
-                        if (
-                          value == null ||
-                          lowValid == null ||
-                          lowNormal == null
-                        )
-                          return true;
-                        return value >= lowValid && value <= lowNormal;
-                      },
+                    // .max(100)
+                    .required("High Normal is required"),
+                  lowNormalFemale: Yup.number().when("gender", {
+                    is: true,
+                    then: Yup.number().required(
+                      "Low Normal Female is required",
                     ),
-                  highCritical: Yup.number()
-                    .min(0)
-                    .max(100)
-                    .required("Required")
-                    .test(
-                      "highCritical-range",
-                      "High critical must be between highNormal and highValid",
-                      function (value) {
-                        const { highValid, highNormal } = this.parent;
-                        if (
-                          value == null ||
-                          highValid == null ||
-                          highNormal == null
-                        )
-                          return true;
-                        return value >= highNormal && value <= highValid;
-                      },
+                    otherwise: Yup.number().notRequired(),
+                  }),
+                  highNormalFemale: Yup.number().when("gender", {
+                    is: true,
+                    then: Yup.number().required(
+                      "High Normal Female is required",
                     ),
+                    otherwise: Yup.number().notRequired(),
+                  }),
+                  // lowCritical: Yup.number()
+                  //   .min(0)
+                  //   .max(100)
+                  //   .required("Required")
+                  //   .test(
+                  //     "lowCritical-range",
+                  //     "Low critical must be between lowValid and lowNormal",
+                  //     function (value) {
+                  //       const { lowValid, lowNormal } = this.parent;
+                  //       if (
+                  //         value == null ||
+                  //         lowValid == null ||
+                  //         lowNormal == null
+                  //       )
+                  //         return true;
+                  //       return value >= lowValid && value <= lowNormal;
+                  //     },
+                  //   ),
+                  // highCritical: Yup.number()
+                  //   .min(0)
+                  //   .max(100)
+                  //   .required("Required")
+                  //   .test(
+                  //     "highCritical-range",
+                  //     "High critical must be between highNormal and highValid",
+                  //     function (value) {
+                  //       const { highValid, highNormal } = this.parent;
+                  //       if (
+                  //         value == null ||
+                  //         highValid == null ||
+                  //         highNormal == null
+                  //       )
+                  //         return true;
+                  //       return value >= highNormal && value <= highValid;
+                  //     },
+                  //   ),
                 }),
               ),
               lowReportingRange: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
+                // .min(0, "Minimum value is 0")
+                // .max(100, "Maximum value is 100")
                 .required("Required"),
 
               highReportingRange: Yup.number()
@@ -2391,12 +2433,12 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                   Yup.ref("lowReportingRange"),
                   "Must be greater or equal to lower reporting range",
                 )
-                .max(100, "Maximum value is 100")
+                // .max(100, "Maximum value is 100")
                 .required("Required"),
 
               lowValid: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
+                // .min(0, "Minimum value is 0")
+                // .max(100, "Maximum value is 100")
                 .required("Required"),
 
               highValid: Yup.number()
@@ -2404,12 +2446,12 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                   Yup.ref("lowValid"),
                   "Must be greater than or equal to Lower Valid Range",
                 )
-                .max(100, "Maximum value is 100")
+                // .max(100, "Maximum value is 100")
                 .required("Required"),
 
               lowCritical: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
+                // .min(0, "Minimum value is 0")
+                // .max(100, "Maximum value is 100")
                 .required("Required")
                 // Custom test: lowCritical >= lowValid and <= lowNormal in the matching resultLimit (age/gender)
                 .test(
@@ -2433,8 +2475,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 ),
 
               highCritical: Yup.number()
-                .min(0, "Minimum value is 0")
-                .max(100, "Maximum value is 100")
+                // .min(0, "Minimum value is 0")
+                // .max(100, "Maximum value is 100")
                 .required("Required")
                 // Custom test: highCritical >= highNormal and <= highValid (similar to above)
                 .test(
@@ -2576,7 +2618,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               <RadioButton labelText={"D"} />
                             </RadioButtonGroup>
                           </Column>
-                          <Column
+                          {/* <Column
                             key={index}
                             lg={4}
                             md={4}
@@ -2584,32 +2626,31 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             style={{ marginTop: "1rem" }}
                           >
                             <NumberInput
-                              id={`resultLimits[${index}].highAgeRange`}
-                              name={`resultLimits[${index}].highAgeRange`}
+                              id={`resultLimits[${index}].ageRange`}
+                              name={`resultLimits[${index}].ageRange`}
                               onBlur={handleBlur}
-                              label="Age Range"
-                              hideLabel
+                              label="Age Range (Low)"
                               size={"md"}
                               min={0}
-                              max={100} // dependent to selecting
+                              max={1000}
                               required
                               step={1}
                               value={
-                                values.resultLimits?.[index]?.highAgeRange || 0
+                                values.resultLimits?.[index]?.ageRange || 0
                               }
                               invalid={
-                                touched?.resultLimits?.[index]?.highAgeRange &&
-                                !!errors?.resultLimits?.[index]?.highAgeRange
+                                touched?.resultLimits?.[index]?.ageRange &&
+                                !!errors?.resultLimits?.[index]?.ageRange
                               }
                               invalidText={
-                                touched?.resultLimits?.[index]?.highAgeRange &&
-                                errors?.resultLimits?.[index]?.highAgeRange
+                                touched?.resultLimits?.[index]?.ageRange &&
+                                errors?.resultLimits?.[index]?.ageRange
                               }
                               onChange={(_, { value }) =>
-                                handleRangeChange(index, "highAgeRange", value)
+                                handleRangeChange(index, "ageRange", value)
                               }
                             />
-                          </Column>
+                          </Column> */}
                           <Column
                             key={index}
                             lg={4}
@@ -2660,6 +2701,39 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           </Column>
                           <Column
                             key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            <NumberInput
+                              id={`resultLimits[${index}].highAgeRange`}
+                              name={`resultLimits[${index}].highAgeRange`}
+                              onBlur={handleBlur}
+                              label="Age Range (High)"
+                              size={"md"}
+                              min={0}
+                              max={1000}
+                              required
+                              step={1}
+                              value={
+                                values.resultLimits?.[index]?.highAgeRange || 0
+                              }
+                              invalid={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                !!errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              invalidText={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              onChange={(_, { value }) =>
+                                handleRangeChange(index, "highAgeRange", value)
+                              }
+                            />
+                          </Column>
+                          <Column
+                            key={index}
                             lg={8}
                             md={4}
                             sm={4}
@@ -2682,7 +2756,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 label="Lower Range"
                                 size={"md"}
                                 min={0}
-                                max={100} // dependent to selecting
+                                max={1000}
                                 required
                                 step={1}
                                 value={
@@ -2707,7 +2781,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 label="Higher Range"
                                 size={"md"}
                                 min={0}
-                                max={100} // dependent to selecting
+                                max={1000}
                                 required
                                 step={1}
                                 value={
@@ -2747,7 +2821,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                     label="Lower Range"
                                     size={"md"}
                                     min={0}
-                                    max={100} // dependent to selecting
+                                    max={1000}
                                     required
                                     step={1}
                                     value={
@@ -2781,7 +2855,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                     label="Higher Range"
                                     size={"md"}
                                     min={0}
-                                    max={100} // dependent to selecting
+                                    max={1000}
                                     required
                                     step={1}
                                     value={
@@ -2863,7 +2937,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Lower Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.lowReportingRange || 0}
@@ -2886,7 +2960,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Higher Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.highReportingRange || 0}
@@ -2915,7 +2989,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Lower Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.lowValid || 0}
@@ -2932,7 +3006,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Higher Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.highValid || 0}
@@ -2955,7 +3029,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Lower Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.lowCritical || 0}
@@ -2976,7 +3050,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           label="Higher Range"
                           size={"md"}
                           min={0}
-                          max={100} // dependent to selecting
+                          max={1000}
                           required
                           step={1}
                           value={values.highCritical || 0}
@@ -3168,11 +3242,11 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
                       <br />
                       <FormattedMessage id="english.label" />
                       {" : "}
-                      {values?.reportingTestNameEn}
+                      {values?.testReportNameEnglish}
                       <br />
                       <FormattedMessage id="french.label" />
                       {" : "}
-                      {values?.reportingTestNameFr}
+                      {values?.testReportNameFrench}
                       <br />
                       <br />
                       <FormattedMessage id="test.section.label" />
@@ -3270,6 +3344,35 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
                       ) : (
                         <></>
                       )}
+                      {/* {values.sampleTypes.length > 0 ? (
+                        <UnorderedList nested={true}>
+                          {values.sampleTypes.map((type, index) => (
+                            <div key={`sampleType_${index}`}>
+                              <ListItem>
+                                {selectedSampleTypeList.find(
+                                  (item) => item.id === type.id,
+                                )?.value ?? `Sample Type ${type.id}`}
+                              </ListItem>
+                              <br />
+                              {type.tests?.length > 0 && (
+                                <div className="gridBoundary">
+                                  <Section>
+                                    <UnorderedList nested>
+                                      {type.tests.map((test) => (
+                                        <ListItem key={`test_${test.id}`}>
+                                          {test.name}
+                                        </ListItem>
+                                      ))}
+                                    </UnorderedList>
+                                  </Section>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </UnorderedList>
+                      ) : (
+                        <></>
+                      )} */}
                       <br />
                       <FormattedMessage id="field.referenceValue" />
                       {" : "}
