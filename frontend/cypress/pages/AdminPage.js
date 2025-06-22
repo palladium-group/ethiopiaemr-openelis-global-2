@@ -100,12 +100,10 @@ class AdminPage {
     return new DictionaryMenuPage();
   }
 
-
   goToUserManagementPage() {
     cy.get(this.selectors.userManagement).click();
     return new UserManagementPage();
-}
-
+  }
 
   goToReflexTestsManagement() {
     cy.contains("span", "Reflex Tests Configuration").click();
