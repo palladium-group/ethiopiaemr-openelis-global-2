@@ -59,7 +59,7 @@ class MenuConfigPage {
   }
 
   uncheckPatientMenu() {
-    cy.containst("span", this.selectors.patientCheck).click();
+    cy.contains("span", this.selectors.patientCheck).click();
   }
 
   validatePatientMenuOff() {
