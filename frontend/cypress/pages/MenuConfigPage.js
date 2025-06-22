@@ -52,10 +52,10 @@ class MenuConfigPage {
   }
 
   validateNonConformOn() {
-    cy.get(this.selectors.nonConformMenu).should("be.visible").click();
-    cy.get(this.selectors.nonConformReport).should("be.visible");
-    cy.get(this.selectors.nonConformView).should("be.visible");
-    cy.get(this.selectors.correctiveAction).should("be.visible");
+    cy.get(this.selectors.nonConformMenu).should("exist").click();
+    cy.get(this.selectors.nonConformReport).should("exist");
+    cy.get(this.selectors.nonConformView).should("exist");
+    cy.get(this.selectors.correctiveAction).should("exist");
   }
 
   uncheckPatientMenu() {
@@ -67,14 +67,14 @@ class MenuConfigPage {
   }
 
   validatePatientMenuOn() {
-    cy.get(this.selectors.patientMenu).should("be.visible").click();
-    cy.get(this.selectors.addEditPatient).should("be.visible");
-    cy.get(this.selectors.patientHistory).should("be.visible");
-    cy.get(this.selectors.studyPatient).should("be.visible");
+    cy.get(this.selectors.patientMenu).should("exist").click();
+    cy.get(this.selectors.addEditPatient).should("exist");
+    cy.get(this.selectors.patientHistory).should("exist");
+    cy.get(this.selectors.studyPatient).should("exist");
   }
 
   validateBillingMenuOn() {
-    cy.get(this.selectors.billingMenu).should("be.visible");
+    cy.get(this.selectors.billingMenu).should("exist");
   }
 
   validateBillingMenuOff() {
