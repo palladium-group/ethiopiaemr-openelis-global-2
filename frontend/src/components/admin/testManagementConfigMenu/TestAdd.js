@@ -364,49 +364,56 @@ function TestAdd() {
   }, [selectedSampleType]);
 
   const handleSampleType = (res) => {
-    setSelectedSampleTypeResp((prev) => {
-      const selectedSampleTypeIds = selectedSampleType.map((type) => type.id);
+    const selectedSampleTypeIds = selectedSampleType.map((type) => type.id);
 
-      const isInSelectedSampleType = selectedSampleTypeIds.includes(
-        res.sampleTypeId,
+    const isInSelectedSampleType = selectedSampleTypeIds.includes(
+      res.sampleTypeId,
+    );
+
+    const extraTestItem = {
+      id: "0",
+      name: formData.testNameEnglish,
+      userBenchChoice: false,
+    };
+
+    setSelectedSampleTypeResp((prev) => {
+      const isAlreadyPresent = prev.some(
+        (item) => item.sampleTypeId === res.sampleTypeId,
       );
 
-      const extraTestItem = {
-        id: "0",
-        name: formData.testNameEnglish,
-        userBenchChoice: false,
-      };
+      let updated;
 
-      if (isInSelectedSampleType) {
-        const isAlreadyPresent = prev.some(
-          (item) => item.sampleTypeId === res.sampleTypeId,
-        );
-        if (!isAlreadyPresent) {
-          return [
-            ...prev,
-            {
-              ...res,
-              tests: [...(res.tests || []), extraTestItem],
-            },
-          ];
-        }
+      if (isInSelectedSampleType && !isAlreadyPresent) {
+        updated = [
+          ...prev,
+          {
+            ...res,
+            tests: [...(res.tests || []), extraTestItem],
+          },
+        ];
+      } else if (!isInSelectedSampleType) {
+        updated = prev.filter((item) => item.sampleTypeId !== res.sampleTypeId);
       } else {
-        return prev.filter((item) => item.sampleTypeId !== res.sampleTypeId);
+        updated = prev;
       }
-      return prev;
+      return updated;
     });
   };
 
   const handleTestAddPostCall = (values) => {
     if (!values) {
-      window.location.reload();
+      addNotification({
+        kind: NotificationKinds.error,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: "Form submission failed due to missing data.",
+      });
+      setNotificationVisible(true);
       return;
     }
-    console.log(values);
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
-      JSON.stringify(values),
+      JSON.stringify({ jsonWad: JSON.stringify(values) }),
       (res) => {
         handelTestAddPostCallback(res);
       },
@@ -1560,14 +1567,16 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 .min(1, "At least one sample type must be selected")
                 .of(
                   Yup.object().shape({
-                    id: Yup.string().required("Sample Type ID is required"),
-                    value: Yup.string().required(
-                      "Sample Type Value is required",
-                    ),
-                    // typeId: Yup.string().required("Sample Type ID is required"),
-                    // tests: Yup.string().required(
+                    // id: Yup.string().required("Sample Type ID is required"),
+                    // value: Yup.string().required(
                     //   "Sample Type Value is required",
                     // ),
+                    typeId: Yup.string().required("Sample Type ID is required"),
+                    tests: Yup.array().of(
+                      Yup.object().shape({
+                        id: Yup.number().required(),
+                      }),
+                    ),
                   }),
                 ),
             })}
@@ -1600,13 +1609,26 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 );
 
                 if (!isAlreadySelected) {
+                  // console.log(selectedSampleTypeList);
+                  // const matchedResp = selectedSampleTypeResp.find(
+                  //   (resp) => String(resp.sampleTypeId) === selectedId,
+                  // );
+
+                  // const testList =
+                  //   matchedResp?.tests?.map((t) => ({ id: Number(t.id) })) ??
+                  //   [];
+
+                  // const transformedSampleType = {
+                  //   typeId: selectedId,
+                  //   tests: testList,
+                  // };
+
                   const updatedList = [
                     ...selectedSampleTypeList,
                     selectedSampleTypeObject,
                   ];
 
                   setSelectedSampleTypeList(updatedList);
-                  setFieldValue("sampleTypes", updatedList);
                   setSampleTestTypeToGetTagList((prev) => [
                     ...prev,
                     selectedSampleTypeObject,
@@ -1615,8 +1637,35 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                     ...prev,
                     selectedSampleTypeObject,
                   ]);
+                  // setFieldValue("sampleTypes", [
+                  //   ...(values.sampleTypes || []),
+                  //   transformedSampleType,
+                  // ]);
                 }
               };
+
+              useEffect(() => {
+                if (!selectedSampleTypeResp.length) return;
+
+                const newOnes = selectedSampleTypeResp.filter((resp) => {
+                  const existsInForm = values.sampleTypes?.some(
+                    (formItem) => formItem.typeId === String(resp.sampleTypeId),
+                  );
+                  return !existsInForm;
+                });
+
+                if (newOnes.length === 0) return;
+
+                const newTransformed = newOnes.map((resp) => ({
+                  typeId: String(resp.sampleTypeId),
+                  tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
+                }));
+
+                setFieldValue("sampleTypes", [
+                  ...(values.sampleTypes || []),
+                  ...newTransformed,
+                ]);
+              }, [selectedSampleTypeResp]);
 
               const handleRemoveSampleTypeListSelectIdTestTag = (
                 indexToRemove,
@@ -1687,7 +1736,7 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                                   style={{ marginRight: "0.5rem" }}
                                   type={"green"}
                                 >
-                                  {section.value}
+                                  {String(section.value)}
                                 </Tag>
                               ),
                             )}
@@ -2538,8 +2587,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 setFieldValue(`resultLimits[${index}].${field}`, value);
               };
 
-              console.log(values);
-
               return (
                 <Form>
                   <Grid fullWidth={true}>
@@ -2677,7 +2724,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   `resultLimits[${index}].ageRange`,
                                   e.target.value,
                                 );
-                                handleAddAgeRangeFillUp(index);
                               }}
                               invalid={
                                 touched?.resultLimits?.[index]?.ageRange &&
@@ -2921,6 +2967,23 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           ) : (
                             <></>
                           )}
+                          <Column
+                            key={index}
+                            lg={16}
+                            md={8}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            <Button
+                              id={`add-age-range-fill-up-${index}`}
+                              name={`add-age-range-fill-up-${index}`}
+                              kind="secondary"
+                              type="button"
+                              onClick={() => handleAddAgeRangeFillUp(index)}
+                            >
+                              <FormattedMessage id="Add Another Age Range+" />
+                            </Button>
+                          </Column>
                         </React.Fragment>
                       );
                     })}
@@ -3150,15 +3213,14 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
           <br />
           <Grid fullWidth={true}>
             <Column lg={16} md={8} sm={4}>
-              <Button type="submit">
-                <FormattedMessage id="next.action.button" />
-              </Button>{" "}
               <Button
-                onClick={() => {
-                  setCurrentStep((prev) => {
-                    prev - 1;
-                  });
-                }}
+                onClick={() => setCurrentStep(currentStep + 1)}
+                type="button"
+              >
+                <FormattedMessage id="next.action.button" />
+              </Button>
+              <Button
+                onClick={() => setCurrentStep(currentStep - 1)}
                 kind="tertiary"
                 type="button"
               >
