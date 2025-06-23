@@ -3,7 +3,7 @@ import LoginPage from "../../pages/LoginPage";
 let homePage = null;
 let loginPage = null;
 let adminPage = null;
-let orgMgmnt = null;
+let organizationManagement = null;
 
 before("login", () => {
   loginPage = new LoginPage();
@@ -17,38 +17,38 @@ describe("Add Organization and Institute", function () {
   });
 
   it("Navigate to organisation Management", function () {
-    orgMgmnt = adminPage.goToOrganizationManagement();
+    organizationManagement = adminPage.goToOrganizationManagement();
   });
 
   it("Add organisation/site details", function () {
-    orgMgmnt.clickAddOrganization();
-    orgMgmnt.addOrgName();
-    orgMgmnt.activateOrganization();
-    orgMgmnt.addPrefix();
-    orgMgmnt.addParentOrg();
-    orgMgmnt.checkReferringClinic();
-    orgMgmnt.saveOrganization();
+    organizationManagement.clickAddOrganization();
+    organizationManagement.addOrgName();
+    organizationManagement.activateOrganization();
+    organizationManagement.addPrefix();
+    organizationManagement.addParentOrg();
+    organizationManagement.checkReferringClinic();
+    organizationManagement.saveOrganization();
   });
 
   it("Validate added site/organization", function () {
-    orgMgmnt = adminPage.goToOrganizationManagement();
-    orgMgmnt.searchOrganzation();
-    orgMgmnt.confirmOrganization();
+    organizationManagement = adminPage.goToOrganizationManagement();
+    organizationManagement.searchOrganzation();
+    organizationManagement.confirmOrganization();
   });
 
   it("Add institute details", function () {
-    orgMgmnt.clickAddOrganization();
-    orgMgmnt.addInstituteName();
-    orgMgmnt.activateOrganization();
-    //orgMgmnt.addInstitutePrefix();
-    orgMgmnt.addParentOrg();
-    orgMgmnt.checkReferalLab();
-    orgMgmnt.saveOrganization();
+    organizationManagement.clickAddOrganization();
+    organizationManagement.addInstituteName();
+    organizationManagement.activateOrganization();
+    //organizationManagement.addInstitutePrefix();
+    organizationManagement.addParentOrg();
+    organizationManagement.checkReferalLab();
+    organizationManagement.saveOrganization();
   });
 
   it("Validate added institute", function () {
-    orgMgmnt = adminPage.goToOrganizationManagement();
-    orgMgmnt.searchInstitute();
-    orgMgmnt.confirmInstitute();
+    organizationManagement = adminPage.goToOrganizationManagement();
+    organizationManagement.searchInstitute();
+    organizationManagement.confirmInstitute();
   });
 });
