@@ -204,8 +204,8 @@ function TestAdd() {
     significantDigits: "",
     resultLimits: [
       {
-        ageRange: 0,
-        highAgeRange: 0,
+        ageRange: "0",
+        highAgeRange: "0",
         gender: false,
         lowNormal: "-Infinity",
         highNormal: "Infinity",
@@ -418,9 +418,10 @@ function TestAdd() {
         message: "Form submission failed due to missing data.",
       });
       setNotificationVisible(true);
-      return;
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
-    console.log(JSON.stringify({ jsonWad: JSON.stringify(values) }));
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
@@ -1858,14 +1859,15 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                 .of(
                   Yup.object().shape({
                     id: Yup.string().required(),
-                    qualified: Yup.string().oneOf(["Y", "N"]),
+                    // qualified: Yup.string().oneOf(["Y", "N"]),
+                    qualified: Yup.string().required(),
                   }),
-                )
-                .test(
-                  "at-least-one-qualified",
-                  "At least one dictionary item must be qualified as 'Y'",
-                  (arr) => arr && arr.some((item) => item.qualified === "Y"),
                 ),
+              // .test(
+              //   "at-least-one-qualified",
+              //   "At least one dictionary item must be qualified as 'Y'",
+              //   (arr) => arr && arr.some((item) => item.qualified === "Y"),
+              // ),
               dictionaryReference: Yup.string(),
               // .required(
               //   "Dictionary Reference is required",
@@ -2775,8 +2777,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 const nextLowAge = prevLimit?.highAgeRange || "0";
 
                 const newLimit = {
-                  ageRange: nextLowAge,
-                  highAgeRange: 0,
+                  ageRange: String(nextLowAge),
+                  highAgeRange: "0",
                   gender: false,
                   lowNormal: "-Infinity",
                   highNormal: "Infinity",

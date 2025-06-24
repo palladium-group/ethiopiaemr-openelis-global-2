@@ -140,8 +140,6 @@ public class TestAddRestController extends BaseController {
         JSONObject obj = null;
         try {
             obj = (JSONObject) parser.parse(jsonString);
-            System.out.println(">>>>>>>>> Parsed object");
-            System.out.println(obj.toString());
         } catch (ParseException e) {
             LogEvent.logError(e.getMessage(), e);
         }
