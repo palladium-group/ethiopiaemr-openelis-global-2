@@ -186,11 +186,11 @@ function TestAdd() {
     uom: "",
     loinc: "",
     resultType: "",
-    orderable: "",
+    orderable: "Y",
     notifyResults: "",
     inLabOnly: "",
     antimicrobialResistance: "",
-    active: "",
+    active: "Y",
     dictionary: [],
     dictionaryReference: "",
     defaultTestResult: "",
@@ -535,6 +535,7 @@ function TestAdd() {
       dictionaryList={dictionaryList}
       setDictionaryList={setDictionaryList}
       dictionaryListTag={dictionaryListTag}
+      resultTypeList={resultTypeList}
       setDictionaryListTag={setDictionaryListTag}
       singleSelectDictionaryList={singleSelectDictionaryList}
       setSingleSelectDictionaryList={setSingleSelectDictionaryList}
@@ -545,6 +546,7 @@ function TestAdd() {
       jsonWad={jsonWad}
       setJsonWad={setJsonWad}
       currentStep={currentStep}
+      setCurrentStep={setCurrentStep}
     />,
     <StepSixSelectRangeAgeRangeAndSignificantDigits
       key="step-6"
@@ -1414,6 +1416,8 @@ const StepThreeTestResultTypeAndLoinc = ({
             setFieldValue("inLabOnly", e.target.checked ? "Y" : "N");
           };
 
+          console.log(resultTypeList);
+
           return (
             <Form>
               <Grid fullWidth={true}>
@@ -1831,6 +1835,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   setGroupedDictionaryList,
   selectedGroupedDictionaryList,
   setSelectedGroupedDictionaryList,
+  resultTypeList,
   dictionaryList,
   setDictionaryList,
   dictionaryListTag,
@@ -1844,13 +1849,14 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   jsonWad,
   setJsonWad,
   currentStep,
+  setCurrentStep,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, true);
   };
   return (
     <>
-      {currentStep === 4 ? (
+      {currentStep === 4 && resultTypeList.id === (2 || 6 || 7) ? (
         <>
           <Formik
             initialValues={formData}
@@ -2366,7 +2372,41 @@ const StepFiveSelectListOptionsAndResultOrder = ({
           </Formik>
         </>
       ) : (
-        <></>
+        <>
+          <>
+            <Grid fullWidth={true}>
+              <Column lg={16} md={8} sm={4}>
+                <Section>
+                  <Section>
+                    <Section>
+                      <Heading>
+                        <FormattedMessage id="process.testAdd.pressNext.selectGroupDictionary" />
+                      </Heading>
+                    </Section>
+                  </Section>
+                </Section>
+              </Column>
+            </Grid>
+            <br />
+            <Grid fullWidth={true}>
+              <Column lg={16} md={8} sm={4}>
+                <Button
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  type="button"
+                >
+                  <FormattedMessage id="next.action.button" />
+                </Button>
+                <Button
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  kind="tertiary"
+                  type="button"
+                >
+                  <FormattedMessage id="back.action.button" />
+                </Button>
+              </Column>
+            </Grid>
+          </>
+        </>
       )}
     </>
   );
@@ -3203,7 +3243,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                 <Section>
                   <Section>
                     <Heading>
-                      <FormattedMessage id="process.testAdd.pressNext" />
+                      <FormattedMessage id="process.testAdd.pressNext.ageRangeSelectiong" />
                     </Heading>
                   </Section>
                 </Section>
