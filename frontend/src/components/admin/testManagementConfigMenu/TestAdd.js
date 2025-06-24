@@ -150,8 +150,8 @@ function TestAdd() {
       resultType: "",
       orderable: "Y",
       notifyResults: "",
-      inLabOnly: "",
-      antimicrobialResistance: "",
+      inLabOnly: "N",
+      antimicrobialResistance: "N",
       active: "Y",
       sampleTypes: [],
       lowValid: "",
@@ -188,8 +188,8 @@ function TestAdd() {
     resultType: "",
     orderable: "Y",
     notifyResults: "",
-    inLabOnly: "",
-    antimicrobialResistance: "",
+    inLabOnly: "N",
+    antimicrobialResistance: "N",
     active: "Y",
     dictionary: [],
     dictionaryReference: "",
@@ -410,6 +410,7 @@ function TestAdd() {
       setNotificationVisible(true);
       return;
     }
+    console.log(JSON.stringify({ jsonWad: JSON.stringify(values) }))
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
