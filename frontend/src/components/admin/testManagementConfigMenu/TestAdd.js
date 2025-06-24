@@ -537,6 +537,8 @@ function TestAdd() {
       dictionaryListTag={dictionaryListTag}
       resultTypeList={resultTypeList}
       setDictionaryListTag={setDictionaryListTag}
+      selectedResultTypeList={selectedResultTypeList}
+      setSelectedResultTypeList={setSelectedResultTypeList}
       singleSelectDictionaryList={singleSelectDictionaryList}
       setSingleSelectDictionaryList={setSingleSelectDictionaryList}
       multiSelectDictionaryList={multiSelectDictionaryList}
@@ -1785,7 +1787,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                                       },
                                     );
                                     setSelectedSampleTypeResp(newList);
-                                    // setFieldValue("sampleTypes", newList);
                                   }}
                                   disableSorting={false}
                                 />
@@ -1840,6 +1841,8 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   setDictionaryList,
   dictionaryListTag,
   setDictionaryListTag,
+  selectedResultTypeList,
+  setSelectedResultTypeList,
   singleSelectDictionaryList,
   setSingleSelectDictionaryList,
   multiSelectDictionaryList,
@@ -1856,7 +1859,8 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   };
   return (
     <>
-      {currentStep === 4 && resultTypeList.id === (2 || 6 || 7) ? (
+      {currentStep === 4 &&
+      selectedResultTypeList?.id === ("2" || "6" || "7") ? (
         <>
           <Formik
             initialValues={formData}
@@ -2107,7 +2111,26 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                             test={singleSelectDictionaryList}
                             disableSorting={false}
                             onSort={(updatedList) => {
-                              // console.log(updatedList);
+                              setSingleSelectDictionaryList(updatedList);
+
+                              const updatedFormikValues = updatedList.map(
+                                (item) => ({
+                                  id: item.id,
+                                  qualified:
+                                    values.dictionary.find(
+                                      (d) => d.id === item.id,
+                                    )?.qualified || "N",
+                                }),
+                              );
+
+                              setFieldValue("dictionary", updatedFormikValues);
+
+                              setJsonWad((prev) => ({
+                                ...prev,
+                                dictionary: updatedList.map(
+                                  ({ id, value }) => ({ id, value }),
+                                ),
+                              }));
                             }}
                           />
                         )}
@@ -3021,7 +3044,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               type="button"
                               onClick={() => handleAddAgeRangeFillUp(index)}
                             >
-                              <FormattedMessage id="Add Another Age Range+" />
+                              <FormattedMessage id="Add Another Age Range +" />
                             </Button>
                           </Column>
                         </React.Fragment>
