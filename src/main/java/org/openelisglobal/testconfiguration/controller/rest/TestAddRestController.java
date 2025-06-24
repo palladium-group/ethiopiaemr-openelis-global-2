@@ -140,6 +140,8 @@ public class TestAddRestController extends BaseController {
         JSONObject obj = null;
         try {
             obj = (JSONObject) parser.parse(jsonString);
+            System.out.println(">>>>>>>>> Parsed object");
+            System.out.println(obj.toString());
         } catch (ParseException e) {
             LogEvent.logError(e.getMessage(), e);
         }
@@ -405,12 +407,12 @@ public class TestAddRestController extends BaseController {
             if (gender) {
                 params.gender = "M";
             }
-            String highAge = (String) (((JSONObject) limitArray.get(i)).get("highAgeRange"));
-            params.displayRange = (String) (((JSONObject) limitArray.get(i)).get("reportingRange"));
-            params.lowNormalLimit = (String) (((JSONObject) limitArray.get(i)).get("lowNormal"));
-            params.highNormalLimit = (String) (((JSONObject) limitArray.get(i)).get("highNormal"));
-            params.lowCritical = (String) (((JSONObject) limitArray.get(i)).get("lowCritical"));
-            params.highCritical = (String) (((JSONObject) limitArray.get(i)).get("highCritical"));
+            String highAge = (((JSONObject) limitArray.get(i)).get("highAgeRange")).toString();
+            params.displayRange = (((JSONObject) limitArray.get(i)).get("reportingRange")).toString();
+            params.lowNormalLimit = (((JSONObject) limitArray.get(i)).get("lowNormal")).toString();
+            params.highNormalLimit = (((JSONObject) limitArray.get(i)).get("highNormal")).toString();
+            params.lowCritical = (((JSONObject) limitArray.get(i)).get("lowCritical")).toString();
+            params.highCritical = (((JSONObject) limitArray.get(i)).get("highCritical")).toString();
             params.lowAge = lowAge;
             params.highAge = highAge;
             testAddParams.limits.add(params);
@@ -418,8 +420,8 @@ public class TestAddRestController extends BaseController {
             if (gender) {
                 params = new ResultLimitParams();
                 params.gender = "F";
-                params.lowNormalLimit = (String) (((JSONObject) limitArray.get(i)).get("lowNormalFemale"));
-                params.highNormalLimit = (String) (((JSONObject) limitArray.get(i)).get("highNormalFemale"));
+                params.lowNormalLimit = (((JSONObject) limitArray.get(i)).get("lowNormalFemale")).toString();
+                params.highNormalLimit = (((JSONObject) limitArray.get(i)).get("highNormalFemale")).toString();
                 params.lowAge = lowAge;
                 params.highAge = highAge;
                 testAddParams.limits.add(params);
