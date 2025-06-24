@@ -195,14 +195,24 @@ function TestAdd() {
     dictionaryReference: "",
     defaultTestResult: "",
     sampleTypes: [],
-    lowValid: "",
-    highValid: "",
-    lowReportingRange: "",
-    highReportingRange: "",
-    lowCritical: "",
-    highCritical: "",
+    lowValid: "-Infinity",
+    highValid: "Infinity",
+    lowReportingRange: "-Infinity",
+    highReportingRange: "Infinity",
+    lowCritical: "-Infinity",
+    highCritical: "Infinity",
     significantDigits: "",
-    resultLimits: [],
+    resultLimits: [
+      {
+        ageRange: 0,
+        highAgeRange: 0,
+        gender: false,
+        lowNormal: "-Infinity",
+        highNormal: "Infinity",
+        lowNormalFemale: "-Infinity",
+        highNormalFemale: "Infinity",
+      },
+    ],
   });
 
   const [showGuide, setShowGuide] = useState(false);
@@ -2454,27 +2464,115 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     [true, false],
                     "Gender is required",
                   ),
-                  lowNormal: Yup.number()
-                    // .min(0)
-                    // .max(100)
+                  lowNormal: Yup.mixed()
+                    .test(
+                      "is-valid-number-or-infinity",
+                      "Low Normal must be a number or '-Infinity'",
+                      (value) => {
+                        return (
+                          value === "-Infinity" ||
+                          value === "Infinity" ||
+                          typeof value === "number" ||
+                          !isNaN(Number(value))
+                        );
+                      },
+                    )
                     .required("Low Normal is required"),
-                  highNormal: Yup.number()
-                    .min(Yup.ref("lowNormal"))
-                    // .max(100)
+                  highNormal: Yup.mixed()
+                    .test(
+                      "is-valid-number-or-infinity",
+                      "High Normal must be a equal, higher number then Low Normal or 'Infinity'",
+                      function (value) {
+                        const { lowNormal } = this.parent;
+
+                        const isValidType =
+                          typeof value === "number" ||
+                          value === "Infinity" ||
+                          value === "-Infinity";
+
+                        if (!isValidType) return false;
+
+                        if (
+                          typeof lowNormal === "number" &&
+                          typeof value === "number"
+                        ) {
+                          return value >= lowNormal;
+                        }
+
+                        if (value === "Infinity") return true;
+
+                        if (
+                          typeof value === "number" &&
+                          lowNormal !== undefined &&
+                          !isNaN(Number(lowNormal))
+                        ) {
+                          return value >= Number(lowNormal);
+                        }
+
+                        return typeof value === "number";
+                      },
+                    )
                     .required("High Normal is required"),
-                  lowNormalFemale: Yup.number().when("gender", {
+                  lowNormalFemale: Yup.mixed().when("gender", {
                     is: true,
-                    then: Yup.number().required(
-                      "Low Normal Female is required",
-                    ),
-                    otherwise: Yup.number().notRequired(),
+                    then: Yup.mixed()
+                      .test(
+                        "is-valid-number-or-infinity",
+                        "Low Normal Female must be a number or '-Infinity'",
+                        (value) => {
+                          return (
+                            value === "-Infinity" ||
+                            value === "Infinity" ||
+                            typeof value === "number" ||
+                            !isNaN(Number(value))
+                          );
+                        },
+                      )
+                      .required("Low Normal Female is required"),
+                    otherwise: Yup.mixed().notRequired(),
                   }),
-                  highNormalFemale: Yup.number().when("gender", {
+                  highNormalFemale: Yup.mixed().when("gender", {
                     is: true,
-                    then: Yup.number().required(
-                      "High Normal Female is required",
-                    ),
-                    otherwise: Yup.number().notRequired(),
+                    then: Yup.mixed()
+                      .test(
+                        "is-valid-number-or-infinity",
+                        "High Normal Female must be equal, number or 'Infinity'",
+                        (value) =>
+                          value === "-Infinity" ||
+                          value === "Infinity" ||
+                          typeof value === "number" ||
+                          !isNaN(Number(value)),
+                      )
+                      .test(
+                        "greater-than-lowNormalFemale",
+                        "High Normal Female must be equal, greater than Low Normal Female or Infinity",
+                        function (value) {
+                          const { lowNormalFemale } = this.parent;
+
+                          const numValue = parseFloat(value);
+                          const numLow = parseFloat(lowNormalFemale);
+
+                          const isValidNumber = (v) =>
+                            v === "Infinity" ||
+                            v === "-Infinity" ||
+                            typeof v === "number" ||
+                            !isNaN(Number(v));
+
+                          if (
+                            !isValidNumber(value) ||
+                            !isValidNumber(lowNormalFemale)
+                          ) {
+                            return true;
+                          }
+
+                          return (
+                            (numValue === Infinity || numValue >= numLow) &&
+                            numValue !== -Infinity
+                          );
+                        },
+                      )
+                      .required("High Normal Female is required"),
+                    otherwise: Yup.mixed().notRequired(),
                   }),
                   // lowCritical: Yup.number()
                   //   .min(0)
@@ -2514,74 +2612,135 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                   //   ),
                 }),
               ),
-              lowReportingRange: Yup.number(),
+              lowReportingRange: Yup.mixed().test(
+                "is-valid-number-or-infinity",
+                "Low Reporting Range must be a number or 'Infinity'",
+                (value) =>
+                  value === "-Infinity" ||
+                  value === "Infinity" ||
+                  typeof value === "number" ||
+                  !isNaN(Number(value)),
+              ),
               // .min(0, "Minimum value is 0")
               // .max(100, "Maximum value is 100")
               // .required("Required"),
 
-              highReportingRange: Yup.number().min(
-                Yup.ref("lowReportingRange"),
-                "Must be greater or equal to lower reporting range",
-              ),
-              // .max(100, "Maximum value is 100")
-              // .required("Required"),
-
-              lowValid: Yup.number(),
-              // .min(0, "Minimum value is 0")
-              // .max(100, "Maximum value is 100")
-              // .required("Required"),
-
-              highValid: Yup.number().min(
-                Yup.ref("lowValid"),
-                "Must be greater than or equal to Lower Valid Range",
-              ),
-              // .max(100, "Maximum value is 100")
-              // .required("Required"),
-
-              lowCritical: Yup.number()
-                // .min(0, "Minimum value is 0")
-                // .max(100, "Maximum value is 100")
-                // .required("Required")
-                // Custom test: lowCritical >= lowValid and <= lowNormal in the matching resultLimit (age/gender)
+              highReportingRange: Yup.mixed()
                 .test(
-                  "lowCritical-range",
+                  "is-valid-number-or-infinity",
+                  "High Reporting Range must be a number or 'Infinity'",
+                  (value) =>
+                    value === "-Infinity" ||
+                    value === "Infinity" ||
+                    typeof value === "number" ||
+                    !isNaN(Number(value)),
+                )
+                .test(
+                  "greater-than-lowReportingRange",
+                  "Must be greater or equal to lower reporting range",
+                  function (value) {
+                    const { lowReportingRange } = this.parent;
+                    const high = parseFloat(value);
+                    const low = parseFloat(lowReportingRange);
+
+                    if (isNaN(high) || isNaN(low)) return true;
+                    return high >= low;
+                  },
+                ),
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
+
+              lowValid: Yup.mixed().test(
+                "is-valid-number-or-infinity",
+                "Low Valid must be a number or 'Infinity'",
+                (value) =>
+                  value === "-Infinity" ||
+                  value === "Infinity" ||
+                  typeof value === "number" ||
+                  !isNaN(Number(value)),
+              ),
+              // .min(0, "Minimum value is 0")
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
+
+              highValid: Yup.mixed()
+                .test(
+                  "is-valid-number-or-infinity",
+                  "High Valid must be a number or 'Infinity'",
+                  (value) =>
+                    value === "-Infinity" ||
+                    value === "Infinity" ||
+                    typeof value === "number" ||
+                    !isNaN(Number(value)),
+                )
+                .test(
+                  "greater-than-lowValid",
+                  "Must be greater or equal to lower valid range",
+                  function (value) {
+                    const { lowValid } = this.parent;
+                    const high = parseFloat(value);
+                    const low = parseFloat(lowValid);
+
+                    if (isNaN(high) || isNaN(low)) return true;
+                    return high >= low;
+                  },
+                ),
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
+
+              lowCritical: Yup.mixed()
+                .test(
+                  "is-valid-number-or-infinity",
+                  "Low Critical must be a number or 'Infinity'",
+                  (value) =>
+                    value === "-Infinity" ||
+                    value === "Infinity" ||
+                    typeof value === "number" ||
+                    !isNaN(Number(value)),
+                )
+                .test(
+                  "lowCritical-between-valid-and-normal",
                   "Low critical must be between lowValid and lowNormal",
                   function (value) {
                     const { lowValid, resultLimits } = this.parent;
-                    if (value == null || lowValid == null) return true; // skip if not filled yet
-
-                    // Find corresponding lowNormal from resultLimits for cross-checking — assuming only one or based on some index
-                    // If you have multiple resultLimits, you need to pass index or context for matching lowNormal
-                    // For demo, check against first lowNormal
+                    const lowCritical = parseFloat(value);
+                    const valid = parseFloat(lowValid);
                     const lowNormal =
                       resultLimits && resultLimits.length > 0
-                        ? resultLimits[0].lowNormal
-                        : null;
-                    if (lowNormal == null) return true;
+                        ? parseFloat(resultLimits[0].lowNormal)
+                        : NaN;
 
-                    return value >= lowValid && value <= lowNormal;
+                    if ([lowCritical, valid, lowNormal].some(isNaN))
+                      return true;
+                    return lowCritical >= valid && lowCritical <= lowNormal;
                   },
                 ),
 
-              highCritical: Yup.number()
-                // .min(0, "Minimum value is 0")
-                // .max(100, "Maximum value is 100")
-                // .required("Required")
-                // Custom test: highCritical >= highNormal and <= highValid (similar to above)
+              highCritical: Yup.mixed()
                 .test(
-                  "highCritical-range",
+                  "is-valid-number-or-infinity",
+                  "High Critical must be a number or 'Infinity'",
+                  (value) =>
+                    value === "-Infinity" ||
+                    value === "Infinity" ||
+                    typeof value === "number" ||
+                    !isNaN(Number(value)),
+                )
+                .test(
+                  "highCritical-between-normal-and-valid",
                   "High critical must be between highNormal and highValid",
                   function (value) {
                     const { highValid, resultLimits } = this.parent;
-                    if (value == null || highValid == null) return true;
-
+                    const highCritical = parseFloat(value);
+                    const valid = parseFloat(highValid);
                     const highNormal =
                       resultLimits && resultLimits.length > 0
-                        ? resultLimits[0].highNormal
-                        : null;
-                    if (highNormal == null) return true;
+                        ? parseFloat(resultLimits[0].highNormal)
+                        : NaN;
 
-                    return value >= highNormal && value <= highValid;
+                    if ([highCritical, valid, highNormal].some(isNaN))
+                      return true;
+                    return highCritical >= highNormal && highCritical <= valid;
                   },
                 ),
 
@@ -2604,13 +2763,29 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               errors,
               setFieldValue,
             }) => {
-              const handleAddAgeRangeFillUp = (index) => {
+              const handleAddAgeRangeFillUp = (index, currentLimits) => {
                 setAgeRangeFields((prev) => {
                   if (index === prev.length - 1) {
                     return [...prev, prev.length];
                   }
                   return prev;
                 });
+
+                const prevLimit = currentLimits?.[index];
+                const nextLowAge = prevLimit?.highAgeRange || "0";
+
+                const newLimit = {
+                  ageRange: nextLowAge,
+                  highAgeRange: 0,
+                  gender: false,
+                  lowNormal: "-Infinity",
+                  highNormal: "Infinity",
+                  lowNormalFemale: "-Infinity",
+                  highNormalFemale: "Infinity",
+                };
+
+                const updatedLimits = [...(currentLimits || []), newLimit];
+                setFieldValue("resultLimits", updatedLimits);
               };
 
               const handleRemoveAgeRangeFillUp = (indexToRemove) => {
@@ -2647,7 +2822,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <hr />
                     </Column>
                     {ageRangeFields.map((_, index) => {
-                      const selectedAgeRanges = values.resultLimits
+                      const selectedAgeRanges = (values.resultLimits || [])
                         .map((item) => item.ageRange)
                         .filter((val, idx) => idx !== index && val);
                       const availableAgeRanges = ageRangeList.filter(
@@ -2703,25 +2878,24 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               <RadioButton labelText={"D"} />
                             </RadioButtonGroup>
                           </Column>
-                          {/* <Column
+                          <Column
                             key={index}
                             lg={4}
                             md={4}
                             sm={4}
                             style={{ marginTop: "1rem" }}
                           >
-                            <NumberInput
+                            <TextInput
                               id={`resultLimits[${index}].ageRange`}
                               name={`resultLimits[${index}].ageRange`}
                               onBlur={handleBlur}
                               label="Age Range (Low)"
                               size={"md"}
-                              min={0}
-                              max={1000}
-                              step={1}
-                              value={
-                                values.resultLimits?.[index]?.ageRange || 0
-                              }
+                              // min={0}
+                              // max={1000}
+                              // step={1}
+                              value={values.resultLimits?.[index]?.ageRange}
+                              disabled
                               invalid={
                                 touched?.resultLimits?.[index]?.ageRange &&
                                 !!errors?.resultLimits?.[index]?.ageRange
@@ -2730,11 +2904,45 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 touched?.resultLimits?.[index]?.ageRange &&
                                 errors?.resultLimits?.[index]?.ageRange
                               }
-                              onChange={(_, { value }) =>
-                                handleRangeChange(index, "ageRange", value)
+                              // onChange={(_, { value }) =>
+                              //   handleRangeChange(index, "ageRange", value)
+                              // }
+                            />
+                          </Column>
+                          <Column
+                            key={index}
+                            lg={4}
+                            md={4}
+                            sm={4}
+                            style={{ marginTop: "1rem" }}
+                          >
+                            <TextInput
+                              id={`resultLimits[${index}].highAgeRange`}
+                              name={`resultLimits[${index}].highAgeRange`}
+                              onBlur={handleBlur}
+                              label="Age Range (High)"
+                              size={"md"}
+                              // min={0}
+                              // max={1000}
+                              // step={1}
+                              value={values.resultLimits?.[index]?.highAgeRange}
+                              invalid={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                !!errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              invalidText={
+                                touched?.resultLimits?.[index]?.highAgeRange &&
+                                errors?.resultLimits?.[index]?.highAgeRange
+                              }
+                              onChange={(e) =>
+                                handleRangeChange(
+                                  index,
+                                  "highAgeRange",
+                                  e.target.value,
+                                )
                               }
                             />
-                          </Column> */}
+                          </Column>
                           <Column
                             key={index}
                             lg={4}
@@ -2783,38 +2991,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           </Column>
                           <Column
                             key={index}
-                            lg={4}
-                            md={4}
-                            sm={4}
-                            style={{ marginTop: "1rem" }}
-                          >
-                            <NumberInput
-                              id={`resultLimits[${index}].highAgeRange`}
-                              name={`resultLimits[${index}].highAgeRange`}
-                              onBlur={handleBlur}
-                              label="Age Range (High)"
-                              size={"md"}
-                              min={0}
-                              max={1000}
-                              step={1}
-                              value={
-                                values.resultLimits?.[index]?.highAgeRange || 0
-                              }
-                              invalid={
-                                touched?.resultLimits?.[index]?.highAgeRange &&
-                                !!errors?.resultLimits?.[index]?.highAgeRange
-                              }
-                              invalidText={
-                                touched?.resultLimits?.[index]?.highAgeRange &&
-                                errors?.resultLimits?.[index]?.highAgeRange
-                              }
-                              onChange={(_, { value }) =>
-                                handleRangeChange(index, "highAgeRange", value)
-                              }
-                            />
-                          </Column>
-                          <Column
-                            key={index}
                             lg={8}
                             md={4}
                             sm={4}
@@ -2830,18 +3006,16 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             )}
                             <hr />
                             <div style={{ display: "flex", gap: "4px" }}>
-                              <NumberInput
+                              <TextInput
                                 id={`resultLimits[${index}].lowNormal`}
                                 name={`resultLimits[${index}].lowNormal`}
                                 onBlur={handleBlur}
                                 label="Lower Range"
                                 size={"md"}
-                                min={0}
-                                max={1000}
-                                step={1}
-                                value={
-                                  values.resultLimits?.[index]?.lowNormal || 0
-                                }
+                                // min={0}
+                                // max={1000}
+                                // step={1}
+                                value={values.resultLimits?.[index]?.lowNormal}
                                 invalid={
                                   touched?.resultLimits?.[index]?.lowNormal &&
                                   !!errors?.resultLimits?.[index]?.lowNormal
@@ -2850,22 +3024,24 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   touched?.resultLimits?.[index]?.lowNormal &&
                                   errors?.resultLimits?.[index]?.lowNormal
                                 }
-                                onChange={(_, { value }) =>
-                                  handleRangeChange(index, "lowNormal", value)
+                                onChange={(e) =>
+                                  handleRangeChange(
+                                    index,
+                                    "lowNormal",
+                                    e.target.value,
+                                  )
                                 }
                               />
-                              <NumberInput
+                              <TextInput
                                 id={`resultLimits[${index}].highNormal`}
                                 name={`resultLimits[${index}].highNormal`}
                                 onBlur={handleBlur}
                                 label="Higher Range"
                                 size={"md"}
-                                min={0}
-                                max={1000}
-                                step={1}
-                                value={
-                                  values.resultLimits?.[index]?.highNormal || 0
-                                }
+                                // min={0}
+                                // max={1000}
+                                // step={1}
+                                value={values.resultLimits?.[index]?.highNormal}
                                 invalid={
                                   touched?.resultLimits?.[index]?.highNormal &&
                                   !!errors?.resultLimits?.[index]?.highNormal
@@ -2874,8 +3050,12 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   touched?.resultLimits?.[index]?.highNormal &&
                                   errors?.resultLimits?.[index]?.highNormal
                                 }
-                                onChange={(_, { value }) =>
-                                  handleRangeChange(index, "highNormal", value)
+                                onChange={(e) =>
+                                  handleRangeChange(
+                                    index,
+                                    "highNormal",
+                                    e.target.value,
+                                  )
                                 }
                               />
                             </div>
@@ -2893,18 +3073,18 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 <FormattedMessage id="patient.female" />
                                 <hr />
                                 <div style={{ display: "flex", gap: "4px" }}>
-                                  <NumberInput
+                                  <TextInput
                                     id={`resultLimits[${index}].lowNormalFemale`}
                                     name={`resultLimits[${index}].lowNormalFemale`}
                                     onBlur={handleBlur}
                                     label="Lower Range"
                                     size={"md"}
-                                    min={0}
-                                    max={1000}
-                                    step={1}
+                                    // min={0}
+                                    // max={1000}
+                                    // step={1}
                                     value={
                                       values.resultLimits?.[index]
-                                        ?.lowNormalFemale || 0
+                                        ?.lowNormalFemale
                                     }
                                     invalid={
                                       touched?.resultLimits?.[index]
@@ -2918,26 +3098,26 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                       errors?.resultLimits?.[index]
                                         ?.lowNormalFemale
                                     }
-                                    onChange={(_, { value }) =>
+                                    onChange={(e) =>
                                       handleRangeChange(
                                         index,
                                         "lowNormalFemale",
-                                        value,
+                                        e.target.value,
                                       )
                                     }
                                   />
-                                  <NumberInput
+                                  <TextInput
                                     id={`resultLimits[${index}].highNormalFemale`}
                                     name={`resultLimits[${index}].highNormalFemale`}
                                     onBlur={handleBlur}
                                     label="Higher Range"
                                     size={"md"}
-                                    min={0}
-                                    max={1000}
-                                    step={1}
+                                    // min={0}
+                                    // max={1000}
+                                    // step={1}
                                     value={
                                       values.resultLimits?.[index]
-                                        ?.highNormalFemale || 0
+                                        ?.highNormalFemale
                                     }
                                     invalid={
                                       touched?.resultLimits?.[index]
@@ -2951,11 +3131,11 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                       errors?.resultLimits?.[index]
                                         ?.highNormalFemale
                                     }
-                                    onChange={(_, { value }) =>
+                                    onChange={(e) =>
                                       handleRangeChange(
                                         index,
                                         "highNormalFemale",
-                                        value,
+                                        e.target.value,
                                       )
                                     }
                                   />
@@ -3008,7 +3188,12 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               name={`add-age-range-fill-up-${index}`}
                               kind="secondary"
                               type="button"
-                              onClick={() => handleAddAgeRangeFillUp(index)}
+                              onClick={() =>
+                                handleAddAgeRangeFillUp(
+                                  index,
+                                  values.resultLimits,
+                                )
+                              }
                             >
                               <FormattedMessage id="Add Another Age Range +" />
                             </Button>
@@ -3024,16 +3209,16 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <FormattedMessage id="label.reporting.range" />
                       <hr />
                       <div style={{ display: "flex", gap: "4px" }}>
-                        <NumberInput
+                        <TextInput
                           id={`lowReportingRange`}
                           name={`lowReportingRange`}
                           onBlur={handleBlur}
                           label="Lower Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.lowReportingRange || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.lowReportingRange}
                           invalid={
                             touched?.lowReportingRange &&
                             !!errors?.lowReportingRange
@@ -3042,20 +3227,20 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             touched?.lowReportingRange &&
                             errors?.lowReportingRange
                           }
-                          onChange={(_, { value }) =>
-                            setFieldValue("lowReportingRange", value)
+                          onChange={(e) =>
+                            setFieldValue("lowReportingRange", e.target.value)
                           }
                         />
-                        <NumberInput
+                        <TextInput
                           id={`highReportingRange`}
                           name={`highReportingRange`}
                           onBlur={handleBlur}
                           label="Higher Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.highReportingRange || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.highReportingRange}
                           invalid={
                             touched?.highReportingRange &&
                             !!errors?.highReportingRange
@@ -3064,8 +3249,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             touched?.highReportingRange &&
                             errors?.highReportingRange
                           }
-                          onChange={(_, { value }) =>
-                            setFieldValue("highReportingRange", value)
+                          onChange={(e) =>
+                            setFieldValue("highReportingRange", e.target.value)
                           }
                         />
                       </div>
@@ -3074,36 +3259,36 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <FormattedMessage id="field.validRange" />
                       <hr />
                       <div style={{ display: "flex", gap: "4px" }}>
-                        <NumberInput
+                        <TextInput
                           id={`lowValid`}
                           name={`lowValid`}
                           onBlur={handleBlur}
                           label="Lower Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.lowValid || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.lowValid}
                           invalid={touched?.lowValid && !!errors?.lowValid}
                           invalidText={touched?.lowValid && errors?.lowValid}
-                          onChange={(_, { value }) =>
-                            setFieldValue("lowValid", value)
+                          onChange={(e) =>
+                            setFieldValue("lowValid", e.target.value)
                           }
                         />
-                        <NumberInput
+                        <TextInput
                           id={`highValid`}
                           name={`highValid`}
                           onBlur={handleBlur}
                           label="Higher Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.highValid || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.highValid}
                           invalid={touched?.highValid && !!errors?.highValid}
                           invalidText={touched?.highValid && errors?.highValid}
-                          onChange={(_, { value }) =>
-                            setFieldValue("highValid", value)
+                          onChange={(e) =>
+                            setFieldValue("highValid", e.target.value)
                           }
                         />
                       </div>
@@ -3112,44 +3297,44 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <FormattedMessage id="label.critical.range" />
                       <hr />
                       <div style={{ display: "flex", gap: "4px" }}>
-                        <NumberInput
+                        <TextInput
                           id={`lowCritical`}
                           name={`lowCritical`}
                           onBlur={handleBlur}
                           label="Lower Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.lowCritical || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.lowCritical}
                           invalid={
                             touched?.lowCritical && !!errors?.lowCritical
                           }
                           invalidText={
                             touched?.lowCritical && errors?.lowCritical
                           }
-                          onChange={(_, { value }) =>
-                            setFieldValue("lowCritical", value)
+                          onChange={(e) =>
+                            setFieldValue("lowCritical", e.target.value)
                           }
                         />
-                        <NumberInput
+                        <TextInput
                           id={`highCritical`}
                           name={`highCritical`}
                           onBlur={handleBlur}
                           label="Higher Range"
                           size={"md"}
-                          min={0}
-                          max={1000}
-                          step={1}
-                          value={values.highCritical || 0}
+                          // min={0}
+                          // max={1000}
+                          // step={1}
+                          value={values.highCritical}
                           invalid={
                             touched?.highCritical && !!errors?.highCritical
                           }
                           invalidText={
                             touched?.highCritical && errors?.highCritical
                           }
-                          onChange={(_, { value }) =>
-                            setFieldValue("highCritical", value)
+                          onChange={(e) =>
+                            setFieldValue("highCritical", e.target.value)
                           }
                         />
                       </div>

@@ -401,6 +401,11 @@ public class TestAddRestController extends BaseController {
     private void extractLimits(JSONObject obj, JSONParser parser, TestAddParams testAddParams) throws ParseException {
         String lowAge = "0";
         JSONArray limitArray = (JSONArray) obj.get("resultLimits");
+        String globalLowCritical = obj.get("lowCritical").toString();
+        String globalHighCritical = obj.get("highCritical").toString();
+        String globalLowReporting = obj.get("lowReportingRange").toString();
+        String globalHighReporting = obj.get("highReportingRange").toString();
+        String globalReportingRange = globalLowReporting + " - " + globalHighReporting;
         for (int i = 0; i < limitArray.size(); i++) {
             ResultLimitParams params = new ResultLimitParams();
             Boolean gender = (Boolean) ((JSONObject) limitArray.get(i)).get("gender");
@@ -408,11 +413,17 @@ public class TestAddRestController extends BaseController {
                 params.gender = "M";
             }
             String highAge = (((JSONObject) limitArray.get(i)).get("highAgeRange")).toString();
-            params.displayRange = (((JSONObject) limitArray.get(i)).get("reportingRange")).toString();
+            // params.displayRange = (((JSONObject)
+            // limitArray.get(i)).get("reportingRange")).toString();
+            params.displayRange = globalReportingRange;
             params.lowNormalLimit = (((JSONObject) limitArray.get(i)).get("lowNormal")).toString();
             params.highNormalLimit = (((JSONObject) limitArray.get(i)).get("highNormal")).toString();
-            params.lowCritical = (((JSONObject) limitArray.get(i)).get("lowCritical")).toString();
-            params.highCritical = (((JSONObject) limitArray.get(i)).get("highCritical")).toString();
+            // params.lowCritical = (((JSONObject)
+            // limitArray.get(i)).get("lowCritical")).toString();
+            // params.highCritical = (((JSONObject)
+            // limitArray.get(i)).get("highCritical")).toString();
+            params.lowCritical = globalLowCritical;
+            params.highCritical = globalHighCritical;
             params.lowAge = lowAge;
             params.highAge = highAge;
             testAddParams.limits.add(params);
