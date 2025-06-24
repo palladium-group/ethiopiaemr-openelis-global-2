@@ -1418,8 +1418,6 @@ const StepThreeTestResultTypeAndLoinc = ({
             setFieldValue("inLabOnly", e.target.checked ? "Y" : "N");
           };
 
-          console.log(resultTypeList);
-
           return (
             <Form>
               <Grid fullWidth={true}>
@@ -1541,6 +1539,7 @@ const StepThreeTestResultTypeAndLoinc = ({
 
 const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   formData,
+  setFormData,
   validationSchema,
   handleNextStep,
   handlePreviousStep,
@@ -1561,6 +1560,40 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   const handleSubmit = (values) => {
     handleNextStep(values, true);
   };
+
+  useEffect(() => {
+    if (!selectedSampleTypeResp.length) return;
+
+    const existingTypeIds = new Set(
+      (formData.sampleTypes || []).map((st) => st.typeId),
+    );
+
+    const newOnes = selectedSampleTypeResp.filter(
+      (resp) => !existingTypeIds.has(String(resp.sampleTypeId)),
+    );
+
+    if (newOnes.length === 0) return;
+
+    const newTransformed = newOnes.map((resp) => ({
+      typeId: String(resp.sampleTypeId),
+      tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
+    }));
+
+    // setFieldValue("sampleTypes", [
+    //   ...(values.sampleTypes || []),
+    //   ...newTransformed,
+    // ]);
+
+    const updatedSampleTypes = [
+      ...(formData.sampleTypes || []),
+      ...newTransformed,
+    ];
+
+    setFormData((prev) => ({
+      ...prev,
+      sampleTypes: updatedSampleTypes,
+    }));
+  }, [selectedSampleTypeResp]);
 
   return (
     <>
@@ -1649,29 +1682,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                   // ]);
                 }
               };
-
-              useEffect(() => {
-                if (!selectedSampleTypeResp.length) return;
-
-                const newOnes = selectedSampleTypeResp.filter((resp) => {
-                  const existsInForm = values.sampleTypes?.some(
-                    (formItem) => formItem.typeId === String(resp.sampleTypeId),
-                  );
-                  return !existsInForm;
-                });
-
-                if (newOnes.length === 0) return;
-
-                const newTransformed = newOnes.map((resp) => ({
-                  typeId: String(resp.sampleTypeId),
-                  tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
-                }));
-
-                setFieldValue("sampleTypes", [
-                  ...(values.sampleTypes || []),
-                  ...newTransformed,
-                ]);
-              }, [selectedSampleTypeResp]);
 
               const handleRemoveSampleTypeListSelectIdTestTag = (
                 indexToRemove,
