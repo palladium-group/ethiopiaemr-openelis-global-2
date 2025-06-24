@@ -410,7 +410,7 @@ function TestAdd() {
       setNotificationVisible(true);
       return;
     }
-    console.log(JSON.stringify({ jsonWad: JSON.stringify(values) }))
+    console.log(JSON.stringify({ jsonWad: JSON.stringify(values) }));
     setIsLoading(true);
     postToOpenElisServerJsonResponse(
       `/rest/TestAdd`,
@@ -739,41 +739,8 @@ function TestAdd() {
           <br />
           <div>{steps[currentStep]}</div>
           <br />
-          <button
-            onClick={() => {
-              console.log(testAdd);
-            }}
-          >
-            testAdd
-          </button>
-          <button
-            onClick={() => {
-              console.log(jsonWad);
-            }}
-          >
-            jsonWad
-          </button>
-          <button
-            onClick={() => {
-              console.log(sampleTestTypeToGetTagList);
-            }}
-          >
-            sampleTestTypeToGetTagList
-          </button>
-          <button
-            onClick={() => {
-              console.log(selectedSampleType);
-            }}
-          >
-            selectedSampleType
-          </button>
-          <button
-            onClick={() => {
-              console.log(selectedSampleTypeResp);
-            }}
-          >
-            selectedSampleTypeResp
-          </button>
+          <hr />
+          <br />
         </div>
       </div>
     </>
@@ -1307,9 +1274,11 @@ const StepThreeTestResultTypeAndLoinc = ({
           resultType: Yup.string()
             .notOneOf(["0", ""], "Please select a valid Result Type")
             .required("Result Type is required"),
-          loinc: Yup.string()
-            .matches(/^(?!-)(?:\d+-)*\d*$/, "Loinc must contain only numbers")
-            .required("Loinc is required"),
+          loinc: Yup.string().matches(
+            /^(?!-)(?:\d+-)*\d*$/,
+            "Loinc must contain only numbers",
+          ),
+          // .required("Loinc is required"),
           orderable: Yup.string().oneOf(["Y", "N"], "Orderable must be Y or N"),
           notifyResults: Yup.string().oneOf(
             ["Y", "N"],
@@ -1458,7 +1427,6 @@ const StepThreeTestResultTypeAndLoinc = ({
                     <br />
                     <TextInput
                       labelText=""
-                      required
                       id="loinc"
                       name="loinc"
                       value={values.loinc}
@@ -1649,7 +1617,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 );
 
                 if (!isAlreadySelected) {
-                  // console.log(selectedSampleTypeList);
                   // const matchedResp = selectedSampleTypeResp.find(
                   //   (resp) => String(resp.sampleTypeId) === selectedId,
                   // );
@@ -1889,12 +1856,14 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   "At least one dictionary item must be qualified as 'Y'",
                   (arr) => arr && arr.some((item) => item.qualified === "Y"),
                 ),
-              dictionaryReference: Yup.string().required(
-                "Dictionary Reference is required",
-              ),
-              defaultTestResult: Yup.string().required(
-                "Dictionary Default is required",
-              ),
+              dictionaryReference: Yup.string(),
+              // .required(
+              //   "Dictionary Reference is required",
+              // ),
+              defaultTestResult: Yup.string(),
+              // .required(
+              //   "Dictionary Default is required",
+              // ),
             })}
             enableReinitialize={true}
             validateOnChange={true}
@@ -2154,7 +2123,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         id={`select-reference-value`}
                         name="dictionaryReference"
                         hideLabel
-                        required
                         onChange={(e) =>
                           setFieldValue("dictionaryReference", e.target.value)
                         }
@@ -2186,7 +2154,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         id={`select-default-result`}
                         name="defaultTestResult"
                         hideLabel
-                        required
                         onChange={(e) =>
                           setFieldValue("defaultTestResult", e.target.value)
                         }
@@ -2219,7 +2186,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                         onBlur={handleBlur}
                         id={`select-qualifiers`}
                         hideLabel
-                        required
                         onChange={(e) => {
                           handleSelectQualifiersTag(e);
                         }}
@@ -2548,36 +2514,34 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                   //   ),
                 }),
               ),
-              lowReportingRange: Yup.number()
-                // .min(0, "Minimum value is 0")
-                // .max(100, "Maximum value is 100")
-                .required("Required"),
+              lowReportingRange: Yup.number(),
+              // .min(0, "Minimum value is 0")
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
 
-              highReportingRange: Yup.number()
-                .min(
-                  Yup.ref("lowReportingRange"),
-                  "Must be greater or equal to lower reporting range",
-                )
-                // .max(100, "Maximum value is 100")
-                .required("Required"),
+              highReportingRange: Yup.number().min(
+                Yup.ref("lowReportingRange"),
+                "Must be greater or equal to lower reporting range",
+              ),
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
 
-              lowValid: Yup.number()
-                // .min(0, "Minimum value is 0")
-                // .max(100, "Maximum value is 100")
-                .required("Required"),
+              lowValid: Yup.number(),
+              // .min(0, "Minimum value is 0")
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
 
-              highValid: Yup.number()
-                .min(
-                  Yup.ref("lowValid"),
-                  "Must be greater than or equal to Lower Valid Range",
-                )
-                // .max(100, "Maximum value is 100")
-                .required("Required"),
+              highValid: Yup.number().min(
+                Yup.ref("lowValid"),
+                "Must be greater than or equal to Lower Valid Range",
+              ),
+              // .max(100, "Maximum value is 100")
+              // .required("Required"),
 
               lowCritical: Yup.number()
                 // .min(0, "Minimum value is 0")
                 // .max(100, "Maximum value is 100")
-                .required("Required")
+                // .required("Required")
                 // Custom test: lowCritical >= lowValid and <= lowNormal in the matching resultLimit (age/gender)
                 .test(
                   "lowCritical-range",
@@ -2602,7 +2566,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               highCritical: Yup.number()
                 // .min(0, "Minimum value is 0")
                 // .max(100, "Maximum value is 100")
-                .required("Required")
+                // .required("Required")
                 // Custom test: highCritical >= highNormal and <= highValid (similar to above)
                 .test(
                   "highCritical-range",
@@ -2621,10 +2585,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                   },
                 ),
 
-              significantDigits: Yup.number()
-                .min(0)
-                .max(4)
-                .required("Required"),
+              significantDigits: Yup.number().min(0).max(4),
+              // .required("Required"),
             })}
             enableReinitialize={true}
             validateOnChange={true}
@@ -2756,7 +2718,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               size={"md"}
                               min={0}
                               max={1000}
-                              required
                               step={1}
                               value={
                                 values.resultLimits?.[index]?.ageRange || 0
@@ -2789,7 +2750,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               labelText=""
                               hideLabel
                               size={"md"}
-                              required
                               value={
                                 values.resultLimits?.[index]?.ageRange || ""
                               }
@@ -2836,7 +2796,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               size={"md"}
                               min={0}
                               max={1000}
-                              required
                               step={1}
                               value={
                                 values.resultLimits?.[index]?.highAgeRange || 0
@@ -2879,7 +2838,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 size={"md"}
                                 min={0}
                                 max={1000}
-                                required
                                 step={1}
                                 value={
                                   values.resultLimits?.[index]?.lowNormal || 0
@@ -2904,7 +2862,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 size={"md"}
                                 min={0}
                                 max={1000}
-                                required
                                 step={1}
                                 value={
                                   values.resultLimits?.[index]?.highNormal || 0
@@ -2944,7 +2901,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                     size={"md"}
                                     min={0}
                                     max={1000}
-                                    required
                                     step={1}
                                     value={
                                       values.resultLimits?.[index]
@@ -2978,7 +2934,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                     size={"md"}
                                     min={0}
                                     max={1000}
-                                    required
                                     step={1}
                                     value={
                                       values.resultLimits?.[index]
@@ -3077,7 +3032,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.lowReportingRange || 0}
                           invalid={
@@ -3100,7 +3054,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.highReportingRange || 0}
                           invalid={
@@ -3129,7 +3082,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.lowValid || 0}
                           invalid={touched?.lowValid && !!errors?.lowValid}
@@ -3146,7 +3098,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.highValid || 0}
                           invalid={touched?.highValid && !!errors?.highValid}
@@ -3169,7 +3120,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.lowCritical || 0}
                           invalid={
@@ -3190,7 +3140,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           size={"md"}
                           min={0}
                           max={1000}
-                          required
                           step={1}
                           value={values.highCritical || 0}
                           invalid={
@@ -3231,7 +3180,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                           min={0}
                           size={"md"}
                           step={1}
-                          required
                           invalid={
                             touched.significantDigits &&
                             !!errors.significantDigits
