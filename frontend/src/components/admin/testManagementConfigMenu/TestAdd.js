@@ -226,14 +226,67 @@ function TestAdd() {
 
     if (!final) {
       handleTestAddPostCall(formData);
-    } else {
-      setCurrentStep((prevStep) => prevStep + 1);
     }
+
+    const selectedResultTypeId = newData?.resultType || formData.resultType;
+
+    setCurrentStep((prev) => {
+      if (prev === 3) {
+        if (["1", "4", "5"].includes(selectedResultTypeId)) {
+          return prev + 2;
+        }
+
+        if (["2", "6", "7"].includes(selectedResultTypeId)) {
+          return prev + 1;
+        }
+      }
+
+      if (prev === 4 && ["2", "6", "7"].includes(selectedResultTypeId)) {
+        return prev + 2;
+      }
+
+      if (prev === 5 && selectedResultTypeId === "4") {
+        return prev + 1;
+      }
+
+      return prev + 1;
+    });
   };
 
   const handlePreviousStep = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }));
-    setCurrentStep((prevStep) => prevStep - 1);
+    const selectedResultTypeId = newData?.resultType || formData.resultType;
+
+    setCurrentStep((prevStep) => {
+      if (
+        prevStep === 5 &&
+        (selectedResultTypeId === "1" ||
+          selectedResultTypeId === "4" ||
+          selectedResultTypeId === "5")
+      ) {
+        return prevStep - 2;
+      }
+
+      if (
+        prevStep === 6 &&
+        (selectedResultTypeId === "2" ||
+          selectedResultTypeId === "6" ||
+          selectedResultTypeId === "7")
+      ) {
+        return prevStep - 2;
+      }
+
+      if (
+        prevStep === 6 &&
+        (selectedResultTypeId === "1" ||
+          selectedResultTypeId === "4" ||
+          selectedResultTypeId === "5")
+      ) {
+        return prevStep - 3;
+      }
+
+      return prevStep - 1;
+    });
   };
 
   const validationSchema = Yup.object({
@@ -1849,7 +1902,7 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   return (
     <>
       {currentStep === 4 &&
-      selectedResultTypeList?.id === ("2" || "6" || "7") ? (
+      ["2", "6", "7"].includes(selectedResultTypeList?.id) ? (
         <>
           <Formik
             initialValues={formData}
