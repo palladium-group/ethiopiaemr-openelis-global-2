@@ -33,7 +33,7 @@
         <property name="nameKey" type="java.lang.String">
             <column name="display_key" length="60" not-null="false" />
         </property>
-        <property name="loincCode" type="java.lang.String">Add commentMore actions
+        <property name="loincCode" type="java.lang.String">
             <column name="LOINC_CODE" length="10" />
         </property>
         <property name="sortOrder" column="sort_order"
