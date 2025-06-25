@@ -2,11 +2,17 @@ class ProviderManagementPage {
   constructor() {
     this.selectors = {
       addButton: "[data-cy='add-Button']",
+      modifyButton: "[data-cy='modify-Button']",
+      deactivateButton: "[data-cy='deactivate-Button']",
+      isActive: "#downshift-1-toggle-button",
+      modifyStatus: "#downshift-3-toggle-button",
+      activeStatus: ".cds--list-box__menu-item__option",
       lastNameInput: "#lastName",
       firstNameInput: "#firstName",
       activeDropdown: "#isActive",
       provderSearchBar: "#provider-search-bar",
       modalAddButton: "div.cds--modal button:contains('Add')",
+      updateButton: "div.cds--modal button:contains('Update')",
     };
   }
 
@@ -15,16 +21,22 @@ class ProviderManagementPage {
     cy.wait(200);
   }
 
-  enterProviderLastName() {
-    cy.get(this.selectors.lastNameInput).type("Prime");
+  enterProviderLastName(value) {
+    cy.get(this.selectors.lastNameInput).type(value);
   }
 
-  enterProviderFirstName() {
-    cy.get(this.selectors.firstNameInput).type("Optimus");
+  enterProviderFirstName(value) {
+    cy.get(this.selectors.firstNameInput).type(value);
   }
 
-  clickActiveDropdown() {
-    cy.get(this.selectors.activeDropdown).contains("Yes").click();
+  activeStatus(value) {
+    cy.get(this.selectors.isActive).click();
+    cy.contains(this.selectors.activeStatus, value).click();
+  }
+
+  modifyStatus(value) {
+    cy.get(this.selectors.modifyStatus).click();
+    cy.contains(this.selectors.activeStatus, value).click();
   }
 
   addProvider() {
@@ -32,12 +44,30 @@ class ProviderManagementPage {
     cy.wait(200);
   }
 
-  searchRequester(value) {
+  updateProvider() {
+    cy.get(this.selectors.updateButton).click();
+    cy.wait(200);
+  }
+
+  searchProvider(value) {
     cy.get(this.selectors.provderSearchBar).clear().type(value);
   }
 
-  confirmRequester(value) {
+  confirmProvider(value) {
     cy.contains("td", value).should("exist");
+    cy.wait(200);
+  }
+
+  checkProvider(value) {
+    cy.contains("td", value).should("exist").click();
+  }
+
+  modifyProvider() {
+    cy.get(this.selectors.modifyButton).click();
+  }
+
+  deactivateProvider() {
+    cy.get(this.selectors.deactivateButton).click();
   }
 }
 
