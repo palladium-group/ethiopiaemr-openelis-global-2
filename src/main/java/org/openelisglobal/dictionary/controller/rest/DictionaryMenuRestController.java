@@ -1,7 +1,6 @@
 package org.openelisglobal.dictionary.controller.rest;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Pattern;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,8 +73,7 @@ public class DictionaryMenuRestController extends BaseMenuController<Dictionary>
 
     @RequestMapping(value = "/DeleteDictionary", method = RequestMethod.POST)
     public ResponseEntity<?> showDeleteDictionary(HttpServletRequest request,
-            @RequestParam(value = ID, required = false) @Pattern(regexp = "[a-zA-Z0-9, -]*") String id,
-            RedirectAttributes redirectAttributes) {
+            @RequestParam(value = ID, required = false) String id) {
 
         String[] IDs = id.split(",");
         List<String> selectedIDs = new ArrayList<>();
