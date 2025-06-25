@@ -15,24 +15,4 @@
             <column name="loinc_code" type="VARCHAR(20)"/>
         </addColumn>
     </changeSet>
-
-    <changeSet id="seed-common-loinc-codes" author="agaba-derrick">
-        <preConditions onFail="MARK_RAN">
-            <columnExists columnName="loinc_code" schemaName="clinlims"
-                          tableName="dictionary"/>
-        </preConditions>
-        <comment>Seed common LOINC code mappings</comment>
-        <update tableName="dictionary">
-            <column name="loinc_code" value="LA13522-5"/>
-            <where>dict_entry = 'Invalid'</where>
-        </update>
-        <update tableName="dictionary">
-            <column name="loinc_code" value="LA9663-1"/>
-            <where>dict_entry = 'Positive'</where>
-        </update>
-        <update tableName="dictionary">
-            <column name="loinc_code" value="LA9664-9"/>
-            <where>dict_entry = 'Negative'</where>
-        </update>
-    </changeSet>
 </databaseChangeLog>
