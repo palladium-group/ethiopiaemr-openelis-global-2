@@ -50,10 +50,10 @@ describe("Non-Conform Menu Configuration", function () {
       menuConfigPage.checkMenuItem("viewNCE");
       menuConfigPage.checkMenuItem("correctiveAction");
       menuConfigPage.submitButton();
-      cy.reload();
     });
 
     it("Verify menu changes", function () {
+      cy.reload();
       menuConfigPage.navigateToMainMenu();
       menuConfigPage.validateNonConformOn();
     });
