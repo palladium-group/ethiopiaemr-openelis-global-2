@@ -12,7 +12,7 @@
         </preConditions>
         <comment>Adds LOINC code column to dictionary for result mappings</comment>
         <addColumn tableName="dictionary">
-            <column name="loinc_code" type="VARCHAR(20)"/>
+            <column name="loinc_code" type="VARCHAR(10)"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
