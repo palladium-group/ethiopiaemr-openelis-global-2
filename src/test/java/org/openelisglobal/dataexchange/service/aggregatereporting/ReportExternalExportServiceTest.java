@@ -42,9 +42,8 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
 
     @Test
     public void testGetReportsInDateRange() {
-        // TODO: I noted that the String reportQueueTypeId is not used anywhere by the
-        // method
-        // So removing it would not cause any effect :)
+        // TODO: I noted that the String reportQueueTypeId is not used anywhere by
+        // the method, So removing it would not cause any effects :)
 
         List<ReportExternalExport> externalExports = reportExternalExportService.getReportsInDateRange(
                 Timestamp.valueOf("2023-12-21 00:00:00"), Timestamp.valueOf("2024-10-26 00:00:00"), "102");
