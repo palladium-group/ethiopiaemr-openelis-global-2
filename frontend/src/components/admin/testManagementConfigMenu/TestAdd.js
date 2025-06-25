@@ -2444,6 +2444,9 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   const handleSubmit = (values) => {
     handleNextStep(values, true);
   };
+
+  const [ageRanges, setAgeRanges] = useState([{ raw: 0, unit: "Y" }]);
+
   return (
     <>
       {currentStep === 5 && selectedResultTypeList?.id === "4" ? (
@@ -2753,7 +2756,24 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
             validateOnChange={true}
             validateOnBlur={true}
             onSubmit={(values, actions) => {
-              handleSubmit(values);
+              const processedLimits = (values.resultLimits || []).map(
+                (limit, index) => {
+                  const raw = parseFloat(ageRanges[index]?.raw || "0");
+                  const unit = ageRanges[index]?.unit || "Y";
+                  const multiplier = unit === "Y" ? 365 : unit === "M" ? 30 : 1;
+
+                  return {
+                    ...limit,
+                    highAgeRange: String(raw * multiplier),
+                  };
+                },
+              );
+
+              const payload = {
+                ...values,
+                resultLimits: processedLimits,
+              };
+              handleSubmit(payload);
               actions.setSubmitting(false);
             }}
           >
@@ -2788,10 +2808,20 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
 
                 const updatedLimits = [...(currentLimits || []), newLimit];
                 setFieldValue("resultLimits", updatedLimits);
+                setAgeRanges((prev) => [...prev, { raw: 0, unit: "Y" }]);
               };
 
               const handleRemoveAgeRangeFillUp = (indexToRemove) => {
                 setAgeRangeFields((prev) =>
+                  prev.filter((_, i) => i !== indexToRemove),
+                );
+
+                const updatedLimits = (values.resultLimits || []).filter(
+                  (_, index) => index !== indexToRemove,
+                );
+                setFieldValue("resultLimits", updatedLimits);
+
+                setAgeRanges((prev) =>
                   prev.filter((_, i) => i !== indexToRemove),
                 );
               };
@@ -2874,10 +2904,33 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                             <RadioButtonGroup
                               id={`fieldAgeRangeRadioGroup-${index}`}
                               name={`fieldAgeRangeRadioGroup-${index}`}
+                              value={ageRanges[index]?.unit || "Y"}
+                              onChange={(val) => {
+                                setAgeRanges((prev) => {
+                                  const updated = [...prev];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    unit: val,
+                                  };
+                                  return updated;
+                                });
+                              }}
                             >
-                              <RadioButton labelText={"Y"} />
-                              <RadioButton labelText={"M"} />
-                              <RadioButton labelText={"D"} />
+                              <RadioButton
+                                labelText={"Y"}
+                                value={"Y"}
+                                id={`Y-${index}`}
+                              />
+                              <RadioButton
+                                labelText={"M"}
+                                value={"M"}
+                                id={`M-${index}`}
+                              />
+                              <RadioButton
+                                labelText={"D"}
+                                value={"D"}
+                                id={`D-${index}`}
+                              />
                             </RadioButtonGroup>
                           </Column>
                           <Column
@@ -2927,7 +2980,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               // min={0}
                               // max={1000}
                               // step={1}
-                              value={values.resultLimits?.[index]?.highAgeRange}
+                              // value={values.resultLimits?.[index]?.highAgeRange}
+                              value={String(ageRanges[index]?.raw) || "0"}
                               invalid={
                                 touched?.resultLimits?.[index]?.highAgeRange &&
                                 !!errors?.resultLimits?.[index]?.highAgeRange
@@ -2936,13 +2990,17 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 touched?.resultLimits?.[index]?.highAgeRange &&
                                 errors?.resultLimits?.[index]?.highAgeRange
                               }
-                              onChange={(e) =>
-                                handleRangeChange(
-                                  index,
-                                  "highAgeRange",
-                                  e.target.value,
-                                )
-                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setAgeRanges((prev) => {
+                                  const updated = [...prev];
+                                  updated[index] = {
+                                    ...updated[index],
+                                    raw: val,
+                                  };
+                                  return updated;
+                                });
+                              }}
                             />
                           </Column>
                           <Column
