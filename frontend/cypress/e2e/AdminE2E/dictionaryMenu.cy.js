@@ -92,6 +92,7 @@ describe("Dictionary Menu", function () {
     });
 
     it("Validate Modified Dictionary", () => {
+      cy.reload();
       dictMenu.searchByDictionaryEntry(usersData[0].dictionaryEntry);
       dictMenu.validateDictEntry(usersData[0].yes);
     });
