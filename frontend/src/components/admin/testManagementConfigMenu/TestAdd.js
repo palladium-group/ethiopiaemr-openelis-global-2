@@ -262,26 +262,27 @@ function TestAdd() {
     const selectedResultTypeId = newData?.resultType || formData.resultType;
 
     setCurrentStep((prevStep) => {
-      if (prevStep === 5 && ["4"].includes(selectedResultTypeId)) {
+      if (prevStep === 6) {
+        if (["1", "5"].includes(selectedResultTypeId)) {
+          return prevStep - 3;
+        }
+
+        if (["2", "6", "7"].includes(selectedResultTypeId)) {
+          return prevStep - 2;
+        }
+
+        if (selectedResultTypeId === "4") {
+          return prevStep - 1;
+        }
+      }
+
+      if (prevStep === 5 && selectedResultTypeId === "4") {
         return prevStep - 2;
-      }
-
-      if (prevStep === 6 && ["2", "6", "7"].includes(selectedResultTypeId)) {
-        return prevStep - 2;
-      }
-
-      if (prevStep === 6 && ["4"].includes(selectedResultTypeId)) {
-        return prevStep - 1;
-      }
-
-      if (prevStep === 6 && ["1", "4", "5"].includes(selectedResultTypeId)) {
-        return prevStep - 3;
       }
 
       return prevStep - 1;
     });
   };
-
   const validationSchema = Yup.object({
     testSection: Yup.string()
       .required("Test section is required")
