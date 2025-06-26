@@ -201,7 +201,7 @@ function TestAdd() {
     highReportingRange: "Infinity",
     lowCritical: "-Infinity",
     highCritical: "Infinity",
-    significantDigits: "",
+    significantDigits: "0",
     resultLimits: [
       {
         ageRange: "0",
@@ -2961,6 +2961,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   return updated;
                                 });
                               }}
+                              required
                             >
                               <RadioButton
                                 labelText={"Y"}
@@ -3027,6 +3028,7 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               // max={1000}
                               // step={1}
                               // value={values.resultLimits?.[index]?.highAgeRange}
+                              required
                               value={String(ageRanges[index]?.raw) || "0"}
                               invalid={
                                 touched?.resultLimits?.[index]?.highAgeRange &&
