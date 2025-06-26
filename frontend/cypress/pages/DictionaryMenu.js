@@ -15,7 +15,7 @@ class DictionaryMenuPage {
       searchByDictEntry: "#dictionary-entry-search",
       cancelButton: ".cds--btn--secondary",
       updateButton: ".cds--btn--primary",
-      addbutton: "[data-cy='addButton']",
+      addbutton: "div.cds--btn-set > button.cds--btn--primary",
       modify: "[data-cy='modifyButton']",
       deactivate: "[data-cy='deactivateButton']",
       checkBox: "td.cds--table-column-checkbox",
