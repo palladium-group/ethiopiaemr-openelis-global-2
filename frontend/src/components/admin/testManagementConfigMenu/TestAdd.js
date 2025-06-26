@@ -232,7 +232,11 @@ function TestAdd() {
 
     setCurrentStep((prev) => {
       if (prev === 3) {
-        if (["1", "4", "5"].includes(selectedResultTypeId)) {
+        if (["1", "5"].includes(selectedResultTypeId)) {
+          return prev + 3;
+        }
+
+        if (["4"].includes(selectedResultTypeId)) {
           return prev + 2;
         }
 
@@ -258,30 +262,15 @@ function TestAdd() {
     const selectedResultTypeId = newData?.resultType || formData.resultType;
 
     setCurrentStep((prevStep) => {
-      if (
-        prevStep === 5 &&
-        (selectedResultTypeId === "1" ||
-          selectedResultTypeId === "4" ||
-          selectedResultTypeId === "5")
-      ) {
+      if (prevStep === 5 && ["1", "4", "5"].includes(selectedResultTypeId)) {
         return prevStep - 2;
       }
 
-      if (
-        prevStep === 6 &&
-        (selectedResultTypeId === "2" ||
-          selectedResultTypeId === "6" ||
-          selectedResultTypeId === "7")
-      ) {
+      if (prevStep === 6 && ["2", "6", "7"].includes(selectedResultTypeId)) {
         return prevStep - 2;
       }
 
-      if (
-        prevStep === 6 &&
-        (selectedResultTypeId === "1" ||
-          selectedResultTypeId === "4" ||
-          selectedResultTypeId === "5")
-      ) {
+      if (prevStep === 6 && ["1", "4", "5"].includes(selectedResultTypeId)) {
         return prevStep - 3;
       }
 
