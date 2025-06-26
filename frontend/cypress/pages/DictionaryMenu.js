@@ -100,7 +100,7 @@ class DictionaryMenuPage {
   }
 
   checkFirstDict() {
-    cy.get(this.selectors.checkBox).click();
+    cy.get(this.selectors.checkBox).first().click();
   }
 }
 
