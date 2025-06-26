@@ -4,7 +4,7 @@ class DictionaryMenuPage {
       title: "h2",
       modal: ".cds--modal-container",
       add: "[data-cy='addButton']",
-      dictCategory: "#description",
+      dictCategory: "#downshift-1-toggle-button",
       dictNumber: "#dictNumber",
       dictEntry: "#dictEntry",
       dictValue: "div",
