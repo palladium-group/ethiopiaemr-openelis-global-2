@@ -74,6 +74,7 @@ function DictionaryManagement() {
   const [searchedMenuList, setSearchedMenuList] = useState([]);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 530);
+  const [loincCode, setLoincCode] = useState("");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 530);
@@ -141,6 +142,7 @@ function DictionaryManagement() {
             dictEntry: item.dictEntry,
             localAbbreviation: item.localAbbreviation,
             isActive: item.isActive,
+            loincCode: item.loincCode || "-",
             categoryName: item.dictionaryCategory
               ? item.dictionaryCategory.categoryName
               : "not available",
@@ -223,6 +225,8 @@ function DictionaryManagement() {
     dictEntry: dictionaryEntry,
     localAbbreviation: localAbbreviation,
     isActive: isActive.id,
+    loincCode: loincCode.trim() || null,
+    dirtyFormFields: dirtyFields,
   };
 
   async function displayStatus(res) {
@@ -280,6 +284,7 @@ function DictionaryManagement() {
       localAbbreviation: localAbbreviation,
       isActive: isActive.id,
       dirtyFormFields: dirtyFields,
+      loincCode: loincCode,
     };
 
     postToOpenElisServerFullResponse(
@@ -342,6 +347,7 @@ function DictionaryManagement() {
       setDictionaryEntry(res.dictEntry);
       setIsActive(yesOrNo.find((item) => item.id === res.isActive));
       setLocalAbbreviation(res.localAbbreviation);
+      setLoincCode(res.loincCode);
     }
   };
 
@@ -550,6 +556,21 @@ function DictionaryManagement() {
                     }}
                   />
                 </Modal>
+                <TextInput
+                  id="loincCode"
+                  labelText={intl.formatMessage({ id: "dictionary.loincCode" })}
+                  value={loincCode}
+                  onChange={(e) => {
+                    setLoincCode(e.target.value);
+                    dirtyFieldsRef.current.add("loincCode");
+                  }}
+                  placeholder="e.g., LA9663-1"
+                  pattern="^[A-Za-z]{2,5}\d{1,5}-\d{1,2}$"
+                  invalidText={intl.formatMessage({
+                    id: "dictionary.loincCode.invalid",
+                  })}
+                />
+
                 <Button
                   data-cy="deactivateButton"
                   style={{ width: isMobile ? "100%" : "auto" }}
@@ -688,6 +709,10 @@ function DictionaryManagement() {
                   header: intl.formatMessage({
                     id: "dictionary.category.isActive",
                   }),
+                },
+                {
+                  key: "loincCode",
+                  header: intl.formatMessage({ id: "dictionary.loincCode" }),
                 },
               ]}
               isSortable
