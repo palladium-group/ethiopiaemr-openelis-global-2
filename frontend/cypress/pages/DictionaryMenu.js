@@ -15,7 +15,7 @@ class DictionaryMenuPage {
       searchByDictEntry: "#dictionary-entry-search",
       cancelButton: ".cds--btn--secondary",
       updateButton: ".cds--btn--primary",
-      addbutton: "div.cds--btn-set > button.cds--btn--primary",
+      addbutton: "[data-cy='addButton']",
       modify: "[data-cy='modifyButton']",
       deactivate: "[data-cy='deactivateButton']",
       checkBox: "td.cds--table-column-checkbox",
@@ -32,6 +32,7 @@ class DictionaryMenuPage {
 
   clickModifyButton() {
     cy.get(this.selectors.modify).click();
+    cy.wait(2000);
   }
 
   clickUpdateButton() {
@@ -44,6 +45,7 @@ class DictionaryMenuPage {
 
   addButton() {
     cy.get(this.selectors.addbutton).click();
+    cy.wait(2000);
   }
 
   validateModal() {
