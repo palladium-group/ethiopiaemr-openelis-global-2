@@ -72,7 +72,7 @@ public class ElectronicOrderDAOImpl extends BaseDAOImpl<ElectronicOrder, String>
                 String sql = "from ElectronicOrder eo order by status_id";
                 list = entityManager.unwrap(Session.class).createQuery(sql, ElectronicOrder.class).list();
             } else {
-                String sql = "from ElectronicOrder eo order by " + order.getValue() + " asc, lastupdated desc";
+                String sql = "from ElectronicOrder eo order by external_id";
                 list = entityManager.unwrap(Session.class).createQuery(sql, ElectronicOrder.class).list();
             }
         } catch (RuntimeException e) {
