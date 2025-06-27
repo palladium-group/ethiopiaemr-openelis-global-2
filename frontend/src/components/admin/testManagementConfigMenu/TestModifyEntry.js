@@ -200,6 +200,32 @@ function TestModifyEntry() {
             </Column>
           </Grid>
           <br />
+          <hr />
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="label.viewtestCatalog" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              <Toggle
+                id="toggle"
+                labelText="Show Guide"
+                onClick={handleToggleShowGuide}
+              />
+            </Column>
+          </Grid>
+          {showGuide && <CustomShowGuide rows={rows} />}
+          <br />
+          <hr />
+          <br />
           <Grid fullWidth={true}>
             {testMonifyList && testMonifyList?.testList?.length > 0 ? (
               <>
@@ -223,31 +249,15 @@ function TestModifyEntry() {
                 ))}
               </>
             ) : (
-              <></>
+              <>
+                <Loading
+                  description="loading"
+                  small={true}
+                  withOverlay={true}
+                />
+              </>
             )}
           </Grid>
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={16} md={8} sm={4}>
-              <Section>
-                <Section>
-                  <Section>
-                    <Heading>
-                      <FormattedMessage id="label.viewtestCatalog" />
-                    </Heading>
-                  </Section>
-                </Section>
-              </Section>
-            </Column>
-            <Column lg={16} md={8} sm={4}>
-              <Toggle
-                id="toggle"
-                labelText="Show Guide"
-                onClick={handleToggleShowGuide}
-              />
-            </Column>
-          </Grid>
-          {showGuide && <CustomShowGuide rows={rows} />}
         </div>
         <button
           onClick={() => {
