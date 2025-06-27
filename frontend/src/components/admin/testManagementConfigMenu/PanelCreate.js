@@ -1,6 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import {
-  Form,
   Heading,
   Button,
   Loading,
@@ -42,6 +41,8 @@ import { FormattedMessage, injectIntl, useIntl } from "react-intl";
 import PageBreadCrumb from "../../common/PageBreadCrumb.js";
 import CustomCheckBox from "../../common/CustomCheckBox.js";
 import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -52,7 +53,7 @@ let breadcrumbs = [
   },
   {
     label: "configuration.panel.manage",
-    link: "/MasterListsPage#SampleTypeManagement",
+    link: "/MasterListsPage#PanelManagement",
   },
   {
     label: "configuration.panel.create",
@@ -67,10 +68,6 @@ function PanelCreate() {
   const intl = useIntl();
   const [isLoading, setIsLoading] = useState(true);
   const [bothFilled, setBothFilled] = useState(false);
-  const [englishLangPost, setEnglishLangPost] = useState("");
-  const [frenchLangPost, setFrenchLangPost] = useState("");
-  const [selectedSampleTypeId, setSelectedSampleTypeId] = useState("");
-  const [inputError, setInputError] = useState(false);
   const [panelCreateList, setPanelCreateList] = useState({});
 
   const componentMounted = useRef(false);
@@ -83,20 +80,19 @@ function PanelCreate() {
     }
   };
 
-  const handlePanelCreateListCall = () => {
-    if (
-      !englishLangPost ||
-      (!frenchLangPost && inputError && selectedSampleTypeId)
-    ) {
-      setInputError(true);
-      return;
-    }
+  const handlePanelCreateListCall = ({
+    englishLangPost,
+    frenchLangPost,
+    selectedSampleTypeId,
+    loincPost,
+  }) => {
     postToOpenElisServerJsonResponse(
       "/rest/PanelCreate",
       JSON.stringify({
         panelEnglishName: englishLangPost,
         panelFrenchName: frenchLangPost,
         sampleTypeId: selectedSampleTypeId,
+        panelLoinc: loincPost,
       }),
       (res) => {
         handlePostPanelCreateListCallBack(res);
@@ -132,30 +128,44 @@ function PanelCreate() {
     }
   };
 
-  const handleSampleTypeChange = (e) => {
-    setSelectedSampleTypeId(e.target.value);
-  };
+  const validationSchema = Yup.object({
+    englishLangPost: Yup.string()
+      .required("fill this field")
+      .test(
+        "duplicate-check",
+        intl.formatMessage({ id: "input.error.same.panel.type" }),
+        (value) => !validatePanelType(value),
+      )
+      .trim(),
+    frenchLangPost: Yup.string()
+      .required("fill this field")
+      .test(
+        "duplicate-check",
+        intl.formatMessage({ id: "input.error.same.panel.type" }),
+        (value) => !validatePanelType(value),
+      )
+      .trim(),
+    loincPost: Yup.string()
+      .required("fill this field")
+      .trim()
+      .matches(
+        /^(?!-)(?:\d+-)*\d+$/,
+        "Invalid format. Use digits separated by single dashes (e.g. 1-2-3)",
+      ),
+  });
+
+  const allPanels = [
+    ...(panelCreateList?.existingPanelList
+      ? panelCreateList.existingPanelList.flatMap((epl) => epl?.panels || [])
+      : []),
+    ...(panelCreateList?.inactivePanelList
+      ? panelCreateList.inactivePanelList.flatMap((epl) => epl?.panels || [])
+      : []),
+  ];
 
   const validatePanelType = (name) => {
-    const allPanels = [
-      ...(panelCreateList?.existingPanelList
-        ? panelCreateList.existingPanelList.flatMap((epl) => epl?.panels || [])
-        : []),
-      ...(panelCreateList?.inactivePanelList
-        ? panelCreateList.inactivePanelList.flatMap((epl) => epl?.panels || [])
-        : []),
-    ];
-
     return allPanels.some((panel) => panel?.panelName === name);
   };
-
-  useEffect(() => {
-    if (englishLangPost || frenchLangPost) {
-      const isPanelExists =
-        validatePanelType(englishLangPost) || validatePanelType(frenchLangPost);
-      setInputError(isPanelExists);
-    }
-  }, [englishLangPost, frenchLangPost, panelCreateList]);
 
   useEffect(() => {
     componentMounted.current = true;
@@ -223,131 +233,196 @@ function PanelCreate() {
           <br />
           <hr />
           <br />
-          <Grid fullWidth={true}>
-            <Column lg={8} md={4} sm={4}>
-              <>
-                <FormattedMessage id="english.label" />
-                <span className="requiredlabel">*</span> :
-              </>
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id={`eng`}
-                labelText=""
-                hideLabel
-                disabled={bothFilled}
-                value={`${englishLangPost}` || ""}
-                onChange={(e) => {
-                  setEnglishLangPost(e.target.value);
-                }}
-                required
-                invalid={inputError}
-                invalidText={
-                  <FormattedMessage id="input.error.same.panel.type" />
-                }
-              />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <>
-                <FormattedMessage id="french.label" />
-                <span className="requiredlabel">*</span> :
-              </>
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id={`fr`}
-                labelText=""
-                hideLabel
-                disabled={bothFilled}
-                value={`${frenchLangPost}` || ""}
-                onChange={(e) => {
-                  setFrenchLangPost(e.target.value);
-                }}
-                required
-                invalid={inputError}
-                invalidText={
-                  <FormattedMessage id="input.error.same.panel.type" />
-                }
-              />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <>
-                <FormattedMessage id="sample.type" />
-                <span className="requiredlabel">*</span> :
-              </>
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <Select
-                id="smapleTypeSelect"
-                name="SampleType"
-                labelText={intl.formatMessage({ id: "sample.select.type" })}
-                onChange={handleSampleTypeChange}
-                required
-              >
-                {panelCreateList &&
-                  panelCreateList?.existingSampleTypeList?.map((st, index) => {
-                    return (
-                      <SelectItem key={index} text={st.value} value={st.id} />
-                    );
-                  })}
-              </Select>
-            </Column>
-          </Grid>
-          {bothFilled && (
-            <>
-              <br />
-              <Grid fullWidth={true}>
-                <Column lg={16} md={8} sm={4}>
-                  <Section>
-                    <Section>
-                      <Section>
+          <Formik
+            initialValues={{
+              englishLangPost: "",
+              frenchLangPost: "",
+              selectedSampleTypeId: "",
+              loincPost: "",
+            }}
+            validationSchema={validationSchema}
+            onSubmit={(values, actions) => {
+              if (bothFilled) {
+                handlePanelCreateListCall(values);
+              } else {
+                setBothFilled(true);
+                actions.setSubmitting(false);
+              }
+            }}
+          >
+            {({
+              values,
+              errors,
+              touched,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              isSubmitting,
+            }) => (
+              <Form onSubmit={handleSubmit}>
+                <Grid fullWidth={true}>
+                  <Column lg={8} md={4} sm={4}>
+                    <>
+                      <FormattedMessage id="english.label" />
+                      <span className="requiredlabel">*</span> :
+                    </>
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <TextInput
+                      id={`eng`}
+                      name="englishLangPost"
+                      labelText=""
+                      hideLabel
+                      disabled={bothFilled}
+                      value={values.englishLangPost}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                      invalid={
+                        touched.englishLangPost && !!errors.englishLangPost
+                      }
+                      invalidText={
+                        touched.englishLangPost && errors.englishLangPost
+                      }
+                    />
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <>
+                      <FormattedMessage id="french.label" />
+                      <span className="requiredlabel">*</span> :
+                    </>
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <TextInput
+                      id={`fr`}
+                      name="frenchLangPost"
+                      labelText=""
+                      hideLabel
+                      disabled={bothFilled}
+                      value={values.frenchLangPost}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                      invalid={
+                        touched.frenchLangPost && !!errors.frenchLangPost
+                      }
+                      invalidText={
+                        touched.frenchLangPost && errors.frenchLangPost
+                      }
+                    />
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <>
+                      <FormattedMessage id="sample.type" />
+                      <span className="requiredlabel">*</span> :
+                    </>
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <Select
+                      id="smapleTypeSelect"
+                      name="selectedSampleTypeId"
+                      value={values.selectedSampleTypeId}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      labelText={intl.formatMessage({
+                        id: "sample.select.type",
+                      })}
+                      invalid={
+                        touched.selectedSampleTypeId &&
+                        !!errors.selectedSampleTypeId
+                      }
+                      invalidText={
+                        touched.selectedSampleTypeId &&
+                        errors.selectedSampleTypeId
+                      }
+                      required
+                    >
+                      <SelectItem value={"0"} text={"Select Sample Type"} />
+                      {panelCreateList?.existingSampleTypeList?.map(
+                        (st, index) => (
+                          <SelectItem
+                            key={index}
+                            text={st.value}
+                            value={st.id}
+                          />
+                        ),
+                      )}
+                    </Select>
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <>
+                      <FormattedMessage id="field.loinc" />
+                      <span className="requiredlabel">*</span> :
+                    </>
+                  </Column>
+                  <Column lg={8} md={4} sm={4}>
+                    <TextInput
+                      id={`loincPost`}
+                      name="loincPost"
+                      labelText=""
+                      hideLabel
+                      disabled={bothFilled}
+                      value={values.loincPost}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                      invalid={touched.loincPost && !!errors.loincPost}
+                      invalidText={touched.loincPost && errors.loincPost}
+                    />
+                  </Column>
+                </Grid>
+                {bothFilled && (
+                  <>
+                    <br />
+                    <Grid fullWidth={true}>
+                      <Column lg={16} md={8} sm={4}>
                         <Section>
-                          <Heading>
-                            <FormattedMessage id="configuration.panel.confirmation.explain" />
-                          </Heading>
+                          <Section>
+                            <Section>
+                              <Section>
+                                <Heading>
+                                  <FormattedMessage id="configuration.panel.confirmation.explain" />
+                                </Heading>
+                              </Section>
+                            </Section>
+                          </Section>
                         </Section>
-                      </Section>
-                    </Section>
-                  </Section>
-                </Column>
-              </Grid>
-            </>
-          )}
-          <br />
-          <Grid fullWidth={true}>
-            <Column lg={8} md={8} sm={4}>
-              <Button
-                onClick={() => {
-                  if (bothFilled) {
-                    handlePanelCreateListCall();
-                  }
-                  setBothFilled(true);
-                  setInputError(false);
-                }}
-                type="button"
-                kind="primary"
-              >
-                {bothFilled ? (
-                  <FormattedMessage id="accept.action.button" />
-                ) : (
-                  <FormattedMessage id="next.action.button" />
+                      </Column>
+                    </Grid>
+                  </>
                 )}
-              </Button>{" "}
-              <Button
-                type="button"
-                kind="tertiary"
-                onClick={() => {
-                  window.location.reload();
-                }}
-              >
-                {bothFilled ? (
-                  <FormattedMessage id="reject.action.button" />
-                ) : (
-                  <FormattedMessage id="label.button.previous" />
-                )}
-              </Button>
-            </Column>
-          </Grid>
+                <br />
+                <Grid fullWidth={true}>
+                  <Column lg={8} md={8} sm={4}>
+                    <Button
+                      disabled={isSubmitting}
+                      type="submit"
+                      kind="primary"
+                    >
+                      {bothFilled ? (
+                        <FormattedMessage id="accept.action.button" />
+                      ) : (
+                        <FormattedMessage id="next.action.button" />
+                      )}
+                    </Button>{" "}
+                    <Button
+                      type="button"
+                      kind="tertiary"
+                      onClick={() => {
+                        window.location.reload();
+                      }}
+                    >
+                      {bothFilled ? (
+                        <FormattedMessage id="reject.action.button" />
+                      ) : (
+                        <FormattedMessage id="label.button.previous" />
+                      )}
+                    </Button>
+                  </Column>
+                </Grid>
+              </Form>
+            )}
+          </Formik>
           <br />
           <hr />
           <br />
