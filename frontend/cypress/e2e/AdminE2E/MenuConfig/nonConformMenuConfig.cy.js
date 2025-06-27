@@ -24,10 +24,10 @@ describe("Non-Conform Menu Configuration", function () {
       menuConfigPage.validateToggleStatus("Off");
       menuConfigPage.uncheckNonConform();
       menuConfigPage.submitButton();
-      cy.reload();
     });
 
     it("Validate Non-Conform is Deactivated", () => {
+      cy.reload();
       menuConfigPage.navigateToMainMenu();
       menuConfigPage.validateNonConformOff();
     });

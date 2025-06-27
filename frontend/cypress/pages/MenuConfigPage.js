@@ -2,17 +2,17 @@ class MenuConfigPage {
   constructor() {
     this.selectors = {
       menuButton: "[data-cy='menuButton']",
-      nonConformMenu: "Non-Conform",
+      nonConformMenu: "#menu_nonconformity",
       nonConformCheck: "Non-Conformity Menu Active",
       nonConformReport: "#menu_non_conforming_report",
       nonConformView: "#menu_non_conforming_view",
       correctiveAction: "#menu_non_conforming_corrective_actions",
-      patientMenu: "Patient",
+      patientMenu: "#menu_patient",
       addEditPatient: "#menu_patient_add_or_edit",
       patientHistory: "#menu_patienthistory",
       studyPatient: "#menu_patient_create",
       enterBillingAddress: "#billing_address",
-      billingMenu: "Billing",
+      billingMenu: "#menu_billing",
       patientCheck: "Patient Menu Active",
       billingMenuCheck: "Billing Menu Active",
       toggleText: ".cds--toggle__text",
@@ -48,11 +48,11 @@ class MenuConfigPage {
   }
 
   validateNonConformOff() {
-    cy.contains("span", this.selectors.nonConformMenu).should("not.exist");
+    cy.get(this.selectors.nonConformMenu).should("not.exist");
   }
 
   validateNonConformOn() {
-    cy.contains("span", this.selectors.nonConformMenu).click();
+    cy.get(this.selectors.nonConformMenu).click();
     cy.get(this.selectors.nonConformReport).should("exist");
     cy.get(this.selectors.nonConformView).should("exist");
     cy.get(this.selectors.correctiveAction).should("exist");
@@ -63,22 +63,22 @@ class MenuConfigPage {
   }
 
   validatePatientMenuOff() {
-    cy.contains("span", this.selectors.patientMenu).should("not.exist");
+    cy.get(this.selectors.patientMenu).should("not.exist");
   }
 
   validatePatientMenuOn() {
-    cy.contains("span", this.selectors.patientMenu).click();
+    cy.get(this.selectors.patientMenu).click();
     cy.get(this.selectors.addEditPatient).should("exist");
     cy.get(this.selectors.patientHistory).should("exist");
     cy.get(this.selectors.studyPatient).should("exist");
   }
 
   validateBillingMenuOn() {
-    cy.contains("span", this.selectors.billingMenu).should("exist");
+    cy.get(this.selectors.billingMenu).should("exist");
   }
 
   validateBillingMenuOff() {
-    cy.contains("span", this.selectors.billingMenu).should("not.exist");
+    cy.get(this.selectors.billingMenu).should("not.exist");
   }
 
   billingAddress(value) {
