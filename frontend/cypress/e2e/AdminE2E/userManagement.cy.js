@@ -7,7 +7,6 @@ let userManagement = null;
 let usersData;
 
 before(() => {
-  // Initialize LoginPage object and navigate to Admin Page
   loginPage = new LoginPage();
   loginPage.visit();
 
@@ -50,8 +49,8 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      //userManagement.copyPermisionsFromUser();
-      //userManagement.applyChanges();
+      userManagement.copyPermisionsFromUser();
+      userManagement.applyChanges();
       userManagement.analyzerImport();
       userManagement.globalAdministrator();
       userManagement.addNewPermission();
@@ -110,8 +109,8 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      //userManagement.copyPermisionsFromUser(usersData[0].fName);
-      //userManagement.applyChanges();
+      userManagement.copyPermisionsFromUser(usersData[0].fName);
+      userManagement.applyChanges();
       userManagement.globalAdministrator();
       userManagement.addNewPermission();
       userManagement.allPermissions();
@@ -229,28 +228,32 @@ describe("User Management", function () {
     });
   });
 
-  //describe("Deactivate User", function () {
-  //it("Check User and deactivate", function () {
-  //userManagement.checkUser(usersData[1].fName);
-  //userManagement.deactivateUser();
-  //});
-  //it("Validate deactivated user", ()=>{});
-  //});
+  describe("Deactivate User", function () {
+    it("Check User and deactivate", function () {
+      userManagement.checkUser(usersData[1].fName);
+      userManagement.deactivateUser();
+    });
+    it("Validate deactivated user", () => {
+      cy.reload();
+      userManagement.activeUser();
+      userManagement.inactiveUser(usersData[1].fName);
+    });
+  });
 
   describe("Signout, use active/deactivated user to login", () => {
-    // it("Login with Deactivated user", () => {
-    // userManagement = loginPage.signOut();
-    // loginPage.enterUsername(usersData[1].username);
-    // loginPage.enterPassword(usersData[1].password);
-    // loginPage.signIn();
-    // cy.contains("Username or Password are incorrect").should("be.visible");
-    //userManagement.incorrectCredentials();
-    // });
+    it("Login with Deactivated user", () => {
+      userManagement = loginPage.signOut();
+      loginPage.enterUsername(usersData[1].username);
+      loginPage.enterPassword(usersData[1].password);
+      loginPage.signIn();
+      cy.contains("Username or Password are incorrect").should("be.visible");
+      userManagement.incorrectCredentials();
+    });
 
     it("Login with Active user", () => {
       userManagement = loginPage.signOut();
       loginPage.enterUsername(usersData[0].username);
-      loginPage.enterPassword(usersData[0].password); //BUG:there is a password change
+      loginPage.enterPassword(usersData[0].password);
       loginPage.signIn();
     });
 
