@@ -25,13 +25,13 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetLastCollectedTimestamp() {
+    public void testGetLastCollectedTimestamp_ReturnsLastCollectedTimestamps() {
         Timestamp lastTimestamp = reportExternalExportService.getLastCollectedTimestamp();
         assertEquals(Timestamp.valueOf("2023-01-11 00:00:00"), lastTimestamp);
     }
 
     @Test
-    public void testGetReportByEventDateAndType() {
+    public void testGetReportByEventDateAndType_ReturnsReports_UsingDateAndType() {
         reportExternalExport.setEventDate(Timestamp.valueOf("2022-01-01 00:00:00"));
         reportExternalExport.setTypeId("102");
         ReportExternalExport returnedReportExternalExport = reportExternalExportService
@@ -41,7 +41,7 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetReportsInDateRange() {
+    public void testGetReportsInDateRange_ReturnsReports_ThatLieInTheParameterDates() {
         // TODO: I noted that the String reportQueueTypeId is not used anywhere by
         // the method, So removing it would not cause any effects :)
 
@@ -53,7 +53,7 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetLatestSentReportExport() {
+    public void testGetLatestSentReportExport_ReturnsLatestSentReportExport() {
         ReportExternalExport reportExternalExport = reportExternalExportService.getLatestSentReportExport("102");
         reportExternalExport.setSend(false);
         reportExternalExport.setTypeId("102");
@@ -64,14 +64,14 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testReadReportExternalExport() {
+    public void testReadReportExternalExport_ReturnsAReportExport_UsingID() {
         ReportExternalExport reportExternalExport = reportExternalExportService.readReportExternalExport("3");
         assertNotNull(reportExternalExport);
         assertEquals("Awaiting confirmation", reportExternalExport.getBookkeepingData());
     }
 
     @Test
-    public void testGetLatestEventReportExport() {
+    public void testGetLatestEventReportExportReturnsAReportExport_UsingReportQueueTypeId() {
         ReportExternalExport reportExternalExport = reportExternalExportService.getLatestEventReportExport("101");
         reportExternalExport.setTypeId("101");
         reportExternalExport.setEventDate(Timestamp.valueOf("2022-11-01 12:00:00"));
@@ -80,13 +80,13 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetLastSentTimestamp() {
+    public void testGetLastSentTimestamp_ReturnsLastSentTimeStamp() {
         Timestamp lastSentTimestamp = reportExternalExportService.getLastSentTimestamp();
         assertEquals(Timestamp.valueOf("2024-05-21 00:00:00"), lastSentTimestamp);
     }
 
     @Test
-    public void testGetUnsentReportExports() {
+    public void testGetUnsentReportExports_ReturnsUnSentReportExternalExports_UsingReportQueueTypeId() {
         List<ReportExternalExport> reportExternalExports = reportExternalExportService.getUnsentReportExports("103");
         assertNotNull(reportExternalExports);
         assertEquals(1, reportExternalExports.size());
@@ -105,7 +105,7 @@ public class ReportExternalExportServiceTest extends BaseWebContextSensitiveTest
 //    }
 
     @Test
-    public void testLoadReport() {
+    public void testLoadReport_ReturnsReportExternalExport() {
         reportExternalExport.setId("2");
         ReportExternalExport returnedReportExternalExport = reportExternalExportService
                 .loadReport(reportExternalExport);

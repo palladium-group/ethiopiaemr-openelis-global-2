@@ -42,7 +42,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllEvents() {
+    public void testGetAllEvents_ReturnsAListOfAnalysisQaEvents() {
         analysisQaEventList = analysisQaEventService.getAll();
         assertNotNull(analysisQaEventList);
         assertEquals(3, analysisQaEventList.size());
@@ -50,7 +50,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatching() {
+    public void testGetAllMatching_ReturnsMatchingAnalysisQaEvents_UsingPropertyName() {
         analysisQaEventList = analysisQaEventService.getAllMatching("completedDate",
                 Timestamp.valueOf("2025-06-23 15:30:00"));
         assertNotNull(analysisQaEventList);
@@ -59,7 +59,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatching_UsingMap() {
+    public void testGetAllMatching_ReturnsMatchingAnalysisQaEvents_UsingMap() {
         analysisQaEventList = analysisQaEventService.getAllMatching(propertyValues);
         assertNotNull(analysisQaEventList);
         assertEquals(2, analysisQaEventList.size());
@@ -67,7 +67,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllOrdered() {
+    public void testGetAllOrdered_ReturnsOrderedAnalysisQaEvents_UsingOrderProperty() {
         analysisQaEventList = analysisQaEventService.getAllOrdered("completedDate", false);
         assertNotNull(analysisQaEventList);
         assertEquals(3, analysisQaEventList.size());
@@ -75,7 +75,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllOrdered_UsingList() {
+    public void testGetAllOrdered_ReturnsOrderedAnalysisQaEvents_UsingList() {
         analysisQaEventList = analysisQaEventService.getAllOrdered(orderProperties, false);
         assertNotNull(analysisQaEventList);
         assertEquals(3, analysisQaEventList.size());
@@ -83,7 +83,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatchingOrdered() {
+    public void testGetAllMatchingOrdered_ReturnsAllMatchingOrderedAnalysisQaEvents_UsingPropertyName() {
         analysisQaEventList = analysisQaEventService.getAllMatchingOrdered("completedDate",
                 Timestamp.valueOf("2025-06-23 15:30:00"), "completedDate", false);
         assertNotNull(analysisQaEventList);
@@ -92,7 +92,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatchingOrdered_UsingList() {
+    public void testGetAllMatchingOrdered_ReturnsAllMatchingOrderedAnalysisQaEvents_UsingList() {
         analysisQaEventList = analysisQaEventService.getAllMatchingOrdered("completedDate",
                 Timestamp.valueOf("2025-06-23 15:30:00"), orderProperties, false);
         assertNotNull(analysisQaEventList);
@@ -101,7 +101,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatchingOrdered_UsingMap() {
+    public void testGetAllMatchingOrdered_ReturnsAllMatchingOrderedAnalysisQaEvents_UsingMap() {
         analysisQaEventList = analysisQaEventService.getAllMatchingOrdered(propertyValues, "completedDate", false);
         assertNotNull(analysisQaEventList);
         assertEquals(2, analysisQaEventList.size());
@@ -109,7 +109,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetAllMatchingOrdered_UsingMapAndList() {
+    public void testGetAllMatchingOrdered_ReturnsAllMatchingOrderedAnalysisQaEvents_UsingMapAndList() {
         analysisQaEventList = analysisQaEventService.getAllMatchingOrdered(propertyValues, orderProperties, false);
         assertNotNull(analysisQaEventList);
         assertEquals(2, analysisQaEventList.size());
@@ -117,7 +117,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetPage() {
+    public void testGetPage_ReturnsAPageOfResults_UsingPageNumber() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getPage(1);
@@ -125,7 +125,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetMatchingPage() {
+    public void testGetMatchingPage_ReturnsAPageOfResults_UsingPropertyNameAndValue() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getMatchingPage("completedDate",
@@ -134,7 +134,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetMatchingPage_UsingMap() {
+    public void testGetMatchingPage_ReturnsAPageOfResults_UsingMap() {
         analysisQaEventList = analysisQaEventService.getMatchingPage(propertyValues, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -142,7 +142,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetOrderedPage() {
+    public void testGetOrderedPage_ReturnsAPageOfResults_OrderProperty() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getOrderedPage("completedDate", false, 1);
@@ -150,7 +150,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetOrderedPage_UsingList() {
+    public void testGetOrderedPage_ReturnsAPageOfResults_UsingList() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getOrderedPage(orderProperties, false, 1);
@@ -158,7 +158,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetOrderedPage_UsingPropertyNameAndValue() {
+    public void testGetOrderedPage_ReturnsAPageOfResults_UsingPropertyNameAndValue() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getMatchingOrderedPage("completedDate",
@@ -167,7 +167,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetMatchingOrderedPage_UsingList() {
+    public void testGetMatchingOrderedPage_ReturnsAPageOfResults_UsingList() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getMatchingOrderedPage("completedDate",
@@ -176,7 +176,7 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetMatchingOrderedPage_UsingMap() {
+    public void testGetMatchingOrderedPage_ReturnsAPageOfResults_UsingMap() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getMatchingOrderedPage(propertyValues, "completedDate", false, 1);
@@ -184,10 +184,35 @@ public class AnalysisQaEventServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void testGetMatchingOrderedPage_UsingMapAndList() {
+    public void testGetMatchingOrderedPage_ReturnsAPageOfResults_UsingMapAndList() {
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         analysisQaEventList = analysisQaEventService.getMatchingOrderedPage(propertyValues, orderProperties, false, 1);
         assertTrue(NUMBER_OF_PAGES >= analysisQaEventList.size());
+    }
+
+    @Test
+    public void updateAnalysisQaEvent_ReturnsUpdatedAnalysisQaEvent() {
+        AnalysisQaEvent analysisQaEvent = analysisQaEventService.getAll().get(0);
+        analysisQaEvent.setLastupdated(Timestamp.valueOf("2025-06-24 11:30:00"));
+        AnalysisQaEvent updatedAnalysisQaEvent = analysisQaEventService.update(analysisQaEvent);
+        assertNotNull(updatedAnalysisQaEvent);
+        assertEquals(Timestamp.valueOf("2025-06-24 11:30:00"), updatedAnalysisQaEvent.getLastupdated());
+    }
+
+    @Test
+    public void deleteAnalysisQaEvent_DeletesAnalysisQaEventPassedAsParameter() {
+        AnalysisQaEvent analysisQaEvent = analysisQaEventService.getAll().get(0);
+        analysisQaEventService.delete(analysisQaEvent);
+        List<AnalysisQaEvent> deletedAnalysisQaEvent = analysisQaEventService.getAll();
+        assertEquals(2, deletedAnalysisQaEvent.size());
+    }
+
+    @Test
+    public void deleteAllAnalysisQaEvent_DeletesAllAnalysisQaEvent() {
+        analysisQaEventService.deleteAll(analysisQaEventService.getAll());
+        List<AnalysisQaEvent> delectedAnalysisQaEvent = analysisQaEventService.getAll();
+        assertNotNull(delectedAnalysisQaEvent);
+        assertEquals(0, delectedAnalysisQaEvent.size());
     }
 }

@@ -22,7 +22,7 @@ public class ReportExternalImportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetReportsInDateRangeSortedForSite() {
+    public void testGetReportsInDateRangeSortedForSite_ReturnsSortedReportExternalImportThatLieBetweenParameterDates() {
         List<ReportExternalImport> reportExternalImports = reportExternalImportService
                 .getReportsInDateRangeSortedForSite(Timestamp.valueOf("2022-10-19 12:00:00"),
                         Timestamp.valueOf("2023-01-21 12:00:00"), "LAB001");
@@ -32,7 +32,7 @@ public class ReportExternalImportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetReportsInDateRangeSorted() {
+    public void testGetReportsInDateRangeSorted_ReturnsSortedReportExternalImportThatLieBetweenParameterDates() {
         List<ReportExternalImport> reportExternalImports = reportExternalImportService.getReportsInDateRangeSorted(
                 Timestamp.valueOf("2022-08-19 12:00:00"), Timestamp.valueOf("2023-01-21 12:00:00"));
         assertNotNull(reportExternalImports);
@@ -41,7 +41,7 @@ public class ReportExternalImportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetReportByEventDateSiteType() {
+    public void testGetReportByEventDateSiteType_ReturnsAReportExternalImport() {
         ReportExternalImport importReport = new ReportExternalImport();
         importReport.setEventDate(Timestamp.valueOf("2022-09-01 00:00:00"));
         importReport.setSendingSite("CLINIC45");
@@ -54,7 +54,7 @@ public class ReportExternalImportServiceTest extends BaseWebContextSensitiveTest
     }
 
     @Test
-    public void testGetUniqueSites() {
+    public void testGetUniqueSites_ReturnsAListOfUniqueSitesAsStrings() {
         List<String> uniqueSites = reportExternalImportService.getUniqueSites();
         assertNotNull(uniqueSites);
         assertEquals(3, uniqueSites.size());
