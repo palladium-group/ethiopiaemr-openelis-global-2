@@ -43,6 +43,8 @@ import CustomCheckBox from "../../common/CustomCheckBox.js";
 import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
 import { CustomShowGuide } from "./customComponents/CustomShowGuide.js";
 import { CustomTestDataDisplay } from "./customComponents/CustomTestDataDisplay.js";
+import { TestStepForm } from "./customComponents/TestStepForm.js";
+import { TestFormData } from "./customComponents/TestFormData.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -90,6 +92,57 @@ function TestModifyEntry() {
       setIsLoading(false);
     };
   }, []);
+
+  const handleTestModifyEntryPostCall = (values) => {
+    if (!values) {
+      addNotification({
+        kind: NotificationKinds.error,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: "Form submission failed due to missing data.",
+      });
+      setNotificationVisible(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+    setIsLoading(true);
+    postToOpenElisServerJsonResponse(
+      `/rest/TestModifyEntry`,
+      JSON.stringify({ jsonWad: JSON.stringify(values) }),
+      (res) => {
+        handleTestModifyEntryPostCallBack(res);
+      },
+    );
+  };
+
+  const handleTestModifyEntryPostCallBack = () => {
+    if (res) {
+      setIsLoading(false);
+      addNotification({
+        title: intl.formatMessage({
+          id: "notification.title",
+        }),
+        message: intl.formatMessage({
+          id: "notification.user.post.save.success",
+        }),
+        kind: NotificationKinds.success,
+      });
+      setNotificationVisible(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
+    } else {
+      addNotification({
+        kind: NotificationKinds.error,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: intl.formatMessage({ id: "server.error.msg" }),
+      });
+      setNotificationVisible(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
+    }
+  };
 
   if (!isLoading) {
     return (
@@ -253,38 +306,54 @@ function TestModifyEntry() {
           )}
           <br />
           <hr />
-          <Grid fullWidth={true}>
-            {testMonifyList && testMonifyList?.testList?.length > 0 ? (
-              <>
-                {testMonifyList?.testList?.map((test) => (
-                  <Column
-                    style={{ margin: "2px" }}
-                    lg={4}
-                    md={4}
-                    sm={2}
-                    key={test.id}
-                  >
-                    <ClickableTile
-                      id={test.id}
-                      onClick={() => {
-                        setSelectedTestIdToEdit(test.id);
-                      }}
-                    >
-                      {test.value}
-                    </ClickableTile>
-                  </Column>
-                ))}
-              </>
-            ) : (
-              <>
-                <Loading
-                  description="loading"
-                  small={true}
-                  withOverlay={true}
-                />
-              </>
-            )}
-          </Grid>
+          {selectedTestIdToEdit ? (
+            <>
+              <TestStepForm
+                initialData={TestFormData}
+                mode="edit"
+                postCall={handleTestModifyEntryPostCall}
+              />
+            </>
+          ) : (
+            <>
+              {testMonifyList && testMonifyList?.testList?.length > 0 ? (
+                <>
+                  <Grid fullWidth={true}>
+                    {testMonifyList?.testList?.map((test) => (
+                      <Column
+                        style={{ margin: "2px" }}
+                        lg={4}
+                        md={4}
+                        sm={2}
+                        key={test.id}
+                      >
+                        <ClickableTile
+                          id={test.id}
+                          onClick={() => {
+                            setSelectedTestIdToEdit(test.id);
+                          }}
+                        >
+                          {test.value}
+                        </ClickableTile>
+                      </Column>
+                    ))}
+                  </Grid>
+                </>
+              ) : (
+                <>
+                  <Grid fullWidth={true}>
+                    <Column lg={16} md={8} sm={4}>
+                      <Loading
+                        description="loading"
+                        small={true}
+                        withOverlay={true}
+                      />
+                    </Column>
+                  </Grid>
+                </>
+              )}
+            </>
+          )}
           <hr />
           <br />
         </div>
