@@ -106,73 +106,6 @@ function TestAdd() {
   );
   const [multiSelectDictionaryListTag, setMultiSelectDictionaryListTag] =
     useState([]);
-  const [jsonWad, setJsonWad] = useState(
-    // {
-    //   testNameEnglish: "aasdf",
-    //   testNameFrench: "asdf",
-    //   testReportNameEnglish: "aasdf",
-    //   testReportNameFrench: "asdf",
-    //   testSection: "56",
-    //   panels: [{ id: "1" }, { id: "2" }],
-    //   uom: "1",
-    //   loinc: "asdf",
-    //   resultType: "4",
-    //   orderable: "Y",
-    //   notifyResults: "Y",
-    //   inLabOnly: "Y",
-    //   antimicrobialResistance: "Y",
-    //   active: "Y",
-    //   sampleTypes:
-    //     '[{"typeId": "31", "tests": [{"id": 301}, {"id": 0}]}, {"typeId": "3", "tests": [{"id": 306}, {"id": 304}, {"id": 308}, {"id": 319}, {"id": 317}, {"id": 311}, {"id": 314}, {"id": 3}, {"id": 32}, {"id": 40}, {"id": 41}, {"id": 56}, {"id": 47}, {"id": 49}, {"id": 51}, {"id": 0}]}]',
-    //   lowValid: "-Infinity",
-    //   highValid: "Infinity",
-    //   lowReportingRange: "-Infinity",
-    //   highReportingRange: "Infinity",
-    //   lowCritical: "-Infinity",
-    //   highCritical: "-Infinity",
-    //   significantDigits: "",
-    //   resultLimits:
-    //     '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]',
-    //   dictionary:
-    //     '[{"value": "824", "qualified": "N"}, {"value": "826", "qualified": "N"}, {"value": "825", "qualified": "N"}, {"value": "822", "qualified": "N"}, {"value": "829", "qualified": "N"}, {"value": "821", "qualified": "N"}]',
-    //   dictionaryReference: "824",
-    //   defaultTestResult: "825",
-    // },
-    {
-      testNameEnglish: "",
-      testNameFrench: "",
-      testReportNameEnglish: "",
-      testReportNameFrench: "",
-      testSection: "",
-      panels: [],
-      uom: "",
-      loinc: "",
-      resultType: "",
-      orderable: "Y",
-      notifyResults: "",
-      inLabOnly: "N",
-      antimicrobialResistance: "N",
-      active: "Y",
-      sampleTypes: [],
-      lowValid: "",
-      highValid: "",
-      lowReportingRange: "",
-      highReportingRange: "",
-      lowCritical: "",
-      highCritical: "",
-      significantDigits: "",
-      resultLimits: [
-        {
-          highAgeRange: 30,
-          gender: false,
-          lowNormal: -Infinity,
-          highNormal: Infinity,
-        },
-      ],
-      // '[{"highAgeRange": "30", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "365", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "1825", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "5110", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}, {"highAgeRange": "Infinity", "gender": false, "lowNormal": "-Infinity", "highNormal": "Infinity"}]'
-    },
-  );
-
   const [currentStep, setCurrentStep] = useState(0);
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
 
@@ -283,70 +216,6 @@ function TestAdd() {
       return prevStep - 1;
     });
   };
-  const validationSchema = Yup.object({
-    testSection: Yup.string()
-      .required("Test section is required")
-      .notOneOf(["0"], "Please select a valid test section"),
-    testNameEnglish: Yup.string()
-      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-      .trim()
-      .required("English test name is required"),
-    testNameFrench: Yup.string()
-      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-      .trim()
-      .required("French test name is required"),
-    testReportNameEnglish: Yup.string()
-      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-      .trim()
-      .required("English report name is required"),
-    testReportNameFrench: Yup.string()
-      .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-      .trim()
-      .required("French report name is required"),
-    panels: Yup.array().of(
-      Yup.object().shape({
-        id: Yup.string().required("Panel ID is required"),
-      }),
-    ),
-    uom: Yup.string().required("Unit of Measurement is required"),
-    loinc: Yup.string()
-      .matches(/^(?!-)(?:\d+-)*\d*$/, "Loinc must be a valid format")
-      .required("Loinc is required"),
-    resultType: Yup.string().required("Result Type is required"),
-    orderable: Yup.string().oneOf(["Y", "N"], "Orderable must be Y or N"),
-    notifyResults: Yup.string().oneOf(
-      ["Y", "N"],
-      "Notify Results must be Y or N",
-    ),
-    inLabOnly: Yup.string().oneOf(["Y", "N"], "In Lab Only must be Y or N"),
-    antimicrobialResistance: Yup.string().oneOf(
-      ["Y", "N"],
-      "Antimicrobial Resistance must be Y or N",
-    ),
-    active: Yup.string().oneOf(["Y", "N"], "Active must be Y or N"),
-    sampleTypes: Yup.array().of(
-      Yup.object().shape({
-        typeId: Yup.string().required("Sample Type ID is required"),
-        tests: Yup.array()
-          .of(
-            Yup.object().shape({
-              id: Yup.number().required("Test ID is required"),
-            }),
-          )
-          .required("Tests are required"),
-      }),
-    ),
-    lowValid: Yup.string().required("Low Valid is required"),
-    highValid: Yup.string().required("High Valid is required"),
-    lowReportingRange: Yup.string().required("Low Reporting Range is required"),
-    highReportingRange: Yup.string().required(
-      "High Reporting Range is required",
-    ),
-    lowCritical: Yup.string().required("Low Critical is required"),
-    highCritical: Yup.string().required("High Critical is required"),
-    significantDigits: Yup.string().required("Significant Digits is required"),
-    resultLimits: Yup.string().required("Result Limits are required"),
-  });
 
   useEffect(() => {
     componentMounted.current = true;
@@ -513,20 +382,16 @@ function TestAdd() {
       key="step-1"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       labUnitList={labUnitList}
       setLabUnitList={setLabUnitList}
       selectedLabUnitId={selectedLabUnitList}
       setSelectedLabUnitList={setSelectedLabUnitList}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
     />,
     <StepTwoTestPanelAndUom
       key="step-2"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       panelList={panelList}
@@ -537,14 +402,11 @@ function TestAdd() {
       setPanelListTag={setPanelListTag}
       selectedUomList={selectedUomList}
       setSelectedUomList={setSelectedUomList}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
     />,
     <StepThreeTestResultTypeAndLoinc
       key="step-3"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       resultTypeList={resultTypeList}
@@ -556,14 +418,11 @@ function TestAdd() {
       setNotificationVisible={setNotificationVisible}
       lonic={lonic}
       setLonic={setLonic}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
     />,
     <StepFourSelectSampleTypeAndTestDisplayOrder
       key="step-4"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       sampleTypeList={sampleTypeList}
@@ -576,15 +435,12 @@ function TestAdd() {
       setSelectedSampleType={setSelectedSampleType}
       selectedSampleTypeResp={selectedSampleTypeResp}
       setSelectedSampleTypeResp={setSelectedSampleTypeResp}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
       currentStep={currentStep}
     />,
     <StepFiveSelectListOptionsAndResultOrder
       key="step-5"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       groupedDictionaryList={groupedDictionaryList}
@@ -604,8 +460,6 @@ function TestAdd() {
       setMultiSelectDictionaryList={setMultiSelectDictionaryList}
       multiSelectDictionaryListTag={multiSelectDictionaryListTag}
       setMultiSelectDictionaryListTag={setMultiSelectDictionaryListTag}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
       currentStep={currentStep}
       setCurrentStep={setCurrentStep}
     />,
@@ -613,7 +467,6 @@ function TestAdd() {
       key="step-6"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       selectedResultTypeList={selectedResultTypeList}
@@ -621,8 +474,6 @@ function TestAdd() {
       setAgeRangeList={setAgeRangeList}
       gotSelectedAgeRangeList={gotSelectedAgeRangeList}
       setGotSelectedAgeRangeList={setGotSelectedAgeRangeList}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
       currentStep={currentStep}
       setCurrentStep={setCurrentStep}
       ageRangeFields={ageRangeFields}
@@ -632,11 +483,8 @@ function TestAdd() {
       key="step-7"
       formData={formData}
       setFormData={setFormData}
-      validationSchema={validationSchema}
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
-      jsonWad={jsonWad}
-      setJsonWad={setJsonWad}
       panelListTag={panelListTag}
       setPanelListTag={setPanelListTag}
       selectedUomList={selectedUomList}
@@ -810,14 +658,11 @@ export default injectIntl(TestAdd);
 const StepOneTestNameAndTestSection = ({
   formData,
   setFormData,
-  validationSchema,
   handleNextStep,
   labUnitList,
   setLabUnitList,
   selectedLabUnitId,
   setSelectedLabUnitList,
-  jsonWad,
-  setJsonWad,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, true);
@@ -864,50 +709,12 @@ const StepOneTestNameAndTestSection = ({
           errors,
           setFieldValue,
         }) => {
-          const testNameEn = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testNameEnglish: e.target.value,
-            }));
-          };
-
-          const testNameFr = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testNameFrench: e.target.value,
-            }));
-          };
-
-          const reportingTestNameEn = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testReportNameEnglish: e.target.value,
-            }));
-          };
-
-          const reportingTestNameFr = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testReportNameFrench: e.target.value,
-            }));
-          };
-
           const copyInputValuesFromTestNameEnFr = (values) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testReportNameEnglish: values.testNameEnglish,
-              testReportNameFrench: values.testNameFrench,
-            }));
             setFieldValue("testReportNameEnglish", values.testNameEnglish);
             setFieldValue("testReportNameFrench", values.testNameFrench);
           };
 
           const handelTestSectionSelect = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              testSection: e.target.value,
-            }));
-
             setFieldValue("testSection", e.target.value);
 
             const selectedLabUnitObject = labUnitList.find(
@@ -1089,9 +896,6 @@ const StepTwoTestPanelAndUom = ({
   panelListTag,
   setPanelListTag,
   formData,
-  validationSchema,
-  jsonWad,
-  setJsonWad,
   selectedUomList,
   setSelectedUomList,
 }) => {
@@ -1153,20 +957,11 @@ const StepTwoTestPanelAndUom = ({
               const newTag = { id: selectedId, value: selectedValue };
               const updatedTags = [...prevTags, newTag];
 
-              const updatedPanels = [
-                ...updatedTags.map((tag) => ({ id: tag.id })),
-              ];
-              setJsonWad((prevJsonWad) => ({
-                ...prevJsonWad,
-                panels: updatedPanels,
-              }));
-
               return updatedTags;
             });
 
             setFieldValue("panels", [...values.panels, { id: selectedId }]);
 
-            setJsonWad((prev) => ({ ...prev, panel: selectedId }));
             const selectedPanelObject = panelList.find(
               (item) => item.id === selectedId,
             );
@@ -1181,19 +976,11 @@ const StepTwoTestPanelAndUom = ({
                 (tag) => tag.id !== idToRemove,
               );
 
-              const updatedPanels = updatedTags.map((tag) => ({ id: tag.id }));
-              setJsonWad((prevJsonWad) => ({
-                ...prevJsonWad,
-                panels: updatedPanels,
-              }));
-
               return updatedTags;
             });
           };
 
           const handelUomSelect = (e) => {
-            setJsonWad((prev) => ({ ...prev, uom: e.target.value }));
-
             const selectedUomObject = uomList.find(
               (item) => item.id === e.target.value,
             );
@@ -1305,7 +1092,6 @@ const StepTwoTestPanelAndUom = ({
 
 const StepThreeTestResultTypeAndLoinc = ({
   formData,
-  validationSchema,
   handleNextStep,
   handlePreviousStep,
   resultTypeList,
@@ -1317,8 +1103,6 @@ const StepThreeTestResultTypeAndLoinc = ({
   setNotificationVisible,
   lonic,
   setLonic,
-  jsonWad,
-  setJsonWad,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, true);
@@ -1377,7 +1161,6 @@ const StepThreeTestResultTypeAndLoinc = ({
 
             if (regex.test(value)) {
               setLonic(value);
-              setJsonWad((prev) => ({ ...prev, loinc: value }));
             } else {
               addNotification({
                 title: intl.formatMessage({
@@ -1393,8 +1176,6 @@ const StepThreeTestResultTypeAndLoinc = ({
           };
 
           const handelResultType = (e) => {
-            setJsonWad((prev) => ({ ...prev, resultType: e.target.value }));
-
             const selectedResultTypeObject = resultTypeList.find(
               (item) => item.id == e.target.value,
             );
@@ -1407,42 +1188,21 @@ const StepThreeTestResultTypeAndLoinc = ({
           };
 
           const handleAntimicrobialResistance = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              antimicrobialResistance: e.target.checked ? "Y" : "N",
-            }));
-
             setFieldValue(
               "antimicrobialResistance",
               e.target.checked ? "Y" : "N",
             );
           };
           const handleIsActive = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              active: e.target.checked ? "Y" : "N",
-            }));
             setFieldValue("active", e.target.checked ? "Y" : "N");
           };
           const handleOrderable = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              orderable: e.target.checked ? "Y" : "N",
-            }));
             setFieldValue("orderable", e.target.checked ? "Y" : "N");
           };
           const handleNotifyPatientofResults = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              notifyResults: e.target.checked ? "Y" : "N",
-            }));
             setFieldValue("notifyResults", e.target.checked ? "Y" : "N");
           };
           const handleInLabOnly = (e) => {
-            setJsonWad((prev) => ({
-              ...prev,
-              inLabOnly: e.target.checked ? "Y" : "N",
-            }));
             setFieldValue("inLabOnly", e.target.checked ? "Y" : "N");
           };
 
@@ -1567,7 +1327,6 @@ const StepThreeTestResultTypeAndLoinc = ({
 const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   formData,
   setFormData,
-  validationSchema,
   handleNextStep,
   handlePreviousStep,
   sampleTypeList,
@@ -1580,8 +1339,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   setSelectedSampleType,
   selectedSampleTypeResp,
   setSelectedSampleTypeResp,
-  jsonWad,
-  setJsonWad,
   currentStep,
 }) => {
   const handleSubmit = (values) => {
@@ -1724,10 +1481,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
 
                 setSampleTestTypeToGetTagList((prevTags) => {
                   const updatedTags = prevTags.filter(filterByIndex);
-                  setJsonWad((prev) => ({
-                    ...prev,
-                    replace: updatedTags.map((item) => item.id),
-                  }));
                   return updatedTags;
                 });
               };
@@ -1865,7 +1618,6 @@ const StepFourSelectSampleTypeAndTestDisplayOrder = ({
 
 const StepFiveSelectListOptionsAndResultOrder = ({
   formData,
-  validationSchema,
   handleNextStep,
   handlePreviousStep,
   groupedDictionaryList,
@@ -1885,8 +1637,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
   setMultiSelectDictionaryList,
   multiSelectDictionaryListTag,
   setMultiSelectDictionaryListTag,
-  jsonWad,
-  setJsonWad,
   currentStep,
   setCurrentStep,
 }) => {
@@ -1984,8 +1734,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                     { id: selectedObject.id, qualified: "N" },
                   ]);
                 }
-
-                //set the data object in jsonWad
               };
 
               const handleSelectQualifiersTag = (e) => {
@@ -2011,8 +1759,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                       item.id === selectedObject.id ? "Y" : item.qualified,
                   })),
                 );
-
-                //set the data object in jsonWad
               };
 
               const handleRemoveMultiSelectDictionaryListTagSelectIdTestTag = (
@@ -2022,16 +1768,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   const updatedTags = prevTags.filter(
                     (_, idx) => idx !== index,
                   );
-
-                  const updatedMultiSelectList = updatedTags.map((tag) => ({
-                    id: tag.id,
-                    value: tag.value,
-                  }));
-
-                  setJsonWad((prevJsonWad) => ({
-                    ...prevJsonWad,
-                    dictionary: updatedMultiSelectList,
-                  }));
 
                   return updatedTags;
                 });
@@ -2051,16 +1787,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                   const updatedTags = prevTags.filter(
                     (_, idx) => idx !== index,
                   );
-
-                  const updatedDictionaryList = updatedTags.map((tag) => ({
-                    id: tag.id,
-                    value: tag.value,
-                  }));
-
-                  setJsonWad((prevJsonWad) => ({
-                    ...prevJsonWad,
-                    dictionary: updatedDictionaryList,
-                  }));
 
                   return updatedTags;
                 });
@@ -2163,13 +1889,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
                               );
 
                               setFieldValue("dictionary", updatedFormikValues);
-
-                              setJsonWad((prev) => ({
-                                ...prev,
-                                dictionary: updatedList.map(
-                                  ({ id, value }) => ({ id, value }),
-                                ),
-                              }));
                             }}
                           />
                         )}
@@ -2473,7 +2192,6 @@ const StepFiveSelectListOptionsAndResultOrder = ({
 
 const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   formData,
-  validationSchema,
   handleNextStep,
   handlePreviousStep,
   selectedResultTypeList,
@@ -2481,8 +2199,6 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   setAgeRangeList,
   gotSelectedAgeRangeList,
   setGotSelectedAgeRangeList,
-  jsonWad,
-  setJsonWad,
   currentStep,
   setCurrentStep,
   ageRangeFields,
@@ -3552,11 +3268,8 @@ const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
 
 const StepSevenFinalDisplayAndSaveConfirmation = ({
   formData,
-  validationSchema,
   handlePreviousStep,
   handleNextStep,
-  jsonWad,
-  setJsonWad,
   panelListTag,
   selectedLabUnitList,
   selectedUomList,
@@ -3575,7 +3288,6 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
         <>
           <Formik
             initialValues={formData}
-            // validationSchema={validationSchema}
             enableReinitialize={true}
             validateOnChange={true}
             validateOnBlur={true}
@@ -3794,9 +3506,3 @@ const StepSevenFinalDisplayAndSaveConfirmation = ({
     </>
   );
 };
-
-// compitative selection
-// validation schema flow fix for each step
-// func moving to form ground
-// fucntion buildup for 5-6-7 step
-// better formating at the end of the step 7

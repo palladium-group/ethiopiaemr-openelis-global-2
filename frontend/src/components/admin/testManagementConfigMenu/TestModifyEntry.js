@@ -42,6 +42,7 @@ import PageBreadCrumb from "../../common/PageBreadCrumb.js";
 import CustomCheckBox from "../../common/CustomCheckBox.js";
 import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
 import { CustomShowGuide } from "./customComponents/CustomShowGuide.js";
+import { CustomTestDataDisplay } from "./customComponents/CustomTestDataDisplay.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -64,6 +65,7 @@ function TestModifyEntry() {
   const [isLoading, setIsLoading] = useState(false);
   const [testMonifyList, setTestModifyList] = useState({});
   const [showGuide, setShowGuide] = useState(false);
+  const [selectedTestIdToEdit, setSelectedTestIdToEdit] = useState(null);
 
   const componentMounted = useRef(false);
 
@@ -226,6 +228,31 @@ function TestModifyEntry() {
           <br />
           <hr />
           <br />
+          {selectedTestIdToEdit ? (
+            <CustomTestDataDisplay
+              testToDisplay={testMonifyList?.testCatBeanList?.find(
+                (test) => test.id === selectedTestIdToEdit,
+              )}
+            />
+          ) : (
+            <>
+              <Grid fullWidth={true}>
+                <Column lg={16} md={8} sm={4}>
+                  <Section>
+                    <Section>
+                      <Section>
+                        <Heading>
+                          <FormattedMessage id="Please Select Test to edit!" />
+                        </Heading>
+                      </Section>
+                    </Section>
+                  </Section>
+                </Column>
+              </Grid>
+            </>
+          )}
+          <br />
+          <hr />
           <Grid fullWidth={true}>
             {testMonifyList && testMonifyList?.testList?.length > 0 ? (
               <>
@@ -240,7 +267,7 @@ function TestModifyEntry() {
                     <ClickableTile
                       id={test.id}
                       onClick={() => {
-                        console.log(test.id);
+                        setSelectedTestIdToEdit(test.id);
                       }}
                     >
                       {test.value}
@@ -258,6 +285,8 @@ function TestModifyEntry() {
               </>
             )}
           </Grid>
+          <hr />
+          <br />
         </div>
         <button
           onClick={() => {
