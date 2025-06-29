@@ -22,8 +22,8 @@ public class OdooConfig {
     @Value("${odoo.username}")
     private String username;
 
-    @Value("${odoo.api.key}")
-    private String apiKey;
+    @Value("${odoo.password}")
+    private String password;
 
     @Value("${odoo.connection.pool.size:10}")
     private int connectionPoolSize;
@@ -36,12 +36,21 @@ public class OdooConfig {
 
     @PostConstruct
     public void validate() {
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Starting Odoo configuration validation...");
         validateRequiredField("odoo.server.url", serverUrl);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.server.url: " + serverUrl);
         validateRequiredField("odoo.database.name", databaseName);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.database.name: " + databaseName);
         validateRequiredField("odoo.username", username);
-        validateRequiredField("odoo.api.key", apiKey);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.username: " + username);
+        validateRequiredField("odoo.password", password);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.password: [MASKED]");
         validateConnectionPoolSize();
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.size: " + connectionPoolSize);
         validateTimeouts();
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.timeout.connection: " + connectionTimeout);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.timeout.reply: " + replyTimeout);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Odoo configuration validation completed. Summary: [serverUrl=" + serverUrl + ", databaseName=" + databaseName + ", username=" + username + ", password=[MASKED], poolSize=" + connectionPoolSize + ", connectionTimeout=" + connectionTimeout + ", replyTimeout=" + replyTimeout + "]");
     }
 
     private void validateRequiredField(String fieldName, String value) {
@@ -73,3 +82,4 @@ public class OdooConfig {
         }
     }
 }
+ 
