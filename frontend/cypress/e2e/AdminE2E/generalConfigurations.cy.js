@@ -77,16 +77,6 @@ describe("General Configurations", function () {
   testToggleConfiguration("OrderEntity", "Order Entry Configuration");
   testTypeConfiguration("PrintedReport", "Printed Report Configuration");
 
-  // Special case since there are no options yet
-  describe("Menu Statement Configuration", () => {
-    it("Navigate to Menu Statement Configuration", () => {
-      generalConfigurationsPage = adminPage.goToMenuStatementConfig();
-      generalConfigurationsPage.validatePageTitle(
-        "MenuStatement Configuration",
-      );
-    });
-  });
-
   describe("Validation Configuration", () => {
     it("Navigate to Validation Configuration", () => {
       generalConfigurationsPage = adminPage.goToValidationConfig();
@@ -101,7 +91,7 @@ describe("General Configurations", function () {
       generalConfigurationsPage.saveChanges();
       generalConfigurationsPage.validateStatus("False");
 
-      // Test True
+      //Edit value
       generalConfigurationsPage.validatePageTitle("Validation Configuration");
       generalConfigurationsPage.selectItem();
       generalConfigurationsPage.clickModifyButton();
@@ -109,6 +99,16 @@ describe("General Configurations", function () {
       generalConfigurationsPage.typeValue("a-zàâçéèêëîïôûùüÿñæœ -");
       generalConfigurationsPage.saveChanges();
       generalConfigurationsPage.validateStatus("a-zàâçéèêëîïôûùüÿñæœ -");
+    });
+  });
+
+  // Special case since there are no options yet
+  describe("Menu Statement Configuration", () => {
+    it("Navigate to Menu Statement Configuration", () => {
+      generalConfigurationsPage = adminPage.goToMenuStatementConfig();
+      generalConfigurationsPage.validatePageTitle(
+        "MenuStatement Configuration",
+      );
     });
   });
 });
