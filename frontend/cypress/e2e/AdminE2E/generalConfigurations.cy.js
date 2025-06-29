@@ -46,7 +46,7 @@ describe("General Configurations", function () {
         generalConfigurationsPage = adminPage[`goTo${configName}Config`]();
       });
 
-      it(`should edit ${configName} configuration value`, () => {
+      it(`Edit ${configName} configuration value`, () => {
         // Test False
         generalConfigurationsPage.validatePageTitle(title);
         generalConfigurationsPage.selectItem();
@@ -75,18 +75,40 @@ describe("General Configurations", function () {
   testToggleConfiguration("ResultEntity", "Result Entry Configuration");
   testToggleConfiguration("PatientEntity", "Patient Entry Configuration");
   testToggleConfiguration("OrderEntity", "Order Entry Configuration");
-
-  //Type
   testTypeConfiguration("PrintedReport", "Printed Report Configuration");
-  testTypeConfiguration("Validation", "Validation Configuration");
 
   // Special case since there are no options yet
   describe("Menu Statement Configuration", () => {
-    it("should navigate to Menu Statement Configuration", () => {
+    it("Navigate to Menu Statement Configuration", () => {
       generalConfigurationsPage = adminPage.goToMenuStatementConfig();
       generalConfigurationsPage.validatePageTitle(
         "MenuStatement Configuration",
       );
+    });
+  });
+
+  describe("Validation Configuration", () => {
+    it("Navigate to Validation Configuration", () => {
+      generalConfigurationsPage = adminPage.goToValidationConfig();
+    });
+
+    it("Edit value and validate", () => {
+      generalConfigurationsPage.validatePageTitle("Validation Configuration");
+      generalConfigurationsPage.selectItem();
+      generalConfigurationsPage.clickModifyButton();
+      generalConfigurationsPage.validatePageTitle("Edit Record");
+      generalConfigurationsPage.typeValue("False");
+      generalConfigurationsPage.saveChanges();
+      generalConfigurationsPage.validateStatus("False");
+
+      // Test True
+      generalConfigurationsPage.validatePageTitle("Validation Configuration");
+      generalConfigurationsPage.selectItem();
+      generalConfigurationsPage.clickModifyButton();
+      generalConfigurationsPage.validatePageTitle("Edit Record");
+      generalConfigurationsPage.typeValue("a-zàâçéèêëîïôûùüÿñæœ -");
+      generalConfigurationsPage.saveChanges();
+      generalConfigurationsPage.validateStatus("a-zàâçéèêëîïôûùüÿñæœ -");
     });
   });
 });
