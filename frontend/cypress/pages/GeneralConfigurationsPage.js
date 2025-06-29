@@ -6,6 +6,7 @@ class GeneralConfigurationsPage {
       radioButton: ".cds--radio-button__label",
       saveButton: "[data-cy='save-Button']",
       exitButton: "[data-cy='exit-Button']",
+      textInPut: "#textInput",
     };
   }
 
@@ -29,6 +30,7 @@ class GeneralConfigurationsPage {
 
   saveChanges() {
     cy.get(this.selectors.saveButton).click();
+    cy.wait(2000);
   }
 
   exitChanges() {
@@ -36,7 +38,11 @@ class GeneralConfigurationsPage {
   }
 
   validateStatus(value) {
-    cy.get("tr:first td").eq(3).should("contain", value);
+    cy.get("tr td").eq(3).should("contain", value);
+  }
+
+  typeValue(value) {
+    cy.get(this.selectors.textInPut).clear().type(value);
   }
 }
 

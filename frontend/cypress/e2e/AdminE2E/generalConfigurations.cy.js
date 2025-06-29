@@ -19,20 +19,49 @@ describe("General Configurations", function () {
 
       it(`should toggle ${configName} configuration between True and False`, () => {
         // Test False
-        generalConfigurationsPage.validatePageTitle(`${title}`);
+        generalConfigurationsPage.validatePageTitle(title);
         generalConfigurationsPage.selectItem();
         generalConfigurationsPage.clickModifyButton();
         generalConfigurationsPage.validatePageTitle("Edit Record");
         generalConfigurationsPage.checkValue("False");
         generalConfigurationsPage.saveChanges();
-        generalConfigurationsPage.validateStatus("False");
+        generalConfigurationsPage.validateStatus("false");
 
         // Test True
-        generalConfigurationsPage.validatePageTitle(`${title}`);
+        generalConfigurationsPage.validatePageTitle(title);
         generalConfigurationsPage.selectItem();
         generalConfigurationsPage.clickModifyButton();
         generalConfigurationsPage.validatePageTitle("Edit Record");
         generalConfigurationsPage.checkValue("True");
+        generalConfigurationsPage.saveChanges();
+        generalConfigurationsPage.validateStatus("true");
+      });
+    });
+  };
+
+  // Shared test actions for type configurations
+  const testTypeConfiguration = (configName, title) => {
+    describe(`${configName} Configuration`, () => {
+      before(() => {
+        generalConfigurationsPage = adminPage[`goTo${configName}Config`]();
+      });
+
+      it(`should edit ${configName} configuration value`, () => {
+        // Test False
+        generalConfigurationsPage.validatePageTitle(title);
+        generalConfigurationsPage.selectItem();
+        generalConfigurationsPage.clickModifyButton();
+        generalConfigurationsPage.validatePageTitle("Edit Record");
+        generalConfigurationsPage.typeValue("False");
+        generalConfigurationsPage.saveChanges();
+        generalConfigurationsPage.validateStatus("False");
+
+        // Test True
+        generalConfigurationsPage.validatePageTitle(title);
+        generalConfigurationsPage.selectItem();
+        generalConfigurationsPage.clickModifyButton();
+        generalConfigurationsPage.validatePageTitle("Edit Record");
+        generalConfigurationsPage.typeValue("True");
         generalConfigurationsPage.saveChanges();
         generalConfigurationsPage.validateStatus("True");
       });
@@ -45,16 +74,18 @@ describe("General Configurations", function () {
   testToggleConfiguration("SiteInformation", "Site Information");
   testToggleConfiguration("ResultEntity", "Result Entry Configuration");
   testToggleConfiguration("PatientEntity", "Patient Entry Configuration");
-  testToggleConfiguration("PrintedReport", "Printed Report Configuration");
   testToggleConfiguration("OrderEntity", "Order Entry Configuration");
-  testToggleConfiguration("Validation", "Validation Configuration");
+
+  //Type
+  testTypeConfiguration("PrintedReport", "Printed Report Configuration");
+  testTypeConfiguration("Validation", "Validation Configuration");
 
   // Special case since there are no options yet
   describe("Menu Statement Configuration", () => {
     it("should navigate to Menu Statement Configuration", () => {
       generalConfigurationsPage = adminPage.goToMenuStatementConfig();
       generalConfigurationsPage.validatePageTitle(
-        "Menu Statement Configuration",
+        "MenuStatement Configuration",
       );
     });
   });
