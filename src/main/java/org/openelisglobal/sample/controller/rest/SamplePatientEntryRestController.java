@@ -34,6 +34,7 @@ import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.notifications.dao.NotificationDAO;
 import org.openelisglobal.notifications.entity.Notification;
+import org.openelisglobal.odoo.service.OdooIntegrationService;
 import org.openelisglobal.organization.service.OrganizationService;
 import org.openelisglobal.organization.valueholder.Organization;
 import org.openelisglobal.patient.action.IPatientUpdate;
@@ -58,7 +59,6 @@ import org.openelisglobal.spring.util.SpringContext;
 import org.openelisglobal.systemuser.service.SystemUserService;
 import org.openelisglobal.systemuser.service.UserService;
 import org.openelisglobal.userrole.service.UserRoleService;
-import org.openelisglobal.odoo.service.OdooIntegrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,7 +76,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import java.util.ArrayList;
 
 @Controller
 @RequestMapping(value = "/rest/")
@@ -324,13 +323,13 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
 
             // String fhir_json = fhirTransformService.CreateFhirFromOESample(updateData,
             // patientUpdate, patientInfo, form, request);
-            
+
             // Create Odoo invoice after successful sample save
             try {
                 odooIntegrationService.createInvoice(updateData);
             } catch (Exception e) {
-                LogEvent.logError(this.getClass().getSimpleName(), "samplePatientEntrySave", 
-                    "Error creating Odoo invoice: " + e.getMessage());
+                LogEvent.logError(this.getClass().getSimpleName(), "samplePatientEntrySave",
+                        "Error creating Odoo invoice: " + e.getMessage());
                 // Don't fail the sample save if Odoo integration fails
             }
         } catch (LIMSRuntimeException e) {

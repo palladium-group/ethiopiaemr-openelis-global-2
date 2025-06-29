@@ -70,9 +70,8 @@ public class OdooClient {
                 xmlRpcClientConfig.setEnabledForExtensions(true);
                 xmlRpcClientConfig.setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
             } catch (MalformedURLException e) {
-                throw new RuntimeException(
-                        String.format(
-                                "Error occurred while building odoo server url %s error %s", getUrl(), e.getMessage()), e);
+                throw new RuntimeException(String.format("Error occurred while building odoo server url %s error %s",
+                        getUrl(), e.getMessage()), e);
             }
         }
         if (client == null) {
@@ -84,7 +83,8 @@ public class OdooClient {
             try {
                 XmlRpcClientConfigImpl xmlRpcClientCommonConfig = new XmlRpcClientConfigImpl();
                 xmlRpcClientCommonConfig.setServerURL(new URL(String.format(SERVER_COMMON_URL, getUrl())));
-                uid = (Integer) client.execute(xmlRpcClientCommonConfig, "authenticate", asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
+                uid = (Integer) client.execute(xmlRpcClientCommonConfig, "authenticate",
+                        asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
             } catch (XmlRpcException | MalformedURLException e) {
                 throw new RuntimeException("Cannot authenticate to Odoo server", e);
             }
@@ -95,7 +95,8 @@ public class OdooClient {
         init();
 
         try {
-            return (Integer) client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "create", dataParams));
+            return (Integer) client.execute("execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, "create", dataParams));
         } catch (XmlRpcException e) {
             throw new RuntimeException("Error occurred while creating in odoo server error", e);
         }
@@ -105,7 +106,8 @@ public class OdooClient {
         init();
 
         try {
-            return (Boolean) client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
+            return (Boolean) client.execute("execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
         } catch (XmlRpcException e) {
             throw new RuntimeException("Error occurred while writing to odoo server error", e);
         }
@@ -115,7 +117,8 @@ public class OdooClient {
         init();
 
         try {
-            return (Boolean) client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
+            return (Boolean) client.execute("execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
         } catch (XmlRpcException e) {
             throw new RuntimeException("Error occurred while deleting from odoo server error", e);
         }
@@ -125,7 +128,8 @@ public class OdooClient {
         init();
 
         try {
-            return (Object[]) client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
+            return (Object[]) client.execute("execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
         } catch (XmlRpcException e) {
             throw new RuntimeException("Error occurred while searching from odoo server error", e);
         }
@@ -133,6 +137,7 @@ public class OdooClient {
 
     /**
      * Check if the client is connected to Odoo
+     * 
      * @return true if connected, false otherwise
      */
     public boolean isConnected() {

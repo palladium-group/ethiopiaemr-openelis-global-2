@@ -5,6 +5,19 @@
 *.war
 *.ear
 
+# Logs
+*.log
+logs/
+volume/logs/*
+**/logs/
+**/*.log
+
+# WAR files (additional patterns)
+**/*.war
+target/*.war
+build/*.war
+dist/*.war
+
 #local use files
 liqubase.properties
 

@@ -46,11 +46,18 @@ public class OdooConfig {
         validateRequiredField("odoo.password", password);
         LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.password: [MASKED]");
         validateConnectionPoolSize();
-        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.size: " + connectionPoolSize);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate",
+                "Validated odoo.connection.pool.size: " + connectionPoolSize);
         validateTimeouts();
-        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.timeout.connection: " + connectionTimeout);
-        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Validated odoo.connection.pool.timeout.reply: " + replyTimeout);
-        LogEvent.logInfo(this.getClass().getSimpleName(), "validate", "Odoo configuration validation completed. Summary: [serverUrl=" + serverUrl + ", databaseName=" + databaseName + ", username=" + username + ", password=[MASKED], poolSize=" + connectionPoolSize + ", connectionTimeout=" + connectionTimeout + ", replyTimeout=" + replyTimeout + "]");
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate",
+                "Validated odoo.connection.pool.timeout.connection: " + connectionTimeout);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate",
+                "Validated odoo.connection.pool.timeout.reply: " + replyTimeout);
+        LogEvent.logInfo(this.getClass().getSimpleName(), "validate",
+                "Odoo configuration validation completed. Summary: [serverUrl=" + serverUrl + ", databaseName="
+                        + databaseName + ", username=" + username + ", password=[MASKED], poolSize="
+                        + connectionPoolSize + ", connectionTimeout=" + connectionTimeout + ", replyTimeout="
+                        + replyTimeout + "]");
     }
 
     private void validateRequiredField(String fieldName, String value) {
@@ -82,4 +89,3 @@ public class OdooConfig {
         }
     }
 }
- 

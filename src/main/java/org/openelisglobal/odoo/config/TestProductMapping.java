@@ -11,11 +11,11 @@ import org.openelisglobal.common.log.LogEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * Loads and provides mapping between OpenELIS test codes and Odoo product info (name, price)
- * from a properties file (odoo-test-product-mapping.properties).
+ * Loads and provides mapping between OpenELIS test codes and Odoo product info
+ * (name, price) from a properties file (odoo-test-product-mapping.properties).
  * <p>
- * The file is loaded from the path specified by the ODOO_MAPPING_FILE environment variable,
- * or from the classpath if not set.
+ * The file is loaded from the path specified by the ODOO_MAPPING_FILE
+ * environment variable, or from the classpath if not set.
  */
 @Component
 public class TestProductMapping {
@@ -27,6 +27,7 @@ public class TestProductMapping {
     public static class TestProductInfo {
         public final String productName;
         public final double price;
+
         public TestProductInfo(String productName, double price) {
             this.productName = productName;
             this.price = price;
@@ -48,9 +49,12 @@ public class TestProductMapping {
             try (InputStream in = new FileInputStream(mappingFilePath)) {
                 props.load(in);
                 loaded = true;
-                LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings", "Loaded mapping file from ODOO_MAPPING_FILE: " + mappingFilePath);
+                LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings",
+                        "Loaded mapping file from ODOO_MAPPING_FILE: " + mappingFilePath);
             } catch (IOException e) {
-                LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "Failed to load mapping file from ODOO_MAPPING_FILE: " + mappingFilePath + ", error: " + e.getMessage());
+                LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                        "Failed to load mapping file from ODOO_MAPPING_FILE: " + mappingFilePath + ", error: "
+                                + e.getMessage());
             }
         }
         if (!loaded) {
@@ -58,12 +62,15 @@ public class TestProductMapping {
                 if (in != null) {
                     props.load(in);
                     loaded = true;
-                    LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings", "Loaded mapping file from classpath: " + DEFAULT_FILE);
+                    LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings",
+                            "Loaded mapping file from classpath: " + DEFAULT_FILE);
                 } else {
-                    LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "Mapping file not found on classpath: " + DEFAULT_FILE);
+                    LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                            "Mapping file not found on classpath: " + DEFAULT_FILE);
                 }
             } catch (IOException e) {
-                LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "Failed to load mapping file from classpath: " + e.getMessage());
+                LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                        "Failed to load mapping file from classpath: " + e.getMessage());
             }
         }
         int mappingsLoaded = 0;
@@ -80,24 +87,30 @@ public class TestProductMapping {
                             testToProductInfo.put(testCode, new TestProductInfo(productName, price));
                             mappingsLoaded++;
                         } catch (NumberFormatException e) {
-                            LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "Invalid price for " + key + ": " + value);
+                            LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                                    "Invalid price for " + key + ": " + value);
                         }
                     } else {
-                        LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "Invalid mapping format for " + key + ": " + value);
+                        LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                                "Invalid mapping format for " + key + ": " + value);
                     }
                 }
             }
-            LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings", "Total mappings loaded: " + mappingsLoaded);
+            LogEvent.logInfo(this.getClass().getSimpleName(), "loadMappings",
+                    "Total mappings loaded: " + mappingsLoaded);
             if (mappingsLoaded == 0) {
-                LogEvent.logWarn(this.getClass().getSimpleName(), "loadMappings", "No Odoo test-product mappings loaded!");
+                LogEvent.logWarn(this.getClass().getSimpleName(), "loadMappings",
+                        "No Odoo test-product mappings loaded!");
             }
         } else {
-            LogEvent.logError(this.getClass().getSimpleName(), "loadMappings", "No mapping file could be loaded (env or classpath)");
+            LogEvent.logError(this.getClass().getSimpleName(), "loadMappings",
+                    "No mapping file could be loaded (env or classpath)");
         }
     }
 
     /**
      * Retrieves the Odoo product name for a given test code.
+     * 
      * @param testCode The OpenELIS test code
      * @return The Odoo product name, or null if not found
      */
@@ -108,6 +121,7 @@ public class TestProductMapping {
 
     /**
      * Retrieves the price for a given test code.
+     * 
      * @param testCode The OpenELIS test code
      * @return The price, or null if not found
      */
@@ -118,6 +132,7 @@ public class TestProductMapping {
 
     /**
      * Checks if a test code has a valid mapping.
+     * 
      * @param testCode The OpenELIS test code
      * @return true if mapping exists
      */
