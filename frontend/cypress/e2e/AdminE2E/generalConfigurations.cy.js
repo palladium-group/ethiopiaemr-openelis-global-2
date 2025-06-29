@@ -11,7 +11,7 @@ describe("General Configurations", function () {
   });
 
   // Shared test actions for toggle scenarios
-  const testToggleConfiguration = (configName) => {
+  const testToggleConfiguration = (configName, title) => {
     describe(`${configName} Configuration`, () => {
       before(() => {
         generalConfigurationsPage = adminPage[`goTo${configName}Config`]();
@@ -19,9 +19,7 @@ describe("General Configurations", function () {
 
       it(`should toggle ${configName} configuration between True and False`, () => {
         // Test False
-        generalConfigurationsPage.validatePageTitle(
-          `${configName} Configuration`,
-        );
+        generalConfigurationsPage.validatePageTitle(`${title}`);
         generalConfigurationsPage.selectItem();
         generalConfigurationsPage.clickModifyButton();
         generalConfigurationsPage.validatePageTitle("Edit Record");
@@ -30,9 +28,7 @@ describe("General Configurations", function () {
         generalConfigurationsPage.validateStatus("False");
 
         // Test True
-        generalConfigurationsPage.validatePageTitle(
-          `${configName} Configuration`,
-        );
+        generalConfigurationsPage.validatePageTitle(`${title}`);
         generalConfigurationsPage.selectItem();
         generalConfigurationsPage.clickModifyButton();
         generalConfigurationsPage.validatePageTitle("Edit Record");
@@ -44,14 +40,14 @@ describe("General Configurations", function () {
   };
 
   // Configuration tests
-  testToggleConfiguration("NonConformity");
-  testToggleConfiguration("WorkPlan");
-  testToggleConfiguration("SiteInformation");
-  testToggleConfiguration("ResultEntity");
-  testToggleConfiguration("PatientEntity");
-  testToggleConfiguration("PrintedReport");
-  testToggleConfiguration("OrderEntity");
-  testToggleConfiguration("Validation");
+  testToggleConfiguration("NonConformity", "NonConformity Configuration");
+  testToggleConfiguration("WorkPlan", "WorkPlan Configuration");
+  testToggleConfiguration("SiteInformation", "Site Information");
+  testToggleConfiguration("ResultEntity", "Result Entry Configuration");
+  testToggleConfiguration("PatientEntity", "Patient Entry Configuration");
+  testToggleConfiguration("PrintedReport", "Printed Report Configuration");
+  testToggleConfiguration("OrderEntity", "Order Entry Configuration");
+  testToggleConfiguration("Validation", "Validation Configuration");
 
   // Special case since there are no options yet
   describe("Menu Statement Configuration", () => {
