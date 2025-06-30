@@ -141,4 +141,4 @@ volumes:
   key_trust-store-volume:
   certs-vol:
   keys-vol:
-  lucene_index-vol: 
+  lucene_index-vol:
