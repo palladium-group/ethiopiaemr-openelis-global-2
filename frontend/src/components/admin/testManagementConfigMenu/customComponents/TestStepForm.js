@@ -155,6 +155,55 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
   }, []);
 
   useEffect(() => {
+    if (mode === "edit") {
+      if (
+        !initialData ||
+        !labUnitList.length ||
+        !panelList.length ||
+        !uomList.length
+      )
+        return;
+
+      const selectedLabUnit = labUnitList.find(
+        (item) => item.value === initialData.testSection,
+      );
+
+      const selectedPanelObjects =
+        initialData.panels?.length > 0
+          ? panelList.filter((panel) =>
+              initialData.panels.includes(panel.value),
+            )
+          : [];
+
+      const selectedUom = uomList.find(
+        (item) => item.value === initialData.uom,
+      );
+
+      if (selectedLabUnit) {
+        setSelectedLabUnitList(selectedLabUnit);
+      }
+
+      setPanelListTag(
+        selectedPanelObjects.map((panel) => ({
+          id: panel.id,
+          value: panel.value,
+        })),
+      );
+
+      if (selectedUom) {
+        setSelectedUomList(selectedUom);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        testSection: selectedLabUnit?.id || "",
+        panels: selectedPanelObjects.map((panel) => panel.id),
+        uom: selectedUom?.id || "",
+      }));
+    }
+  }, [initialData, mode, labUnitList, panelList, uomList]);
+
+  useEffect(() => {
     if (selectedSampleType.length === 0) return;
 
     const fetchSampleTypeData = async (id) => {
@@ -649,7 +698,7 @@ export const StepTwoTestPanelAndUom = ({
         initialValues={formData}
         validationSchema={Yup.object({
           panels: Yup.array()
-            .min(1, "At least one panel must be selected")
+            // .min(1, "At least one panel must be selected")
             .of(
               Yup.object().shape({
                 id: Yup.string()
@@ -663,7 +712,8 @@ export const StepTwoTestPanelAndUom = ({
             .notOneOf(
               [Yup.array().of(Yup.object().shape({ id: "0" }))],
               "Please select a valid panel",
-            ),
+            )
+            .nullable(),
           uom: Yup.string()
             .notOneOf(["0", ""], "Please select a valid unit of measurement")
             .required("Unit of measurement is required"),

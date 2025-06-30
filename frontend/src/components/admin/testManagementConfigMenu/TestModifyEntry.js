@@ -1,35 +1,15 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import {
-  Form,
   Heading,
-  Button,
   Loading,
   Grid,
   Column,
   Section,
-  DataTable,
-  Table,
-  TableHead,
-  TableRow,
-  TableBody,
-  TableHeader,
-  TableCell,
-  TableSelectRow,
-  TableSelectAll,
-  TableContainer,
-  Pagination,
-  Search,
-  Select,
-  SelectItem,
-  Stack,
   ClickableTile,
   Toggle,
 } from "@carbon/react";
 import {
   getFromOpenElisServer,
-  postToOpenElisServer,
-  postToOpenElisServerFormData,
-  postToOpenElisServerFullResponse,
   postToOpenElisServerJsonResponse,
 } from "../../utils/Utils.js";
 import { NotificationContext } from "../../layout/Layout.js";
@@ -39,12 +19,10 @@ import {
 } from "../../common/CustomNotification.js";
 import { FormattedMessage, injectIntl, useIntl } from "react-intl";
 import PageBreadCrumb from "../../common/PageBreadCrumb.js";
-import CustomCheckBox from "../../common/CustomCheckBox.js";
-import ActionPaginationButtonType from "../../common/ActionPaginationButtonType.js";
 import { CustomShowGuide } from "./customComponents/CustomShowGuide.js";
 import { CustomTestDataDisplay } from "./customComponents/CustomTestDataDisplay.js";
 import { TestStepForm } from "./customComponents/TestStepForm.js";
-import { TestFormData } from "./customComponents/TestFormData.js";
+import { mapTestCatBeanToFormData } from "./customComponents/TestFormData.js";
 
 let breadcrumbs = [
   { label: "home.label", link: "/" },
@@ -309,9 +287,13 @@ function TestModifyEntry() {
           {selectedTestIdToEdit ? (
             <>
               <TestStepForm
-                initialData={TestFormData}
-                mode="edit"
+                initialData={mapTestCatBeanToFormData(
+                  testMonifyList?.testCatBeanList?.find(
+                    (test) => test.id === selectedTestIdToEdit,
+                  ),
+                )}
                 postCall={handleTestModifyEntryPostCall}
+                mode="edit"
               />
             </>
           ) : (
