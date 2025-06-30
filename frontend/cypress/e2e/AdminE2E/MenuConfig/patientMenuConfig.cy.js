@@ -54,7 +54,6 @@ describe("Patient Menu Configuration", function () {
     });
 
     it("Verify menu changes", function () {
-      cy.reload();
       menuConfigPage.navigateToMainMenu();
       menuConfigPage.validatePatientMenuOn();
     });
