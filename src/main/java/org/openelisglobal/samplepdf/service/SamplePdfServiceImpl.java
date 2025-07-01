@@ -29,7 +29,7 @@ public class SamplePdfServiceImpl extends AuditableBaseObjectServiceImpl<SampleP
 
     @Override
     @Transactional(readOnly = true)
-    public SamplePdf getSamplePdfByAccessionNumber(SamplePdf samplePdf) {
-        return getBaseObjectDAO().getSamplePdfByAccessionNumber(samplePdf);
+    public SamplePdf getSamplePdfByAccessionNumber(Long accessionNumber) {
+        return getBaseObjectDAO().getSamplePdfByAccessionNumber(accessionNumber);
     }
 }
