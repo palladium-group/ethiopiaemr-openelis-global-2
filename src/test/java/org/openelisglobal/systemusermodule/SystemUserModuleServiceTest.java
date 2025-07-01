@@ -3,6 +3,7 @@ package org.openelisglobal.systemusermodule;
 import static org.junit.Assert.*;
 
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
@@ -48,7 +49,31 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
     public void getPageOfPermissionModules_ShouldReturnAPageOfSystemUserModules() {
         int numberOfPages = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        List<SystemUserModule> systemUserModules = systemUserModuleService.getPageOfPermissionModules(1);
+        assertTrue(numberOfPages >= systemUserModules.size());
+    }
 
+    @Test
+    public void getAllPermissionModulesByAgentId_ShouldReturnAllSystemUserModules_UsingAgentId() {
+        List<SystemUserModule> systemUserModules = systemUserModuleService.getAllPermissionModulesByAgentId(1002);
+        assertNotNull(systemUserModules);
+        assertEquals(1, systemUserModules.size());
+        assertEquals("Y", systemUserModules.get(0).getHasDelete());
+    }
+
+    @Test
+    public void doesUserHaveAnyModules_ShouldReturnTrueIfTheUserHasModules() {
+        boolean AreModulesPresent = systemUserModuleService.doesUserHaveAnyModules(1001);
+        assertTrue(AreModulesPresent);
+    }
+
+    @Test
+    public void getAllPermittedPagesFromAgentId_ShouldReturnAllPermittedPages_UsingAnAgentId() {
+        SystemUserModule systemUserModule = systemUserModuleService.get("3");
+        Set<String> permittedPages = systemUserModuleService.getAllPermittedPagesFromAgentId(1003);
+        assertNotNull(permittedPages);
+        assertEquals(3, permittedPages.size());
+        assertTrue(permittedPages.contains("Y"));
     }
 
 }
