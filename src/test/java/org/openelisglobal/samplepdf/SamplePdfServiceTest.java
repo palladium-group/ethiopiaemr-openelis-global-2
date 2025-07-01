@@ -8,6 +8,13 @@ import org.openelisglobal.samplepdf.service.SamplePdfService;
 import org.openelisglobal.samplepdf.valueholder.SamplePdf;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+
 public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
 
     @Autowired
@@ -17,6 +24,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
     private static int NUMBER_OF_PAGES=1;
+
 
     @Before
     public void setup() throws Exception{
@@ -36,6 +44,8 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void getSamplePdfByAccessionNumber_ShouldReturnASamplePdfUsingAssessionNumber(){
         // Initially, this method under test was taking a SamplePdf as a parameter yet
+        // its implementation was required and AccessionNumber as the Method-Name suggests.
+        // So I refactored it to receive an AccessionNumber of datatype Long. Since the DB column expected a numeric(10,0)
 
         SamplePdf samplePdf = samplePdfService.getSamplePdfByAccessionNumber(100002L);
         assertNotNull(samplePdf);
@@ -117,48 +127,56 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getPage_ShouldReturnAPageOfResults(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getPage(1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfResults_UsingAMap(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getMatchingPage(propertyValues,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAPageOfResults_UsingAnOrderProperty(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getOrderedPage("accessionNumber", true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAPageOfResults_UsingAList(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getOrderedPage(orderProperties, false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAnOrderProperty(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getMatchingOrderedPage("allowView", "Y", "accessionNumber", false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAList(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getMatchingOrderedPage("allowView", "Y", orderProperties, true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAnOrderProperty(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getMatchingOrderedPage(propertyValues, "accessionNumber", true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAList(){
+        NUMBER_OF_PAGES = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         samplePdfList =samplePdfService.getMatchingOrderedPage(propertyValues, orderProperties, false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
@@ -188,4 +206,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
         List<SamplePdf> updatedPdfList = samplePdfService.getAll();
         assertTrue(updatedPdfList.isEmpty());
     }
+
+
+
 }
