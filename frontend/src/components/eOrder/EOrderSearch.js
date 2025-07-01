@@ -105,6 +105,10 @@ const EOrderSearch = ({
         } else {
           setPreviousPage(null);
         }
+      } else {
+        setNextPage(null);
+        setPreviousPage(null);
+        setPagination(false);
       }
     }
     setHasEOrders(
