@@ -1,13 +1,5 @@
 package org.openelisglobal.samplepdf;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
@@ -24,10 +16,10 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     private List<SamplePdf> samplePdfList;
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
-    private static int NUMBER_OF_PAGES = 1;
+    private static int NUMBER_OF_PAGES=1;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() throws Exception{
         executeDataSetWithStateManagement("testdata/sample-pdf.xml");
         propertyValues = new HashMap<>();
         propertyValues.put("barcode", "ABC123XYZ");
@@ -42,12 +34,8 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getSamplePdfByAccessionNumber_ShouldReturnASamplePdfUsingAssessionNumber() {
+    public void getSamplePdfByAccessionNumber_ShouldReturnASamplePdfUsingAssessionNumber(){
         // Initially, this method under test was taking a SamplePdf as a parameter yet
-        // its implementation was required and AccessionNumber as the Method-Name
-        // suggests.
-        // So I refactored it to receive an AccessionNumber of datatype Long. Since the
-        // DB column expected a numeric(10,0)
 
         SamplePdf samplePdf = samplePdfService.getSamplePdfByAccessionNumber(100002L);
         assertNotNull(samplePdf);
@@ -56,7 +44,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAll_ShouldReturnAllSamplePdfs() {
+    public void getAll_ShouldReturnAllSamplePdfs(){
         samplePdfList = samplePdfService.getAll();
         assertNotNull(samplePdfList);
         assertEquals(4, samplePdfList.size());
@@ -64,7 +52,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatching_ShouldReturnAllMatchingSamplePdfs_UsingPropertyNameAndValue() {
+    public void getAllMatching_ShouldReturnAllMatchingSamplePdfs_UsingPropertyNameAndValue(){
         samplePdfList = samplePdfService.getAllMatching("barcode", "GHI789RST");
         assertNotNull(samplePdfList);
         assertEquals(1, samplePdfList.size());
@@ -72,7 +60,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatching_ShouldReturnAllMatchingSamplePdfs_UsingAMap() {
+    public void getAllMatching_ShouldReturnAllMatchingSamplePdfs_UsingAMap(){
         samplePdfList = samplePdfService.getAllMatching(propertyValues);
         assertNotNull(samplePdfList);
         assertEquals(2, samplePdfList.size());
@@ -80,7 +68,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllOrdered_ShouldReturnAllOrderedSamplePdfs_usingAnOrderProperty() {
+    public void getAllOrdered_ShouldReturnAllOrderedSamplePdfs_usingAnOrderProperty(){
         samplePdfList = samplePdfService.getAllOrdered("accessionNumber", true);
         assertNotNull(samplePdfList);
         assertEquals(4, samplePdfList.size());
@@ -88,15 +76,15 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllOrdered_ShouldReturnAllOrderedSamplePdfs_UsingAList() {
-        samplePdfList = samplePdfService.getAllOrdered(orderProperties, false);
+    public void getAllOrdered_ShouldReturnAllOrderedSamplePdfs_UsingAList(){
+        samplePdfList =samplePdfService.getAllOrdered(orderProperties, false);
         assertNotNull(samplePdfList);
         assertEquals(4, samplePdfList.size());
         assertEquals("100003", samplePdfList.get(3).getAccessionNumber());
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingPropertyNameAndValueAndAnOrderProperty() {
+    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingPropertyNameAndValueAndAnOrderProperty(){
         samplePdfList = samplePdfService.getAllMatchingOrdered("allowView", "Y", "accessionNumber", true);
         assertNotNull(samplePdfList);
         assertEquals(3, samplePdfList.size());
@@ -104,15 +92,15 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingPropertyNameAndValueAndAList() {
-        samplePdfList = samplePdfService.getAllMatchingOrdered("allowView", "Y", orderProperties, true);
+    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingPropertyNameAndValueAndAList(){
+        samplePdfList =samplePdfService.getAllMatchingOrdered("allowView", "Y", orderProperties, true);
         assertNotNull(samplePdfList);
         assertEquals(3, samplePdfList.size());
         assertEquals("100001", samplePdfList.get(2).getAccessionNumber());
     }
 
     @Test
-    public void getAllOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingAMapAndAnOrderProperty() {
+    public void getAllOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingAMapAndAnOrderProperty(){
         samplePdfList = samplePdfService.getAllMatchingOrdered(propertyValues, "allowView", false);
         assertNotNull(samplePdfList);
         assertEquals(2, samplePdfList.size());
@@ -120,7 +108,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingAMapAndAList() {
+    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSamplePdfs_UsingAMapAndAList(){
         samplePdfList = samplePdfService.getAllMatchingOrdered(propertyValues, orderProperties, false);
         assertNotNull(samplePdfList);
         assertEquals(2, samplePdfList.size());
@@ -128,71 +116,55 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getPage_ShouldReturnAPageOfResults() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getPage(1);
+    public void getPage_ShouldReturnAPageOfResults(){
+        samplePdfList =samplePdfService.getPage(1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getMatchingPage_ShouldReturnAPageOfResults_UsingAMap() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getMatchingPage(propertyValues, 1);
+    public void getMatchingPage_ShouldReturnAPageOfResults_UsingAMap(){
+        samplePdfList =samplePdfService.getMatchingPage(propertyValues,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAPageOfResults_UsingAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getOrderedPage("accessionNumber", true, 1);
+    public void getOrderedPage_ShouldReturnAPageOfResults_UsingAnOrderProperty(){
+        samplePdfList =samplePdfService.getOrderedPage("accessionNumber", true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAPageOfResults_UsingAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getOrderedPage(orderProperties, false, 1);
+    public void getOrderedPage_ShouldReturnAPageOfResults_UsingAList(){
+        samplePdfList =samplePdfService.getOrderedPage(orderProperties, false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getMatchingOrderedPage("allowView", "Y", "accessionNumber", false, 1);
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAnOrderProperty(){
+        samplePdfList =samplePdfService.getMatchingOrderedPage("allowView", "Y", "accessionNumber", false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getMatchingOrderedPage("allowView", "Y", orderProperties, true, 1);
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAPropertyNameAndValueAndAList(){
+        samplePdfList =samplePdfService.getMatchingOrderedPage("allowView", "Y", orderProperties, true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getMatchingOrderedPage(propertyValues, "accessionNumber", true, 1);
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAnOrderProperty(){
+        samplePdfList =samplePdfService.getMatchingOrderedPage(propertyValues, "accessionNumber", true,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        samplePdfList = samplePdfService.getMatchingOrderedPage(propertyValues, orderProperties, false, 1);
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingAMapAndAList(){
+        samplePdfList =samplePdfService.getMatchingOrderedPage(propertyValues, orderProperties, false,1);
         assertTrue(NUMBER_OF_PAGES >= samplePdfList.size());
     }
 
     @Test
-    public void update_ShouldModifyASamplePdf() {
+    public void update_ShouldModifyASamplePdf(){
         SamplePdf samplePdf = samplePdfService.get("2");
         samplePdf.setAccessionNumber("200003");
         samplePdf.setAllowView("Y");
@@ -202,7 +174,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void delete_ShouldDeleteASamplePdfPassedAsParameter() {
+    public void delete_ShouldDeleteASamplePdfPassedAsParameter(){
         SamplePdf samplePdf = samplePdfService.getAll().get(3);
         samplePdfService.delete(samplePdf);
         List<SamplePdf> updatedPdfList = samplePdfService.getAll();
@@ -210,7 +182,7 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllSamplePdfs() {
+    public void deleteAll_ShouldDeleteAllSamplePdfs(){
         samplePdfList = samplePdfService.getAll();
         samplePdfService.deleteAll(samplePdfList);
         List<SamplePdf> updatedPdfList = samplePdfService.getAll();
