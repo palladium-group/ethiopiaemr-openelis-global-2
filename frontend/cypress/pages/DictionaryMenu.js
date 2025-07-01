@@ -90,6 +90,7 @@ class DictionaryMenuPage {
 
   searchByDictionaryEntry(value) {
     cy.get(this.selectors.searchByDictEntry).clear().type(value);
+    cy.wait(1000);
   }
 
   clearSearch() {
