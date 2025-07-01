@@ -43,16 +43,11 @@ public class SamplePdfServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getSamplePdfByAccessionNumber_ShouldReturnASamplePdfUsingAssessionNumber() {
-        // Initially, this method under test was taking a SamplePdf as a parameter yet
-        // its implementation was required and AccessionNumber as the Method-Name
-        // suggests.
-        // So I refactored it to receive an AccessionNumber of datatype Long. Since the
-        // DB column expected a numeric(10,0)
-
-        SamplePdf samplePdf = samplePdfService.getSamplePdfByAccessionNumber(100002L);
-        assertNotNull(samplePdf);
-        assertEquals("DEF456UVW", samplePdf.getBarcode());
-        assertEquals("N", samplePdf.getAllowView());
+        SamplePdf samplePdf = samplePdfService.get("2");
+        SamplePdf returnedSamplePdf = samplePdfService.getSamplePdfByAccessionNumber(samplePdf);
+        assertNotNull(returnedSamplePdf);
+        assertEquals("DEF456UVW", returnedSamplePdf.getBarcode());
+        assertEquals("N", returnedSamplePdf.getAllowView());
     }
 
     @Test
