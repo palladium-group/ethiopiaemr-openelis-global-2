@@ -25,5 +25,5 @@ public interface SamplePdfDAO extends BaseDAO<SamplePdf, String> {
     public boolean isAccessionNumberFound(int accessionNumber) throws LIMSRuntimeException;
 
     // bugzilla 2529,2530,2531
-    public SamplePdf getSamplePdfByAccessionNumber(SamplePdf samplePdf) throws LIMSRuntimeException;
+    public SamplePdf getSamplePdfByAccessionNumber(Long accessionNumber) throws LIMSRuntimeException;
 }
