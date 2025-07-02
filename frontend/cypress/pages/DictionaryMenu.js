@@ -101,14 +101,6 @@ class DictionaryMenuPage {
     cy.get(this.selectors.searchByDictEntry).clear();
   }
 
-  validateDictEntry(value) {
-    cy.get("td:nth-child(3)").should("contain", value);
-  }
-
-  validateDictStatus(value) {
-    cy.get("td:nth-child(5)").should("contain", value);
-  }
-
   validateColumnContent(columnNum, value) {
     cy.get(`td:nth-child(${columnNum})`).should("contain", value);
   }
