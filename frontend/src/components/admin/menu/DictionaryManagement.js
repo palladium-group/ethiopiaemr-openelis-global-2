@@ -559,6 +559,27 @@ function DictionaryManagement() {
                       marginBottom: "1rem",
                     }}
                   />
+
+                  <div style={{ marginTop: "1rem" }}>
+                    <Heading style={{ marginBottom: "0.5rem" }}>
+                      Standard Codes
+                    </Heading>
+                    <TextInput
+                      id="loincCode"
+                      labelText={intl.formatMessage({
+                        id: "dictionary.loincCode",
+                      })}
+                      value={loincCode}
+                      onChange={(e) => {
+                        setLoincCode(e.target.value);
+                        dirtyFieldsRef.current.add("loincCode");
+                      }}
+                      placeholder="e.g., 12345-6"
+                      helperText={intl.formatMessage({
+                        id: "dictionary.loincCode.helpText",
+                      })}
+                    />
+                  </div>
                 </Modal>
                 <TextInput
                   id="loincCode"
@@ -568,8 +589,8 @@ function DictionaryManagement() {
                     setLoincCode(e.target.value);
                     dirtyFieldsRef.current.add("loincCode");
                   }}
-                  placeholder="e.g., LA9663-1"
-                  pattern="^[A-Za-z]{2,5}\d{1,5}-\d{1,2}$"
+                  placeholder="e.g., 12345-6 or LP12345-6"
+                  pattern="^(LP)?\d{1,5}-\d{1,2}$"
                   invalidText={intl.formatMessage({
                     id: "dictionary.loincCode.invalid",
                   })}
@@ -717,6 +738,7 @@ function DictionaryManagement() {
                 {
                   key: "loincCode",
                   header: intl.formatMessage({ id: "dictionary.loincCode" }),
+                  formatter: (value) => value || "-",
                 },
               ]}
               isSortable
