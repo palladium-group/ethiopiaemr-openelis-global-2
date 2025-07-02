@@ -81,7 +81,6 @@ const ActionPaginationButtonType = ({
             ) : (
               <>
                 <Button
-                  data-cy="modify-button"
                   style={{ width: isMobile ? "100%" : "auto" }}
                   onClick={() => {
                     if (selectedRowIds.length === 1) {
@@ -94,7 +93,6 @@ const ActionPaginationButtonType = ({
                   <FormattedMessage id="admin.page.configuration.formEntryConfigMenu.button.modify" />
                 </Button>
                 <Button
-                  data-cy="deactivate-button"
                   style={{ width: isMobile ? "100%" : "auto" }}
                   onClick={deleteDeactivate}
                   disabled={deactivateButton}

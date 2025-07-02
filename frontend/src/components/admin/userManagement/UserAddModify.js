@@ -1212,7 +1212,6 @@ function UserAddModify() {
                   </Column>
                   <br />
                   <Button
-                    data-cy="apply-button"
                     disabled={copyUserPermission === "0"}
                     type="button"
                     onClick={() => {
@@ -1396,7 +1395,6 @@ function UserAddModify() {
                       </Column>
                       <Column lg={4} md={4} sm={4}>
                         <Button
-                          data-cy="removePermission"
                           onClick={() => removeSection(key)}
                           kind="tertiary"
                           type="button"
@@ -1409,11 +1407,7 @@ function UserAddModify() {
                 </>
                 <Grid fullWidth={true}>
                   <Column lg={16} md={8} sm={4}>
-                    <Button
-                      data-cy="addNewPermission"
-                      onClick={addNewSection}
-                      type="button"
-                    >
+                    <Button onClick={addNewSection} type="button">
                       <FormattedMessage id="systemuserrole.newpermissions" />
                     </Button>
                   </Column>
@@ -1426,7 +1420,6 @@ function UserAddModify() {
                       disabled={Object.values(validation).some(
                         (value) => !value,
                       )}
-                      data-cy="saveButton"
                       onClick={userSavePostCall}
                       type="button"
                     >
@@ -1438,7 +1431,6 @@ function UserAddModify() {
                           "/MasterListsPage#userManagement",
                         )
                       }
-                      data-cy="exitButton"
                       kind="tertiary"
                       type="button"
                     >
