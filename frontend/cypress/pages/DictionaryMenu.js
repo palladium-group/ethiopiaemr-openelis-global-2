@@ -102,11 +102,15 @@ class DictionaryMenuPage {
   }
 
   validateDictEntry(value) {
-    cy.get("tr td").eq(2).should("contain", value);
+    cy.get("td:nth-child(3)").should("contain", value);
   }
 
   validateDictStatus(value) {
-    cy.get("tr td").eq(4).should("contain", value);
+    cy.get("td:nth-child(5)").should("contain", value);
+  }
+
+  validateColumnContent(columnNum, value) {
+    cy.get(`td:nth-child(${columnNum})`).should("contain", value);
   }
 
   checkFirstDict() {
