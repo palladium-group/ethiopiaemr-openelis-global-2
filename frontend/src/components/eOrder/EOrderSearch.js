@@ -9,11 +9,13 @@ import {
   TextInput,
   Loading,
 } from "@carbon/react";
-import { React, useEffect, useState } from "react";
+import { React, useEffect, useState, useContext } from "react";
 import CustomDatePicker from "../common/CustomDatePicker";
 import { Minimize, Maximize, ArrowLeft, ArrowRight } from "@carbon/react/icons";
 import { FormattedMessage, useIntl, injectIntl } from "react-intl";
 import { getFromOpenElisServer } from "../utils/Utils";
+import { NotificationContext } from "../layout/Layout";
+import { NotificationKinds, AlertDialog } from "../common/CustomNotification";
 
 const EOrderSearch = ({
   setEOrders = (eOrders) => {
@@ -38,6 +40,8 @@ const EOrderSearch = ({
   const [currentApiPage, setCurrentApiPage] = useState(null);
   const [totalApiPages, setTotalApiPages] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { notificationVisible, setNotificationVisible, addNotification } =
+    useContext(NotificationContext);
 
   useEffect(() => {
     getFromOpenElisServer("/rest/ElectronicOrders", handleElectronicOrders);
@@ -126,6 +130,16 @@ const EOrderSearch = ({
         behavior: "smooth",
       });
     }
+    if (response.eOrders.length == 0) {
+      addNotification({
+        kind: NotificationKinds.warning,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: intl.formatMessage({
+          id: "eorder.search.noresults",
+        }),
+      });
+      setNotificationVisible(true);
+    }
     setLoading(false);
   };
 
@@ -147,6 +161,7 @@ const EOrderSearch = ({
 
   return (
     <>
+      {notificationVisible === true ? <AlertDialog /> : ""}
       <Column lg={16} md={8} sm={4}>
         <FormattedMessage id="eorder.search1.text" />
       </Column>
