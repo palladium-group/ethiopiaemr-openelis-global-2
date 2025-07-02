@@ -19,6 +19,7 @@ class DictionaryMenuPage {
       modify: "[data-cy='modifyButton']",
       deactivate: "[data-cy='deactivateButton']",
       checkBox: "td.cds--table-column-checkbox",
+      status: "span.cds--list-box__label",
     };
   }
 
@@ -70,13 +71,13 @@ class DictionaryMenuPage {
   isActive(value) {
     cy.get(this.selectors.isActive).click();
     cy.contains(this.selectors.active, value).click();
-    cy.get(this.selectors.isActive).should("have.value", value);
+    cy.contains(this.selectors.status, value);
   }
 
   notActive(value) {
     cy.get(this.selectors.isActive).click();
     cy.contains(this.selectors.notActive, value).click();
-    cy.get(this.selectors.isActive).should("have.value", value);
+    cy.contains(this.selectors.status, value);
   }
 
   localAbbreviation(value) {
