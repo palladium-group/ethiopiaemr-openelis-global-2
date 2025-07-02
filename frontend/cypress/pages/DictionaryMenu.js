@@ -48,7 +48,7 @@ class DictionaryMenuPage {
 
   addButton() {
     cy.get(this.selectors.addbutton).click();
-    cy.wait(2000);
+    cy.wait(1000);
   }
 
   validateModal() {
