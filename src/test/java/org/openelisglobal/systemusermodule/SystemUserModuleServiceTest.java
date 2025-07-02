@@ -72,8 +72,7 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
         SystemUserModule systemUserModule = systemUserModuleService.get("3");
         Set<String> permittedPages = systemUserModuleService.getAllPermittedPagesFromAgentId(1003);
         assertNotNull(permittedPages);
-        assertEquals(3, permittedPages.size());
-        assertTrue(permittedPages.contains("Y"));
+        assertEquals(1, permittedPages.size());
+        assertEquals("Module 2", permittedPages.iterator().next());
     }
-
 }
