@@ -37,6 +37,7 @@ class DictionaryMenuPage {
 
   clickUpdateButton() {
     cy.contains(this.selectors.updateButton, "Update").click();
+    cy.wait(1000);
   }
 
   clickDeactivateButton() {
@@ -69,11 +70,13 @@ class DictionaryMenuPage {
   isActive(value) {
     cy.get(this.selectors.isActive).click();
     cy.contains(this.selectors.active, value).click();
+    cy.get(this.selectors.isActive).should("have.value", value);
   }
 
   notActive(value) {
     cy.get(this.selectors.isActive).click();
     cy.contains(this.selectors.notActive, value).click();
+    cy.get(this.selectors.isActive).should("have.value", value);
   }
 
   localAbbreviation(value) {
