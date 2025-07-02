@@ -1,8 +1,8 @@
 package org.openelisglobal.systemusermodule;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -19,6 +19,8 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
     @Autowired
     private SystemUserModuleService systemUserModuleService;
 
+    private List<SystemUserModule> systemUserModules;
+
     @Before
     public void setup() throws Exception {
         executeDataSetWithStateManagement("testdata/system-user-module.xml");
@@ -34,7 +36,7 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getAllPermissionModules_ShouldReturnAllSystemUserModules() {
-        List<SystemUserModule> systemUserModules = systemUserModuleService.getAllPermissionModules();
+        systemUserModules = systemUserModuleService.getAllPermissionModules();
         assertNotNull(systemUserModules);
         assertEquals(3, systemUserModules.size());
         assertEquals("Y", systemUserModules.get(0).getHasUpdate());
@@ -51,13 +53,13 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
     public void getPageOfPermissionModules_ShouldReturnAPageOfSystemUserModules() {
         int numberOfPages = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        List<SystemUserModule> systemUserModules = systemUserModuleService.getPageOfPermissionModules(1);
+        systemUserModules = systemUserModuleService.getPageOfPermissionModules(1);
         assertTrue(numberOfPages >= systemUserModules.size());
     }
 
     @Test
     public void getAllPermissionModulesByAgentId_ShouldReturnAllSystemUserModules_UsingAgentId() {
-        List<SystemUserModule> systemUserModules = systemUserModuleService.getAllPermissionModulesByAgentId(1002);
+        systemUserModules = systemUserModuleService.getAllPermissionModulesByAgentId(1002);
         assertNotNull(systemUserModules);
         assertEquals(1, systemUserModules.size());
         assertEquals("Y", systemUserModules.get(0).getHasDelete());
@@ -71,7 +73,6 @@ public class SystemUserModuleServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getAllPermittedPagesFromAgentId_ShouldReturnAllPermittedPages_UsingAnAgentId() {
-        SystemUserModule systemUserModule = systemUserModuleService.get("3");
         Set<String> permittedPages = systemUserModuleService.getAllPermittedPagesFromAgentId(1003);
         assertNotNull(permittedPages);
         assertEquals(1, permittedPages.size());
