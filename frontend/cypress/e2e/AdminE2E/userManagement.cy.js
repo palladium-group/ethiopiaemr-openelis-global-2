@@ -137,6 +137,7 @@ describe("User Management", function () {
 
     it("Save User", function () {
       userManagement.saveChanges();
+      cy.wait(2000);
     });
   });
 
