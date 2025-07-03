@@ -213,8 +213,11 @@ describe("User Management", function () {
       userManagement.saveChanges();
     });
 
-    it("Validate user is activated", function () {
+    it("Navigate to User Management", function () {
       userManagement = adminPage.goToUserManagementPage();
+    });
+
+    it("Validate user is activated", function () {
       userManagement.verifyPageTitle();
       userManagement.activeUser();
       userManagement.validateColumnContent("2", usersData[0].fName);
@@ -263,6 +266,7 @@ describe("User Management", function () {
     });
 
     it("Navigate back to User Management", () => {
+      cy.wait(2000);
       adminPage = homePage.goToAdminPage();
       userManagement = adminPage.goToUserManagementPage();
     });
