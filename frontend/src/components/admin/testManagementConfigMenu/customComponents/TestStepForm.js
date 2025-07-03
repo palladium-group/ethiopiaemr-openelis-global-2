@@ -287,7 +287,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
 
     const extraTestItem = {
       id: "0",
-      name: formData.testNameEnglish,
+      name: formData.testNameEnglish || formData.testNameFrench,
       userBenchChoice: false,
     };
 
@@ -299,11 +299,22 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       let updated;
 
       if (isInSelectedSampleType && !isAlreadyPresent) {
+        const alreadyContainsDefault = res.tests?.some(
+          (t) =>
+            (t.name || "").trim().toLowerCase() ===
+              (formData.testNameEnglish || "").trim().toLowerCase() ||
+            (t.name || "").trim().toLowerCase() ===
+              (formData.testNameFrench || "").trim().toLowerCase(),
+        );
+
         updated = [
           ...prev,
           {
             ...res,
-            tests: [...(res.tests || []), extraTestItem],
+            tests:
+              mode === "edit" && alreadyContainsDefault
+                ? [...(res.tests || [])]
+                : [...(res.tests || []), extraTestItem],
           },
         ];
       } else if (!isInSelectedSampleType) {
