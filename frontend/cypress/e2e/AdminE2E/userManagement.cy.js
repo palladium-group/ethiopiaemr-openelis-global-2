@@ -49,7 +49,6 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      userManagement.copyPermisionsFromUser(usersData[0].lName);
       userManagement.applyChanges();
       userManagement.analyzerImport();
       userManagement.globalAdministrator();
@@ -90,6 +89,9 @@ describe("User Management", function () {
 
     it("Add Second User", function () {
       userManagement = adminPage.goToUserManagementPage();
+    });
+
+    it("Enter details", function () {
       userManagement.verifyPageTitle();
       userManagement.clickAddButton();
       userManagement.validatePageTitle();
