@@ -25,7 +25,6 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
     private AnalyzerResultsService analyzerResultsService;
 
     private List<AnalyzerResults> analyzerResultsList;
-
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
     private static int NUMBER_OF_PAGES = 0;
@@ -77,9 +76,7 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         AnalyzerResults analyzerResults = analyzerResultsService.get("1002");
         deletableAnalyzerResults.add(analyzerResults);
         List<AnalyzerResultsController.SampleGrouping> sampleGroupList = new ArrayList<>();
-
         analyzerResultsService.persistAnalyzerResults(deletableAnalyzerResults, sampleGroupList, "1006");
-
     }
 
     @Test
@@ -246,5 +243,4 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         List<AnalyzerResults> updatedAnalyzerResultsList = analyzerResultsService.getAll();
         assertTrue(updatedAnalyzerResultsList.isEmpty());
     }
-
 }
