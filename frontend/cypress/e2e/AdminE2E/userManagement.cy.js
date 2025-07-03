@@ -194,7 +194,6 @@ describe("User Management", function () {
       userManagement.activeUser(); //checks active users
       userManagement.inactiveUser(usersData[0].fName);
       userManagement.validateColumnContent("2", usersData[1].fName);
-
       cy.reload();
     });
   });
@@ -206,11 +205,12 @@ describe("User Management", function () {
       userManagement.modifyUser();
       userManagement.typeLoginPassword(usersData[0].password);
       userManagement.repeatPassword(usersData[0].password);
-      userManagement.copyPermisionsFromUser(usersData[1].lName);
-      userManagement.applyChanges();
       userManagement.checkAccountNotLocked();
       userManagement.checkAccountEnabled();
       userManagement.checkActive();
+      userManagement.copyPermisionsFromUser(usersData[1].lName);
+      userManagement.applyChanges();
+      cy.wait(1000);
       userManagement.saveChanges();
     });
 
@@ -223,10 +223,10 @@ describe("User Management", function () {
       userManagement.activeUser();
       userManagement.searchUser(usersData[0].fName);
       userManagement.validateColumnContent("2", usersData[0].fName);
+      userManagement.clearSearchBar();
     });
 
     it("Search by Only Administrator", function () {
-      userManagement.activeUser();
       userManagement.adminUser();
       userManagement.validateColumnContent("4", usersData[0].defaultAdmin);
       userManagement.nonAdminUser(usersData[0].fName);
