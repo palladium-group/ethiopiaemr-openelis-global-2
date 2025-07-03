@@ -49,7 +49,7 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      userManagement.copyPermisionsFromUser();
+      userManagement.copyPermisionsFromUser(usersData[0].lName);
       userManagement.applyChanges();
       userManagement.analyzerImport();
       userManagement.globalAdministrator();
@@ -247,11 +247,10 @@ describe("User Management", function () {
       loginPage.enterPassword(usersData[1].password);
       loginPage.signIn();
       cy.contains("Username or Password are incorrect").should("be.visible");
-      userManagement.incorrectCredentials();
     });
 
     it("Login with Active user", () => {
-      userManagement = loginPage.signOut();
+      loginPage.clearInputs();
       loginPage.enterUsername(usersData[0].username);
       loginPage.enterPassword(usersData[0].password);
       loginPage.signIn();
