@@ -1443,5 +1443,9 @@
   "test.field.active": "Actif",
   "test.description.active": "Si le test est actif, il peut être demandé sur le formulaire de commande ou dans le cadre d’un algorithme de test. S’il n’est pas actif, il ne peut pas être demandé ni faire partie d’un algorithme de test",
   "test.field.orderable": "Commandable",
-  "test.description.orderable": "Si un test est actif et commandable, il peut être demandé sur un formulaire de commande. S’il est actif mais non commandable, il ne sera effectué que s’il est déclenché automatiquement par un autre test"
+  "test.description.orderable": "Si un test est actif et commandable, il peut être demandé sur un formulaire de commande. S’il est actif mais non commandable, il ne sera effectué que s’il est déclenché automatiquement par un autre test",
+  "test.modify.header.modify": "Veuillez sélectionner un test à modifier !",
+  "test.modify.header.test": "Test",
+  "test.modify.en": "anglais",
+  "test.modify.fr": "français"
 }

@@ -93,7 +93,7 @@ function TestModifyEntry() {
     );
   };
 
-  const handleTestModifyEntryPostCallBack = () => {
+  const handleTestModifyEntryPostCallBack = (res) => {
     if (res) {
       setIsLoading(false);
       addNotification({
@@ -273,7 +273,7 @@ function TestModifyEntry() {
                     <Section>
                       <Section>
                         <Heading>
-                          <FormattedMessage id="Please Select Test to edit!" />
+                          <FormattedMessage id="test.modify.header.modify" />
                         </Heading>
                       </Section>
                     </Section>

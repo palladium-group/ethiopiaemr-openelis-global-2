@@ -179,6 +179,41 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         (item) => item.value === initialData.uom,
       );
 
+      const selectedSampleTypeFilteredObject = sampleTypeList.filter(
+        (sampleType) =>
+          initialData.sampleTypes.includes(String(sampleType.value)),
+      );
+
+      selectedSampleTypeFilteredObject.forEach((sampleType) => {
+        getFromOpenElisServer(
+          `/rest/sample-type-tests?sampleType=${sampleType.id}`,
+          (res) => {
+            if (res) {
+              handleSampleType(res);
+            } else {
+              console.error("No response received for sample type tests");
+            }
+          },
+        );
+      });
+
+      const updatedList = [
+        ...selectedSampleTypeList,
+        ...selectedSampleTypeFilteredObject,
+      ];
+
+      setSelectedSampleTypeList(updatedList);
+
+      setSampleTestTypeToGetTagList((prev) => [
+        ...prev,
+        ...selectedSampleTypeFilteredObject,
+      ]);
+
+      setSelectedSampleType((prev) => [
+        ...prev,
+        ...selectedSampleTypeFilteredObject,
+      ]);
+
       if (selectedLabUnit) {
         setSelectedLabUnitList(selectedLabUnit);
       }
@@ -197,11 +232,12 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       setFormData((prev) => ({
         ...prev,
         testSection: selectedLabUnit?.id || "",
-        panels: selectedPanelObjects.map((panel) => panel.id),
+        panels: selectedPanelObjects.map((panel) => ({ id: panel.id })),
         uom: selectedUom?.id || "",
+        sampleTypes: [],
       }));
     }
-  }, [initialData, mode, labUnitList, panelList, uomList]);
+  }, [initialData, mode, labUnitList, panelList, uomList, sampleTypeList]);
 
   useEffect(() => {
     if (selectedSampleType.length === 0) return;
@@ -1177,7 +1213,7 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
             initialValues={formData}
             validationSchema={Yup.object({
               sampleTypes: Yup.array()
-                .min(1, "At least one sample type must be selected")
+                // .min(1, "At least one sample type must be selected")
                 .of(
                   Yup.object().shape({
                     // id: Yup.string().required("Sample Type ID is required"),
@@ -1191,7 +1227,8 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       }),
                     ),
                   }),
-                ),
+                )
+                .nullable(),
             })}
             enableReinitialize={true}
             validateOnChange={true}

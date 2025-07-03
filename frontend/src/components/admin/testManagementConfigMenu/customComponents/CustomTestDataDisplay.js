@@ -30,9 +30,9 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
           <Section>
             <Section>
               <Heading>
-                <FormattedMessage
-                  id={`Test : ${testToDisplay.localization.english} (${testToDisplay.sampleType})`}
-                />
+                <FormattedMessage id={`test.modify.header.test`} />
+                {" : "}
+                {`${testToDisplay.localization.english} (${testToDisplay.sampleType})`}
               </Heading>
             </Section>
           </Section>
@@ -43,7 +43,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id={`Name`} />
+              <FormattedMessage id={`field.name`} />
             </Section>
           </Section>
         </Section>
@@ -52,9 +52,9 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
             <Section>
               <Section>
                 <Section>
-                  <FormattedMessage
-                    id={`en : ${testToDisplay.localization.english}`}
-                  />
+                  <FormattedMessage id={`test.modify.en`} />
+                  {" : "}
+                  {`${testToDisplay.localization.english}`}
                 </Section>
               </Section>
             </Section>
@@ -63,9 +63,9 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
             <Section>
               <Section>
                 <Section>
-                  <FormattedMessage
-                    id={`fr : ${testToDisplay.localization.french}`}
-                  />
+                  <FormattedMessage id={`test.modify.fr`} />
+                  {" : "}
+                  {`${testToDisplay.localization.french}`}
                 </Section>
               </Section>
             </Section>
@@ -76,7 +76,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id={`Report Name`} />
+              <FormattedMessage id={`field.reportName`} />
             </Section>
           </Section>
         </Section>
@@ -85,9 +85,9 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
             <Section>
               <Section>
                 <Section>
-                  <FormattedMessage
-                    id={`en : ${testToDisplay.reportLocalization.english}`}
-                  />
+                  <FormattedMessage id={`test.modify.en`} />
+                  {" : "}
+                  {`${testToDisplay.reportLocalization.english}`}
                 </Section>
               </Section>
             </Section>
@@ -96,9 +96,9 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
             <Section>
               <Section>
                 <Section>
-                  <FormattedMessage
-                    id={`fr : ${testToDisplay.reportLocalization.french}`}
-                  />
+                  <FormattedMessage id={`test.modify.fr`} />
+                  {" : "}
+                  {`${testToDisplay.reportLocalization.french}`}
                 </Section>
               </Section>
             </Section>
@@ -109,7 +109,8 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Active" /> : {String(testToDisplay.active)}
+              <FormattedMessage id="test.field.active" /> :{" "}
+              {String(testToDisplay.active)}
             </Section>
           </Section>
         </Section>
@@ -118,7 +119,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Orderable" /> :{" "}
+              <FormattedMessage id="label.orderable" /> :{" "}
               {String(testToDisplay.orderable)}
             </Section>
           </Section>
@@ -128,7 +129,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Notify Patient of Results" /> :{" "}
+              <FormattedMessage id="test.notifyResults" /> :{" "}
               {String(testToDisplay.notifyResults)}
             </Section>
           </Section>
@@ -138,7 +139,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="In Lab Only" /> :{" "}
+              <FormattedMessage id="test.inLabOnly" /> :{" "}
               {String(testToDisplay.inLabOnly)}
             </Section>
           </Section>
@@ -148,7 +149,8 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Test unit" /> : {testToDisplay.testUnit}
+              <FormattedMessage id="field.testUnit" /> :{" "}
+              {testToDisplay.testUnit}
             </Section>
           </Section>
         </Section>
@@ -157,7 +159,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Sample types" /> :{" "}
+              <FormattedMessage id="field.sampleType" /> :{" "}
               {testToDisplay.sampleType}
             </Section>
           </Section>
@@ -167,7 +169,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Panel" /> : {testToDisplay.panel}
+              <FormattedMessage id="field.panel" /> : {testToDisplay.panel}
             </Section>
           </Section>
         </Section>
@@ -176,7 +178,8 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Result type" /> : {testToDisplay.resultType}
+              <FormattedMessage id="field.resultType" /> :{" "}
+              {testToDisplay.resultType}
             </Section>
           </Section>
         </Section>
@@ -185,7 +188,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="UOM" /> : {testToDisplay.uom}
+              <FormattedMessage id="field.uom" /> : {testToDisplay.uom}
             </Section>
           </Section>
         </Section>
@@ -194,7 +197,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="Significant digits" /> :{" "}
+              <FormattedMessage id="field.significantDigits" /> :{" "}
               {testToDisplay.significantDigits}
             </Section>
           </Section>
@@ -204,7 +207,8 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
         <Section>
           <Section>
             <Section>
-              <FormattedMessage id="LOINC" />: {testToDisplay.loinc ?? null}
+              <FormattedMessage id="field.loinc" />:{" "}
+              {testToDisplay.loinc ?? null}
             </Section>
           </Section>
         </Section>
@@ -220,7 +224,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
               <Section>
                 <Section>
                   <Section>
-                    <FormattedMessage id="Select values" /> :
+                    <FormattedMessage id="field.selectValues" /> :
                     <ul>
                       {testToDisplay.dictionaryValues.map((value, index) => (
                         <li key={index}>{value}</li>
@@ -234,7 +238,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
               <Section>
                 <Section>
                   <Section>
-                    <FormattedMessage id="Reference Value" /> :{" "}
+                    <FormattedMessage id="field.referenceValue" /> :{" "}
                     {testToDisplay.referenceValue}
                   </Section>
                 </Section>
@@ -254,7 +258,7 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
                 <Section>
                   <Section>
                     <Heading>
-                      <FormattedMessage id="Result Limits" />
+                      <FormattedMessage id="field.resultLimits" />
                     </Heading>
                   </Section>
                 </Section>
@@ -262,12 +266,24 @@ export const CustomTestDataDisplay = ({ testToDisplay }) => {
                   <Table size="sm">
                     <TableHead>
                       <TableRow>
-                        <TableHeader>Sex</TableHeader>
-                        <TableHeader>Age Range</TableHeader>
-                        <TableHeader>Normal Range</TableHeader>
-                        <TableHeader>Valid Range</TableHeader>
-                        <TableHeader>Reporting Range</TableHeader>
-                        <TableHeader>Critical Range</TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="field.sex" />
+                        </TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="field.ageRange" />
+                        </TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="field.normalRange" />
+                        </TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="field.validRange" />
+                        </TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="label.critical.range" />
+                        </TableHeader>
+                        <TableHeader>
+                          <FormattedMessage id="label.reporting.range" />
+                        </TableHeader>
                       </TableRow>
                     </TableHead>
                     <TableBody>
