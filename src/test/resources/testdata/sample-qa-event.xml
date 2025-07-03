@@ -14,8 +14,7 @@
         description="Quality Assurance Event 1" is_billable="Y"
         reporting_sequence="1"
         reporting_text="QA event for reporting purposes." is_holdable="N"
-        lastupdated="2025-04-14 12:00:00"
-        display_key="QA_EVENT_1" />
+        lastupdated="2025-04-14 12:00:00" display_key="QA_EVENT_1" />
     <qa_event id="302" name="QA Event 2"
         description="Quality Assurance Event 2" is_billable="N"
         reporting_sequence="2" reporting_text="Another QA event for testing."
