@@ -256,8 +256,8 @@ class UserManagementPage {
     cy.get(this.selectors.filters).select(value);
   }
 
-  validateUser(value) {
-    cy.contains(this.selectors.tableData, value);
+  validateColumnContent(columnNum, value) {
+    cy.get(`td:nth-child(${columnNum})`).should("contain", value);
   }
 
   inactiveUser(value) {
@@ -287,10 +287,6 @@ class UserManagementPage {
   uncheckAdminUser() {
     cy.wait(900);
     cy.get(this.selectors.uncheckAdminUser).uncheck({ force: true });
-  }
-
-  incorrectCredentials() {
-    cy.contains("Username or Password are incorrect").should("be.visible");
   }
 
   validateLogin() {

@@ -49,7 +49,6 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      userManagement.applyChanges();
       userManagement.analyzerImport();
       userManagement.globalAdministrator();
       userManagement.addNewPermission();
@@ -111,8 +110,6 @@ describe("User Management", function () {
     });
 
     it("Apply Roles and Permissions", function () {
-      userManagement.copyPermisionsFromUser(usersData[0].fName);
-      userManagement.applyChanges();
       userManagement.globalAdministrator();
       userManagement.addNewPermission();
       userManagement.allPermissions();
@@ -149,53 +146,54 @@ describe("User Management", function () {
       userManagement.verifyPageTitle();
       cy.wait(500);
       userManagement.searchUser(usersData[0].username);
-      userManagement.validateUser(usersData[0].username);
+      userManagement.validateColumnContent("4", usersData[0].username);
       userManagement.searchUser(usersData[1].username);
-      userManagement.validateUser(usersData[1].username);
+      userManagement.validateColumnContent("4", usersData[1].username);
     });
 
     it("Search by First Name", function () {
       userManagement.searchUser(usersData[0].fName);
-      userManagement.validateUser(usersData[0].fName);
+      userManagement.validateColumnContent("2", usersData[0].fName);
       userManagement.searchUser(usersData[1].fName);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
     });
 
     it("Search by Last Name", function () {
       userManagement.searchUser(usersData[0].lName);
-      userManagement.validateUser(usersData[0].lName);
+      userManagement.validateColumnContent("3", usersData[0].lName);
       userManagement.searchUser(usersData[1].lName);
-      userManagement.validateUser(usersData[1].lName);
+      userManagement.validateColumnContent("3", usersData[1].lName);
       userManagement.clearSearchBar();
     });
 
     it("Search by Lab Unit Roles", function () {
       cy.reload();
       userManagement.searchByFilters(usersData[1].bioChem);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].hematology);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].seroImmuno);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].immunology);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].molecularBio);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].cyto);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].viro);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].patho);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       userManagement.searchByFilters(usersData[1].immunoHisto);
-      userManagement.validateUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
       cy.reload();
     });
 
     it("Validate active/inactive users", function () {
       userManagement.activeUser(); //checks active users
       userManagement.inactiveUser(usersData[0].fName);
-      userManagement.activeUser(usersData[1].fName);
+      userManagement.validateColumnContent("2", usersData[1].fName);
+
       cy.reload();
     });
   });
@@ -209,6 +207,8 @@ describe("User Management", function () {
       userManagement.modifyUser();
       userManagement.typeLoginPassword(usersData[0].password);
       userManagement.repeatPassword(usersData[0].password);
+      userManagement.copyPermisionsFromUser(usersData[1].lName);
+      userManagement.applyChanges();
       userManagement.checkAccountNotLocked();
       userManagement.checkAccountEnabled();
       userManagement.checkActive();
@@ -219,12 +219,12 @@ describe("User Management", function () {
       userManagement = adminPage.goToUserManagementPage();
       userManagement.verifyPageTitle();
       userManagement.activeUser();
-      userManagement.activeUser(usersData[0].fName);
+      userManagement.validateColumnContent("2", usersData[0].fName);
     });
 
     it("Search by Only Administrator", function () {
-      userManagement.adminUser(); //adding two admin users?
-      userManagement.validateUser(usersData[0].defaultAdmin);
+      userManagement.adminUser();
+      userManagement.validateColumnContent("4", usersData[0].defaultAdmin);
       userManagement.nonAdminUser(usersData[0].fName);
       userManagement.nonAdminUser(usersData[1].fName);
     });
