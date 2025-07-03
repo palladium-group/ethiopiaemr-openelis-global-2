@@ -14,13 +14,13 @@
         description="Quality Assurance Event 1" is_billable="Y"
         reporting_sequence="1"
         reporting_text="QA event for reporting purposes." is_holdable="N"
-        lastupdated="2025-04-14 12:00:00" type="10" category="10"
+        lastupdated="2025-04-14 12:00:00"
         display_key="QA_EVENT_1" />
     <qa_event id="302" name="QA Event 2"
         description="Quality Assurance Event 2" is_billable="N"
         reporting_sequence="2" reporting_text="Another QA event for testing."
-        is_holdable="Y" lastupdated="2025-04-14 12:30:00" type="20"
-        category="20" display_key="QA_EVENT_2" />
+        is_holdable="Y" lastupdated="2025-04-14 12:30:00"
+        display_key="QA_EVENT_2" />
 
     <sample id="401" accession_number="12345"
         received_date="2024-06-03 00:00:00.0"
@@ -52,7 +52,7 @@
         sampleitem_id="602" entered_date="2025-06-25 10:45:00" />
 
     <sample_qaevent id="3" qa_event_id="302" sample_id="402"
-        completed_date="2025-03-20" lastupdated="2025-06-25 11:30:00"
+        completed_date="2025-03-20" lastupdated="2024-06-25 09:00:00"
         sampleitem_id="603" entered_date="2025-06-25 12:00:00" />
 
 </dataset>
