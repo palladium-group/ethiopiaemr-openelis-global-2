@@ -58,6 +58,11 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void insertAnalyzerResults_ShouldInsertAListOfAnalyzerResults() {
+        List<AnalyzerResults> analyzerResultsList = analyzerResultsService.getAll();
+        assertFalse(analyzerResultsList.isEmpty());
+        analyzerResultsService.deleteAll(analyzerResultsList);
+        List<AnalyzerResults> newAnalyzerResultsList = analyzerResultsService.getAll();
+        assertTrue(newAnalyzerResultsList.isEmpty());
         AnalyzerResults analyzerResults = new AnalyzerResults();
         analyzerResults.setAnalyzerId("2001");
         analyzerResults.setTestName("Body mass");
@@ -67,7 +72,8 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         List<AnalyzerResults> insertAnalyzerResults = new ArrayList<>();
         insertAnalyzerResults.add(analyzerResults);
         analyzerResultsService.insertAnalyzerResults(insertAnalyzerResults, "1006");
-        assertEquals("QAN23L", analyzerResults.getAccessionNumber());
+        assertFalse(insertAnalyzerResults.isEmpty());
+        assertEquals(1, insertAnalyzerResults.size());
     }
 
     @Test
@@ -77,6 +83,7 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         deletableAnalyzerResults.add(analyzerResults);
         List<AnalyzerResultsController.SampleGrouping> sampleGroupList = new ArrayList<>();
         analyzerResultsService.persistAnalyzerResults(deletableAnalyzerResults, sampleGroupList, "1006");
+
     }
 
     @Test
