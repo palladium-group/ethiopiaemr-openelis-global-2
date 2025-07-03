@@ -30,7 +30,6 @@ class UserManagementPage {
       searchBar: "#user-name-search-bar",
       filters: "#filters",
       tableData: ".cds--data-table",
-      header: "#mainHeader",
       menuButton: "[data-cy='menuButton']",
       enterLoginName: "#loginName",
       enterPassword: "#password",
@@ -288,11 +287,6 @@ class UserManagementPage {
   uncheckAdminUser() {
     cy.wait(900);
     cy.get(this.selectors.uncheckAdminUser).uncheck({ force: true });
-  }
-
-  validateLogin() {
-    cy.get(this.selectors.header).should("exist");
-    cy.get(this.selectors.menuButton).should("exist");
   }
 }
 

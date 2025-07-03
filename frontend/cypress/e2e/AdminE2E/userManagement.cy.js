@@ -221,6 +221,7 @@ describe("User Management", function () {
     it("Validate user is activated", function () {
       userManagement.verifyPageTitle();
       userManagement.activeUser();
+      userManagement.searchUser(usersData[0].fName);
       userManagement.validateColumnContent("2", usersData[0].fName);
     });
 
@@ -264,12 +265,6 @@ describe("User Management", function () {
       loginPage.enterUsername(usersData[0].username);
       loginPage.enterPassword(usersData[0].password);
       loginPage.signIn();
-    });
-
-    it("Navigate back to User Management", () => {
-      cy.wait(2000);
-      adminPage = homePage.goToAdminPage();
-      userManagement = adminPage.goToUserManagementPage();
     });
   });
 });
