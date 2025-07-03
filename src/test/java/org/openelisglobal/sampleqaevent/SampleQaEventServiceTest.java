@@ -257,5 +257,4 @@ public class SampleQaEventServiceTest extends BaseWebContextSensitiveTest {
         List<SampleQaEvent> updatedSampleQaEvents = qaEventService.getAll();
         assertTrue(updatedSampleQaEvents.isEmpty());
     }
-
 }
