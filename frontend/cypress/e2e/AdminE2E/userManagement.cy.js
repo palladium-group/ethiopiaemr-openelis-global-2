@@ -243,8 +243,11 @@ describe("User Management", function () {
   });
 
   describe("Signout, use active/deactivated user to login", () => {
-    it("Login with Deactivated user", () => {
+    it("Logout", () => {
       userManagement = loginPage.signOut();
+    });
+
+    it("Login with Deactivated User", () => {
       loginPage.enterUsername(usersData[1].username);
       loginPage.enterPassword(usersData[1].password);
       loginPage.signIn();
