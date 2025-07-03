@@ -1447,6 +1447,6 @@
   "test.description.orderable": "If a test is active and orderable then it can be ordered on an order form. If it is active but not orderable then it will only be done if it is reflexed from another test",
   "test.modify.header.modify": "Please Select Test to Modify!",
   "test.modify.header.test": "Test",
-  "test.modify.en" : "en",
-  "test.modify.fr" : "fr"
+  "test.modify.en": "en",
+  "test.modify.fr": "fr"
 }
