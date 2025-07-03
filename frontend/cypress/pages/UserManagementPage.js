@@ -277,9 +277,10 @@ class UserManagementPage {
     cy.get(this.selectors.uncheckActiveUser).uncheck({ force: true });
   }
 
-  checkUser(value) {
-    cy.contains("td", value).click();
+  checkUser(columnNum, value) {
+    cy.get(`td:nth-child(${columnNum})`).should("contain", value).click();
   }
+
   adminUser() {
     cy.contains(this.selectors.span, "Only Administrator").click();
   }

@@ -199,11 +199,9 @@ describe("User Management", function () {
   });
 
   describe("Modify First User", function () {
-    it("Check user to modify", function () {
-      userManagement.checkUser(usersData[0].fName);
-    });
-
     it("Modify User and Save", function () {
+      userManagement.searchUser(usersData[0].fName);
+      userManagement.checkUser("2", usersData[0].fName);
       userManagement.modifyUser();
       userManagement.typeLoginPassword(usersData[0].password);
       userManagement.repeatPassword(usersData[0].password);
@@ -223,6 +221,7 @@ describe("User Management", function () {
     });
 
     it("Search by Only Administrator", function () {
+      userManagement.activeUser();
       userManagement.adminUser();
       userManagement.validateColumnContent("4", usersData[0].defaultAdmin);
       userManagement.nonAdminUser(usersData[0].fName);
@@ -232,7 +231,9 @@ describe("User Management", function () {
 
   describe("Deactivate User", function () {
     it("Check User and deactivate", function () {
-      userManagement.checkUser(usersData[1].fName);
+      userManagement.adminUser();
+      userManagement.searchUser(usersData[1].fName);
+      userManagement.checkUser("2", usersData[1].fName);
       userManagement.deactivateUser();
     });
     it("Validate deactivated user", () => {
