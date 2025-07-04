@@ -82,6 +82,7 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         AnalyzerResults analyzerResults = analyzerResultsService.get("1002");
         deletableAnalyzerResults.add(analyzerResults);
         List<AnalyzerResultsController.SampleGrouping> sampleGroupList = new ArrayList<>();
+
         analyzerResultsService.persistAnalyzerResults(deletableAnalyzerResults, sampleGroupList, "1006");
 
     }
