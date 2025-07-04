@@ -229,15 +229,38 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         setSelectedUomList(selectedUom);
       }
 
+      const mappedResultType = resultTypeList.find(
+        (type) =>
+          (initialData.resultType === "R" && type.id === "1") ||
+          (initialData.resultType === "D" && type.id === "2") ||
+          (initialData.resultType === "N" && type.id === "4") ||
+          (initialData.resultType === "A" && type.id === "5") ||
+          (initialData.resultType === "M" && type.id === "6") ||
+          (initialData.resultType === "C" && type.id === "7"),
+      );
+
+      if (mappedResultType) {
+        setSelectedResultTypeList(mappedResultType);
+      }
+
       setFormData((prev) => ({
         ...prev,
         testSection: selectedLabUnit?.id || "",
         panels: selectedPanelObjects.map((panel) => ({ id: panel.id })),
         uom: selectedUom?.id || "",
         sampleTypes: [],
+        resultType: mappedResultType?.id || "",
       }));
     }
-  }, [initialData, mode, labUnitList, panelList, uomList, sampleTypeList]);
+  }, [
+    initialData,
+    mode,
+    labUnitList,
+    panelList,
+    uomList,
+    sampleTypeList,
+    resultTypeList,
+  ]);
 
   useEffect(() => {
     if (selectedSampleType.length === 0) return;
