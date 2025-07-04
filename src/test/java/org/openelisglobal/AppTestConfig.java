@@ -66,7 +66,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.panelitem", "org.openelisglobal.reports", "org.openelisglobal.userrole",
         "org.openelisglobal.unitofmeasure", "org.openelisglobal.testtrailer", "org.openelisglobal.scriptlet",
         "org.openelisglobal.localization", "org.openelisglobal.systemuser", "org.openelisglobal.systemmodule",
-        "org.openelisglobal.testdictionary", "org.openelisglobal.dictionarycategory",
+        "org.openelisglobal.testdictionary", "org.openelisglobal.dictionarycategory", "org.openelisglobal.sampledomain",
         "org.openelisglobal.sampleproject", "org.openelisglobal.observationhistorytype",
         "org.openelisglobal.statusofsample", "org.openelisglobal.test", "org.openelisglobal.analyzerimport",
         "org.openelisglobal.analyzer", "org.openelisglobal.testanalyte", "org.openelisglobal.observationhistory",
@@ -77,7 +77,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.patientrelation", "org.openelisglobal.inventory", "org.openelisglobal.testcodes",
         "org.openelisglobal.datasubmission", "org.openelisglobal.label", "org.openelisglobal.renametestsection",
         "org.openelisglobal.action", "org.openelisglobal.analysisqaevent", "org.openelisglobal.analysisqaeventaction",
-        "org.openelisglobal.dataexchange", "org.openelisglobal.samplepdf",
+        "org.openelisglobal.dataexchange", "org.openelisglobal.samplepdf", "org.openelisglobal.samplenewborn",
         "org.openelisglobal.sampleqaeventaction" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
