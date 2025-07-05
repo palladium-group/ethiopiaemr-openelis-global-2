@@ -204,10 +204,13 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
 
       setSelectedSampleTypeList(updatedList);
 
-      setSampleTestTypeToGetTagList((prev) => [
-        ...prev,
-        ...selectedSampleTypeFilteredObject,
-      ]);
+      setSampleTestTypeToGetTagList(() =>
+        // prev
+        [
+          // ...prev,
+          ...selectedSampleTypeFilteredObject,
+        ],
+      );
 
       setSelectedSampleType((prev) => [
         ...prev,
@@ -243,6 +246,81 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         setSelectedResultTypeList(mappedResultType);
       }
 
+      // dictionary is arrray of values of string ["+ Qualifiable", "- Qualifiable", "xyz Qualifiable"]
+      // now i want to find the value in dictionaryList that matches the string as value and set it to but there is catch there value is only +, - or zyx and can bet "+/-" , "1/30" ettc u need to trim the value and then find the value in dictionaryList and eventually from that same object you need to set the id to dictionaryReference bruh
+
+      console.log(initialData.dictionary);
+
+      if (initialData.dictionary && Array.isArray(initialData.dictionary)) {
+        const matchedDictFlat = initialData.dictionary
+          .map((val) => {
+            const isString = typeof val === "string";
+            const valueRaw = isString ? val : (val?.value ?? "");
+
+            const firstToken = valueRaw.trim().split(" ")[0];
+            const qualified = valueRaw.toLowerCase().includes("qualifiable")
+              ? "Y"
+              : "N";
+
+            const matched = dictionaryList.find((dictItem) => {
+              return dictItem.value.trim() === firstToken;
+            });
+
+            return matched
+              ? {
+                  id: matched.id,
+                  value: matched.value,
+                  qualified,
+                }
+              : null;
+          })
+          .filter(Boolean);
+
+        setSingleSelectDictionaryList(matchedDictFlat);
+        setMultiSelectDictionaryList(matchedDictFlat);
+        setDictionaryListTag(matchedDictFlat);
+        setMultiSelectDictionaryListTag(
+          matchedDictFlat.filter((d) => d.qualified === "Y"),
+        );
+
+        setFormData((prev) => ({
+          ...prev,
+          dictionary: matchedDictFlat.map(({ id, qualified }) => ({
+            id,
+            qualified,
+          })),
+        }));
+
+        const extractFirst = (val) => val?.trim()?.split(" ")[0];
+
+        const refValue = extractFirst(initialData?.dictionaryReference);
+        const defaultVal = extractFirst(initialData?.defaultTestResult);
+
+        const refMatch = dictionaryList.find((item) => {
+          return item.value.trim() === refValue;
+        });
+
+        const defaultMatch = dictionaryList.find((item) => {
+          return item.value.trim() === defaultVal;
+        });
+
+        console.log(refMatch, defaultMatch, refValue, defaultVal);
+
+        if (refMatch) {
+          setFormData((prev) => ({
+            ...prev,
+            dictionaryReference: refMatch.id,
+          }));
+        }
+
+        if (defaultMatch) {
+          setFormData((prev) => ({
+            ...prev,
+            defaultTestResult: defaultMatch.id,
+          }));
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
         testSection: selectedLabUnit?.id || "",
@@ -260,6 +338,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
     uomList,
     sampleTypeList,
     resultTypeList,
+    dictionaryList,
   ]);
 
   useEffect(() => {
