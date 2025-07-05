@@ -82,190 +82,53 @@ export const mapTestCatBeanToFormData = (test) => {
 };
 
 // {
-//     "id": "38",
-//     "localization": {
-//         "lastupdated": 1579758371217,
-//         "id": "77",
-//         "description": "test name",
-//         "localeValues": {
-//             "fr": "Detection de la resistance aux antiretroviraux",
-//             "en": "ARV resistance"
-//         },
-//         "localizedValue": "ARV resistance",
-//         "localesWithValue": [
-//             "en",
-//             "fr"
-//         ],
-//         "english": "ARV resistance",
-//         "french": "Detection de la resistance aux antiretroviraux",
-//         "allActiveLocales": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesSortedForDisplay": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesWithValueSortedForDisplay": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesAndValuesOfLocalesWithValues": [
-//             "English: ARV resistance",
-//             "French: Detection de la resistance aux antiretroviraux"
-//         ]
-//     },
-//     "reportLocalization": {
-//         "lastupdated": 1579758371217,
-//         "id": "78",
-//         "description": "test report name",
-//         "localeValues": {
-//             "fr": "ARV res",
-//             "en": "ARV resistance"
-//         },
-//         "localizedValue": "ARV resistance",
-//         "localesWithValue": [
-//             "en",
-//             "fr"
-//         ],
-//         "english": "ARV resistance",
-//         "french": "ARV res",
-//         "allActiveLocales": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesSortedForDisplay": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesWithValueSortedForDisplay": [
-//             "en",
-//             "fr"
-//         ],
-//         "localesAndValuesOfLocalesWithValues": [
-//             "English: ARV resistance",
-//             "French: ARV res"
-//         ]
-//     },
-//     "testUnit": "Molecular Biology",
-//     "sampleType": "Whole Blood",
-//     "panel": "None",
+//     "testNameEnglish": "demob",
+//     "testNameFrench": "demob",
+//     "testReportNameEnglish": "demob",
+//     "testReportNameFrench": "demob",
+//     "testSection": "Biochemistry",
+//     "panels": [
+//         "Bilan Biochimique"
+//     ],
+//     "uom": "mg/dl",
+//     "loinc": "123",
 //     "resultType": "N",
-//     "uom": "copies/ml",
-//     "significantDigits": "0",
-//     "active": "Active",
-//     "orderable": "Orderable",
-//     "notifyResults": false,
-//     "hasDictionaryValues": false,
-//     "hasLimitValues": true,
+//     "orderable": "Y",
+//     "notifyResults": "Y",
+//     "inLabOnly": "Y",
+//     "antimicrobialResistance": "Y",
+//     "active": "Y",
+//     "dictionary": [],
+//     "dictionaryReference": "",
+//     "defaultTestResult": "",
+//     "sampleTypes": [
+//         "Sputum"
+//     ],
+//     "lowValid": "-Infinity",
+//     "highValid": "Infinity",
+//     "lowReportingRange": "-Infinity",
+//     "highReportingRange": "Infinity",
+//     "lowCritical": "-Infinity",
+//     "highCritical": "Infinity",
+//     "significantDigits": "1",
 //     "resultLimits": [
 //         {
-//             "gender": "n/a",
-//             "ageRange": "Any Age",
-//             "normalRange": "1-300",
-//             "validRange": "1-200000",
-//             "reportingRange": "Any value",
-//             "criticalRange": "Any value"
+//             "ageRange": "0D/0M/0Y-0D/0M/10Y",
+//             "highAgeRange": "0",
+//             "gender": "M",
+//             "lowNormal": "Any value",
+//             "highNormal": "Infinity",
+//             "lowNormalFemale": "Any value",
+//             "highNormalFemale": "Infinity"
+//         },
+//         {
+//             "ageRange": "0D/0M/0Y-0D/0M/10Y",
+//             "highAgeRange": "0",
+//             "gender": "F",
+//             "lowNormal": "Any value",
+//             "highNormal": "Infinity",
+//             "lowNormalFemale": "Any value",
+//             "highNormalFemale": "Infinity"
 //         }
-//     ],
-//     "testSortOrder": 380,
-//     "inLabOnly": false,
-//     "antimicrobialResistance": false
+//     ]
 // }
-
-// {
-//   "id": "12",
-//   "localization": {
-//     "lastupdated": 1579758371217,
-//     "id": "25",
-//     "description": "test name",
-//     "localeValues": {
-//       "fr": "Protéinurie sur bandelette",
-//       "en": "Proteinuria dipstick"
-//     },
-//     "localizedValue": "Proteinuria dipstick",
-//     "localesWithValue": [
-//       "en",
-//       "fr"
-//     ],
-//     "english": "Proteinuria dipstick",
-//     "french": "Protéinurie sur bandelette",
-//     "allActiveLocales": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesSortedForDisplay": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesWithValueSortedForDisplay": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesAndValuesOfLocalesWithValues": [
-//       "English: Proteinuria dipstick",
-//       "French: Protéinurie sur bandelette"
-//     ]
-//   },
-//   "reportLocalization": {
-//     "lastupdated": 1579758371217,
-//     "id": "26",
-//     "description": "test report name",
-//     "localeValues": {
-//       "fr": "Protéines",
-//       "en": "Proteinuria dipstick"
-//     },
-//     "localizedValue": "Proteinuria dipstick",
-//     "localesWithValue": [
-//       "en",
-//       "fr"
-//     ],
-//     "english": "Proteinuria dipstick",
-//     "french": "Protéines",
-//     "allActiveLocales": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesSortedForDisplay": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesWithValueSortedForDisplay": [
-//       "en",
-//       "fr"
-//     ],
-//     "localesAndValuesOfLocalesWithValues": [
-//       "English: Proteinuria dipstick",
-//       "French: Protéines"
-//     ]
-//   },
-//   "testUnit": "Biochemistry",
-//   "sampleType": "Urines",
-//   "panel": "None",
-//   "resultType": "D",
-//   "uom": "n/a",
-//   "significantDigits": "n/a",
-//   "active": "Active",
-//   "orderable": "Orderable",
-//   "notifyResults": false,
-//   "hasDictionaryValues": true,
-//   "dictionaryValues": [
-//     "Negative",
-//     "Positive +++",
-//     "Positive ++",
-//     "Positive +",
-//     "Negative"
-//   ],
-//   "dictionaryIds": [
-//     "1103",
-//     "1102",
-//     "1101",
-//     "1100",
-//     "1103"
-//   ],
-//   "referenceValue": "n/a",
-//   "hasLimitValues": false,
-//   "testSortOrder": 120,
-//   "inLabOnly": false,
-//   "antimicrobialResistance": false
-// },

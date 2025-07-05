@@ -33,7 +33,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
     useContext(NotificationContext);
 
   const intl = useIntl();
-
+  console.log(initialData);
   const componentMounted = useRef(false);
   const [formData, setFormData] = useState(initialData);
   const [isLoading, setIsLoading] = useState(false);
@@ -885,38 +885,62 @@ export const StepTwoTestPanelAndUom = ({
         }) => {
           const handelPanelSelectSetTag = (e) => {
             const selectedId = e.target.value;
-            const selectedValue = e.target.options[e.target.selectedIndex].text;
-
-            setPanelListTag((prevTags) => {
-              const isTagPresent = prevTags.some(
-                (tag) => tag.id === selectedId,
-              );
-              if (isTagPresent) return prevTags;
-
-              const newTag = { id: selectedId, value: selectedValue };
-              const updatedTags = [...prevTags, newTag];
-
-              return updatedTags;
-            });
-
-            setFieldValue("panels", [...values.panels, { id: selectedId }]);
-
             const selectedPanelObject = panelList.find(
               (item) => item.id === selectedId,
             );
-            if (selectedPanelObject) {
-              setPanelList((prev) => [...prev, selectedPanelObject]);
+            if (!selectedPanelObject) return;
+
+            setPanelListTag((tags) =>
+              tags.some((tag) => tag.id === selectedId)
+                ? tags
+                : [
+                    ...tags,
+                    {
+                      id: selectedPanelObject.id,
+                      value: selectedPanelObject.value,
+                    },
+                  ],
+            );
+
+            const isAlreadyInValuesPanels = values.panels.some(
+              (panel) => panel.id === selectedId,
+            );
+
+            if (!isAlreadyInValuesPanels) {
+              setFieldValue("panels", [...values.panels, { id: selectedId }]);
             }
+
+            // setPanelList((panels) => panels.filter((p) => p.id !== selectedId));
           };
 
           const handlePanelRemoveTag = (idToRemove) => {
-            setPanelListTag((prevTags) => {
-              const updatedTags = prevTags.filter(
-                (tag) => tag.id !== idToRemove,
-              );
+            const isPresentInValuesPanels = values.panels.some(
+              (panel) => panel.id === idToRemove,
+            );
 
-              return updatedTags;
-            });
+            if (!isPresentInValuesPanels) return;
+
+            setPanelListTag((tags) =>
+              tags.filter((tag) => tag.id !== idToRemove),
+            );
+
+            setFieldValue("panels", (prev) =>
+              prev.filter((p) => p.id !== idToRemove),
+            );
+
+            // const idToReAddObject = panelList.find(
+            //   (panel) => panel.id === idToRemove,
+            // );
+
+            // if (idToReAddObject) {
+            //   setPanelList((prevPanels) => {
+            //     const exists = prevPanels.some((p) => p.id === idToRemove);
+            //     if (exists) return prevPanels;
+            //     return [...prevPanels, idToReAddObject].sort((a, b) =>
+            //       a.value.localeCompare(b.value),
+            //     );
+            //   });
+            // }
           };
 
           const handelUomSelect = (e) => {
@@ -2960,7 +2984,7 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 )
                               }
                             >
-                              <FormattedMessage id="Add Another Age Range +" />
+                              <FormattedMessage id="add.age.range" />
                             </Button>
                           </Column>
                         </React.Fragment>
