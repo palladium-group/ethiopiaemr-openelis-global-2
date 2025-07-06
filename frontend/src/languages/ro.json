@@ -371,6 +371,7 @@
   "label.button.uploadfile": "Încarcă fișier",
   "label.button.select": "Selectează",
   "label.button.add": "Adaugă",
+  "label.button.add.question": "Add new Question",
   "order.title": "COMANDĂ",
   "label.text.generate": "generează",
   "label.order.scan.text": "Scanează SAU Introdu manual SAU",

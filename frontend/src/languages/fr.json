@@ -371,6 +371,7 @@
   "label.button.uploadfile": "Télécharger le Fichier",
   "label.button.select": "Sélectionner",
   "label.button.add": "Ajouter",
+  "label.button.add.question": "Add new Question",
   "order.title": "COMMANDE",
   "label.text.generate": "générer",
   "label.order.scan.text": "Scanner OU Saisir manuellement OU",
