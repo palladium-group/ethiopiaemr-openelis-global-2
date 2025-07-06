@@ -478,7 +478,12 @@ function AnalyzerTestName() {
                     setFilterAnalyser(e.target.value);
                   }}
                 >
-                  <SelectItem value="" text="" />
+                  <SelectItem
+                    value=""
+                    text={intl.formatMessage({
+                      id: "all.label",
+                    })}
+                  />
                   {analyzerList.map((analyzer, analyzer_index) => (
                     <SelectItem
                       text={analyzer.name}
