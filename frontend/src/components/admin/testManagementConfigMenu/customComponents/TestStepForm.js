@@ -246,11 +246,6 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         setSelectedResultTypeList(mappedResultType);
       }
 
-      // dictionary is arrray of values of string ["+ Qualifiable", "- Qualifiable", "xyz Qualifiable"]
-      // now i want to find the value in dictionaryList that matches the string as value and set it to but there is catch there value is only +, - or zyx and can bet "+/-" , "1/30" ettc u need to trim the value and then find the value in dictionaryList and eventually from that same object you need to set the id to dictionaryReference bruh
-
-      console.log(initialData.dictionary);
-
       if (initialData.dictionary && Array.isArray(initialData.dictionary)) {
         const matchedDictFlat = initialData.dictionary
           .map((val) => {
@@ -303,8 +298,6 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         const defaultMatch = dictionaryList.find((item) => {
           return item.value.trim() === defaultVal;
         });
-
-        console.log(refMatch, defaultMatch, refValue, defaultVal);
 
         if (refMatch) {
           setFormData((prev) => ({
@@ -2214,34 +2207,38 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     .test(
                       "is-valid-number-or-infinity",
                       "High Normal must be a equal, higher number then Low Normal or 'Infinity'",
+                      (value) =>
+                        value === "-Infinity" ||
+                        value === "Infinity" ||
+                        typeof value === "number" ||
+                        !isNaN(Number(value)),
+                    )
+                    .test(
+                      "greater-than-lowNormal",
+                      "High Normal must be equal, greater than Low Normal or Infinity",
                       function (value) {
                         const { lowNormal } = this.parent;
 
-                        const isValidType =
-                          typeof value === "number" ||
-                          value === "Infinity" ||
-                          value === "-Infinity";
+                        const numValue = parseFloat(value);
+                        const numLow = parseFloat(lowNormal);
 
-                        if (!isValidType) return false;
-
-                        if (
-                          typeof lowNormal === "number" &&
-                          typeof value === "number"
-                        ) {
-                          return value >= lowNormal;
-                        }
-
-                        if (value === "Infinity") return true;
+                        const isValidNumber = (v) =>
+                          v === "Infinity" ||
+                          v === "-Infinity" ||
+                          typeof v === "number" ||
+                          !isNaN(Number(v));
 
                         if (
-                          typeof value === "number" &&
-                          lowNormal !== undefined &&
-                          !isNaN(Number(lowNormal))
+                          !isValidNumber(value) ||
+                          !isValidNumber(lowNormal)
                         ) {
-                          return value >= Number(lowNormal);
+                          return true;
                         }
 
-                        return typeof value === "number";
+                        return (
+                          (numValue === Infinity || numValue >= numLow) &&
+                          numValue !== -Infinity
+                        );
                       },
                     )
                     .required("High Normal is required"),
@@ -2268,7 +2265,7 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     then: Yup.mixed()
                       .test(
                         "is-valid-number-or-infinity",
-                        "High Normal Female must be equal, number or 'Infinity'",
+                        "High Normal Female must be equal, higher number then Low Normal or 'Infinity'",
                         (value) =>
                           value === "-Infinity" ||
                           value === "Infinity" ||
@@ -2556,6 +2553,9 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               const handleRangeChange = (index, field, value) => {
                 setFieldValue(`resultLimits[${index}].${field}`, value);
               };
+
+              console.log(values);
+              console.log(values.resultLimits);
 
               return (
                 <Form>
