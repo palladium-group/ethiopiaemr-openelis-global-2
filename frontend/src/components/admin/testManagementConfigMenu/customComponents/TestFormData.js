@@ -75,9 +75,11 @@ export const mapTestCatBeanToFormData = (test) => {
           gender:
             limit.gender === "n/a"
               ? false
-              : limit.gender === "M" || "F"
+              : limit.gender === "M"
                 ? true
-                : false,
+                : limit.gender === "F"
+                  ? true
+                  : false,
           lowNormal: normalRange[0] || "-Infinity",
           highNormal: normalRange[1] || "Infinity",
           lowNormalFemale: normalRange[0] || "-Infinity",
