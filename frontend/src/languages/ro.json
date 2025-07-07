@@ -1,4 +1,9 @@
 {
+  "dictionary.loincCode.invalid": "Format LOINC invalid (așteptat: 12345-6 sau LP12345-6)",
+  "dictionary.loincCode.helpText": "Identificator standard pentru observații de laborator",
+  "dictionary.loincCode": "Cod LOINC",
+  "dictionary.loincCode.placeholder": "ex. 12345-6",
+  "dictionary.loincCode.help": "Identificator standard pentru observații de laborator",
   "language.select.label": "Română",
   "label.button.submit": "Trimite",
   "label.button.finish": "Finalizare",
@@ -449,7 +454,6 @@
   "patient.emergency.additional.maritalstatus": "Introdu starea civilă",
   "patient.emergency.additional.nationnality": "Introdu naționalitatea",
   "patient.emergency.additional.othernationality": "Introdu altă naționalitate",
-
   "referral.testresult.pastnote": "Note anterioare",
   "new.patient.label": "Pacient nou",
   "sample.select.type": "Selectează tipul probei",

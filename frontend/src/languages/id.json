@@ -1,4 +1,9 @@
 {
+  "dictionary.loincCode.invalid": "Format LOINC tidak valid (harap gunakan: 12345-6 atau LP12345-6)",
+  "dictionary.loincCode.helpText": "Pengidentifikasi observasi laboratorium standar",
+  "dictionary.loincCode": "Kode LOINC",
+  "dictionary.loincCode.placeholder": "contoh 12345-6",
+  "dictionary.loincCode.help": "Pengidentifikasi observasi laboratorium standar",
   "language.select.label": "Indonesia",
   "label.button.submit": "Submit",
   "label.button.finish": "Finish",
@@ -449,7 +454,6 @@
   "patient.emergency.additional.maritalstatus": "Enter Martial Status",
   "patient.emergency.additional.nationnality": "Enter Nationality",
   "patient.emergency.additional.othernationality": "Enter Other Nationality",
-
   "referral.testresult.pastnote": "Past Notes",
   "new.patient.label": "New Patient",
   "sample.select.type": "Select sample type",
