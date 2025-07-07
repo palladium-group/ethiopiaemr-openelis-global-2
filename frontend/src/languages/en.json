@@ -1445,5 +1445,9 @@
   "test.field.active": "Active",
   "test.description.active": "If the test is active it can be ordered on the order form or as part of a test algorithm.If it is not active it can not be ordered or be part of a test algorithm",
   "test.field.orderable": "Orderable",
-  "test.description.orderable": "If a test is active and orderable then it can be ordered on an order form. If it is active but not orderable then it will only be done if it is reflexed from another test"
+  "test.description.orderable": "If a test is active and orderable then it can be ordered on an order form. If it is active but not orderable then it will only be done if it is reflexed from another test",
+  "test.modify.header.modify": "Please Select Test to Modify!",
+  "test.modify.header.test": "Test",
+  "test.modify.en": "en",
+  "test.modify.fr": "fr"
 }
