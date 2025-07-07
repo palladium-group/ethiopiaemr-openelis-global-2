@@ -245,6 +245,7 @@ public class AccessionValidationRestController extends BaseResultValidationContr
             @Validated(ResultValidationForm.ResultValidation.class) @RequestBody ResultValidationForm form,
             BindingResult result) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
+      System.out.println(">>>> rresult Validation inside");
         if ("true".equals(request.getParameter("pageResults"))) {
             return getResultValidation(request, form, false);
         }
@@ -277,7 +278,8 @@ public class AccessionValidationRestController extends BaseResultValidationContr
         String url = request.getRequestURL().toString();
 
         Errors errors = validateModifiedItems(resultItemList);
-
+        System.out.println(">>>> rresult Validationerror");
+        System.out.println(errors.getAllErrors());
         if (errors.hasErrors()) {
             saveErrors(errors);
             // return findForward(FWD_VALIDATION_ERROR, form);
@@ -299,10 +301,11 @@ public class AccessionValidationRestController extends BaseResultValidationContr
         // if (testSectionName.equals("serology")) {
         // createUpdateElisaList(resultItemList, analysisUpdateList);
         // } else {
+        System.out.println(">>>> rresult Validation before");
         createUpdateList(resultItemList, analysisUpdateList, resultUpdateList, noteUpdateList, deletableList,
                 resultSaveService, areListeners);
         // }
-
+         System.out.println(">>>> rresult Validation After");
         try {
             resultValidationService.persistdata(deletableList, analysisUpdateList, resultUpdateList, resultItemList,
                     sampleUpdateList, noteUpdateList, resultSaveService, updaters, getSysUserId(request));

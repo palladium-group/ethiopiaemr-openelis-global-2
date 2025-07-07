@@ -156,7 +156,7 @@ function DictionaryManagement() {
             dictEntry: item.dictEntry,
             localAbbreviation: item.localAbbreviation,
             isActive: item.isActive,
-            loincCode: item.loincCode || "-",
+            loincCode: item.loincCode || "",
             categoryName: item.dictionaryCategory
               ? item.dictionaryCategory.categoryName
               : "not available",
@@ -203,7 +203,7 @@ function DictionaryManagement() {
             dictEntry: item.dictEntry,
             localAbbreviation: item.localAbbreviation,
             isActive: item.isActive,
-            loincCode: item.loincCode || "-",
+            loincCode: item.loincCode || "",
             categoryName: item.dictionaryCategory
               ? item.dictionaryCategory.categoryName
               : "not available",
@@ -371,9 +371,7 @@ function DictionaryManagement() {
         setDictionaryEntry(selectedItem.dictEntry);
         setLocalAbbreviation(selectedItem.localAbbreviation);
         setIsActive(yesOrNo.find((item) => item.id === selectedItem.isActive));
-        setLoincCode(
-          selectedItem.loincCode === "-" ? "" : selectedItem.loincCode,
-        );
+        setLoincCode(selectedItem.loincCode);
         setOpen(true);
         setEditMode(false);
       }
