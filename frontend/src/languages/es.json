@@ -545,6 +545,7 @@
   "search.label.loadnext": "Cargar siguientes 99 registros comenzando por Número de Laboratorio",
   "search.label.analysis": "Seleccionar Estado de Análisis",
   "search.label.test": "Seleccionar Nombre de Prueba",
+  "select.label.analyser": "Select Analyzer",
   "search.label.sample": "Seleccionar Estado de Muestra",
   "pathology.label.report": "Reporte de Patología",
   "patient.natioanalid": "ID Nacional",
