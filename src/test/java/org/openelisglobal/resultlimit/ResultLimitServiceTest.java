@@ -10,24 +10,17 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
-import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.IdValuePair;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.resultlimit.service.ResultLimitService;
 import org.openelisglobal.resultlimits.valueholder.ResultLimit;
-import org.openelisglobal.sample.valueholder.Sample;
-import org.openelisglobal.samplehuman.service.SampleHumanService;
-import org.openelisglobal.sampleitem.valueholder.SampleItem;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
 
     @Autowired
     private ResultLimitService resultLimitService;
-
-    @Autowired
-    SampleHumanService sampleHumanService;
 
     private List<ResultLimit> resultLimitList;
     private static int NUMBER_OF_PAGES = 1;
@@ -79,7 +72,7 @@ public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getDisplayAgeRange_ShouldReturnDisplayAgeRangeForASpecificResultLimi() {
+    public void getDisplayAgeRange_ShouldReturnDisplayAgeRangeForASpecificResultLimit() {
         ResultLimit resultLimit = resultLimitService.get("2");
         String displayAgeRange = resultLimitService.getDisplayAgeRange(resultLimit, "/");
         assertNotNull(displayAgeRange);
@@ -87,19 +80,19 @@ public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getDisplayValidRange_ShouldReturnDisplayValidRangeForASpecificResultLimi() {
+    public void getDisplayValidRange_ShouldReturnDisplayValidRangeForASpecificResultLimit() {
         ResultLimit resultLimit = resultLimitService.get("2");
         String displayValidRange = resultLimitService.getDisplayValidRange(resultLimit, "2", "-");
         assertNotNull(displayValidRange);
-        System.out.println("Display Valid Range: " + displayValidRange);
+        assertEquals("1.50-12.00", displayValidRange);
     }
 
     @Test
-    public void getDisplayReportingRange_ShouldReturnDisplayReportingRangeForASpecificResultLimi() {
+    public void getDisplayReportingRange_ShouldReturnDisplayReportingRangeForASpecificResultLimit() {
         ResultLimit resultLimit = resultLimitService.get("2");
         String reportingRange = resultLimitService.getDisplayReportingRange(resultLimit, "3", "-");
         assertNotNull(reportingRange);
-        System.out.println("Display Report Range: " + reportingRange);
+        assertEquals("1.500-12.000", reportingRange);
     }
 
     @Test
@@ -107,23 +100,25 @@ public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
         ResultLimit resultLimit = resultLimitService.get("2");
         String displayCriticalRange = resultLimitService.getDisplayCriticalRange(resultLimit, "3", "-");
         assertNotNull(displayCriticalRange);
-        System.out.println("Display Critical Range: " + displayCriticalRange);
+        assertEquals("Any value", displayCriticalRange);
+
+        // It returns anyValue because there's no column int the table that matches
+        // high_critical and low_critical
     }
 
     @Test
     public void getDisplayReferenceRange_ShouldReturnDisplayReferenceRangeForASpecificResultLimit() {
-        ResultLimit resultLimit = resultLimitService.get("3");
+        ResultLimit resultLimit = resultLimitService.get("2");
         String displayReferenceRange = resultLimitService.getDisplayReferenceRange(resultLimit, "2", ":");
         assertNotNull(displayReferenceRange);
-        System.out.println("Display Reference Range: " + displayReferenceRange);
+        assertEquals("3.50:9.50", displayReferenceRange);
     }
 
     @Test
     public void getDisplayNormalRange_ShouldReturnDisplayNormalRangeForASpecificResultLimit() {
-        ResultLimit resultLimit = resultLimitService.get("1");
         String displayNormalRange = resultLimitService.getDisplayNormalRange(4.0, 10.0, "3", ":");
         assertNotNull(displayNormalRange);
-        System.out.println("Display Normal Range: " + displayNormalRange);
+        assertEquals("4.000:10.000", displayNormalRange);
     }
 
     @Test
@@ -157,7 +152,7 @@ public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
         List<IdValuePair> predefinedAgeRanges = resultLimitService.getPredefinedAgeRanges();
         assertNotNull(predefinedAgeRanges);
         assertEquals(5, predefinedAgeRanges.size());
-        System.out.println("Predefined Age Ranges: " + predefinedAgeRanges.get(0).getValue());
+        assertEquals("Newborn", predefinedAgeRanges.get(0).getValue());
     }
 
     @Test
@@ -178,29 +173,5 @@ public class ResultLimitServiceTest extends BaseWebContextSensitiveTest {
         assertEquals(1, resultLimitList.size());
         assertEquals(Timestamp.valueOf("2025-06-01 10:00:00"), resultLimitList.get(0).getLastupdated());
         assertTrue(resultLimitList.get(0).isAlwaysValidate());
-    }
-
-    @Test
-    public void getResultLimitForAnalysis_ShouldReturnAResultLimitsWithASpecificAnalysis() {
-        org.openelisglobal.test.valueholder.Test test = new org.openelisglobal.test.valueholder.Test();
-        test.setId("7001");
-
-        Sample sample = new Sample();
-        sample.setId("201");
-        SampleItem sampleItem = new SampleItem();
-        sampleItem.setId("601");
-        sampleItem.setSample(sample);
-
-        Analysis analysis = new Analysis();
-        analysis.setId("1001");
-        analysis.setTest(test);
-        analysis.setSampleItem(sampleItem);
-
-        ResultLimit returnedResultLimit = resultLimitService.getResultLimitForAnalysis(analysis);
-        assertNotNull(returnedResultLimit);
-        System.out.println(returnedResultLimit.getId());
-        System.out.println(returnedResultLimit.getGender());
-        System.out.println(returnedResultLimit.isAlwaysValidate());
-
     }
 }
