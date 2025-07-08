@@ -1,14 +1,13 @@
 package org.openelisglobal.odoo.config;
 
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
-import org.openelisglobal.common.log.LogEvent;
-import org.springframework.stereotype.Component;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import lombok.Getter;
+import org.openelisglobal.common.log.LogEvent;
+import org.springframework.stereotype.Component;
 
 /**
  * Loads and provides mapping between OpenELIS test codes and Odoo product info
@@ -48,8 +47,7 @@ public class TestProductMapping {
 
         int mappingsLoaded = parseMappings(props);
 
-        LogEvent.logInfo(getClass().getSimpleName(), "init",
-                "Total mappings loaded: " + mappingsLoaded);
+        LogEvent.logInfo(getClass().getSimpleName(), "init", "Total mappings loaded: " + mappingsLoaded);
 
         if (mappingsLoaded == 0) {
             LogEvent.logWarn(getClass().getSimpleName(), "init", "No valid mappings found.");
@@ -93,7 +91,8 @@ public class TestProductMapping {
     private int parseMappings(Properties props) {
         int count = 0;
         for (String key : props.stringPropertyNames()) {
-            if (!key.startsWith(PREFIX)) continue;
+            if (!key.startsWith(PREFIX))
+                continue;
 
             String testCode = key.substring(PREFIX.length());
             String value = props.getProperty(key);

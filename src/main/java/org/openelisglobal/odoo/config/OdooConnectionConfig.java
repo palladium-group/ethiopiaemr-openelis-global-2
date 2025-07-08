@@ -1,10 +1,10 @@
 package org.openelisglobal.odoo.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.openelisglobal.odoo.client.NoOpOdooClient;
 import org.openelisglobal.odoo.client.OdooClient;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.client.RealOdooClient;
-import org.openelisglobal.odoo.client.NoOpOdooClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

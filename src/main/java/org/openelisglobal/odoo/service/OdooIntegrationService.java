@@ -1,19 +1,18 @@
 package org.openelisglobal.odoo.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.openelisglobal.odoo.client.OdooConnection;
-import org.openelisglobal.odoo.config.TestProductMapping;
-import org.openelisglobal.odoo.exception.OdooOperationException;
-import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
-import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
-import org.openelisglobal.test.valueholder.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
+import org.openelisglobal.odoo.client.OdooConnection;
+import org.openelisglobal.odoo.config.TestProductMapping;
+import org.openelisglobal.odoo.exception.OdooOperationException;
+import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
+import org.openelisglobal.test.valueholder.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class for integrating OpenELIS with Odoo for billing functionality.
@@ -41,11 +40,14 @@ public class OdooIntegrationService {
             Map<String, Object> invoiceData = createInvoiceData(updateData);
             Integer invoiceId = odooConnection.create("account.move", List.of(invoiceData));
             if (invoiceId == null) {
-                throw new OdooOperationException("Odoo returned null invoice ID for sample: " + updateData.getAccessionNumber());
+                throw new OdooOperationException(
+                        "Odoo returned null invoice ID for sample: " + updateData.getAccessionNumber());
             }
-            log.info("Successfully created invoice in Odoo with ID: {} for sample: {}", invoiceId, updateData.getAccessionNumber());
+            log.info("Successfully created invoice in Odoo with ID: {} for sample: {}", invoiceId,
+                    updateData.getAccessionNumber());
         } catch (Exception e) {
-            log.error("Error creating invoice in Odoo for sample {}: {}", updateData.getAccessionNumber(), e.getMessage(), e);
+            log.error("Error creating invoice in Odoo for sample {}: {}", updateData.getAccessionNumber(),
+                    e.getMessage(), e);
             throw new OdooOperationException("Failed to create invoice in Odoo", e);
         }
     }
@@ -74,7 +76,8 @@ public class OdooIntegrationService {
                         invoiceLine.put("quantity", 1.0);
                         invoiceLine.put("price_unit", price != null ? price : 100.0);
                         invoiceLines.add(invoiceLine);
-                        log.info("Added invoice line for test: {} with product: {} and price: {}", testName, productName, price);
+                        log.info("Added invoice line for test: {} with product: {} and price: {}", testName,
+                                productName, price);
                     } else {
                         log.warn("No Odoo product mapping found for test: {}", testName);
                     }

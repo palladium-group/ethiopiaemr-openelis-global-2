@@ -1,12 +1,11 @@
 package org.openelisglobal.odoo.client;
 
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Primary
@@ -37,7 +36,8 @@ public class RealOdooClient implements OdooConnection {
 
     @Override
     public Integer create(String model, List<Map<String, Object>> dataParams) {
-        if (!available) throw new IllegalStateException("Odoo is not available");
+        if (!available)
+            throw new IllegalStateException("Odoo is not available");
         return odooClient.create(model, dataParams);
     }
 }
