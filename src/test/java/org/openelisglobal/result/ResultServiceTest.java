@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
@@ -322,11 +323,186 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getResultValurForDisplay_shouldReturnResultValueForDisplay() {
+    public void getResultValueForDisplay_shouldReturnResultValueForDisplay() {
         Result result = resultService.get("3");
         String resultValue = resultService.getResultValue(result, ", ", true, true);
         assertNotNull(resultValue);
         assertEquals("85.0 mg/dL", resultValue);
+    }
+
+    @Test
+    public void getAllMatching_shouldReturnAllMatchingResults() {
+        List<Result> results = resultService.getAllMatching("value", "85.0");
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getAllMatchingGivenMap_shouldReturnAllMatchingResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<Result> results = resultService.getAllMatching(map);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getAllOrdered_shouldReturnAllOrderedResults() {
+        List<Result> results = resultService.getAllOrdered("id", false);
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals("3", results.get(0).getId());
+        assertEquals("4", results.get(1).getId());
+    }
+
+    @Test
+    public void getAllOrderedGivenList_shouldReturnAllOrderedResults() {
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getAllOrdered(orderBy, false);
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals("3", results.get(0).getId());
+        assertEquals("4", results.get(1).getId());
+    }
+
+    @Test
+    public void getAllMatchingOrdered_shouldReturnMatchingOrderedResults() {
+        List<Result> results = resultService.getAllMatchingOrdered("value", "85.0", "id", false);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getAllMatchingOrderedGivenMapAndList_shouldReturnMatchingOrderedResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getAllMatchingOrdered(map, orderBy, false);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getAllMatchingOrderedGivenList_shouldReturnAllMatchingOrderedResults() {
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getAllMatchingOrdered("value", "85.0", orderBy, false);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getAllMatchingOrderedGivenMap_shouldReturnAllMatchingOrderedResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<Result> results = resultService.getAllMatchingOrdered(map, "id", false);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getPage_shouldReturnPageOfResults() {
+        List<Result> results = resultService.getPage(1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getMatchingPage_shouldReturnMatchingPageOfResults() {
+        List<Result> results = resultService.getMatchingPage("value", "85.0", 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+
+    }
+
+    @Test
+    public void getMatchingPageGivenMap_shouldReturnMatchingPageOfResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<Result> results = resultService.getMatchingPage(map, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getOrderedPage_shouldReturnOrderedPageOfResults() {
+        List<Result> results = resultService.getOrderedPage("id", false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+
+    }
+
+    @Test
+    public void getOrderedPageGivenList_shouldReturnOrderedPageOfResults() {
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getOrderedPage(orderBy, false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getMatchingOrderedPage_shouldReturnMatchingOrderedPageOfResults() {
+        List<Result> results = resultService.getMatchingOrderedPage("value", "85.0", "id", false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getMatchingOrderedPageGivenMap_shouldReturnMatchingOrderedPageOfResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<Result> results = resultService.getMatchingOrderedPage(map, "id", false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getMatchingOrderedPageGivenList_shouldReturnMatchingOrderedPageOfResults() {
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getMatchingOrderedPage("value", "85.0", orderBy, false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getMatchingOrderedPageGivenMapAndList_shouldReturnMatchingOrderedPageOfResults() {
+        Map<String, Object> map = Map.of("value", "85.0");
+        List<String> orderBy = List.of("id");
+        List<Result> results = resultService.getMatchingOrderedPage(map, orderBy, false, 1);
+        int expectedPageSize = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(results);
+        assertTrue(results.size() <= expectedPageSize);
+    }
+
+    @Test
+    public void getNext_shouldReturnNextResult() {
+        String resultId = resultService.get("3").getId();
+        Result nextResult = resultService.getNext(resultId);
+        assertNotNull(nextResult);
+        assertEquals("4", nextResult.getId());
+    }
+
+    @Test
+    public void getPrevious_shouldReturnPreviousResult() {
+        String resultId = resultService.get("4").getId();
+        Result previousResult = resultService.getPrevious(resultId);
+        assertNotNull(previousResult);
+        assertEquals("3", previousResult.getId());
     }
 
 }
