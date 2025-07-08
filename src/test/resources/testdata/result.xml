@@ -196,9 +196,10 @@
         so_send_date="2025-07-07 11:45:00" so_send_entry_by="Dr. Doe"
         so_send_entry_date="2025-07-07 11:45:00" analysis_type="ROUTINE"
         lastupdated="2025-07-07 14:00:00" parent_analysis_id="1"
-        reflex_trigger="false" status_id="1" entry_date="2025-07-07 09:00:00"
-        panel_id="1" referred_out="true" type_of_sample_name="Blood Sample"
-        corrected="false" fhir_uuid="f8b9e2c1-7a2d-4e8b-b3a4-9c1e7f6d2b01"
+        is_reportable="Y" reflex_trigger="false" status_id="1"
+        entry_date="2025-07-07 09:00:00" panel_id="1" referred_out="true"
+        type_of_sample_name="Blood Sample" corrected="false"
+        fhir_uuid="f8b9e2c1-7a2d-4e8b-b3a4-9c1e7f6d2b01"
         result_calculated="false" method_id="1" />
     <analysis id="2" sampitem_id="602" test_sect_id="2"
         test_id="2" revision="1" status="3" started_date="2025-07-07 11:00:00"
@@ -210,19 +211,20 @@
         so_send_date="2025-07-07 12:45:00" so_send_entry_by="Dr. Smith"
         so_send_entry_date="2025-07-07 12:45:00" analysis_type="CONFIRM"
         lastupdated="2025-07-07 14:00:00" parent_analysis_id="2"
-        reflex_trigger="false" status_id="3" entry_date="2025-07-07 10:00:00"
-        panel_id="2" referred_out="true" type_of_sample_name="Urine Sample"
-        corrected="false" fhir_uuid="f8b9e2c1-7a2d-4e8b-b3a4-9c1e7f6d2b02"
+        is_reportable="Y" reflex_trigger="false" status_id="3"
+        entry_date="2025-07-07 10:00:00" panel_id="2" referred_out="true"
+        type_of_sample_name="Urine Sample" corrected="false"
+        fhir_uuid="f8b9e2c1-7a2d-4e8b-b3a4-9c1e7f6d2b02"
         result_calculated="false" method_id="2" />
 
     <!-- result -->
     <result id="3" analysis_id="1" sort_order="1" result_type="N"
-        value="85.0" analyte_id="3" test_result_id="1"
+        value="85.0" analyte_id="3" test_result_id="1" is_reportable="Y"
         lastupdated="2025-04-04 14:00:00" min_normal="70.0" max_normal="100.0"
         parent_id="3" significant_digits="1" grouping="0"
         fhir_uuid="550e8400-e29b-41d4-a716-446655440003" />
     <result id="4" analysis_id="2" sort_order="2" result_type="N"
-        value="14.5" analyte_id="4" test_result_id="2"
+        value="14.5" analyte_id="4" test_result_id="2" is_reportable="Y"
         lastupdated="2025-07-07 14:00:00" min_normal="12.0" max_normal="16.0"
         parent_id="3" significant_digits="1" grouping="0"
         fhir_uuid="550e8400-e29b-41d4-a716-446655440004" />

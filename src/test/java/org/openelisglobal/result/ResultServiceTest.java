@@ -2,6 +2,7 @@ package org.openelisglobal.result;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import org.junit.Before;
@@ -9,10 +10,14 @@ import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
+import org.openelisglobal.analyte.service.AnalyteService;
+import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.result.service.ResultService;
 import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
+import org.openelisglobal.sampleitem.service.SampleItemService;
+import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.testanalyte.service.TestAnalyteService;
 import org.openelisglobal.testanalyte.valueholder.TestAnalyte;
 import org.openelisglobal.testresult.service.TestResultService;
@@ -31,6 +36,12 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
     private TestResultService testResultService;
     @Autowired
     private SampleService sampleService;
+    @Autowired
+    private AnalyteService analyteService;
+    @Autowired
+    private SampleItemService sampleItemService;
+    @Autowired
+    private TestService testService;
 
     @Before
     public void setUp() throws Exception {
@@ -176,5 +187,80 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         String testDescription = resultService.getTestDescription(result);
         assertNotNull(testDescription);
         assertEquals("GPT/ALAT(Serum)", testDescription);
+    }
+
+    @Test
+    public void getResultForAnalyteAndSampleItem_shouldReturnResultForAnalyteAndSampleItem() {
+        String sampleItem = sampleItemService.get("601").getId();
+        String analyte = analyteService.get("3").getId();
+        Result result = resultService.getResultForAnalyteAndSampleItem(analyte, sampleItem);
+        assertNotNull(result);
+        assertEquals("3", result.getId());
+
+    }
+
+    @Test
+    public void getResultsForTestAndSample_shouldReturnResultsForTestAndSample() {
+        String sampleId = testService.get("1").getId();
+        String testId = sampleService.get("1").getId();
+        List<Result> results = resultService.getResultsForTestAndSample(sampleId, testId);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getReportableResultsByAnalysis_shouldReturnReportableResults() {
+        Analysis analysis = analysisService.get("1");
+        List<Result> results = resultService.getReportableResultsByAnalysis(analysis);
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getResultsForAnalysisIdList_shouldReturnResultsForAnalysisIdList() {
+        List<Integer> analysisIdList = List.of(1, 2);
+        List<Result> results = resultService.getResultsForAnalysisIdList(analysisIdList);
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals("3", results.get(0).getId());
+        assertEquals("4", results.get(1).getId());
+    }
+
+    @Test
+    public void getResultForAnalyteInAnalysisSet_shouldReturnResultForAnalyteInAnalysisSet() {
+        String analyteId = analyteService.get("3").getId();
+        List<Integer> analysisIDList = List.of(1, 2);
+        Result result = resultService.getResultForAnalyteInAnalysisSet(analyteId, analysisIDList);
+        assertNotNull(result);
+        assertEquals("3", result.getId());
+    }
+
+    @Test
+    public void getChildResults_shouldReturnChildResults() {
+        String resultId = resultService.get("3").getId();
+        List<Result> childResults = resultService.getChildResults(resultId);
+        assertNotNull(childResults);
+        assertEquals(2, childResults.size());
+        assertEquals("3", childResults.get(0).getId());
+        assertEquals("4", childResults.get(1).getId());
+    }
+
+    @Test
+    public void getPageOfResults_shouldReturnPageOfResults() {
+        List<Result> results = resultService.getPageOfResults(1);
+        int expectedPages = Integer
+                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertTrue(results.size() <= expectedPages);
+
+    }
+
+    @Test
+    public void getReportingTestName_shouldReturnReportingTestName() {
+        Result result = resultService.get("3");
+        String reportingTestName = resultService.getReportingTestName(result);
+        assertNotNull(reportingTestName);
+        assertEquals("GPT/ALAT", reportingTestName);
     }
 }
