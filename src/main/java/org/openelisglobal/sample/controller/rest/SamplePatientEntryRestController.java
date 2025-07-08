@@ -323,15 +323,6 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
 
             // String fhir_json = fhirTransformService.CreateFhirFromOESample(updateData,
             // patientUpdate, patientInfo, form, request);
-
-            // Create Odoo invoice after successful sample save
-            try {
-                odooIntegrationService.createInvoice(updateData);
-            } catch (Exception e) {
-                LogEvent.logError(this.getClass().getSimpleName(), "samplePatientEntrySave",
-                        "Error creating Odoo invoice: " + e.getMessage());
-                // Don't fail the sample save if Odoo integration fails
-            }
         } catch (LIMSRuntimeException e) {
             // ActionError error;
             if (e.getCause() instanceof StaleObjectStateException) {
