@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.Date;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,11 +13,13 @@ import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.analyte.service.AnalyteService;
 import org.openelisglobal.common.util.ConfigurationProperties;
+import org.openelisglobal.panel.service.PanelService;
 import org.openelisglobal.result.service.ResultService;
 import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.sampleitem.service.SampleItemService;
+import org.openelisglobal.test.service.TestSectionService;
 import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.testanalyte.service.TestAnalyteService;
 import org.openelisglobal.testanalyte.valueholder.TestAnalyte;
@@ -42,6 +45,10 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
     private SampleItemService sampleItemService;
     @Autowired
     private TestService testService;
+    @Autowired
+    private TestSectionService testSectionService;
+    @Autowired
+    private PanelService panelService;
 
     @Before
     public void setUp() throws Exception {
@@ -263,4 +270,63 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         assertNotNull(reportingTestName);
         assertEquals("GPT/ALAT", reportingTestName);
     }
+
+    @Test
+    public void getResultsForTestSectionInDateRange_shouldReturnResultsForTestSectionInDateRange() {
+        String testSectionId = testSectionService.get("1").getId();
+        Date lowDate = Date.valueOf("2025-01-01");
+        Date highDate = Date.valueOf("2025-12-12");
+
+        List<Result> results = resultService.getResultsForTestSectionInDateRange(testSectionId, lowDate, highDate);
+        assertNotNull(results);
+        assertTrue(results.size() > 0);
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getResultsForPanelInDateRange_shouldReturnResultsForPanelInDateRange() {
+        String panelId = panelService.get("1").getId();
+        Date lowDate = Date.valueOf("2025-01-01");
+        Date highDate = Date.valueOf("2025-12-12");
+        List<Result> results = resultService.getResultsForPanelInDateRange(panelId, lowDate, highDate);
+        assertNotNull(results);
+        assertTrue(results.size() > 0);
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getResultsForTestInDateRange_shouldReturnResultsForTestInDateRange() {
+        String testId = testService.get("1").getId();
+        Date startDate = Date.valueOf("2025-01-01");
+        Date endDate = Date.valueOf("2025-12-12");
+        List<Result> results = resultService.getResultsForTestInDateRange(testId, startDate, endDate);
+        assertNotNull(results);
+        assertTrue(results.size() > 0);
+        assertEquals("3", results.get(0).getId());
+    }
+
+    @Test
+    public void getDisplayReferenceRange_shouldReturnDisplayReferenceRange() {
+        Result result = resultService.get("3");
+        String displayReferenceRange = resultService.getDisplayReferenceRange(result, false);
+        assertNotNull(displayReferenceRange);
+        assertEquals("70.0-100.0", displayReferenceRange);
+    }
+
+    @Test
+    public void getSimpleResultValue_shouldReturnSimpleResultValue() {
+        Result result = resultService.get("3");
+        String simpleResultValue = resultService.getSimpleResultValue(result);
+        assertNotNull(simpleResultValue);
+        assertEquals("85.0", simpleResultValue);
+    }
+
+    @Test
+    public void getResultValurForDisplay_shouldReturnResultValueForDisplay() {
+        Result result = resultService.get("3");
+        String resultValue = resultService.getResultValue(result, ", ", true, true);
+        assertNotNull(resultValue);
+        assertEquals("85.0 mg/dL", resultValue);
+    }
+
 }
