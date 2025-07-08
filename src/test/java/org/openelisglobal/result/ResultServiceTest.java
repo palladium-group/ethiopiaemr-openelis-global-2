@@ -94,4 +94,87 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         assertEquals(1, results.size());
         assertEquals("3", results.get(0).getId());
     }
+
+    @Test
+    public void getUOM_shouldReturnUnitOfMeasure() {
+        Result result = resultService.get("3");
+        String uom = resultService.getUOM(result);
+        assertNotNull(uom);
+        assertEquals("mg/dL", uom);
+    }
+
+    @Test
+    public void getResultById_shouldReturnResultById() {
+        Result result = resultService.getResultById("3");
+        assertNotNull(result);
+        assertEquals("3", result.getId());
+        assertEquals("85.0", result.getValue());
+    }
+
+    @Test
+    public void getAllResults_shouldReturnAllResults() {
+        List<Result> results = resultService.getAllResults();
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals("3", results.get(0).getId());
+        assertEquals("4", results.get(1).getId());
+    }
+
+    @Test
+    public void getResultById_givenResult_shouldReturnResult() {
+        Result result = new Result();
+        result.setId("3");
+        Result fetchedResult = resultService.getResultById(result);
+        assertNotNull(fetchedResult);
+        assertEquals("3", fetchedResult.getId());
+        assertEquals("85.0", fetchedResult.getValue());
+    }
+
+    @Test
+    public void getSignature_shouldReturnSignature() {
+        Result result = resultService.get("4");
+        String signature = resultService.getSignature(result);
+        assertNotNull(signature);
+        assertEquals("External Doctor", signature);
+    }
+
+    @Test
+    public void getLastUpdatedTime_shouldReturnLastUpdatedTime() {
+        Result result = resultService.get("4");
+        String lastUpdatedTime = resultService.getLastUpdatedTime(result);
+        assertNotNull(lastUpdatedTime);
+        assertEquals("07/07/2025", lastUpdatedTime);
+    }
+
+    @Test
+    public void getTestType_shouldReturnTestType() {
+        Result result = resultService.get("3");
+        String testType = resultService.getTestType(result);
+        assertNotNull(testType);
+        assertEquals("N", testType);
+    }
+
+    @Test
+    public void getTestTime_shouldReturnTestTime() {
+        Result result = resultService.get("3");
+        String testTime = resultService.getTestTime(result);
+        assertNotNull(testTime);
+        assertEquals("07/07/2025", testTime);
+    }
+
+    @Test
+    public void getLOINCCode_shouldReturnLOINCCode() {
+        Result result = resultService.get("3");
+        String loincCode = resultService.getLOINCCode(result);
+        assertNotNull(loincCode);
+        assertEquals("123456", loincCode);
+    }
+
+    @Test
+    public void getTestDescription_shouldReturnTestDescription() {
+        Result result = resultService.get("3");
+        String testDescription = resultService.getTestDescription(result);
+        assertNotNull(testDescription);
+        assertEquals("GPT/ALAT(Serum)", testDescription);
+    }
 }

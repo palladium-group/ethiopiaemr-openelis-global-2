@@ -8,6 +8,13 @@
     <localization id="3" description="Test Description 3"
         english="blood test" french="Merci" />
 
+    <system_user id="1" external_id="EXT003" login_name="admin"
+        last_name="Doe" first_name="John" initials="JD" is_active="Y"
+        is_employee="Y" lastupdated="2025-03-08 12:00:00" />
+    <system_user id="2" external_id="EXT003" login_name="jdoe"
+        last_name="Doe" first_name="John" initials="JD" is_active="Y"
+        is_employee="Y" lastupdated="2025-03-08 12:00:00" />
+
     <!-- unit_of_measure -->
     <unit_of_measure id="1" name="mg/dL"
         description="Milligrams per deciliter" />
@@ -219,6 +226,14 @@
         lastupdated="2025-07-07 14:00:00" min_normal="12.0" max_normal="16.0"
         parent_id="3" significant_digits="1" grouping="0"
         fhir_uuid="550e8400-e29b-41d4-a716-446655440004" />
+
+
+    <result_signature id="2" result_id="3"
+        system_user_id="1" is_supervisor="true"
+        lastupdated="2025-07-07 17:45:00.000" non_user_name="" />
+    <result_signature id="3" result_id="4"
+        system_user_id="2" is_supervisor="false"
+        lastupdated="2025-07-06 08:00:00.000" non_user_name="External Doctor" />
 
 
 </dataset>
