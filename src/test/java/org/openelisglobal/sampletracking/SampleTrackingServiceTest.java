@@ -1,7 +1,7 @@
 package org.openelisglobal.sampletracking;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -45,18 +45,18 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
                 + "SOSID VARCHAR(10),SOSDESC VARCHAR(20),COLLDATE NUMERIC(7,0),"
                 + "DATEOFBIRTH NUMERIC(7,0),SORI VARCHAR(1));");
 
-        jdbcTemplate.update("INSERT INTO SAMPLETRACKING (accNum, PATIENTID, CLIREF, PATIENTLASTNAME, PATIENTFIRSTNAME,"
-                + "ORG_LOCAL_ABBREV, ORGNAME, RECDDATE, TOSID, TOSDESC,"
-                + "SOSID, SOSDESC, COLLDATE, DATEOFBIRTH, SORI) "
+        jdbcTemplate.update("INSERT INTO SAMPLETRACKING (accNum, PATIENTID, CLIREF, "
+                + "PATIENTLASTNAME, PATIENTFIRSTNAME,ORG_LOCAL_ABBREV, ORGNAME, RECDDATE, "
+                + "TOSID, TOSDESC,SOSID, SOSDESC, COLLDATE, DATEOFBIRTH, SORI)"
                 + "VALUES ('9001', 'PAT-001', 'CL-REF-22', 'Doe', 'John',"
                 + "'001', 'General Hospital', '240705', '1001', 'Routine',"
                 + "'2001', 'Emergency', 240705, 940101, 'S');");
 
         jdbcTemplate.update("INSERT INTO SAMPLETRACKING (accNum,PATIENTID,CLIREF,"
                 + "PATIENTLASTNAME,PATIENTFIRSTNAME,ORG_LOCAL_ABBREV,ORGNAME,"
-                + "RECDDATE,TOSID,TOSDESC,SOSID,SOSDESC,COLLDATE, DATEOFBIRTH,SORI) " + "VALUES ('9002','PAT-002',"
-                + "'CL-REF-23','Smith','Jane','002','General Hospital',"
-                + "'240708','1002','Urgent','2002','Scheduled',240708," + "950315,'I');");
+                + "RECDDATE,TOSID,TOSDESC,SOSID,SOSDESC,COLLDATE, DATEOFBIRTH,SORI) "
+                + "VALUES ('9002','PAT-002', 'CL-REF-23','Smith','Jane','002',"
+                + "'General Hospital', '240708','1002','Urgent','2002','Scheduled'," + "240708, 950315,'I');");
 
         propertyValues = new HashMap<>();
         propertyValues.put("sosDesc", "Scheduled");
