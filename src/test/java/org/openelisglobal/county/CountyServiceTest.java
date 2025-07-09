@@ -37,20 +37,18 @@ public class CountyServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Before
-    public void setup() {
+    public void setUp() {
         jdbcTemplate.execute("CREATE SEQUENCE IF NOT EXISTS county_seq");
 
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS region (\n" + "id NUMERIC(10) PRIMARY KEY,\n"
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS region (" + "id NUMERIC(10) PRIMARY KEY,"
                 + "region VARCHAR(100) NOT NULL)");
-
         jdbcTemplate.update("INSERT INTO region(id, region) VALUES (1001, 'Northern Province');");
 
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS county (" + "id NUMERIC(10) PRIMARY KEY, "
-                + "lastupdated TIMESTAMP, " + "region_id VARCHAR(10), " + "county VARCHAR(75) NOT NULL)");
-
-        jdbcTemplate.update("INSERT INTO county (id, lastupdated, region_id, county)\n"
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS county (id NUMERIC(10) PRIMARY KEY, "
+                + "lastupdated TIMESTAMP, region_id VARCHAR(10),county VARCHAR(75) NOT NULL)");
+        jdbcTemplate.update("INSERT INTO county (id, lastupdated, region_id, county)"
                 + "VALUES (2001, CURRENT_TIMESTAMP, '1001', 'Greenfield');");
-        jdbcTemplate.update("INSERT INTO county (id, lastupdated, region_id, county)\n"
+        jdbcTemplate.update("INSERT INTO county (id, lastupdated, region_id, county)"
                 + "VALUES (2002, '2024-06-10 11:45:00', '1001', 'Marryland');");
 
         propertyValues = new HashMap<>();
@@ -60,7 +58,7 @@ public class CountyServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @After
-    public void cleanup() {
+    public void cleanUp() {
         jdbcTemplate.execute("DROP TABLE IF EXISTS county");
         jdbcTemplate.execute("DROP TABLE IF EXISTS region");
         jdbcTemplate.execute("DROP SEQUENCE IF EXISTS county_seq");
