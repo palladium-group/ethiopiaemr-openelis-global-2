@@ -38,6 +38,7 @@ export const TestFormData = {
 };
 
 export const mapTestCatBeanToFormData = (test) => {
+  console.log(test);
   return {
     testId: test.id,
     testNameEnglish: test.localization?.english || "",
