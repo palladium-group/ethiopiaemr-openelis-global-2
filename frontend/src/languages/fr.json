@@ -1,4 +1,9 @@
 {
+  "dictionary.loincCode.helpText": "Identifiant standard d'observation de laboratoire",
+  "dictionary.loincCode": "Code LOINC",
+  "dictionary.loincCode.placeholder": "ex. 12345-6",
+  "dictionary.loincCode.help": "Identifiant standard d'observation de laboratoire",
+  "dictionary.loincCode.invalid": "Format LOINC invalide",
   "language.select.label": "Français",
   "label.button.submit": "Connecter",
   "label.button.finish": "Terminer",
@@ -449,7 +454,6 @@
   "patient.emergency.additional.maritalstatus": "Entrez l'état civil",
   "patient.emergency.additional.nationnality": "Entrez la nationalité",
   "patient.emergency.additional.othernationality": "Entrez une autre nationalité",
-
   "referral.testresult.pastnote": "Notes passées",
   "new.patient.label": "Nouveau patient",
   "sample.select.type": "Sélectionnez le type d'échantillon",

@@ -1,4 +1,9 @@
 {
+  "dictionary.loincCode.invalid": "Invalid LOINC format (expected: 12345-6 or LP12345-6)",
+  "dictionary.loincCode.helpText": "Standard laboratory observation identifier",
+  "dictionary.loincCode": "LOINC Code",
+  "dictionary.loincCode.placeholder": "e.g. 12345-6",
+  "dictionary.loincCode.help": "Enter standard LOINC identifier",
   "language.select.label": "English",
   "label.button.submit": "Submit",
   "label.button.finish": "Finish",
@@ -449,7 +454,6 @@
   "patient.emergency.additional.maritalstatus": "Enter Martial Status",
   "patient.emergency.additional.nationnality": "Enter Nationality",
   "patient.emergency.additional.othernationality": "Enter Other Nationality",
-
   "referral.testresult.pastnote": "Past Notes",
   "new.patient.label": "New Patient",
   "sample.select.type": "Select sample type",
