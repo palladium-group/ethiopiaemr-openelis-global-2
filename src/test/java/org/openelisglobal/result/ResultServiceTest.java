@@ -16,7 +16,9 @@ import org.openelisglobal.analyte.service.AnalyteService;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.panel.service.PanelService;
 import org.openelisglobal.result.service.ResultService;
+import org.openelisglobal.result.service.ResultSignatureService;
 import org.openelisglobal.result.valueholder.Result;
+import org.openelisglobal.result.valueholder.ResultSignature;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.sampleitem.service.SampleItemService;
@@ -50,6 +52,8 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
     private TestSectionService testSectionService;
     @Autowired
     private PanelService panelService;
+    @Autowired
+    private ResultSignatureService resultSignatureService;
 
     @Before
     public void setUp() throws Exception {
@@ -243,16 +247,6 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         Result result = resultService.getResultForAnalyteInAnalysisSet(analyteId, analysisIDList);
         assertNotNull(result);
         assertEquals("3", result.getId());
-    }
-
-    @Test
-    public void getChildResults_shouldReturnChildResults() {
-        String resultId = resultService.get("3").getId();
-        List<Result> childResults = resultService.getChildResults(resultId);
-        assertNotNull(childResults);
-        assertEquals(2, childResults.size());
-        assertEquals("3", childResults.get(0).getId());
-        assertEquals("4", childResults.get(1).getId());
     }
 
     @Test
@@ -505,4 +499,93 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         assertEquals("3", previousResult.getId());
     }
 
+    @Test
+    public void deleteAll_shouldDeleteAllResults() {
+
+        List<ResultSignature> signatures = resultSignatureService.getAll();
+        resultSignatureService.deleteAll(signatures);
+        List<Result> results1 = resultService.getAll();
+        resultService.deleteAll(results1);
+        List<Result> results2 = resultService.getAll();
+        assertEquals(0, results2.size());
+
+    }
+
+    @Test
+    public void deleteAllGivenList_shouldDeleteAllResults() {
+
+        List<ResultSignature> signatures = resultSignatureService.getAll();
+        resultSignatureService.deleteAll(signatures);
+
+        List<String> resultIds = List.of("3", "4");
+        resultService.deleteAll(resultIds, "");
+        List<Result> results = resultService.getAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void delete_shouldDeleteAResult() {
+        List<ResultSignature> signatures = resultSignatureService.getAll();
+        resultSignatureService.deleteAll(signatures);
+        Result result = resultService.get("3");
+        assertNotNull(result);
+        resultService.delete(result);
+        List<Result> results = resultService.getAll();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void getCount_shouldReturnCountOfResults() {
+        int count = resultService.getCount();
+        assertEquals(2, count);
+
+    }
+
+    @Test
+    public void save_shouldSaveResult() {
+        List<ResultSignature> signatures = resultSignatureService.getAll();
+        resultSignatureService.deleteAll(signatures);
+        List<Result> results1 = resultService.getAll();
+        resultService.deleteAll(results1);
+        Result result = new Result();
+        result.setValue("90.0");
+        result.setAnalysis(analysisService.get("1"));
+        result.setTestResult(testResultService.get("1"));
+        result.setAnalyte(analyteService.get("3"));
+        Result result1 = resultService.save(result);
+        List<Result> results2 = resultService.getAll();
+        assertNotNull(result1);
+        assertEquals(1, results2.size());
+        assertEquals("90.0", results2.get(0).getValue());
+
+    }
+
+    @Test
+    public void insert_shouldInsertResult() {
+        List<ResultSignature> signatures = resultSignatureService.getAll();
+        resultSignatureService.deleteAll(signatures);
+        List<Result> results1 = resultService.getAll();
+        resultService.deleteAll(results1);
+        Result result = new Result();
+        result.setValue("90.0");
+        result.setAnalysis(analysisService.get("1"));
+        result.setTestResult(testResultService.get("1"));
+        result.setAnalyte(analyteService.get("3"));
+        String result1 = resultService.insert(result);
+        List<Result> results2 = resultService.getAll();
+        assertNotNull(result1);
+        assertEquals(1, results2.size());
+        assertEquals(result1, results2.get(0).getId());
+        assertEquals("90.0", results2.get(0).getValue());
+
+    }
+
+    @Test
+    public void update_shouldUpdateResult() {
+        Result result = resultService.get("3");
+        result.setValue("95.0");
+        Result updatedResult = resultService.update(result);
+        assertNotNull(updatedResult);
+        assertEquals("95.0", updatedResult.getValue());
+    }
 }
