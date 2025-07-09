@@ -100,6 +100,7 @@ public class ResultSelectListServiceImpl implements ResultSelectListService {
         dictionary.setDictEntry(form.getNameEnglish());
         dictionary.setLocalAbbreviation(form.getNameEnglish());
         dictionary.setSysUserId(currentUserId);
+        dictionary.setLoincCode(form.getLoincCode() != null ? form.getLoincCode() : "");
         dictionary.setDictionaryCategory(dictionaryCategoryService.getDictionaryCategoryByName("Test Result"));
 
         Localization localization = new Localization();
