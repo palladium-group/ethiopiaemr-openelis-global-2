@@ -27,13 +27,13 @@ import * as Yup from "yup";
 import { CustomCommonSortableOrderList } from "./../sortableListComponent/SortableList.js";
 import { getFromOpenElisServer } from "../../../utils/Utils.js";
 import { NotificationContext } from "../../../layout/Layout.js";
+import { extractAgeRangeParts } from "./TestFormData.js";
 
 export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
   const intl = useIntl();
-  console.log(initialData);
   const componentMounted = useRef(false);
   const [formData, setFormData] = useState(initialData);
   const [isLoading, setIsLoading] = useState(false);
@@ -155,36 +155,6 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
     };
   }, []);
 
-  const extractAgeRangeParts = (rangeStr) => {
-    const [start, end] = rangeStr.split("-");
-
-    const parseAge = (ageStr) => {
-      const parts = ageStr.split("/");
-
-      let d = 0,
-        m = 0,
-        y = 0;
-
-      for (let part of parts) {
-        part = part.trim().toUpperCase();
-        if (part.endsWith("D")) d = parseInt(part.replace("D", ""), 10);
-        if (part.endsWith("M")) m = parseInt(part.replace("M", ""), 10);
-        if (part.endsWith("Y")) y = parseInt(part.replace("Y", ""), 10);
-      }
-
-      if (y > 0) return { raw: y, unit: "Y" };
-      if (m > 0) return { raw: m, unit: "M" };
-      if (d > 0) return { raw: d, unit: "D" };
-
-      return { raw: 0, unit: "Y" };
-    };
-
-    const low = parseAge(start);
-    const high = parseAge(end);
-
-    return { low, high };
-  };
-
   const normalizeResultLimits = (limits = []) => {
     const keyMap = {};
     const extractedAgeRanges = [];
@@ -200,7 +170,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         keyMap[key] = {
           ageRange: low.raw.toString(),
           highAgeRange: high.raw.toString(),
-          gender: false,
+          gender: limit.gender,
           lowNormal: limit.lowNormal,
           highNormal: limit.highNormal,
           lowNormalFemale: limit.lowNormalFemale,
@@ -208,7 +178,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         };
       }
 
-      if (limit.gender) {
+      if (limit.gender || limit.gender === "M" || limit.gender === "F") {
         keyMap[key].gender = true;
         keyMap[key].lowNormal = limit.lowNormal;
         keyMap[key].highNormal = limit.highNormal;
@@ -387,9 +357,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       const { extractedAgeRanges, normalizedLimits } = normalizeResultLimits(
         initialData.resultLimits || [],
       );
-
       setAgeRanges(extractedAgeRanges);
-      console.log("Updated Age Ranges:", extractedAgeRanges);
       setAgeRangeFields(normalizedLimits.map((_, i) => i));
 
       setFormData((prev) => ({
