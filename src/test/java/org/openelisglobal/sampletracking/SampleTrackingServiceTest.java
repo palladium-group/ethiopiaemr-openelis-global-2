@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+
+import lombok.NonNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +33,7 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
     private static int NUMBER_OF_PAGES = 0;
 
     @Autowired
-    public void setJdbcTemplate(DataSource dataSource) {
+    public void setDataSource(@NonNull DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
