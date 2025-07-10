@@ -2,8 +2,8 @@ class NotifyUserPage {
   constructor() {
     this.selectors = {
       title: "h2",
-      textArea: "message",
-      enterUser: "user",
+      textArea: "#message",
+      enterUser: "#user",
       submit: "[data-cy='submitButton']",
       useroption: ".suggestion-active",
     };
@@ -19,6 +19,10 @@ class NotifyUserPage {
     cy.get(this.selectors.textArea).clear().type("Remember to logout");
   }
 
+  clearMessage() {
+    cy.get(this.selectors.textArea).clear();
+  }
+
   selectUser(value) {
     cy.get(this.selectors.enterUser).clear().type(value);
     cy.contains(this.selectors.useroption, value).should("be.visible").click();
@@ -26,10 +30,6 @@ class NotifyUserPage {
 
   submitMessage() {
     cy.get(this.selectors.submit).click();
-  }
-
-  validateSuccess() {
-    cy.contains("Notification sent Successfully").should("be.visible");
   }
 
   warningMessage() {
