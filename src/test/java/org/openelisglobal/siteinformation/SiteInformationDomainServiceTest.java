@@ -66,6 +66,7 @@ public class SiteInformationDomainServiceTest extends BaseWebContextSensitiveTes
         assertNotNull(siteInformationDomains);
         assertEquals(2, siteInformationDomains.size());
         assertEquals("4", siteInformationDomains.get(1).getId());
+        assertEquals("2", siteInformationDomains.get(0).getId());
     }
 
     @Test
