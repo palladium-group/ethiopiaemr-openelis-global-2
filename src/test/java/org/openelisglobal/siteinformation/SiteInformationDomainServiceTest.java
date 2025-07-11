@@ -196,11 +196,11 @@ public class SiteInformationDomainServiceTest extends BaseWebContextSensitiveTes
     }
 
     @Test
-    public void delete_ShouldDeleteAPatientType() {
+    public void delete_ShouldDeleteASiteInformationDomain() {
         siteInformationDomains = siteInformationDomainService.getAll();
         assertEquals(5, siteInformationDomains.size());
-        SiteInformationDomain patientPatientType = siteInformationDomainService.get("2");
-        siteInformationDomainService.delete(patientPatientType);
+        SiteInformationDomain siteInformationDomain = siteInformationDomainService.get("2");
+        siteInformationDomainService.delete(siteInformationDomain);
         List<SiteInformationDomain> newSiteInformationDomains = siteInformationDomainService.getAll();
         assertEquals(4, newSiteInformationDomains.size());
     }
