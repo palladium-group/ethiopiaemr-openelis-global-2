@@ -571,6 +571,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       setAgeRangeFields={setAgeRangeFields}
       ageRanges={ageRanges}
       setAgeRanges={setAgeRanges}
+      mode={mode}
     />,
     <StepSevenFinalDisplayAndSaveConfirmation
       key="step-7"
@@ -2211,6 +2212,7 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
   setAgeRangeFields,
   ageRanges,
   setAgeRanges,
+  mode,
 }) => {
   const handleSubmit = (values) => {
     handleNextStep(values, true);
@@ -2630,11 +2632,27 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <hr />
                     </Column>
                     {ageRangeFields.map((_, index) => {
-                      const selectedAgeRanges = (values.resultLimits || [])
-                        .map((item) => item.ageRange)
-                        .filter((val, idx) => idx !== index && val);
+                      // const selectedAgeRangesCurrent = selectedAgeRanges
+                      //   .map((item) => item.ageRange)
+                      //   .filter((val, idx) => idx !== index && val)
+                      //   .filter(Boolean);
+                      // const selectedAgeRangesCurrent = gotSelectedAgeRangeList
+                      //   .filter((_, i) => i !== index)
+                      //   .map((item) => item.ageRange)
+                      //   .filter(Boolean);
+                      // const selectedAgeRangesCurrent = []
+                      //   .filter((_, i) => i !== index)
+                      //   .map((item) => item.id)
+                      //   .filter(Boolean);
+                      const selectedAgeRangesCurrent = ageRangeList
+                        .slice(0, ageRangeFields.length)
+                        .filter((_, i) => i !== index)
+                        .map((item) => item.id);
+                      // const selectedAgeRangesCurrent = ageRangeList
+                      //   .slice(0, ageRangeFields.length - 1)
+                      //   .map((item) => item.id);
                       const availableAgeRanges = ageRangeList.filter(
-                        (age) => !selectedAgeRanges.includes(age.id),
+                        (age) => !selectedAgeRangesCurrent.includes(age.id),
                       );
                       return (
                         <React.Fragment key={index}>
@@ -2811,7 +2829,7 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               //     (a) => a.id === ageRanges[index + 1]?.raw,
                               //   )?.id || ""
                               // } // select just based on number of itesm present in list and index
-                              value={ageRangeList[index]?.id || ""}
+                              value={ageRangeList?.[index]?.id || ""}
                               onChange={(e) => {
                                 // setFieldValue(
                                 //   `resultLimits[${index}].ageRange`,
@@ -2824,9 +2842,20 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   setAgeRangeList((prev) =>
                                     prev.filter((a) => a.id !== selectedAge.id),
                                   );
+                                  setGotSelectedAgeRangeList((prev) => [
+                                    ...prev,
+                                    {
+                                      id: selectedAge.id,
+                                      value: selectedAge.value,
+                                    },
+                                  ]);
+                                  selectedAgeRangesCurrent.push({
+                                    id: selectedAge.id,
+                                    value: selectedAge.value,
+                                  });
                                 }
                               }}
-                              disabled
+                              // disabled
                               invalid={
                                 touched?.resultLimits?.[index]?.ageRange &&
                                 !!errors?.resultLimits?.[index]?.ageRange
@@ -2836,10 +2865,12 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 errors?.resultLimits?.[index]?.ageRange
                               }
                             >
-                              <SelectItem
-                                value={"0"}
-                                text={`Select Age Range`}
-                              />
+                              {mode !== "edit" && (
+                                <SelectItem
+                                  value={"0"}
+                                  text={`Select Age Range`}
+                                />
+                              )}
                               {availableAgeRanges.map((age) => (
                                 <SelectItem
                                   key={age.id}
@@ -3050,8 +3081,7 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               type="button"
                               disabled={
                                 index !== ageRangeFields.length - 1 ||
-                                ageRangeFields.length >=
-                                  availableAgeRanges.length
+                                ageRangeFields.length >= ageRangeList.length
                               }
                               onClick={() =>
                                 handleAddAgeRangeFillUp(
