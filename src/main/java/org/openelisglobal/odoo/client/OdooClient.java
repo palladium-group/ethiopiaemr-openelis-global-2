@@ -51,7 +51,7 @@ public class OdooClient {
     private Integer uid;
 
     private XmlRpcClientConfigImpl xmlRpcClientConfig;
-    
+
     private XmlRpcClient client;
 
     private static final String SERVER_OBJECT_URL = "%s/xmlrpc/2/object";
@@ -127,9 +127,11 @@ public class OdooClient {
             try {
                 XmlRpcClientConfigImpl xmlRpcClientCommonConfig = new XmlRpcClientConfigImpl();
                 xmlRpcClientCommonConfig.setServerURL(new URL(String.format(SERVER_COMMON_URL, getUrl())));
-                log.warn("Attempting to authenticate to Odoo at URL: {}, database: {}, username: {}", getUrl(), getDatabase(), getUsername());
+                log.warn("Attempting to authenticate to Odoo at URL: {}, database: {}, username: {}", getUrl(),
+                        getDatabase(), getUsername());
                 log.warn("odoo version: {}", client.execute(xmlRpcClientCommonConfig, "version", emptyList()));
-                uid = (Integer) client.execute(xmlRpcClientCommonConfig, "authenticate", asList(database, username, password, emptyMap()));
+                uid = (Integer) client.execute(xmlRpcClientCommonConfig, "authenticate",
+                        asList(database, username, password, emptyMap()));
                 if (uid == null) {
                     log.error("Authentication to Odoo failed: received null UID. URL: {}, database: {}, username: {}",
                             getUrl(), getDatabase(), getUsername());
