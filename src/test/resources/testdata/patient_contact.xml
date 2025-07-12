@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <person id="701" last_name="Cobby" first_name="Peters"
+        email="cobpeters@peters.com" />
+
+    <patient id="3001" person_id="701" race="black" gender="F" />
+
+    <patient_contact id="8001"
+        lastupdated="2025-06-22 11:30:00" patient_id="3001" person_id="701" />
+    <patient_contact id="8002"
+        lastupdated="2024-06-10 11:45:00" patient_id="3001" person_id="701" />
+</dataset>
