@@ -31,6 +31,7 @@ import org.openelisglobal.organization.service.OrganizationTypeService;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
+import org.openelisglobal.result.controller.AnalyzerResultsController;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -273,6 +274,11 @@ public class AppTestConfig implements WebMvcConfigurer {
         WebMvcConfigurer.super.configureMessageConverters(converters);
         converters.add(new StringHttpMessageConverter());
         converters.add(jsonConverter());
+    }
+
+    @Bean()
+    public AnalyzerResultsController analyzerResultsController() {
+        return mock(AnalyzerResultsController.class);
     }
 
 }
