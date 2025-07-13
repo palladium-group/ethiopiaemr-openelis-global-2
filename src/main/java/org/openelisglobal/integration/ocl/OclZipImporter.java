@@ -3,7 +3,6 @@ package org.openelisglobal.integration.ocl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
@@ -113,9 +112,8 @@ public class OclZipImporter {
         try {
             log.debug("Parsing JSON file: {}", entry.getName());
             JsonNode node = objectMapper.readTree(zipFile.getInputStream(entry));
-            log.debug("JSON structure: isArray={}, fields={}",
-                      node.isArray(),
-                      node.isObject() ? node.fieldNames().next() : "N/A");
+            log.debug("JSON structure: isArray={}, fields={}", node.isArray(),
+                    node.isObject() ? node.fieldNames().next() : "N/A");
             return node;
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse JSON: " + entry.getName(), e);
@@ -127,11 +125,8 @@ public class OclZipImporter {
             log.debug("Parsing CSV file: {}", entry.getName());
             // Read CSV into List<Map<String,String>>
             CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader();
-            List<Object> rawRows = csvMapper
-                .readerFor(Map.class)
-                .with(schema)
-                .readValues(zipFile.getInputStream(entry))
-                .readAll();
+            List<Object> rawRows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
+                    .readAll();
             List<Map<String, Object>> rows = new ArrayList<>();
             for (Object obj : rawRows) {
                 rows.add((Map<String, Object>) obj);
