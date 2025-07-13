@@ -2,6 +2,8 @@ package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
@@ -12,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.slf4j.Logger;
@@ -28,7 +31,7 @@ public class OclZipImporter {
 
     /**
      * Imports and parses the OCL ZIP package from the configurations/ocl directory.
-     * 
+     *
      * @return List of JsonNode objects representing parsed JSON/CSV files.
      * @throws IOException if the import fails.
      */
@@ -56,7 +59,7 @@ public class OclZipImporter {
 
     /**
      * Imports an OCL package from the specified path.
-     * 
+     *
      * @param zipPath Path to the ZIP file.
      * @return List of JsonNode objects from JSON/CSV files.
      * @throws IOException if the file doesn't exist or parsing fails.
@@ -94,11 +97,6 @@ public class OclZipImporter {
                     if (node != null) {
                         jsonNodes.add(node);
                         log.info("Successfully parsed entry: {}. Node added to list.", entry.getName());
-                        if (log.isDebugEnabled()) {
-                            String contentSample = node.toString();
-                            log.debug("Parsed content sample: {}",
-                                    contentSample.substring(0, Math.min(contentSample.length(), 200)));
-                        }
                     } else {
                         log.warn("Parsing returned null for entry: {}", entry.getName());
                     }
@@ -115,8 +113,9 @@ public class OclZipImporter {
         try {
             log.debug("Parsing JSON file: {}", entry.getName());
             JsonNode node = objectMapper.readTree(zipFile.getInputStream(entry));
-            log.debug("JSON structure: isArray={}, fields={}", node.isArray(),
-                    node.isObject() ? node.fieldNames().next() : "N/A");
+            log.debug("JSON structure: isArray={}, fields={}",
+                      node.isArray(),
+                      node.isObject() ? node.fieldNames().next() : "N/A");
             return node;
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse JSON: " + entry.getName(), e);
@@ -126,18 +125,31 @@ public class OclZipImporter {
     private JsonNode parseCsvEntry(ZipFile zipFile, ZipEntry entry) {
         try {
             log.debug("Parsing CSV file: {}", entry.getName());
+            // Read CSV into List<Map<String,String>>
             CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader();
-            List<Object> rows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
-                    .readAll();
-
-            JsonNode node = objectMapper.valueToTree(rows);
-            if (!rows.isEmpty()) {
-                Map<?, ?> firstRow = (Map<?, ?>) rows.get(0);
-                log.debug("CSV headers: {}, row count: {}", firstRow.keySet(), rows.size());
-            } else {
-                log.warn("CSV file is empty: {}", entry.getName());
+            List<Object> rawRows = csvMapper
+                .readerFor(Map.class)
+                .with(schema)
+                .readValues(zipFile.getInputStream(entry))
+                .readAll();
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (Object obj : rawRows) {
+                rows.add((Map<String, Object>) obj);
             }
-            return node;
+
+            // Build an array of concept nodes
+            List<JsonNode> concepts = new ArrayList<>();
+            for (Map<String, Object> row : rows) {
+                ObjectNode node = objectMapper.createObjectNode();
+                for (Map.Entry<String, Object> entrySet : row.entrySet()) {
+                    node.put(entrySet.getKey(), Objects.toString(entrySet.getValue(), ""));
+                }
+                concepts.add(node);
+            }
+
+            // Return as a Json array node
+            return objectMapper.valueToTree(concepts);
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse CSV: " + entry.getName(), e);
         }
