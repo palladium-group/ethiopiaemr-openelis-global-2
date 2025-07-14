@@ -23,7 +23,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     private List<PatientContact> patientContacts;
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
-    private static int NUMBER_OF_PAGES = 0;
+    private static int PAGE_SIZE = 0;
 
     @Before
     public void setUp() throws Exception {
@@ -47,16 +47,16 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     public void getAllMatching_ShouldReturnMatchingPatientContactsGivenAPropertyName() {
         patientContacts = patientContactService.getAllMatching("lastupdated", Timestamp.valueOf("2025-06-22 11:30:00"));
         assertNotNull(patientContacts);
-        assertEquals(6, patientContacts.size());
-        assertEquals("8013", patientContacts.get(5).getId());
+        assertEquals(5, patientContacts.size());
+        assertEquals("8013", patientContacts.get(4).getId());
     }
 
     @Test
     public void getAllMatching_ShouldReturnMatchingPatientContactsGivenAMap() {
         patientContacts = patientContactService.getAllMatching(propertyValues);
         assertNotNull(patientContacts);
-        assertEquals(6, patientContacts.size());
-        assertEquals("8010", patientContacts.get(4).getId());
+        assertEquals(5, patientContacts.size());
+        assertEquals("8013", patientContacts.get(4).getId());
     }
 
     @Test
@@ -96,82 +96,109 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContactsFilteredByAMapAndOrderedByLastUpdatedInDescendingOrder() {
         patientContacts = patientContactService.getAllMatchingOrdered(propertyValues, "lastupdated", true);
         assertNotNull(patientContacts);
-        assertEquals(6, patientContacts.size());
-        assertEquals("8008", patientContacts.get(4).getId());
+        assertEquals(5, patientContacts.size());
+        assertEquals("8010", patientContacts.get(4).getId());
     }
 
     @Test
     public void getPage_ShouldReturnAPageOfResultsGivenPageNumber() {
-        patientContacts = patientContactService.getPage(1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getPage(10);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8012", patientContacts.get(2).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(4, patientContacts.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAPropertyNameAndValue() {
-        patientContacts = patientContactService.getMatchingPage("person", 701, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getMatchingPage("person", 701, 2);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8013", patientContacts.get(2).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(3, patientContacts.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAMap() {
-        patientContacts = patientContactService.getMatchingPage(propertyValues, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getMatchingPage(propertyValues, 3);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8010", patientContacts.get(1).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(3, patientContacts.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAPageOfResultsFilteredByAnOrderPropertyInDescendingOrder() {
-        patientContacts = patientContactService.getOrderedPage("patientId", true, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getOrderedPage("patientId", true, 3);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8002", patientContacts.get(9).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(11, patientContacts.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAPageOfResultsGivenAListAndOrderedInDescendingOrder() {
-        patientContacts = patientContactService.getOrderedPage(orderProperties, false, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getOrderedPage(orderProperties, false, 7);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8008", patientContacts.get(5).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(7, patientContacts.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResultsGivenAPropertyNameAndValueOrderedByPersonInDescendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage("lastupdated",
                 Timestamp.valueOf("2025-06-22 11:30:00"), "person", true, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8001", patientContacts.get(3).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(5, patientContacts.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResultsGivenLastUpdatedAndOrderedByOrderPropertiesInAscendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage("lastupdated",
-                Timestamp.valueOf("2024-06-10 11:45:00"), orderProperties, false, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+                Timestamp.valueOf("2024-06-10 11:45:00"), orderProperties, false, 3);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8011", patientContacts.get(1).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(5, patientContacts.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResultsFilteredByAMapAndOrderedByOrderPropertyInDescendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage(propertyValues, "patientId", true, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8005", patientContacts.get(1).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(5, patientContacts.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAPageOfResultsFilteredByAListAndAMapInDescendingOrder() {
-        patientContacts = patientContactService.getMatchingOrderedPage(propertyValues, orderProperties, true, 1);
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        assertTrue(NUMBER_OF_PAGES >= patientContacts.size());
+        patientContacts = patientContactService.getMatchingOrderedPage(propertyValues, orderProperties, true, 4);
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        assertNotNull(patientContacts);
+        assertFalse(patientContacts.isEmpty());
+        assertEquals("8013", patientContacts.get(1).getId());
+        assertTrue(PAGE_SIZE >= patientContacts.size());
+        assertEquals(2, patientContacts.size());
     }
 
     @Test
