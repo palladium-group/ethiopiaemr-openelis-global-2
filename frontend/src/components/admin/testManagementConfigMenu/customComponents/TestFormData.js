@@ -85,7 +85,8 @@ export const mapTestCatBeanToFormData = (test) => {
     antimicrobialResistance: test.antimicrobialResistance ? "Y" : "N",
     active: test.active === "Active" ? "Y" : "N",
     dictionary: test.dictionaryValues || [],
-    dictionaryReference: test.referenceValue || "",
+    dictionaryReference:
+      test.referenceValue !== "n/a" ? test.referenceValue : "",
     defaultTestResult: "",
     sampleTypes: test.sampleType ? [test.sampleType] : [],
     lowValid: "-Infinity", // this may be needs to fetched from resultLimits collection
