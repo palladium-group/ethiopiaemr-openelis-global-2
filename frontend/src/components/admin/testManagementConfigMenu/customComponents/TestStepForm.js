@@ -685,22 +685,16 @@ export const StepOneTestNameAndTestSection = ({
           testSection: Yup.string()
             .required("Test section is required")
             .notOneOf(["0"], "Please select a valid test section"),
-          testNameEnglish: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("English test name is required"),
-          testNameFrench: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("French test name is required"),
-          testReportNameEnglish: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("English report name is required"),
-          testReportNameFrench: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("French report name is required"),
+          testNameEnglish: Yup.string().required(
+            "English test name is required",
+          ),
+          testNameFrench: Yup.string().required("French test name is required"),
+          testReportNameEnglish: Yup.string().required(
+            "English report name is required",
+          ),
+          testReportNameFrench: Yup.string().required(
+            "French report name is required",
+          ),
         })}
         validateOnChange={true}
         validateOnBlur={true}
