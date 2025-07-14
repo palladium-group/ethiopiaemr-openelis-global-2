@@ -61,8 +61,8 @@ export const extractAgeRangeParts = (rangeStr) => {
     return { raw: 0, unit: "Y" };
   };
 
-  const low = parseAge(start);
-  const high = parseAge(end);
+  const low = start ? parseAge(start) : "";
+  const high = end ? parseAge(end) : "";
 
   return { low, high };
 };
