@@ -183,7 +183,8 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
         assertTrue(isFound);
         patientContactService.delete(patientContact);
         List<PatientContact> deletedPatientContact = patientContactService.getAll();
-        assertFalse(deletedPatientContact.contains(patientContact));
+        boolean isStillFound = deletedPatientContact.stream().anyMatch(pc -> "8003".equals(pc.getId()));
+        assertFalse(isStillFound);
         assertEquals(12, deletedPatientContact.size());
     }
 
