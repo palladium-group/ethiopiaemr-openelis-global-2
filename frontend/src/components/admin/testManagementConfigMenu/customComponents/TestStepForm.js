@@ -47,6 +47,9 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
   const [uomList, setUomList] = useState([]);
   const [selectedUomList, setSelectedUomList] = useState({});
   const [resultTypeList, setResultTypeList] = useState([]);
+  const [codedResultList, setCodedResultList] = useState([]);
+  const [freeResultList, setFreeResultList] = useState([]);
+  const [numericResultId, setNumericResultId] = useState("");
   const [selectedResultTypeList, setSelectedResultTypeList] = useState({});
   const [sampleTypeList, setSampleTypeList] = useState([]);
   const [selectedSampleTypeList, setSelectedSampleTypeList] = useState([]);
@@ -72,6 +75,32 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
   const [ageRangeFields, setAgeRangeFields] = useState([0]);
   const [ageRanges, setAgeRanges] = useState([{ raw: 0, unit: "Y" }]);
 
+  useEffect(() => {
+    if (resultTypeList.length > 0) {
+      const codedList = resultTypeList
+        .filter(
+          (item) =>
+            item.value === "Multiselect" ||
+            item.value === "Cascading multiselect" ||
+            item.value === "Select List",
+        )
+        .map((item) => item.id);
+      setCodedResultList(codedList);
+
+      const freeTextList = resultTypeList
+        .filter(
+          (item) => item.value === "Free text" || item.value === "Alphanumeric",
+        )
+        .map((item) => item.id);
+      setFreeResultList(freeTextList);
+
+      const numericId = resultTypeList.find(
+        (item) => item.value === "Numeric",
+      ).id;
+      setNumericResultId(numericId);
+    }
+  }, [resultTypeList]);
+
   const handleNextStep = (newData, final = false) => {
     setFormData((prev) => ({ ...prev, ...newData }));
 
@@ -83,24 +112,24 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
 
     setCurrentStep((prev) => {
       if (prev === 3) {
-        if (["1", "5"].includes(selectedResultTypeId)) {
+        if (freeResultList.includes(selectedResultTypeId)) {
           return prev + 3;
         }
 
-        if (["4"].includes(selectedResultTypeId)) {
+        if (numericResultId === selectedResultTypeId) {
           return prev + 2;
         }
 
-        if (["2", "6", "7"].includes(selectedResultTypeId)) {
+        if (codedResultList.includes(selectedResultTypeId)) {
           return prev + 1;
         }
       }
 
-      if (prev === 4 && ["2", "6", "7"].includes(selectedResultTypeId)) {
+      if (prev === 4 && codedResultList.includes(selectedResultTypeId)) {
         return prev + 2;
       }
 
-      if (prev === 5 && selectedResultTypeId === "4") {
+      if (prev === 5 && selectedResultTypeId === numericResultId) {
         return prev + 1;
       }
 
@@ -114,20 +143,20 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
 
     setCurrentStep((prevStep) => {
       if (prevStep === 6) {
-        if (["1", "5"].includes(selectedResultTypeId)) {
+        if (freeResultList.includes(selectedResultTypeId)) {
           return prevStep - 3;
         }
 
-        if (["2", "6", "7"].includes(selectedResultTypeId)) {
+        if (codedResultList.includes(selectedResultTypeId)) {
           return prevStep - 2;
         }
 
-        if (selectedResultTypeId === "4") {
+        if (selectedResultTypeId === numericResultId) {
           return prevStep - 1;
         }
       }
 
-      if (prevStep === 5 && selectedResultTypeId === "4") {
+      if (prevStep === 5 && selectedResultTypeId === numericResultId) {
         return prevStep - 2;
       }
 
@@ -168,8 +197,8 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         extractedAgeRanges.push(high);
 
         keyMap[key] = {
-          ageRange: low.raw.toString(),
-          highAgeRange: high.raw.toString(),
+          ageRange: low.raw?.toString(),
+          highAgeRange: high.raw?.toString(),
           gender: limit.gender,
           lowNormal: limit.lowNormal,
           highNormal: limit.highNormal,
@@ -501,8 +530,6 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       handleNextStep={handleNextStep}
       handlePreviousStep={handlePreviousStep}
       resultTypeList={resultTypeList}
-      setResultTypeList={setResultTypeList}
-      selectedResultTypeList={selectedResultTypeList}
       setSelectedResultTypeList={setSelectedResultTypeList}
       intl={intl}
       addNotification={addNotification}
@@ -658,22 +685,16 @@ export const StepOneTestNameAndTestSection = ({
           testSection: Yup.string()
             .required("Test section is required")
             .notOneOf(["0"], "Please select a valid test section"),
-          testNameEnglish: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("English test name is required"),
-          testNameFrench: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("French test name is required"),
-          testReportNameEnglish: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("English report name is required"),
-          testReportNameFrench: Yup.string()
-            .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
-            .trim()
-            .required("French report name is required"),
+          testNameEnglish: Yup.string().required(
+            "English test name is required",
+          ),
+          testNameFrench: Yup.string().required("French test name is required"),
+          testReportNameEnglish: Yup.string().required(
+            "English report name is required",
+          ),
+          testReportNameFrench: Yup.string().required(
+            "French report name is required",
+          ),
         })}
         validateOnChange={true}
         validateOnBlur={true}
@@ -1101,8 +1122,6 @@ export const StepThreeTestResultTypeAndLoinc = ({
   handleNextStep,
   handlePreviousStep,
   resultTypeList,
-  setResultTypeList,
-  selectedResultTypeList,
   setSelectedResultTypeList,
   intl,
   addNotification,

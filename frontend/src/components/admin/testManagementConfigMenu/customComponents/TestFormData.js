@@ -61,8 +61,8 @@ export const extractAgeRangeParts = (rangeStr) => {
     return { raw: 0, unit: "Y" };
   };
 
-  const low = parseAge(start);
-  const high = parseAge(end);
+  const low = start ? parseAge(start) : "";
+  const high = end ? parseAge(end) : "";
 
   return { low, high };
 };
@@ -85,7 +85,8 @@ export const mapTestCatBeanToFormData = (test) => {
     antimicrobialResistance: test.antimicrobialResistance ? "Y" : "N",
     active: test.active === "Active" ? "Y" : "N",
     dictionary: test.dictionaryValues || [],
-    dictionaryReference: test.referenceValue || "",
+    dictionaryReference:
+      test.referenceValue !== "n/a" ? test.referenceValue : "",
     defaultTestResult: "",
     sampleTypes: test.sampleType ? [test.sampleType] : [],
     lowValid: "-Infinity", // this may be needs to fetched from resultLimits collection
