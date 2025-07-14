@@ -1,8 +1,6 @@
 package org.openelisglobal.patient;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -41,69 +39,69 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     public void getAll_ShouldReturnAllPatientContacts() {
         patientContacts = patientContactService.getAll();
         assertNotNull(patientContacts);
-        assertEquals(2, patientContacts.size());
+        assertEquals(13, patientContacts.size());
         assertEquals("8002", patientContacts.get(1).getId());
     }
 
     @Test
-    public void getAllMatching_ShouldReturnMatchingPatientContacts_UsingPropertyName() {
+    public void getAllMatching_ShouldReturnMatchingPatientContactsGivenAPropertyName() {
         patientContacts = patientContactService.getAllMatching("lastupdated", Timestamp.valueOf("2025-06-22 11:30:00"));
         assertNotNull(patientContacts);
-        assertEquals(1, patientContacts.size());
-        assertEquals("8001", patientContacts.get(0).getId());
+        assertEquals(6, patientContacts.size());
+        assertEquals("8013", patientContacts.get(5).getId());
     }
 
     @Test
-    public void getAllMatching_ShouldReturnMatchingPatientContacts_UsingMap() {
+    public void getAllMatching_ShouldReturnMatchingPatientContactsGivenAMap() {
         patientContacts = patientContactService.getAllMatching(propertyValues);
         assertNotNull(patientContacts);
-        assertEquals(1, patientContacts.size());
-        assertEquals("8001", patientContacts.get(0).getId());
+        assertEquals(6, patientContacts.size());
+        assertEquals("8010", patientContacts.get(4).getId());
     }
 
     @Test
-    public void getAllOrdered_ShouldReturnAllOrderedPatientContacts_UsingPropertyName() {
+    public void getAllOrdered_ShouldReturnAllOrderedPatientContactsFilteredByAPropertyNameInDescendingOrder() {
         patientContacts = patientContactService.getAllOrdered("patientId", true);
         assertNotNull(patientContacts);
-        assertEquals(2, patientContacts.size());
-        assertEquals("Cobby", patientContacts.get(1).getPerson().getLastName());
+        assertEquals(13, patientContacts.size());
+        assertEquals("Cobby", patientContacts.get(10).getPerson().getLastName());
     }
 
     @Test
-    public void getAllOrdered_ShouldReturnAllOrderedPatientContacts_UsingList() {
+    public void getAllOrdered_ShouldReturnAllOrderedPatientContactsFilteredByOrderPropertiesInDescendingOrder() {
         orderProperties.add("patientId");
         patientContacts = patientContactService.getAllOrdered(orderProperties, true);
         assertNotNull(patientContacts);
-        assertEquals(2, patientContacts.size());
-        assertEquals("cobpeters@peters.com", patientContacts.get(0).getPerson().getEmail());
+        assertEquals(13, patientContacts.size());
+        assertEquals("cobpeters@peters.com", patientContacts.get(7).getPerson().getEmail());
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContacts_Using() {
+    public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedPatientContactsFilteredByAPropertyNameAndOrderedByAnOrderedPropertyInAscendingOrder() {
         patientContacts = patientContactService.getAllMatchingOrdered("patientId", 3001, "patientId", false);
         assertNotNull(patientContacts);
-        assertEquals(2, patientContacts.size());
-        assertEquals("701", patientContacts.get(0).getPerson().getId());
+        assertEquals(3, patientContacts.size());
+        assertEquals("701", patientContacts.get(2).getPerson().getId());
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContacts_UsingList() {
+    public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContactsFilteredByAPatientIdAndOrderedByOrderPropertiesInDescendingOrder() {
         patientContacts = patientContactService.getAllMatchingOrdered("patientId", 3001, orderProperties, true);
         assertNotNull(patientContacts);
-        assertEquals(2, patientContacts.size());
-        assertEquals("8001", patientContacts.get(0).getId());
+        assertEquals(3, patientContacts.size());
+        assertEquals("8013", patientContacts.get(2).getId());
     }
 
     @Test
-    public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContacts_UsingMap() {
+    public void getAllMatchingOrdered_ShouldReturnMatchingOrderedPatientContactsFilteredByAMapAndOrderedByLastUpdatedInDescendingOrder() {
         patientContacts = patientContactService.getAllMatchingOrdered(propertyValues, "lastupdated", true);
         assertNotNull(patientContacts);
-        assertEquals(1, patientContacts.size());
-        assertEquals("8001", patientContacts.get(0).getId());
+        assertEquals(6, patientContacts.size());
+        assertEquals("8008", patientContacts.get(4).getId());
     }
 
     @Test
-    public void getPage_ShouldReturnAPageOfResults_UsingPageNumber() {
+    public void getPage_ShouldReturnAPageOfResultsGivenPageNumber() {
         patientContacts = patientContactService.getPage(1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -111,7 +109,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingPage_ShouldReturnAPageOfResults_UsingPropertyNameAndValue() {
+    public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAPropertyNameAndValue() {
         patientContacts = patientContactService.getMatchingPage("person", 701, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -119,7 +117,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingPage_ShouldReturnAPageOfResults_UsingMap() {
+    public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAMap() {
         patientContacts = patientContactService.getMatchingPage(propertyValues, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -127,7 +125,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAPageOfResults_UsingOrderProperty() {
+    public void getOrderedPage_ShouldReturnAPageOfResultsFilteredByAnOrderPropertyInDescendingOrder() {
         patientContacts = patientContactService.getOrderedPage("patientId", true, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -135,7 +133,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAPageOfResults_UsingList() {
+    public void getOrderedPage_ShouldReturnAPageOfResultsGivenAListAndOrderedInDescendingOrder() {
         patientContacts = patientContactService.getOrderedPage(orderProperties, false, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -143,7 +141,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingPropertyNameAndValue() {
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResultsGivenAPropertyNameAndValueOrderedByPersonInDescendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage("lastupdated",
                 Timestamp.valueOf("2025-06-22 11:30:00"), "person", true, 1);
         NUMBER_OF_PAGES = Integer
@@ -152,7 +150,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingList() {
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResultsGivenLastUpdatedAndOrderedByOrderPropertiesInAscendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage("lastupdated",
                 Timestamp.valueOf("2024-06-10 11:45:00"), orderProperties, false, 1);
         NUMBER_OF_PAGES = Integer
@@ -161,7 +159,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingMap() {
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResultsFilteredByAMapAndOrderedByOrderPropertyInDescendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage(propertyValues, "patientId", true, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -169,7 +167,7 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void getMatchingOrderedPage_ShouldReturnAPageOfResults_UsingMapAndList() {
+    public void getMatchingOrderedPage_ShouldReturnAPageOfResultsFilteredByAListAndAMapInDescendingOrder() {
         patientContacts = patientContactService.getMatchingOrderedPage(propertyValues, orderProperties, true, 1);
         NUMBER_OF_PAGES = Integer
                 .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
@@ -178,17 +176,24 @@ public class PatientContactServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void deletePatientContact_ShouldDeleteAPatientContactPassedAsParameter() {
-        PatientContact patientContact = patientContactService.getAll().get(0);
+        List<PatientContact> initialPatientContacts = patientContactService.getAll();
+        assertEquals(13, initialPatientContacts.size());
+        PatientContact patientContact = patientContactService.get("8003");
+        boolean isFound = initialPatientContacts.stream().anyMatch(pc -> "8003".equals(pc.getId()));
+        assertTrue(isFound);
         patientContactService.delete(patientContact);
         List<PatientContact> deletedPatientContact = patientContactService.getAll();
-        assertEquals(1, deletedPatientContact.size());
+        assertFalse(deletedPatientContact.contains(patientContact));
+        assertEquals(12, deletedPatientContact.size());
     }
 
     @Test
     public void deleteAllPatientContacts_ShouldDeleteAllPatientContacts() {
-        patientContactService.deleteAll(patientContactService.getAll());
-        List<PatientContact> delectedPatientContact = patientContactService.getAll();
-        assertNotNull(delectedPatientContact);
-        assertEquals(0, delectedPatientContact.size());
+        List<PatientContact> initialPatientContacts = patientContactService.getAll();
+        assertFalse(initialPatientContacts.isEmpty());
+        patientContactService.deleteAll(initialPatientContacts);
+        List<PatientContact> delectedPatientContacts = patientContactService.getAll();
+        assertNotNull(delectedPatientContacts);
+        assertTrue(delectedPatientContacts.isEmpty());
     }
 }
