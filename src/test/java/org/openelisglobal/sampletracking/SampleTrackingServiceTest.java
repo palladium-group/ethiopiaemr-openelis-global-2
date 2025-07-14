@@ -4,12 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.NonNull;
+import org.dbunit.DatabaseUnitException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +31,7 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
     private List<SampleTracking> sampleTrackingList;
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
-    private static int NUMBER_OF_PAGES = 0;
+    private static int PAGE_SIZE = 0;
 
     @Autowired
     public void setDataSource(@NonNull DataSource dataSource) {
@@ -37,7 +39,8 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+
         jdbcTemplate.execute("DROP TABLE IF EXISTS sampletracking CASCADE;");
         jdbcTemplate.execute("CREATE TABLE sampletracking (accNum VARCHAR(10) PRIMARY KEY,"
                 + "PATIENTID VARCHAR(20),CLIREF VARCHAR(20),PATIENTLASTNAME VARCHAR(30),"
@@ -46,18 +49,7 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
                 + "SOSID VARCHAR(10),SOSDESC VARCHAR(20),COLLDATE NUMERIC(7,0),"
                 + "DATEOFBIRTH NUMERIC(7,0),SORI VARCHAR(1));");
 
-        jdbcTemplate.update("INSERT INTO SAMPLETRACKING (accNum, PATIENTID, CLIREF, "
-                + "PATIENTLASTNAME, PATIENTFIRSTNAME,ORG_LOCAL_ABBREV, ORGNAME, RECDDATE, "
-                + "TOSID, TOSDESC,SOSID, SOSDESC, COLLDATE, DATEOFBIRTH, SORI)"
-                + "VALUES ('9001', 'PAT-001', 'CL-REF-22', 'Doe', 'John',"
-                + "'001', 'General Hospital', '240705', '1001', 'Routine',"
-                + "'2001', 'Emergency', 240705, 940101, 'S');");
-
-        jdbcTemplate.update("INSERT INTO SAMPLETRACKING (accNum,PATIENTID,CLIREF,"
-                + "PATIENTLASTNAME,PATIENTFIRSTNAME,ORG_LOCAL_ABBREV,ORGNAME,"
-                + "RECDDATE,TOSID,TOSDESC,SOSID,SOSDESC,COLLDATE, DATEOFBIRTH,SORI) "
-                + "VALUES ('9002','PAT-002', 'CL-REF-23','Smith','Jane','002',"
-                + "'General Hospital', '240708','1002','Urgent','2002','Scheduled'," + "240708, 950315,'I');");
+        executeDataSetWithStateManagement("testdata/sample-tracking.xml");
 
         propertyValues = new HashMap<>();
         propertyValues.put("sosDesc", "Scheduled");
@@ -66,24 +58,24 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @After
-    public void cleanUp() {
-        jdbcTemplate.execute("DROP TABLE IF EXISTS sampletracking CASCADE;");
+    public void cleanUp() throws SQLException, DatabaseUnitException {
+        cleanRowsInCurrentConnection(new String[] { "sampletracking" });
     }
 
     @Test
     public void getAll_ShouldReturnAllSampleTrackings() {
         sampleTrackingList = sampleTrackingService.getAll();
         assertNotNull(sampleTrackingList);
-        assertEquals(2, sampleTrackingList.size());
-        assertEquals("9002", sampleTrackingList.get(1).getId());
+        assertEquals(6, sampleTrackingList.size());
+        assertEquals("9006", sampleTrackingList.get(5).getId());
     }
 
     @Test
     public void getAllMatching_ShouldReturnAllMatchingSampleTrackings_UsingPropertyNameAndValue() {
         sampleTrackingList = sampleTrackingService.getAllMatching("sosDesc", "Emergency");
         assertNotNull(sampleTrackingList);
-        assertEquals(1, sampleTrackingList.size());
-        assertEquals("9001", sampleTrackingList.get(0).getId());
+        assertEquals(2, sampleTrackingList.size());
+        assertEquals("9004", sampleTrackingList.get(1).getId());
     }
 
     @Test
@@ -98,32 +90,32 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
     public void getAllOrdered_ShouldReturnAllOrderedSampleTrackings_UsingAnOrderProperty() {
         sampleTrackingList = sampleTrackingService.getAllOrdered("patientId", false);
         assertNotNull(sampleTrackingList);
-        assertEquals(2, sampleTrackingList.size());
-        assertEquals("9002", sampleTrackingList.get(1).getId());
+        assertEquals(6, sampleTrackingList.size());
+        assertEquals("9004", sampleTrackingList.get(3).getId());
     }
 
     @Test
     public void getAllOrdered_ShouldReturnAllOrdered_UsingAList() {
         sampleTrackingList = sampleTrackingService.getAllOrdered(orderProperties, true);
         assertNotNull(sampleTrackingList);
-        assertEquals(2, sampleTrackingList.size());
-        assertEquals("9002", sampleTrackingList.get(0).getId());
+        assertEquals(6, sampleTrackingList.size());
+        assertEquals("9003", sampleTrackingList.get(4).getId());
     }
 
     @Test
     public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSampleTrackings_UsingPropertyNameAndValueAndAnOrderProperty() {
         sampleTrackingList = sampleTrackingService.getAllMatchingOrdered("sosDesc", "Emergency", "collDate", true);
         assertNotNull(sampleTrackingList);
-        assertEquals(1, sampleTrackingList.size());
-        assertEquals("9001", sampleTrackingList.get(0).getId());
+        assertEquals(2, sampleTrackingList.size());
+        assertEquals("9004", sampleTrackingList.get(0).getId());
     }
 
     @Test
     public void getAllMatchingOrdered_ShouldReturnAllMatchingOrderedSampleTrackings_UsingPropertyNameAndValueAndAList() {
         sampleTrackingList = sampleTrackingService.getAllMatchingOrdered("sosDesc", "Emergency", orderProperties, true);
         assertNotNull(sampleTrackingList);
-        assertEquals(1, sampleTrackingList.size());
-        assertEquals("9001", sampleTrackingList.get(0).getId());
+        assertEquals(2, sampleTrackingList.size());
+        assertEquals("9004", sampleTrackingList.get(0).getId());
     }
 
     @Test
@@ -144,74 +136,65 @@ public class SampleTrackingServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getPage_ShouldReturnAPageOfSampleTrackings_UsingAPageNumber() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getPage(1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfSampleTrackings_UsingAPropertyNameAndValue() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingPage("patientId", "PAT-001", 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfSampleTrackings_UsingAMap() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingPage(propertyValues, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfSampleTrackings_UsingAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getOrderedPage("collDate", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfSampleTrackings_UsingAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getOrderedPage(orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfSampleTrackings_UsingAPropertyNameAndValueAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingOrderedPage("sosDesc", "Emergency", "collDate", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfSampleTrackings_UsingAPropertyNameAndValueAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingOrderedPage("sosDesc", "Emergency", orderProperties, true,
                 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfSampleTrackings_UsingAMapAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingOrderedPage(propertyValues, "patientId", false, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfSampleTrackings_UsingAMapAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         sampleTrackingList = sampleTrackingService.getMatchingOrderedPage(propertyValues, orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= sampleTrackingList.size());
+        assertTrue(PAGE_SIZE >= sampleTrackingList.size());
     }
 }
