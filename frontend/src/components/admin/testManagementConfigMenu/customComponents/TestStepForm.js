@@ -236,12 +236,9 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
         (item) => item.value === initialData.testSection,
       );
 
-      const selectedPanelObjects =
-        initialData.panels?.length > 0
-          ? panelList.filter((panel) =>
-              initialData.panels.includes(panel.value),
-            )
-          : [];
+      const selectedPanelObjects = panelList.filter((panel) =>
+        initialData?.panels?.includes(panel.value),
+      );
 
       const selectedUom = uomList.find(
         (item) => item.value === initialData.uom,
@@ -291,8 +288,8 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
 
       setPanelListTag(
         selectedPanelObjects.map((panel) => ({
-          id: panel.id,
-          value: panel.value,
+          id: panel?.id,
+          value: panel?.value,
         })),
       );
 
@@ -392,7 +389,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       setFormData((prev) => ({
         ...prev,
         testSection: selectedLabUnit?.id || "",
-        panels: selectedPanelObjects.map((panel) => ({ id: panel.id })),
+        panels: selectedPanelObjects.map((panel) => ({ id: panel?.id })),
         uom: selectedUom?.id || "",
         sampleTypes: [],
         resultType: mappedResultType?.id || "",
@@ -927,9 +924,11 @@ export const StepTwoTestPanelAndUom = ({
               "Please select a valid panel",
             )
             .nullable(),
-          uom: Yup.string()
-            .notOneOf(["0", ""], "Please select a valid unit of measurement")
-            .required("Unit of measurement is required"),
+          uom: Yup.string().notOneOf(
+            ["0", ""],
+            "Please select a valid unit of measurement",
+          ),
+          // .required("Unit of measurement is required"),
         })}
         enableReinitialize={true}
         validateOnChange={true}
@@ -950,7 +949,7 @@ export const StepTwoTestPanelAndUom = ({
           const handelPanelSelectSetTag = (e) => {
             const selectedId = e.target.value;
             const selectedPanelObject = panelList.find(
-              (item) => item.id === selectedId,
+              (item) => item?.id === selectedId,
             );
             if (!selectedPanelObject) return;
 
@@ -966,9 +965,11 @@ export const StepTwoTestPanelAndUom = ({
                   ],
             );
 
-            const isAlreadyInValuesPanels = values.panels.some(
-              (panel) => panel.id === selectedId,
-            );
+            const isAlreadyInValuesPanels = Array.isArray(values.panels)
+              ? values.panels.find(
+                  (panel) => String(panel?.id) === String(selectedId),
+                )
+              : false;
 
             if (!isAlreadyInValuesPanels) {
               setFieldValue("panels", [...values.panels, { id: selectedId }]);
@@ -978,8 +979,8 @@ export const StepTwoTestPanelAndUom = ({
           };
 
           const handlePanelRemoveTag = (idToRemove) => {
-            const isPresentInValuesPanels = values.panels.some(
-              (panel) => panel.id === idToRemove,
+            const isPresentInValuesPanels = values.panels.find(
+              (panel) => panel?.id === idToRemove,
             );
 
             if (!isPresentInValuesPanels) return;
@@ -988,8 +989,9 @@ export const StepTwoTestPanelAndUom = ({
               tags.filter((tag) => tag.id !== idToRemove),
             );
 
-            setFieldValue("panels", (prev) =>
-              prev.filter((p) => p.id !== idToRemove),
+            setFieldValue(
+              "panels",
+              values.panels.filter((p) => String(p.id) !== String(idToRemove)),
             );
 
             // const idToReAddObject = panelList.find(
@@ -1047,10 +1049,7 @@ export const StepTwoTestPanelAndUom = ({
                   </Select>
                   <br />
                   {panelListTag && panelListTag.length ? (
-                    <div
-                      className={"select-panel"}
-                      style={{ marginBottom: "1.188rem" }}
-                    >
+                    <div style={{ marginBottom: "1.188rem" }}>
                       <>
                         {panelListTag.map((panel) => (
                           <Tag
@@ -1078,7 +1077,6 @@ export const StepTwoTestPanelAndUom = ({
                     id={`select-uom`}
                     name="uom"
                     hideLabel
-                    required
                     invalid={touched.uom && !!errors.uom}
                     invalidText={touched.uom && errors.uom}
                     value={values.uom}
@@ -1492,22 +1490,43 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 }
               };
 
-              const handleRemoveSampleTypeListSelectIdTestTag = (
-                indexToRemove,
-              ) => {
-                const filterByIndex = (_, index) => index !== indexToRemove;
+              // const handleRemoveSampleTypeListSelectIdTestTag = (
+              //   indexToRemove,
+              // ) => {
+              //   const filterByIndex = (_, index) => index !== indexToRemove;
 
-                setFieldValue(
-                  "sampleTypes",
-                  selectedSampleTypeList.filter(filterByIndex),
-                );
-                setSelectedSampleTypeList((prev) => prev.filter(filterByIndex));
-                setSelectedSampleType((prev) => prev.filter(filterByIndex));
-                setSelectedSampleTypeResp((prev) => prev.filter(filterByIndex));
+              //   setFieldValue(
+              //     "sampleTypes",
+              //     selectedSampleTypeList.filter(filterByIndex),
+              //   );
+              //   setSelectedSampleTypeList((prev) => prev.filter(filterByIndex));
+              //   setSelectedSampleType((prev) => prev.filter(filterByIndex));
+              //   setSelectedSampleTypeResp((prev) => prev.filter(filterByIndex));
 
-                setSampleTestTypeToGetTagList((prevTags) => {
-                  const updatedTags = prevTags.filter(filterByIndex);
-                  return updatedTags;
+              //   setSampleTestTypeToGetTagList((prevTags) => {
+              //     const updatedTags = prevTags.filter(filterByIndex);
+              //     return updatedTags;
+              //   });
+              // };
+
+              const handleRemoveSampleTypeListSelectIdTestTag = (index) => {
+                setSampleTestTypeToGetTagList((prev) => {
+                  const updated = [...prev];
+                  const removedItem = updated.splice(index, 1)[0]; // store removed
+                  const removedId = removedItem?.id;
+
+                  // clean associated state
+                  setSelectedSampleType((prev) =>
+                    prev.filter((item) => item.id !== removedId),
+                  );
+                  setSelectedSampleTypeResp((prev) =>
+                    prev.filter((item) => item.sampleTypeId !== removedId),
+                  );
+                  setSelectedSampleTypeList((prev) =>
+                    prev.filter((item) => item.id !== removedId),
+                  );
+
+                  return updated;
                 });
               };
 
@@ -1538,11 +1557,8 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       </Select>
                       <br />
                       {sampleTestTypeToGetTagList &&
-                      sampleTestTypeToGetTagList.length ? (
-                        <div
-                          className={"select-sample-type"}
-                          style={{ marginBottom: "1.188rem" }}
-                        >
+                      sampleTestTypeToGetTagList.length > 0 ? (
+                        <div style={{ marginBottom: "1.188rem" }}>
                           <>
                             {sampleTestTypeToGetTagList.map(
                               (section, index) => (
@@ -1579,7 +1595,8 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                         </Section>
                       </Section>
                       <br />
-                      {selectedSampleTypeResp.length > 0 ? (
+                      {Array.isArray(selectedSampleTypeResp) &&
+                      selectedSampleTypeResp.length > 0 ? (
                         selectedSampleTypeResp.map((item, index) => (
                           <>
                             <div className="gridBoundary">
@@ -1859,10 +1876,7 @@ export const StepFiveSelectListOptionsAndResultOrder = ({
                       </Select>
                       <br />
                       {dictionaryListTag && dictionaryListTag.length ? (
-                        <div
-                          className={"select-list-options-tag"}
-                          style={{ marginBottom: "1.188rem" }}
-                        >
+                        <div style={{ marginBottom: "1.188rem" }}>
                           <>
                             {dictionaryListTag.map((dict, index) => (
                               <Tag
@@ -2032,10 +2046,7 @@ export const StepFiveSelectListOptionsAndResultOrder = ({
                       <br />
                       {multiSelectDictionaryListTag &&
                       multiSelectDictionaryListTag.length ? (
-                        <div
-                          className={"select-qualifiers-tag"}
-                          style={{ marginBottom: "1.188rem" }}
-                        >
+                        <div style={{ marginBottom: "1.188rem" }}>
                           <>
                             {multiSelectDictionaryListTag.map((dict, index) => (
                               <Tag

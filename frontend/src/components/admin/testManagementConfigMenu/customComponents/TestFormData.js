@@ -68,6 +68,11 @@ export const extractAgeRangeParts = (rangeStr) => {
 };
 
 export const mapTestCatBeanToFormData = (test) => {
+  const extractedPanels =
+    typeof test.panel === "string" && test.panel !== "None"
+      ? test.panel.split(",").map((p) => p.trim())
+      : [];
+
   return {
     testId: test.id,
     testNameEnglish: test.localization?.english || "",
@@ -75,7 +80,8 @@ export const mapTestCatBeanToFormData = (test) => {
     testReportNameEnglish: test.reportLocalization?.english || "",
     testReportNameFrench: test.reportLocalization?.french || "",
     testSection: test.testUnit || "",
-    panels: test.panel && test.panel !== "None" ? [test.panel] : [],
+    // panels: test.panel && test.panel !== "None" ? [test.panel] : [],
+    panels: extractedPanels,
     uom: test.uom || "",
     loinc: test.loinc || "",
     resultType: test.resultType || "",
