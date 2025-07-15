@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NoOpOdooClient implements OdooConnection {
+
     @Override
     public boolean isAvailable() {
         return false;

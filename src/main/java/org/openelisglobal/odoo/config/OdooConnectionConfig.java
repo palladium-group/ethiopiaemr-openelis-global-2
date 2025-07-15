@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
+@SuppressWarnings("unused")
 public class OdooConnectionConfig {
 
     @Bean
@@ -18,7 +19,7 @@ public class OdooConnectionConfig {
             odooClient.init();
             return new RealOdooClient(odooClient);
         } catch (Exception e) {
-            log.warn("Failed to connect to Odoo at startup: {}", e.getMessage());
+            log.error("Failed to connect to Odoo at startup: {}", e.getMessage());
             return new NoOpOdooClient();
         }
     }
