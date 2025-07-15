@@ -98,7 +98,7 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
-    public void persistAnalyzerResults_ShouldPersistAListOfAnalyzerResults() {
+    public void persistAnalyzerResults_ShouldDeleteAListOfAnalyzerResultsAndInsertANewSampleGroupingList() {
         AnalyzerResults analyzerResult = analyzerResultsService.get("1003");
         List<AnalyzerResults> deletableAnalyzerResults = new ArrayList<>();
         deletableAnalyzerResults.add(analyzerResult);
@@ -129,7 +129,6 @@ public class AnalyzerResultsServiceTest extends BaseWebContextSensitiveTest {
         List<Note> notes = noteService.getAll();
         noteService.deleteAll(notes);
         Note note = new Note();
-        note.setId("3001");
         note.setSysUserId("2001");
         note.setReferenceId("3001");
         note.setReferenceTableId("1");
