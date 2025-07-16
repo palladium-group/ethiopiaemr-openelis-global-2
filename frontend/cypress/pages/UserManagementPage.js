@@ -256,7 +256,7 @@ class UserManagementPage {
   }
 
   validateColumnContent(columnNum, value) {
-    cy.get(`td:nth-child(${columnNum})`).should("contain", value);
+    cy.contains(`td:nth-child(${columnNum})`, value);
   }
 
   inactiveUser(value) {
