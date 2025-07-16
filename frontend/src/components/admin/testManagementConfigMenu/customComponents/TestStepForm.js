@@ -30,6 +30,7 @@ import { NotificationContext } from "../../../layout/Layout.js";
 import { extractAgeRangeParts } from "./TestFormData.js";
 
 export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
+  console.log(initialData);
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
@@ -459,6 +460,35 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       userBenchChoice: false,
     };
 
+    const alreadyContainsDefault = res.tests?.some(
+      (t) =>
+        (t.name || "").trim().toLowerCase() ===
+          (formData.testNameEnglish || "").trim().toLowerCase() ||
+        (t.name || "").trim().toLowerCase() ===
+          (formData.testNameFrench || "").trim().toLowerCase(),
+    );
+
+    const hasTestIdMatch = res.tests?.some(
+      (t) => String(t.id) === String(initialData.testId),
+    );
+
+    const updatedTests = (() => {
+      if (hasTestIdMatch) {
+        return res.tests.map((t) =>
+          String(t.id) === String(initialData.testId)
+            ? {
+                ...t,
+                name: formData.testNameEnglish || formData.testNameFrench,
+              }
+            : t,
+        );
+      } else {
+        return mode === "edit" && alreadyContainsDefault
+          ? [...(res.tests || [])]
+          : [...(res.tests || []), extraTestItem];
+      }
+    })();
+
     setSelectedSampleTypeResp((prev) => {
       const isAlreadyPresent = prev.some(
         (item) => item.sampleTypeId === res.sampleTypeId,
@@ -467,22 +497,11 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       let updated;
 
       if (isInSelectedSampleType && !isAlreadyPresent) {
-        const alreadyContainsDefault = res.tests?.some(
-          (t) =>
-            (t.name || "").trim().toLowerCase() ===
-              (formData.testNameEnglish || "").trim().toLowerCase() ||
-            (t.name || "").trim().toLowerCase() ===
-              (formData.testNameFrench || "").trim().toLowerCase(),
-        );
-
         updated = [
           ...prev,
           {
             ...res,
-            tests:
-              mode === "edit" && alreadyContainsDefault
-                ? [...(res.tests || [])]
-                : [...(res.tests || []), extraTestItem],
+            tests: updatedTests,
           },
         ];
       } else if (!isInSelectedSampleType) {
@@ -493,6 +512,25 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       return updated;
     });
   };
+
+  useEffect(() => {
+    if (!initialData?.testId) return;
+
+    setSelectedSampleTypeResp((prevList) => {
+      console.log(prevList);
+      return prevList.map((item) => ({
+        ...item,
+        tests: (item.tests || []).map((t) =>
+          String(t.id) === String(initialData.testId)
+            ? {
+                ...t,
+                name: formData.testNameEnglish || formData.testNameFrench,
+              }
+            : t,
+        ),
+      }));
+    });
+  }, [formData.testNameEnglish, formData.testNameFrench]);
 
   const steps = [
     <StepOneTestNameAndTestSection
