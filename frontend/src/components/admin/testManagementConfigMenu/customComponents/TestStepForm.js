@@ -30,7 +30,6 @@ import { NotificationContext } from "../../../layout/Layout.js";
 import { extractAgeRangeParts } from "./TestFormData.js";
 
 export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
-  console.log(initialData);
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
@@ -517,7 +516,6 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
     if (!initialData?.testId) return;
 
     setSelectedSampleTypeResp((prevList) => {
-      console.log(prevList);
       return prevList.map((item) => ({
         ...item,
         tests: (item.tests || []).map((t) =>
