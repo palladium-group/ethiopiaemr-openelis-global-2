@@ -2498,15 +2498,43 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
               // .max(100, "Maximum value is 100")
               // .required("Required"),
 
-              lowValid: Yup.mixed().test(
-                "is-valid-number-or-infinity",
-                "Low Valid must be a number or 'Infinity'",
-                (value) =>
-                  value === "-Infinity" ||
-                  value === "Infinity" ||
-                  typeof value === "number" ||
-                  !isNaN(Number(value)),
-              ),
+              lowValid: Yup.mixed()
+                .test(
+                  "is-valid-number-or-infinity",
+                  "Low Valid must be a number or 'Infinity'",
+                  (value) =>
+                    value === "-Infinity" ||
+                    value === "Infinity" ||
+                    typeof value === "number" ||
+                    !isNaN(Number(value)),
+                )
+                .test(
+                  "less-than-lowNormals",
+                  "Low Valid must be less than Low Normal and Low Normal Female",
+                  function (value) {
+                    const { resultLimits } = this.parent;
+                    const lowValid = parseFloat(value);
+
+                    if (
+                      !resultLimits ||
+                      resultLimits.length === 0 ||
+                      isNaN(lowValid)
+                    )
+                      return true;
+
+                    const lowNormal = parseFloat(resultLimits[0].lowNormal);
+                    const lowNormalFemale = parseFloat(
+                      resultLimits[0].lowNormalFemale,
+                    );
+
+                    if (isNaN(lowNormal) && isNaN(lowNormalFemale)) return true;
+
+                    return (
+                      (isNaN(lowNormal) || lowValid < lowNormal) &&
+                      (isNaN(lowNormalFemale) || lowValid < lowNormalFemale)
+                    );
+                  },
+                ),
               // .min(0, "Minimum value is 0")
               // .max(100, "Maximum value is 100")
               // .required("Required"),
@@ -2521,16 +2549,44 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     typeof value === "number" ||
                     !isNaN(Number(value)),
                 )
-                .test(
-                  "greater-than-lowValid",
-                  "Must be greater or equal to lower valid range",
-                  function (value) {
-                    const { lowValid } = this.parent;
-                    const high = parseFloat(value);
-                    const low = parseFloat(lowValid);
+                // .test(
+                //   "greater-than-lowValid",
+                //   "Must be greater or equal to lower valid range",
+                //   function (value) {
+                //     const { lowValid } = this.parent;
+                //     const high = parseFloat(value);
+                //     const low = parseFloat(lowValid);
 
-                    if (isNaN(high) || isNaN(low)) return true;
-                    return high >= low;
+                //     if (isNaN(high) || isNaN(low)) return true;
+                //     return high >= low;
+                //   },
+                // )
+                .test(
+                  "greater-than-highNormals",
+                  "High Valid must be greater than High Normal and High Normal Female",
+                  function (value) {
+                    const { resultLimits } = this.parent;
+                    const highValid = parseFloat(value);
+
+                    if (
+                      !resultLimits ||
+                      resultLimits.length === 0 ||
+                      isNaN(highValid)
+                    )
+                      return true;
+
+                    const highNormal = parseFloat(resultLimits[0].highNormal);
+                    const highNormalFemale = parseFloat(
+                      resultLimits[0].highNormalFemale,
+                    );
+
+                    if (isNaN(highNormal) && isNaN(highNormalFemale))
+                      return true;
+
+                    return (
+                      (isNaN(highNormal) || highValid > highNormal) &&
+                      (isNaN(highNormalFemale) || highValid > highNormalFemale)
+                    );
                   },
                 ),
               // .max(100, "Maximum value is 100")
