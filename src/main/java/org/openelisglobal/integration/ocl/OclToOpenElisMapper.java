@@ -1,3 +1,4 @@
+// File: OclToOpenElisMapper.java (Corrected field name "concept class")
 package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,28 +18,6 @@ public class OclToOpenElisMapper {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Map OCL test sections to valid OpenELIS test section IDs
-    private static final Map<String, String> TEST_SECTION_MAPPING = new HashMap<>();
-    static {
-        TEST_SECTION_MAPPING.put("HEMATOLOGY", "36");
-        TEST_SECTION_MAPPING.put("BIOCHEMISTRY", "56");
-        TEST_SECTION_MAPPING.put("CHEMISTRY", "56");
-        TEST_SECTION_MAPPING.put("IMMUNOLOGY", "59");
-        TEST_SECTION_MAPPING.put("VIROLOGIE", "76");
-        TEST_SECTION_MAPPING.put("VIROLOGY", "76");
-        TEST_SECTION_MAPPING.put("SEROLOGY", "97");
-        TEST_SECTION_MAPPING.put("SEROLOGY-IMMUNOLOGY", "117");
-        TEST_SECTION_MAPPING.put("MOLECULAR BIOLOGY", "136");
-        TEST_SECTION_MAPPING.put("MOLECULAR_BIOLOGY", "136");
-        TEST_SECTION_MAPPING.put("PATHOLOGY", "163");
-        TEST_SECTION_MAPPING.put("IMMUNOHISTOCHEMISTRY", "164");
-        TEST_SECTION_MAPPING.put("CYTOLOGY", "165");
-        TEST_SECTION_MAPPING.put("MICROBIOLOGY", "163");
-        TEST_SECTION_MAPPING.put("PARASITOLOGY", "163");
-        TEST_SECTION_MAPPING.put("PANEL", "36");
-        TEST_SECTION_MAPPING.put("TEST", "36");
-    }
-
     // Map OCL data types to OpenELIS result type IDs
     private static final Map<String, String> RESULT_TYPE_MAPPING = new HashMap<>();
     static {
@@ -50,10 +29,15 @@ public class OclToOpenElisMapper {
         RESULT_TYPE_MAPPING.put("TEXT", "T");
         RESULT_TYPE_MAPPING.put("STRING", "T");
         RESULT_TYPE_MAPPING.put("PANEL", "P");
+        RESULT_TYPE_MAPPING.put("N/A", "T"); // Assuming N/A maps to Text
     }
 
     /**
      * Creates a wrapper node with concepts array for a single concept
+     * 
+     * @param singleConcept The JSON node representing a single OCL concept.
+     * @return A JSON node wrapper containing the single concept in a "concepts"
+     *         array.
      */
     public JsonNode createConceptWrapper(JsonNode singleConcept) {
         ObjectNode wrapper = objectMapper.createObjectNode();
@@ -64,7 +48,12 @@ public class OclToOpenElisMapper {
     }
 
     /**
-     * Maps OCL concepts to TestAddForm objects ready for submission
+     * Maps OCL concepts to TestAddForm objects ready for submission, applying
+     * filters for datatype and concept_class.
+     * 
+     * @param rootNode The root JSON node, which may contain a "concepts" array or
+     *                 be a single concept.
+     * @return A list of TestAddForm objects that pass the filters.
      */
     public List<TestAddForm> mapConceptsToTestAddForms(JsonNode rootNode) {
         try {
@@ -79,7 +68,7 @@ public class OclToOpenElisMapper {
                     }
                 }
             } else {
-                // Handle single concept
+                // Handle single concept if not an array under "concepts"
                 TestAddForm form = mapSingleConceptToForm(rootNode);
                 if (form != null) {
                     forms.add(form);
@@ -95,10 +84,50 @@ public class OclToOpenElisMapper {
     }
 
     /**
-     * Maps a single OCL concept to a TestAddForm
+     * Maps a single OCL concept to a TestAddForm, applying filters and specific
+     * mappings.
+     * 
+     * @param concept The JSON node representing a single OCL concept.
+     * @return A TestAddForm object if the concept passes all filters, otherwise
+     *         null.
      */
     private TestAddForm mapSingleConceptToForm(JsonNode concept) {
         try {
+            // --- DEBUGGING STEP: Print the full concept JSON (can be removed after fix)
+            // ---
+            System.out.println("DEBUG: Processing concept JSON: " + objectMapper.writeValueAsString(concept));
+            // --- END DEBUGGING STEP ---
+
+            // Datatype filtering: Only map numeric, text, and coded tests.
+            String dataType = getText(concept, "datatype");
+            if (dataType == null || !(dataType.equalsIgnoreCase("NUMERIC") || dataType.equalsIgnoreCase("NUMBER")
+                    || dataType.equalsIgnoreCase("TEXT") || dataType.equalsIgnoreCase("STRING")
+                    || dataType.equalsIgnoreCase("CODED") || dataType.equalsIgnoreCase("SELECT")
+                    || dataType.equalsIgnoreCase("N/A"))) {
+                System.out.println(
+                        "Skipping concept " + getText(concept, "id") + " due to unsupported datatype: " + dataType);
+                return null;
+            }
+
+            // Concept Class filtering: Only import specific concept classes.
+            // Corrected field name from "concept_class" to "concept class"
+            String conceptClass = getText(concept, "concept class"); // <-- FIX IS HERE
+            boolean isAllowedConceptClass = false;
+
+            if (conceptClass != null) {
+                String normalizedConceptClass = conceptClass.toUpperCase();
+                if (normalizedConceptClass.equals("TEST") || normalizedConceptClass.equals("LAB SET")
+                        || normalizedConceptClass.equals("MISC") || normalizedConceptClass.equals("FINDING")) {
+                    isAllowedConceptClass = true;
+                }
+            }
+
+            if (!isAllowedConceptClass) {
+                System.out.println("Skipping concept " + getText(concept, "id") + " due to unsupported concept_class: "
+                        + conceptClass);
+                return null;
+            }
+
             TestAddForm form = new TestAddForm();
 
             // Create the JSON structure expected by TestAddRestController
@@ -106,7 +135,7 @@ public class OclToOpenElisMapper {
 
             // Map all required fields in the exact format
             mapTestNames(concept, jsonWad);
-            mapTestSection(concept, jsonWad);
+            mapTestSection(concept, jsonWad); // Hardcoded to Hematology
             mapPanels(concept, jsonWad);
             mapUnits(concept, jsonWad);
             mapLoinc(concept, jsonWad);
@@ -123,7 +152,7 @@ public class OclToOpenElisMapper {
             // Convert to JSON string and set in form
             form.setJsonWad(objectMapper.writeValueAsString(jsonWad));
 
-            // Also set LOINC separately as it's used for validation
+            // Also set LOINC separately as it's used for validation or direct access
             form.setLoinc(getText(concept, "loinc"));
 
             System.out.println("Mapped OCL concept to TestAddForm: " + getText(concept, "id"));
@@ -154,7 +183,7 @@ public class OclToOpenElisMapper {
             }
         }
 
-        // Fallback to simplified format fields
+        // Fallback to simplified format fields: display_name, description, id
         if (englishName == null) {
             englishName = getText(concept, "display_name");
             if (englishName == null) {
@@ -177,34 +206,8 @@ public class OclToOpenElisMapper {
     }
 
     private void mapTestSection(JsonNode concept, ObjectNode jsonWad) {
-        String testSection = getText(concept, "testSection");
-        String conceptClass = getText(concept, "concept_class");
-        String sectionId = null;
-
-        // Try to map based on testSection field first
-        if (testSection != null) {
-            sectionId = TEST_SECTION_MAPPING.get(testSection.toUpperCase());
-        }
-
-        // Try to map based on concept_class
-        if (sectionId == null && conceptClass != null) {
-            sectionId = TEST_SECTION_MAPPING.get(conceptClass.toUpperCase());
-        }
-
-        // Try to infer from test ID
-        if (sectionId == null) {
-            String testId = getText(concept, "id");
-            if (testId != null) {
-                sectionId = inferSectionFromTestId(testId);
-            }
-        }
-
-        // Default to Hematology
-        if (sectionId == null) {
-            sectionId = "36";
-        }
-
-        jsonWad.put("testSection", sectionId);
+        // Requirement: Map all OCL concepts to Hematology (ID: "36")
+        jsonWad.put("testSection", "36");
     }
 
     private void mapPanels(JsonNode concept, ObjectNode jsonWad) {
@@ -216,7 +219,7 @@ public class OclToOpenElisMapper {
     private void mapUnits(JsonNode concept, ObjectNode jsonWad) {
         String units = null;
 
-        // Try extras first (OCL standard)
+        // Try extras first (OCL standard: units attribute in extras)
         JsonNode extras = concept.get("extras");
         if (extras != null && extras.has("units")) {
             units = getText(extras, "units");
@@ -233,7 +236,7 @@ public class OclToOpenElisMapper {
     private void mapLoinc(JsonNode concept, ObjectNode jsonWad) {
         String loinc = null;
 
-        // Try mappings array first (OCL standard format)
+        // Try mappings array first (OCL standard format for LOINC)
         JsonNode mappings = concept.get("mappings");
         if (mappings != null && mappings.isArray()) {
             for (JsonNode mapping : mappings) {
@@ -265,18 +268,20 @@ public class OclToOpenElisMapper {
             }
         }
 
-        // Convert to actual DB ID
+        // Convert to actual DB ID if TypeOfTestResultService is available via
+        // SpringContext
         try {
             TypeOfTestResultService service = SpringContext.getBean(TypeOfTestResultService.class);
             TypeOfTestResult typeObj = service.getTypeOfTestResultByType(resultTypeId);
             if (typeObj != null && typeObj.getId() != null) {
                 jsonWad.put("resultType", typeObj.getId());
             } else {
-                jsonWad.put("resultType", resultTypeId);
+                jsonWad.put("resultType", resultTypeId); // Fallback to character value if ID not found
             }
         } catch (Exception e) {
-            System.err.println("Error mapping result type: " + e.getMessage());
-            jsonWad.put("resultType", resultTypeId);
+            System.err.println(
+                    "Error mapping result type (Spring context not available or service failed): " + e.getMessage());
+            jsonWad.put("resultType", resultTypeId); // Use character value as fallback
         }
     }
 
@@ -316,7 +321,7 @@ public class OclToOpenElisMapper {
 
                     ArrayNode testsArray = objectMapper.createArrayNode();
                     ObjectNode testOrder = objectMapper.createObjectNode();
-                    testOrder.put("id", 0); // New test placeholder
+                    testOrder.put("id", 0); // New test placeholder (ID 0 usually means the test being added)
                     testsArray.add(testOrder);
 
                     sampleTypeObj.set("tests", testsArray);
@@ -325,7 +330,8 @@ public class OclToOpenElisMapper {
             }
         }
 
-        // Default to Serum (ID: 31) if no specific sample type is defined
+        // Default to Serum (ID: 31) if no specific sample type is defined, as per
+        // typical OpenELIS usage
         if (sampleTypesArray.size() == 0) {
             ObjectNode sampleType = objectMapper.createObjectNode();
             sampleType.put("typeId", "31"); // Serum
@@ -356,7 +362,7 @@ public class OclToOpenElisMapper {
         String sigDigits = "";
 
         if (isNumeric) {
-            // Map validation ranges
+            // Map validation ranges from 'extras' (OCL standard attributes)
             JsonNode extras = concept.get("extras");
 
             if (extras != null) {
@@ -369,6 +375,10 @@ public class OclToOpenElisMapper {
                     highValid = hiNormal;
 
                 String sigDigitsValue = getNumericText(extras, "significant_digits");
+                // "allow_decimal" from OCL maps to "Significant digits" in OpenELIS
+                if (sigDigitsValue == null) {
+                    sigDigitsValue = getNumericText(extras, "allow_decimal"); // Fallback for significant digits
+                }
                 if (sigDigitsValue != null)
                     sigDigits = sigDigitsValue;
 
@@ -389,7 +399,7 @@ public class OclToOpenElisMapper {
                     highCritical = highCriticalValue;
             }
 
-            // Try direct fields
+            // Try direct fields (less common but as fallback)
             String lowValidDirect = getNumericText(concept, "low_valid");
             if (lowValidDirect != null)
                 lowValid = lowValidDirect;
@@ -414,6 +424,7 @@ public class OclToOpenElisMapper {
 
     private void mapResultLimits(JsonNode concept, ObjectNode jsonWad) {
         // Create the exact structure as shown in your target format
+        // This is a fixed set of age ranges and normal/critical limits
         String resultLimitsJson = "["
                 + "{\"highAgeRange\": \"30\", \"gender\": false, \"lowNormal\": \"-Infinity\", \"highNormal\": \"Infinity\", \"lowCritical\": \"-Infinity\", \"highCritical\": \"Infinity\", \"reportingRange\": \"\"}, "
                 + "{\"highAgeRange\": \"365\", \"gender\": false, \"lowNormal\": \"-Infinity\", \"highNormal\": \"Infinity\", \"lowCritical\": \"-Infinity\", \"highCritical\": \"Infinity\", \"reportingRange\": \"\"}, "
@@ -434,7 +445,7 @@ public class OclToOpenElisMapper {
             // Map dictionary values if available
             ArrayNode dictionaryArray = objectMapper.createArrayNode();
 
-            // Try to extract possible values from OCL concept
+            // Try to extract possible values from OCL concept's "answers"
             JsonNode answers = concept.get("answers");
             if (answers != null && answers.isArray()) {
                 for (JsonNode answer : answers) {
@@ -443,7 +454,7 @@ public class OclToOpenElisMapper {
                     String answerName = getText(answer, "display_name");
                     if (answerId != null) {
                         dictEntry.put("value", answerName != null ? answerName : answerId);
-                        dictEntry.put("qualified", "N");
+                        dictEntry.put("qualified", "N"); // Default to non-quantifiable
                         dictionaryArray.add(dictEntry);
                     }
                 }
@@ -451,7 +462,7 @@ public class OclToOpenElisMapper {
 
             if (dictionaryArray.size() > 0) {
                 jsonWad.put("dictionary", dictionaryArray.toString());
-                // Set first entry as default
+                // Set first entry as default for dictionaryReference and defaultTestResult
                 jsonWad.put("defaultTestResult", dictionaryArray.get(0).get("value").asText());
                 jsonWad.put("dictionaryReference", dictionaryArray.get(0).get("value").asText());
             }
@@ -459,7 +470,8 @@ public class OclToOpenElisMapper {
     }
 
     private void setDefaultValues(ObjectNode jsonWad) {
-        // Ensure all required fields have values matching your target format
+        // Ensure all required fields have values matching your target format,
+        // if they haven't been mapped from the OCL concept.
         if (!jsonWad.has("testNameEnglish") || jsonWad.get("testNameEnglish").asText().isEmpty()) {
             jsonWad.put("testNameEnglish", "");
         }
@@ -476,8 +488,10 @@ public class OclToOpenElisMapper {
             jsonWad.put("testReportNameFrench", "");
         }
 
+        // testSection is now hardcoded in mapTestSection, but keep this for robustness
+        // if called elsewhere
         if (!jsonWad.has("testSection") || jsonWad.get("testSection").asText().isEmpty()) {
-            jsonWad.put("testSection", "");
+            jsonWad.put("testSection", "36"); // Default to Hematology
         }
 
         if (!jsonWad.has("panels")) {
@@ -549,26 +563,13 @@ public class OclToOpenElisMapper {
         }
     }
 
-    private String inferSectionFromTestId(String testId) {
-        String testIdUpper = testId.toUpperCase();
-
-        if (testIdUpper.contains("HEMA") || testIdUpper.contains("CBC") || testIdUpper.contains("BLOOD")) {
-            return "36"; // Hematology
-        } else if (testIdUpper.contains("BIOCHEM") || testIdUpper.contains("CHEM")) {
-            return "56"; // Biochemistry
-        } else if (testIdUpper.contains("IMMUNO") || testIdUpper.contains("HIV")) {
-            return "59"; // Immunology
-        } else if (testIdUpper.contains("MICRO") || testIdUpper.contains("CULTURE")) {
-            return "163"; // Pathology
-        } else if (testIdUpper.contains("SERO")) {
-            return "97"; // Serology
-        } else if (testIdUpper.contains("PANEL")) {
-            return "36"; // Default panels to Hematology
-        }
-
-        return null;
-    }
-
+    /**
+     * Helper to safely extract text from a JsonNode field.
+     * 
+     * @param node  The JsonNode to extract from.
+     * @param field The name of the field.
+     * @return The text value, or null if the node or field is missing/null.
+     */
     private String getText(JsonNode node, String field) {
         if (node != null && node.has(field)) {
             JsonNode value = node.get(field);
@@ -579,6 +580,15 @@ public class OclToOpenElisMapper {
         return null;
     }
 
+    /**
+     * Helper to safely extract numeric text from a JsonNode field, handling both
+     * number and text nodes.
+     * 
+     * @param node  The JsonNode to extract from.
+     * @param field The name of the field.
+     * @return The numeric text value, or null if the node or field is
+     *         missing/null/empty.
+     */
     private String getNumericText(JsonNode node, String field) {
         if (node != null && node.has(field)) {
             JsonNode value = node.get(field);
