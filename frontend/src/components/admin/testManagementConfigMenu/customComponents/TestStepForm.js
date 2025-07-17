@@ -2516,21 +2516,31 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     if (
                       !resultLimits ||
                       resultLimits.length === 0 ||
-                      isNaN(lowValid)
-                    )
+                      // isNaN(lowValid)
+                      !Number.isFinite(lowValid)
+                    ) {
                       return true;
+                    }
+                    const lowNormalRaw = resultLimits[0]?.lowNormal;
+                    const lowNormalFemaleRaw = resultLimits[0]?.lowNormalFemale;
 
-                    const lowNormal = parseFloat(resultLimits[0].lowNormal);
-                    const lowNormalFemale = parseFloat(
-                      resultLimits[0].lowNormalFemale,
-                    );
+                    const lowNormal = Number.isFinite(parseFloat(lowNormalRaw))
+                      ? parseFloat(lowNormalRaw)
+                      : NaN;
 
-                    if (isNaN(lowNormal) && isNaN(lowNormalFemale)) return true;
+                    const lowNormalFemale = Number.isFinite(
+                      parseFloat(lowNormalFemaleRaw),
+                    )
+                      ? parseFloat(lowNormalFemaleRaw)
+                      : NaN;
 
-                    return (
-                      (isNaN(lowNormal) || lowValid < lowNormal) &&
-                      (isNaN(lowNormalFemale) || lowValid < lowNormalFemale)
-                    );
+                    const validAgainstLowNormal =
+                      isNaN(lowNormal) || lowValid < lowNormal;
+
+                    const validAgainstLowNormalFemale =
+                      isNaN(lowNormalFemale) || lowValid < lowNormalFemale;
+
+                    return validAgainstLowNormal && validAgainstLowNormalFemale;
                   },
                 ),
               // .min(0, "Minimum value is 0")
@@ -2547,18 +2557,6 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     typeof value === "number" ||
                     !isNaN(Number(value)),
                 )
-                // .test(
-                //   "greater-than-lowValid",
-                //   "Must be greater or equal to lower valid range",
-                //   function (value) {
-                //     const { lowValid } = this.parent;
-                //     const high = parseFloat(value);
-                //     const low = parseFloat(lowValid);
-
-                //     if (isNaN(high) || isNaN(low)) return true;
-                //     return high >= low;
-                //   },
-                // )
                 .test(
                   "greater-than-highNormals",
                   "High Valid must be greater than High Normal and High Normal Female",
@@ -2569,21 +2567,36 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                     if (
                       !resultLimits ||
                       resultLimits.length === 0 ||
-                      isNaN(highValid)
+                      // isNaN(highValid)
+                      !Number.isFinite(highValid)
+                    ) {
+                      return true;
+                    }
+
+                    const highNormalRaw = resultLimits[0]?.highNormal;
+                    const highNormalFemaleRaw =
+                      resultLimits[0]?.highNormalFemale;
+
+                    const highNormal = Number.isFinite(
+                      parseFloat(highNormalRaw),
                     )
-                      return true;
+                      ? parseFloat(highNormalRaw)
+                      : NaN;
 
-                    const highNormal = parseFloat(resultLimits[0].highNormal);
-                    const highNormalFemale = parseFloat(
-                      resultLimits[0].highNormalFemale,
-                    );
+                    const highNormalFemale = Number.isFinite(
+                      parseFloat(highNormalFemaleRaw),
+                    )
+                      ? parseFloat(highNormalFemaleRaw)
+                      : NaN;
 
-                    if (isNaN(highNormal) && isNaN(highNormalFemale))
-                      return true;
+                    const validAgainstHighNormal =
+                      isNaN(highNormal) || highValid > highNormal;
+
+                    const validAgainstHighNormalFemale =
+                      isNaN(highNormalFemale) || highValid > highNormalFemale;
 
                     return (
-                      (isNaN(highNormal) || highValid > highNormal) &&
-                      (isNaN(highNormalFemale) || highValid > highNormalFemale)
+                      validAgainstHighNormal && validAgainstHighNormalFemale
                     );
                   },
                 ),
@@ -2951,7 +2964,12 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               //     (a) => a.id === ageRanges[index + 1]?.raw,
                               //   )?.id || ""
                               // } // select just based on number of itesm present in list and index
-                              value={ageRangeList?.[index]?.id || ""}
+                              // value={
+                              //   mode === "edit"
+                              //     ? ageRangeList?.[index]?.id
+                              //     : "0"
+                              // }
+                              value={ageRangeList?.[index]?.id || "0"}
                               onChange={(e) => {
                                 // setFieldValue(
                                 //   `resultLimits[${index}].ageRange`,
