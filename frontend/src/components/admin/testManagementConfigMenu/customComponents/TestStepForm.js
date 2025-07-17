@@ -2284,6 +2284,19 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
     handleNextStep(values, true);
   };
 
+  useEffect(() => {
+    if (mode === "edit" && ageRangeList.length && ageRangeFields.length) {
+      setGotSelectedAgeRangeList(
+        ageRangeFields.map((_, index) => {
+          const current = ageRangeList?.[index];
+          return current
+            ? { id: current.id, value: current.value }
+            : { id: "0", value: "Select Age Range" };
+        }),
+      );
+    }
+  }, [mode, ageRangeList, ageRangeFields.length]);
+
   return (
     <>
       {currentStep === 5 && selectedResultTypeList?.id === "4" ? (
@@ -2767,28 +2780,6 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                       <hr />
                     </Column>
                     {ageRangeFields.map((_, index) => {
-                      // const selectedAgeRangesCurrent = selectedAgeRanges
-                      //   .map((item) => item.ageRange)
-                      //   .filter((val, idx) => idx !== index && val)
-                      //   .filter(Boolean);
-                      // const selectedAgeRangesCurrent = gotSelectedAgeRangeList
-                      //   .filter((_, i) => i !== index)
-                      //   .map((item) => item.ageRange)
-                      //   .filter(Boolean);
-                      // const selectedAgeRangesCurrent = []
-                      //   .filter((_, i) => i !== index)
-                      //   .map((item) => item.id)
-                      //   .filter(Boolean);
-                      const selectedAgeRangesCurrent = ageRangeList
-                        .slice(0, ageRangeFields.length)
-                        .filter((_, i) => i !== index)
-                        .map((item) => item.id);
-                      // const selectedAgeRangesCurrent = ageRangeList
-                      //   .slice(0, ageRangeFields.length - 1)
-                      //   .map((item) => item.id);
-                      const availableAgeRanges = ageRangeList.filter(
-                        (age) => !selectedAgeRangesCurrent.includes(age.id),
-                      );
                       return (
                         <React.Fragment key={index}>
                           <Column
@@ -2956,20 +2947,10 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                               labelText=""
                               hideLabel
                               size={"md"}
-                              // value={
-                              //   values.resultLimits?.[index]?.ageRange || ""
-                              // }
-                              // value={
-                              //   ageRangeList.find(
-                              //     (a) => a.id === ageRanges[index + 1]?.raw,
-                              //   )?.id || ""
-                              // } // select just based on number of itesm present in list and index
-                              // value={
-                              //   mode === "edit"
-                              //     ? ageRangeList?.[index]?.id
-                              //     : "0"
-                              // }
-                              value={ageRangeList?.[index]?.id || "0"}
+                              // value={ageRangeList?.[index]?.id || "0"}
+                              value={
+                                gotSelectedAgeRangeList?.[index]?.id || "0"
+                              }
                               onChange={(e) => {
                                 // setFieldValue(
                                 //   `resultLimits[${index}].ageRange`,
@@ -2978,20 +2959,12 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 const selectedAge = ageRangeList.find(
                                   (a) => a.id === e.target.value,
                                 );
+                                console.log(selectedAge);
                                 if (selectedAge) {
-                                  setAgeRangeList((prev) =>
-                                    prev.filter((a) => a.id !== selectedAge.id),
-                                  );
-                                  setGotSelectedAgeRangeList((prev) => [
-                                    ...prev,
-                                    {
-                                      id: selectedAge.id,
-                                      value: selectedAge.value,
-                                    },
-                                  ]);
-                                  selectedAgeRangesCurrent.push({
-                                    id: selectedAge.id,
-                                    value: selectedAge.value,
+                                  setGotSelectedAgeRangeList((prev) => {
+                                    const updated = [...prev];
+                                    updated[index] = selectedAge;
+                                    return updated;
                                   });
                                 }
                               }}
@@ -3011,13 +2984,20 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                   text={`Select Age Range`}
                                 />
                               )}
-                              {availableAgeRanges.map((age) => (
-                                <SelectItem
-                                  key={age.id}
-                                  value={age.id}
-                                  text={`${age.value}`}
-                                />
-                              ))}
+                              {ageRangeList
+                                .filter(
+                                  (age) =>
+                                    !gotSelectedAgeRangeList.some(
+                                      (a, i) => i !== index && a?.id === age.id,
+                                    ),
+                                )
+                                .map((age) => (
+                                  <SelectItem
+                                    key={age.id}
+                                    value={age.id}
+                                    text={`${age.value}`}
+                                  />
+                                ))}
                             </Select>
                           </Column>
                           <Column
