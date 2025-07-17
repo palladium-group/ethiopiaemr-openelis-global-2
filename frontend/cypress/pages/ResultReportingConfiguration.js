@@ -19,9 +19,7 @@ class ResultReportingConfigurationPage {
   }
 
   typeURL(urlIndex) {
-    cy.get(`#url-${urlIndex}`)
-      .clear()
-      .type("https://192.168.92.101/openelis");
+    cy.get(`#url-${urlIndex}`).clear().type("https://192.168.92.101/openelis");
   }
 
   saveEntry() {
