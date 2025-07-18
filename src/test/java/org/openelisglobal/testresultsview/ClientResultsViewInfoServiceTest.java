@@ -113,36 +113,42 @@ public class ClientResultsViewInfoServiceTest extends BaseWebContextSensitiveTes
     }
 
     @Test
-    public void getPage_ShouldReturnAPageOfClientResultsViewBeans_UsingAPageNumber() {
+    public void getPage_ShouldReturnAPageOfResultsGivenPageNumber() {
         PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
-        clientResultsViewInfoList = clientResultsViewInfoService.getPage(1);
+        clientResultsViewInfoList = clientResultsViewInfoService.getPage(3);
+        assertEquals(Integer.valueOf("7005"), clientResultsViewInfoList.get(2).getId());
         assertTrue(PAGE_SIZE >= clientResultsViewInfoList.size());
+        assertEquals(6, clientResultsViewInfoList.size());
     }
 
     @Test
-    public void getMatchingPage_ShouldReturnAPageOfClientResultsViewBeans_UsingAPropertyNameAndValue() {
+    public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAPropertyNameAndValue() {
         PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         clientResultsViewInfoList = clientResultsViewInfoService.getMatchingPage("password",
                 "encrypted-password-string", 1);
+        assertEquals(Integer.valueOf("7007"), clientResultsViewInfoList.get(3).getId());
         assertTrue(PAGE_SIZE >= clientResultsViewInfoList.size());
+        assertEquals(4, clientResultsViewInfoList.size());
     }
 
     @Test
-    public void getMatchingPage_ShouldReturnAPageOfClientResultsViewBeans_UsingAMap() {
+    public void getMatchingPage_ShouldReturnAPageOfResultsFilteredByAMap() {
         PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         clientResultsViewInfoList = clientResultsViewInfoService.getMatchingPage(propertyValues, 1);
+        assertEquals(Integer.valueOf("7004"), clientResultsViewInfoList.get(1).getId());
         assertTrue(PAGE_SIZE >= clientResultsViewInfoList.size());
+        assertEquals(3, clientResultsViewInfoList.size());
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAnOrderedPageOfClientResultsViewBeans_UsingAnOrderProperty() {
+    public void getOrderedPage_ShouldReturnAPageOfResultsFilteredByAnOrderPropertyInDescendingOrder() {
         PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         clientResultsViewInfoList = clientResultsViewInfoService.getOrderedPage("id", true, 1);
         assertTrue(PAGE_SIZE >= clientResultsViewInfoList.size());
     }
 
     @Test
-    public void getOrderedPage_ShouldReturnAnOrderedPageOfClientResultsViewBeans_UsingAList() {
+    public void getOrderedPage_ShouldReturnAPageOfResultsGivenAListAndOrderedInAscendingOrder() {
         PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         clientResultsViewInfoList = clientResultsViewInfoService.getOrderedPage(orderProperties, false, 1);
         assertTrue(PAGE_SIZE >= clientResultsViewInfoList.size());
