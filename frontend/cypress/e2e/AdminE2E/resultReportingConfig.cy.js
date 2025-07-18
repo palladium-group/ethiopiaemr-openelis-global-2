@@ -16,11 +16,11 @@ describe("Result Reporting Configuration", function () {
   });
 
   it("Enable and Enter URL", () => {
-    resultReportConfigPage.clickEnable();
+    resultReportConfigPage.clickEnable("0");
     resultReportConfigPage.typeURL("0");
-    resultReportConfigPage.clickEnable();
+    resultReportConfigPage.clickEnable("1");
     resultReportConfigPage.typeURL("1");
-    resultReportConfigPage.clickEnable();
+    resultReportConfigPage.clickEnable("1");
     resultReportConfigPage.typeURL("2");
   });
 

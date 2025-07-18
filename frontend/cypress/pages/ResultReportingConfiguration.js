@@ -14,8 +14,8 @@ class ResultReportingConfigurationPage {
       .and("contain.text", "Result Reporting Configuration");
   }
 
-  clickEnable() {
-    cy.contains(this.selectors.span, "Enabled").click({ multiple: true });
+  clickEnable(forIndex) {
+    cy.get(`[for="enabled-${forIndex}-yes"]`).click();
   }
 
   typeURL(urlIndex) {
