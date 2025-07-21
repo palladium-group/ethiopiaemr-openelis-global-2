@@ -123,8 +123,8 @@ public class ResultSelectListServiceImpl implements ResultSelectListService {
                 tests = (JSONArray) parsed;
             } else if (parsed instanceof JSONObject) {
                 JSONObject obj = (JSONObject) parsed;
-                String testsStr = (String) obj.get("tests");
-                tests = (JSONArray) parser.parse(testsStr);
+                tests = (JSONArray) obj.get("tests");
+
             } else {
                 throw new IllegalArgumentException("Invalid testSelectListJson format");
             }
