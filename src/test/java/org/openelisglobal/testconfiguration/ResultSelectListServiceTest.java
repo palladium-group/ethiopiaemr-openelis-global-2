@@ -40,11 +40,12 @@ public class ResultSelectListServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void addResultSelectList_ShouldInsertANewResultSelectionList() {
-        String jsonString = "{" + "  \"tests\": [" + "    {" + "      \"id\": \"1\"," + "      \"name\": \"Test A\","
+        String jsonString = "{" + "  \"tests\": \"[" + "    {" + "      \"id\": \"1\"," + "      \"name\": \"Test A\","
                 + "      \"items\": [" + "        { \"id\": \"201\", \"name\": \"item A\", \"order\": 3 }," + "      ]"
                 + "    }," + "    {" + "      \"id\": \"2\"," + "      \"name\": \"Test B\"," + "      \"items\": ["
-                + "        { \"id\": \"202\", \"name\": \"item C\", \"order\": 5 }," + "      ]" + "    }" + "  ]"
+                + "        { \"id\": \"202\", \"name\": \"item C\", \"order\": 5 }," + "      ]" + "    }" + "  ]\" "
                 + "}";
+
         List<org.openelisglobal.test.valueholder.Test> testList = testService.getAll();
         ResultSelectListForm form = new ResultSelectListForm();
         form.setNameEnglish("Tomorrow");
