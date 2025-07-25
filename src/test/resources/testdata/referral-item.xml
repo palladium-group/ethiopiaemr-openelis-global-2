@@ -54,8 +54,6 @@
         parent_result_id="301" entry_date="2023-11-16 12:00:00"
         analysis_type="CONFIRM" lastupdated="2023-12-01 12:00:00" />
 
-
-
     <referral_type id="1" name="Confirmation"
         description="Sent out to confirm result"
         display_key="referral.type.confirmation"
