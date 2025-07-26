@@ -1404,44 +1404,6 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
     handleNextStep(values, true);
   };
 
-  // useEffect(() => {
-  //   if (!selectedSampleTypeResp.length) return;
-
-  //   const existingTypeIds = new Set(
-  //     (formData.sampleTypes || []).map((st) => st.typeId),
-  //   );
-
-  //   const newOnes = selectedSampleTypeResp.filter(
-  //     (resp) => !existingTypeIds.has(String(resp.sampleTypeId)),
-  //   );
-
-  //   // if (newOnes.length === 0) {
-  //   //   return;
-  //   // }
-
-  //   const newTransformed = (
-  //     newOnes?.length > 0 ? newOnes : selectedSampleTypeResp
-  //   ).map((resp) => ({
-  //     typeId: String(resp.sampleTypeId),
-  //     tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
-  //   }));
-
-  //   // setFieldValue("sampleTypes", [
-  //   //   ...(values.sampleTypes || []),
-  //   //   ...newTransformed,
-  //   // ]);
-
-  //   const updatedSampleTypes = [
-  //     ...(formData.sampleTypes || []),
-  //     ...newTransformed,
-  //   ];
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     sampleTypes: updatedSampleTypes,
-  //   }));
-  // }, [selectedSampleTypeResp]);
-
   useEffect(() => {
     if (!selectedSampleTypeResp.length) return;
 
@@ -1467,16 +1429,6 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
       };
     });
   }, [selectedSampleTypeResp]);
-
-  // useEffect(() => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     sampleTypes: selectedSampleTypeResp.map((resp) => ({
-  //       typeId: String(resp.sampleTypeId),
-  //       tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
-  //     })),
-  //   }));
-  // }, [selectedSampleTypeResp]);
 
   return (
     <>
@@ -1532,19 +1484,6 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 );
 
                 if (!isAlreadySelected) {
-                  // const matchedResp = selectedSampleTypeResp.find(
-                  //   (resp) => String(resp.sampleTypeId) === selectedId,
-                  // );
-
-                  // const testList =
-                  //   matchedResp?.tests?.map((t) => ({ id: Number(t.id) })) ??
-                  //   [];
-
-                  // const transformedSampleType = {
-                  //   typeId: selectedId,
-                  //   tests: testList,
-                  // };
-
                   const updatedList = [
                     ...selectedSampleTypeList,
                     selectedSampleTypeObject,
@@ -1559,39 +1498,15 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                     ...prev,
                     selectedSampleTypeObject,
                   ]);
-                  // setFieldValue("sampleTypes", [
-                  //   ...(values.sampleTypes || []),
-                  //   transformedSampleType,
-                  // ]);
                 }
               };
-
-              // const handleRemoveSampleTypeListSelectIdTestTag = (
-              //   indexToRemove,
-              // ) => {
-              //   const filterByIndex = (_, index) => index !== indexToRemove;
-
-              //   setFieldValue(
-              //     "sampleTypes",
-              //     selectedSampleTypeList.filter(filterByIndex),
-              //   );
-              //   setSelectedSampleTypeList((prev) => prev.filter(filterByIndex));
-              //   setSelectedSampleType((prev) => prev.filter(filterByIndex));
-              //   setSelectedSampleTypeResp((prev) => prev.filter(filterByIndex));
-
-              //   setSampleTestTypeToGetTagList((prevTags) => {
-              //     const updatedTags = prevTags.filter(filterByIndex);
-              //     return updatedTags;
-              //   });
-              // };
 
               const handleRemoveSampleTypeListSelectIdTestTag = (index) => {
                 setSampleTestTypeToGetTagList((prev) => {
                   const updated = [...prev];
-                  const removedItem = updated.splice(index, 1)[0]; // store removed
+                  const removedItem = updated.splice(index, 1)[0];
                   const removedId = removedItem?.id;
 
-                  // clean associated state
                   setSelectedSampleType((prev) =>
                     prev.filter((item) => item.id !== removedId),
                   );
