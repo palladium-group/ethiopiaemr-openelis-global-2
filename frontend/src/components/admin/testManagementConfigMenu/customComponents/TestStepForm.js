@@ -1415,9 +1415,13 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
       (resp) => !existingTypeIds.has(String(resp.sampleTypeId)),
     );
 
-    if (newOnes.length === 0) return;
+    // if (newOnes.length === 0) {
+    //   return;
+    // }
 
-    const newTransformed = newOnes.map((resp) => ({
+    const newTransformed = (
+      newOnes?.length > 0 ? newOnes : selectedSampleTypeResp
+    ).map((resp) => ({
       typeId: String(resp.sampleTypeId),
       tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
     }));
@@ -1437,6 +1441,16 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
       sampleTypes: updatedSampleTypes,
     }));
   }, [selectedSampleTypeResp]);
+
+  // useEffect(() => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     sampleTypes: selectedSampleTypeResp.map((resp) => ({
+  //       typeId: String(resp.sampleTypeId),
+  //       tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
+  //     })),
+  //   }));
+  // }, [selectedSampleTypeResp]);
 
   return (
     <>
@@ -1633,28 +1647,30 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       <br />
                       {Array.isArray(selectedSampleTypeResp) &&
                       selectedSampleTypeResp.length > 0 ? (
-                        selectedSampleTypeResp.map((item, index) => (
+                        selectedSampleTypeResp.map((item) => (
                           <>
-                            <div className="gridBoundary">
-                              <Section key={index}>
+                            <div
+                              className="gridBoundary"
+                              key={item.sampleTypeId}
+                            >
+                              <Section key={item.sampleTypeId}>
                                 <CustomCommonSortableOrderList
+                                  key={item.sampleTypeId}
                                   test={item.tests}
                                   onSort={(updatedList) => {
-                                    const newList = selectedSampleTypeResp.map(
-                                      (sampleType) => {
-                                        if (
+                                    const updatedResp =
+                                      selectedSampleTypeResp.map(
+                                        (sampleType) =>
                                           sampleType.sampleTypeId ===
                                           item.sampleTypeId
-                                        ) {
-                                          return {
-                                            ...sampleType,
-                                            tests: updatedList,
-                                          };
-                                        }
-                                        return sampleType;
-                                      },
-                                    );
-                                    setSelectedSampleTypeResp(newList);
+                                            ? {
+                                                ...sampleType,
+                                                tests: updatedList,
+                                              }
+                                            : sampleType,
+                                      );
+
+                                    setSelectedSampleTypeResp(updatedResp);
                                   }}
                                   disableSorting={false}
                                 />
