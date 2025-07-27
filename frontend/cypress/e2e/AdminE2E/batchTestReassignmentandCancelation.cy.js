@@ -15,11 +15,25 @@ describe("Batch Test Reassignment and Canelation", function () {
     batchTestPage.validatePageTitle();
   });
 
+  describe("Enter Data and Cancel", () => {
+    it("Select Sample and Tests", () => {
+      batchTestPage.selectSampleType();
+      batchTestPage.checkBoxes("currentTest");
+      batchTestPage.checkBoxes("replaceWith");
+      batchTestPage.selectTest("1");
+      batchTestPage.selectTest("0");
+    });
+
+    it("Cancel Changes", () => {
+      batchTestPage.clickCancel();
+    });
+  });
+
   describe("Enter Data and Save", () => {
     it("Select Sample and Tests", () => {
       batchTestPage.selectSampleType();
-      batchTestPage.chechBoxes("currentTest");
-      batchTestPage.chechBoxes("replaceWith");
+      batchTestPage.checkBoxes("currentTest");
+      batchTestPage.checkBoxes("replaceWith");
       batchTestPage.selectTest("1");
       batchTestPage.selectTest("0");
     });
