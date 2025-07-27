@@ -5,9 +5,10 @@
     <localization id="2" english="Test Localization 2"
         french="Localisation de Test 2" lastupdated="2023-12-01 12:00:00" />
 
-    <system_user id="2801" external_id="EXT003"
-        login_name="admin" last_name="Doe" first_name="John" initials="JD"
-        is_active="Y" is_employee="Y" lastupdated="2025-03-08 12:00:00" />
+    <type_of_sample id="901" description="Blood Sample"
+        name_localization_id="1" lastupdated="2023-12-01 12:00:00" />
+    <type_of_sample id="902" description="Urine Sample"
+        name_localization_id="2" lastupdated="2023-12-01 12:00:00" />
 
     <organization id="401" lastupdated="2024-06-03 12:00:00.0"
         name="Global Health Org" city="New York" zip_code="10001"
@@ -44,11 +45,6 @@
         guid="def-456" name_localization_id="2"
         antimicrobial_resistance="false" />
 
-    <type_of_sample id="901" description="Blood Sample"
-        name_localization_id="1" lastupdated="2023-12-01 12:00:00" />
-    <type_of_sample id="902" description="Urine Sample"
-        name_localization_id="2" lastupdated="2023-12-01 12:00:00" />
-
     <result id="300" sort_order="1" result_type="N" value="85.0"
         is_reportable="Y" lastupdated="2025-04-04 14:00:00" min_normal="70.0"
         max_normal="100.0" significant_digits="1" grouping="0"
@@ -58,26 +54,6 @@
         is_reportable="Y" lastupdated="2025-07-07 14:00:00" min_normal="12.0"
         max_normal="16.0" significant_digits="1" grouping="0"
         fhir_uuid="550e8400-e29b-41d4-a716-446655440004" />
-    <result id="302" analysis_id="1001" sort_order="1"
-        is_reportable="Y" result_type="N" value="13.5" analyte_id="2001"
-        test_result_id="3001" lastupdated="2024-07-01 10:00:00"
-        min_normal="12.0" max_normal="17.5" significant_digits="1"
-        grouping="0" />
-
-    <result id="303" analysis_id="1002" sort_order="2"
-        is_reportable="N" result_type="A" value="Negative" analyte_id="2002"
-        test_result_id="3002" lastupdated="2024-07-01 11:00:00"
-        min_normal="7.9" max_normal="17.45" significant_digits="0"
-        grouping="1" />
-    <status_of_sample id="1"
-        description="Sample is currently being processed" code="100"
-        status_type="EXTERNAL_ORDER" lastupdated="2024-01-01 10:00:00"
-        name="Entered" display_key="status.inprogress" is_active="Y" />
-
-    <status_of_sample id="2"
-        description="Sample analysis is finalized and ready for reporting"
-        code="200" status_type="ANALYSIS" lastupdated="2024-01-01 12:30:00"
-        name="Finalized" display_key="status.finalized" is_active="Y" />
 
     <sample id="1" accession_number="12345" status_id="1"
         received_date="2024-06-03 00:00:00.0"
@@ -147,23 +123,20 @@
         fhir_uuid="436a393f-8ac9-4a30-86db-bb6eda979b57" />
 
     <referral_result id="901" referral_id="101"
-        test_id="202" result_id="301"
-        referral_report_date="2024-07-01 10:00:00"
+        test_id="202" referral_report_date="2024-07-01 10:00:00"
         lastupdated="2024-07-01 10:30:00" />
 
     <referral_result id="902" referral_id="102"
-        test_id="201" result_id="300"
-        referral_report_date="2024-07-02 11:00:00"
+        test_id="201" referral_report_date="2024-07-02 11:00:00"
         lastupdated="2024-07-02 11:30:00" />
 
     <referral_result id="903" referral_id="102"
-        test_id="202" result_id="302"
+        test_id="201" result_id="301"
         referral_report_date="2024-07-03 12:00:00"
         lastupdated="2024-07-03 12:30:00" />
 
     <referral_result id="904" referral_id="103"
-        test_id="201" result_id="303"
-        referral_report_date="2025-01-02 11:00:00"
+        test_id="202" referral_report_date="2025-01-02 11:00:00"
         lastupdated="2025-07-02 11:30:00" />
 
 </dataset>
