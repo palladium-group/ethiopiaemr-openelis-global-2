@@ -10,9 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.analysis.service.AnalysisService;
-import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.SampleAddService;
-import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.observationhistory.valueholder.ObservationHistory;
 import org.openelisglobal.referral.action.beanitems.ReferralItem;
 import org.openelisglobal.referral.service.ReferralItemService;
@@ -24,7 +22,6 @@ import org.openelisglobal.referral.valueholder.ReferralResult;
 import org.openelisglobal.result.service.ResultService;
 import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
-import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.sampleitem.valueholder.SampleItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +39,6 @@ public class ReferralSetServiceTest extends BaseWebContextSensitiveTest {
     private ResultService resultService;
     @Autowired
     private ReferralService referralService;
-    @Autowired
-    private SampleService sampleService;
-    @Autowired
-    private IStatusService iStatusService;
-    @Autowired
-    private NoteService noteService;
 
     @Before
     public void setUp() throws Exception {
