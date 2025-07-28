@@ -1,6 +1,9 @@
 package org.openelisglobal.qaevent;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +25,7 @@ public class NceSpecimenServiceTest extends BaseWebContextSensitiveTest {
     private List<NceSpecimen> nceSpecimenList;
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
-    private static int NUMBER_OF_PAGES = 0;
+    private static int PAGE_SIZE = 0;
 
     @Before
     public void setUp() throws Exception {
@@ -125,74 +128,65 @@ public class NceSpecimenServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getPage_ShouldReturnAPageOfNceSpecimens_UsingAPageNumber() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getPage(1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfNceSpecimens_UsingAPropertyNameAndValue() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingPage("nceId", "1001", 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfNceSpecimens_UsingAMap() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingPage(propertyValues, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfNceSpecimens_UsingAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getOrderedPage("id", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfNceSpecimens_UsingAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getOrderedPage(orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfNceSpecimens_UsingAPropertyNameAndValueAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingOrderedPage("sampleItemId", "601", "nceId", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfNceSpecimens_UsingAPropertyNameAndValueAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingOrderedPage("sampleItemId", "603", orderProperties, true, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfNceSpecimens_UsingAMapAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingOrderedPage(propertyValues, "id", false, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfNceSpecimens_UsingAMapAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         nceSpecimenList = nceSpecimenService.getMatchingOrderedPage(propertyValues, orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= nceSpecimenList.size());
+        assertTrue(PAGE_SIZE >= nceSpecimenList.size());
     }
 
     @Test
