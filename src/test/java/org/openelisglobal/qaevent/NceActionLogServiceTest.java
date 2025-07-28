@@ -38,6 +38,15 @@ public class NceActionLogServiceTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
+    public void getNceActionLogByNceId_ShouldReturnAllNceActionLogsWithAnNceIdMatchingTheParameterValue() {
+        nceActionLogs = nceActionLogService.getNceActionLogByNceId("901");
+        assertNotNull(nceActionLogs);
+        assertEquals(6, nceActionLogs.size());
+        assertEquals("8", nceActionLogs.get(3).getId());
+        assertEquals("fix calibration issue", nceActionLogs.get(4).getCorrectiveAction());
+    }
+
+    @Test
     public void getAll_ShouldReturnAllNceActionLogs() {
         nceActionLogs = nceActionLogService.getAll();
         assertNotNull(nceActionLogs);
