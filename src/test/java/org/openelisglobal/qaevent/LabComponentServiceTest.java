@@ -26,7 +26,7 @@ public class LabComponentServiceTest extends BaseWebContextSensitiveTest {
     private List<LabComponent> labComponents;
     private Map<String, Object> propertyValues;
     private List<String> orderProperties;
-    private static int NUMBER_OF_PAGES = 0;
+    private static int PAGE_SIZE = 0;
 
     @Before
     public void setUp() throws Exception {
@@ -113,75 +113,66 @@ public class LabComponentServiceTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getPage_ShouldReturnAPageOfLabComponents_UsingAPageNumber() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getPage(1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfLabComponents_UsingAPropertyNameAndValue() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingPage("lastmodified", Timestamp.valueOf("2024-01-12 11:15:00"),
                 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingPage_ShouldReturnAPageOfLabComponents_UsingAMap() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingPage(propertyValues, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfLabComponents_UsingAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getOrderedPage("lastmodified", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getOrderedPage_ShouldReturnAnOrderedPageOfLabComponents_UsingAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getOrderedPage(orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfLabComponents_UsingAPropertyNameAndValueAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingOrderedPage("id", "10", "lastmodified", true, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfLabComponents_UsingAPropertyNameAndValueAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingOrderedPage("name", "freezer", orderProperties, true, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfLabComponents_UsingAMapAndAnOrderProperty() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingOrderedPage(propertyValues, "id", false, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
     public void getMatchingOrderedPage_ShouldReturnAMatchingOrderedPageOfLabComponents_UsingAMapAndAList() {
-        NUMBER_OF_PAGES = Integer
-                .parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
+        PAGE_SIZE = Integer.parseInt(ConfigurationProperties.getInstance().getPropertyValue("page.defaultPageSize"));
         labComponents = labComponentService.getMatchingOrderedPage(propertyValues, orderProperties, false, 1);
-        assertTrue(NUMBER_OF_PAGES >= labComponents.size());
+        assertTrue(PAGE_SIZE >= labComponents.size());
     }
 
     @Test
@@ -192,7 +183,7 @@ public class LabComponentServiceTest extends BaseWebContextSensitiveTest {
         LabComponent labComponent = labComponentService.get("2");
         labComponentService.delete(labComponent);
         List<LabComponent> newLabComponents = labComponentService.getAll();
-        assertFalse(labComponents.stream().anyMatch(lc -> "ph meter".equals(lc.getNameKey())));
+        assertFalse(newLabComponents.stream().anyMatch(lc -> "ph meter".equals(lc.getNameKey())));
         assertEquals(9, newLabComponents.size());
     }
 
