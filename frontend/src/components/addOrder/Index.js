@@ -251,7 +251,8 @@ const Index = () => {
             ...orderFormValues,
             sampleOrderItems: {
               ...orderFormValues.sampleOrderItems,
-              providerId: providerId,
+              providerId: data.id,
+              providerPersonId: data.person.id,
               providerFirstName: data.person.firstName,
               providerLastName: data.person.lastName,
               providerWorkPhone: data.person.workPhone,
