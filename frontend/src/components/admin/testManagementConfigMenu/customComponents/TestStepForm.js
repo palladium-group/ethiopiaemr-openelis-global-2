@@ -263,7 +263,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
       });
 
       const updatedList = [
-        ...selectedSampleTypeList,
+        // ...selectedSampleTypeList,
         ...selectedSampleTypeFilteredObject,
       ];
 
@@ -454,7 +454,7 @@ export const TestStepForm = ({ initialData, mode = "add", postCall }) => {
     );
 
     const extraTestItem = {
-      id: "0",
+      id: formData.testId || "0",
       name: formData.testNameEnglish || formData.testNameFrench,
       userBenchChoice: false,
     };
@@ -1405,37 +1405,25 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
   };
 
   useEffect(() => {
-    if (!selectedSampleTypeResp.length) return;
+    if (!selectedSampleTypeResp.length) {
+      setFormData((prev) => ({
+        ...prev,
+        sampleTypes: [],
+      }));
+      return;
+    }
 
-    const existingTypeIds = new Set(
-      (formData.sampleTypes || []).map((st) => st.typeId),
-    );
+    setFormData((prev) => {
+      const transformed = selectedSampleTypeResp.map((resp) => ({
+        typeId: String(resp.sampleTypeId),
+        tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
+      }));
 
-    const newOnes = selectedSampleTypeResp.filter(
-      (resp) => !existingTypeIds.has(String(resp.sampleTypeId)),
-    );
-
-    if (newOnes.length === 0) return;
-
-    const newTransformed = newOnes.map((resp) => ({
-      typeId: String(resp.sampleTypeId),
-      tests: (resp.tests || []).map((t) => ({ id: Number(t.id) })),
-    }));
-
-    // setFieldValue("sampleTypes", [
-    //   ...(values.sampleTypes || []),
-    //   ...newTransformed,
-    // ]);
-
-    const updatedSampleTypes = [
-      ...(formData.sampleTypes || []),
-      ...newTransformed,
-    ];
-
-    setFormData((prev) => ({
-      ...prev,
-      sampleTypes: updatedSampleTypes,
-    }));
+      return {
+        ...prev,
+        sampleTypes: transformed,
+      };
+    });
   }, [selectedSampleTypeResp]);
 
   return (
@@ -1492,24 +1480,10 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                 );
 
                 if (!isAlreadySelected) {
-                  // const matchedResp = selectedSampleTypeResp.find(
-                  //   (resp) => String(resp.sampleTypeId) === selectedId,
-                  // );
-
-                  // const testList =
-                  //   matchedResp?.tests?.map((t) => ({ id: Number(t.id) })) ??
-                  //   [];
-
-                  // const transformedSampleType = {
-                  //   typeId: selectedId,
-                  //   tests: testList,
-                  // };
-
                   const updatedList = [
                     ...selectedSampleTypeList,
                     selectedSampleTypeObject,
                   ];
-
                   setSelectedSampleTypeList(updatedList);
                   setSampleTestTypeToGetTagList((prev) => [
                     ...prev,
@@ -1519,39 +1493,15 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                     ...prev,
                     selectedSampleTypeObject,
                   ]);
-                  // setFieldValue("sampleTypes", [
-                  //   ...(values.sampleTypes || []),
-                  //   transformedSampleType,
-                  // ]);
                 }
               };
-
-              // const handleRemoveSampleTypeListSelectIdTestTag = (
-              //   indexToRemove,
-              // ) => {
-              //   const filterByIndex = (_, index) => index !== indexToRemove;
-
-              //   setFieldValue(
-              //     "sampleTypes",
-              //     selectedSampleTypeList.filter(filterByIndex),
-              //   );
-              //   setSelectedSampleTypeList((prev) => prev.filter(filterByIndex));
-              //   setSelectedSampleType((prev) => prev.filter(filterByIndex));
-              //   setSelectedSampleTypeResp((prev) => prev.filter(filterByIndex));
-
-              //   setSampleTestTypeToGetTagList((prevTags) => {
-              //     const updatedTags = prevTags.filter(filterByIndex);
-              //     return updatedTags;
-              //   });
-              // };
 
               const handleRemoveSampleTypeListSelectIdTestTag = (index) => {
                 setSampleTestTypeToGetTagList((prev) => {
                   const updated = [...prev];
-                  const removedItem = updated.splice(index, 1)[0]; // store removed
+                  const removedItem = updated.splice(index, 1)[0];
                   const removedId = removedItem?.id;
 
-                  // clean associated state
                   setSelectedSampleType((prev) =>
                     prev.filter((item) => item.id !== removedId),
                   );
@@ -1633,28 +1583,30 @@ export const StepFourSelectSampleTypeAndTestDisplayOrder = ({
                       <br />
                       {Array.isArray(selectedSampleTypeResp) &&
                       selectedSampleTypeResp.length > 0 ? (
-                        selectedSampleTypeResp.map((item, index) => (
+                        selectedSampleTypeResp.map((item) => (
                           <>
-                            <div className="gridBoundary">
-                              <Section key={index}>
+                            <div
+                              className="gridBoundary"
+                              key={item.sampleTypeId}
+                            >
+                              <Section key={item.sampleTypeId}>
                                 <CustomCommonSortableOrderList
+                                  key={item.sampleTypeId}
                                   test={item.tests}
                                   onSort={(updatedList) => {
-                                    const newList = selectedSampleTypeResp.map(
-                                      (sampleType) => {
-                                        if (
+                                    const updatedResp =
+                                      selectedSampleTypeResp.map(
+                                        (sampleType) =>
                                           sampleType.sampleTypeId ===
                                           item.sampleTypeId
-                                        ) {
-                                          return {
-                                            ...sampleType,
-                                            tests: updatedList,
-                                          };
-                                        }
-                                        return sampleType;
-                                      },
-                                    );
-                                    setSelectedSampleTypeResp(newList);
+                                            ? {
+                                                ...sampleType,
+                                                tests: updatedList,
+                                              }
+                                            : sampleType,
+                                      );
+
+                                    setSelectedSampleTypeResp(updatedResp);
                                   }}
                                   disableSorting={false}
                                 />
@@ -2959,7 +2911,6 @@ export const StepSixSelectRangeAgeRangeAndSignificantDigits = ({
                                 const selectedAge = ageRangeList.find(
                                   (a) => a.id === e.target.value,
                                 );
-                                console.log(selectedAge);
                                 if (selectedAge) {
                                   setGotSelectedAgeRangeList((prev) => {
                                     const updated = [...prev];
@@ -3543,7 +3494,6 @@ export const StepSevenFinalDisplayAndSaveConfirmation = ({
                       <br />
                       <FormattedMessage id="field.panel" />
                       {" : "}
-                      {/* map the  {panelList[0].value} in and there values in line*/}
                       {panelListTag.length > 0 ? (
                         <UnorderedList>
                           {panelListTag.map((tag) => (
@@ -3599,7 +3549,6 @@ export const StepSevenFinalDisplayAndSaveConfirmation = ({
                     </Column>
                     <Column lg={10} md={8} sm={4}>
                       <FormattedMessage id="sample.type.and.test.sort.order" />
-                      {/* Mapp the combbination of the selecte[sampleType] & tests of [sampleType] in sorted order */}
                       <br />
                       {selectedSampleTypeList.length > 0 ? (
                         <UnorderedList nested={true}>

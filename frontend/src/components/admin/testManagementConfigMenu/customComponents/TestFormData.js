@@ -67,7 +67,23 @@ export const extractAgeRangeParts = (rangeStr) => {
   return { low, high };
 };
 
+const extractRange = (rangeStr) => {
+  if (
+    typeof rangeStr === "string" &&
+    rangeStr.trim().toLowerCase() === "any value"
+  ) {
+    return ["-Infinity", "Infinity"];
+  }
+
+  const parts = rangeStr?.split("-") || [];
+  const low = parts[0]?.trim() || "-Infinity";
+  const high = parts[1]?.trim() || "Infinity";
+
+  return [low, high];
+};
+
 export const mapTestCatBeanToFormData = (test) => {
+  console.log(JSON.stringify(test));
   return {
     testId: test.id,
     testNameEnglish: test.localization?.english || "",
@@ -92,32 +108,17 @@ export const mapTestCatBeanToFormData = (test) => {
       test.referenceValue !== "n/a" ? test.referenceValue : "",
     defaultTestResult: "",
     sampleTypes: test.sampleType ? [test.sampleType] : [],
-    lowValid:
-      test.resultLimits?.[0]?.validRange !== "Any value"
-        ? test.resultLimits?.[0]?.validRange.split("-")?.[0] || "-Infinity"
-        : "-Infinity",
-    highValid:
-      test.resultLimits?.[0]?.validRange !== "Any value"
-        ? test.resultLimits?.[0]?.validRange.split("-")?.[1] || "Infinity"
-        : "Infinity",
-    lowReportingRange:
-      test.resultLimits?.[0]?.reportingRange !== "Any value"
-        ? test.resultLimits?.[0]?.reportingRange.split("-")?.[0] || "-Infinity"
-        : "-Infinity",
-    highReportingRange:
-      test.resultLimits?.[0]?.reportingRange !== "Any value"
-        ? test.resultLimits?.[0]?.reportingRange.split("-")?.[1] || "Infinity"
-        : "Infinity",
-    lowCritical:
-      test.resultLimits?.[0]?.criticalRange !== "Any value"
-        ? test.resultLimits?.[0]?.criticalRange.split("-")?.[0] || "-Infinity"
-        : "-Infinity",
-    highCritical:
-      test.resultLimits?.[0]?.criticalRange !== "Any value"
-        ? test.resultLimits?.[0]?.criticalRange.split("-")?.[1] || "Infinity"
-        : "Infinity",
-    significantDigits:
-      test.significantDigits !== "n/a" ? test.significantDigits : "0",
+    lowValid: extractRange(test.resultLimits?.[0]?.validRange)[0],
+    highValid: extractRange(test.resultLimits?.[0]?.validRange)[1],
+    lowReportingRange: extractRange(test.resultLimits?.[0]?.reportingRange)[0],
+    highReportingRange: extractRange(test.resultLimits?.[0]?.reportingRange)[1],
+    lowCritical: extractRange(test.resultLimits?.[0]?.criticalRange)[0],
+    highCritical: extractRange(test.resultLimits?.[0]?.criticalRange)[1],
+    significantDigits: test.significantDigits
+      ? test.significantDigits !== "n/a"
+        ? test.significantDigits
+        : "0"
+      : "0",
     resultLimits: Object.entries(
       (test.resultLimits || []).reduce((acc, limit) => {
         const key = limit.ageRange;
@@ -139,8 +140,15 @@ export const mapTestCatBeanToFormData = (test) => {
       limits.forEach((limit) => {
         let low = "-Infinity",
           high = "Infinity";
-        if (limit.normalRange && limit.normalRange !== "Any value") {
-          [low, high] = limit.normalRange.split("-");
+
+        const isAnyValue =
+          typeof limit.normalRange === "string" &&
+          limit.normalRange.trim().toLowerCase() === "any value";
+
+        if (!isAnyValue && typeof limit.normalRange === "string") {
+          const parts = limit.normalRange.split("-");
+          low = parts[0]?.trim() || "-Infinity";
+          high = parts[1]?.trim() || "Infinity";
         }
 
         if (limit.gender === "M") {
