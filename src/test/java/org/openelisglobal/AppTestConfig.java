@@ -28,7 +28,6 @@ import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.notification.service.AnalysisNotificationConfigService;
 import org.openelisglobal.notification.service.TestNotificationConfigService;
 import org.openelisglobal.odoo.client.OdooClient;
-import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.organization.service.OrganizationTypeService;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
@@ -267,12 +266,6 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("test")
     public OdooClient odooClient() {
         return mock(OdooClient.class);
-    }
-
-    @Bean
-    @Profile("test")
-    public TestProductMapping testProductMapping() {
-        return mock(TestProductMapping.class);
     }
 
     @Bean()

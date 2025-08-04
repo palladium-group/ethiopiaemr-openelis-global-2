@@ -7,7 +7,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
 import org.openelisglobal.odoo.client.OdooConnection;
-import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.odoo.exception.OdooOperationException;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.test.valueholder.Test;
@@ -25,9 +24,6 @@ public class OdooIntegrationService {
 
     @Autowired
     private OdooConnection odooConnection;
-
-    @Autowired
-    private TestProductMapping testProductMapping;
 
     /**
      * Creates an invoice in Odoo for the given sample data.
@@ -68,19 +64,12 @@ public class OdooIntegrationService {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
                     String testName = test.getLocalizedName();
-                    if (testProductMapping.hasValidMapping(testName)) {
-                        String productName = testProductMapping.getProductName(testName);
-                        Double price = testProductMapping.getPrice(testName);
-                        Map<String, Object> invoiceLine = new HashMap<>();
-                        invoiceLine.put("name", productName);
-                        invoiceLine.put("quantity", 1.0);
-                        invoiceLine.put("price_unit", price != null ? price : 100.0);
-                        invoiceLines.add(invoiceLine);
-                        log.info("Added invoice line for test: {} with product: {} and price: {}", testName,
-                                productName, price);
-                    } else {
-                        log.warn("No Odoo product mapping found for test: {}", testName);
-                    }
+                    Map<String, Object> invoiceLine = new HashMap<>();
+                    invoiceLine.put("name", testName);
+                    invoiceLine.put("quantity", 1.0);
+                    invoiceLine.put("price_unit", 100.0); // Default price, can be configured later
+                    invoiceLines.add(invoiceLine);
+                    log.info("Added invoice line for test: {} with price: {}", testName, 100.0);
                 }
             }
         }
