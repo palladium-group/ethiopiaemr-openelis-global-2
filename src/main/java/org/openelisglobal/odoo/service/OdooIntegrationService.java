@@ -58,15 +58,12 @@ public class OdooIntegrationService {
         invoiceData.put("partner_id", 1);
         invoiceData.put("invoice_date", java.time.LocalDate.now().toString());
         invoiceData.put("ref", "OpenELIS-" + updateData.getAccessionNumber());
-
-        // Format invoice lines for Odoo: [(0, 0, line_data), (0, 0, line_data), ...]
         List<Object> formattedInvoiceLines = new ArrayList<>();
         List<Map<String, Object>> invoiceLines = createInvoiceLines(updateData);
         for (Map<String, Object> line : invoiceLines) {
-            formattedInvoiceLines.add(List.of(0, 0, line)); // (0, 0, line_data) format for Odoo
+            formattedInvoiceLines.add(List.of(0, 0, line));
         }
         invoiceData.put("invoice_line_ids", formattedInvoiceLines);
-
         return invoiceData;
     }
 
@@ -80,24 +77,21 @@ public class OdooIntegrationService {
                         String productName = testProductMapping.getProductName(testName);
                         Double price = testProductMapping.getPrice(testName);
 
-                        // Create invoice line in Odoo format
                         Map<String, Object> invoiceLine = new HashMap<>();
                         invoiceLine.put("name", productName);
                         invoiceLine.put("quantity", 1.0);
                         invoiceLine.put("price_unit", price != null ? price : 100.0);
-                        invoiceLine.put("account_id", 1); // Default account ID, should be configured
+                        invoiceLine.put("account_id", 1);
                         invoiceLines.add(invoiceLine);
-
                         log.info("Added invoice line for test: {} with product: {} and price: {}", testName,
                                 productName, price);
                     } else {
                         log.warn("No Odoo product mapping found for test: {}", testName);
-                        // Add a default line for unmapped tests
                         Map<String, Object> invoiceLine = new HashMap<>();
                         invoiceLine.put("name", testName);
                         invoiceLine.put("quantity", 1.0);
                         invoiceLine.put("price_unit", 100.0);
-                        invoiceLine.put("account_id", 1); // Default account ID
+                        invoiceLine.put("account_id", 1);
                         invoiceLines.add(invoiceLine);
                         log.info("Added default invoice line for unmapped test: {} with price: {}", testName, 100.0);
                     }

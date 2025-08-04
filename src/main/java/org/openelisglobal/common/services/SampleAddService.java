@@ -257,7 +257,7 @@ public class SampleAddService {
         }
     }
 
-    public final class SampleTestCollection {
+    public static final class SampleTestCollection {
         public SampleItem item;
 
         public List<Test> tests;

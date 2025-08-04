@@ -94,7 +94,7 @@ public class ReferralSetServiceTest extends BaseWebContextSensitiveTest {
         Map<String, String> testIdToUserSectionMap = new HashMap<>();
         Map<String, String> testIdToUserSampleTypeMap = new HashMap<>();
 
-        return sampleAddService.new SampleTestCollection(new SampleItem(), tests, "2024-06-04", initialConditionList,
+        return new SampleAddService.SampleTestCollection(new SampleItem(), tests, "2024-06-04", initialConditionList,
                 testIdToUserSectionMap, testIdToUserSampleTypeMap, new ObservationHistory());
     }
 }
