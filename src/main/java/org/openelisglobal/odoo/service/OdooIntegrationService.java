@@ -7,6 +7,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
 import org.openelisglobal.odoo.client.OdooConnection;
+import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.odoo.exception.OdooOperationException;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.test.valueholder.Test;
@@ -24,6 +25,9 @@ public class OdooIntegrationService {
 
     @Autowired
     private OdooConnection odooConnection;
+
+    @Autowired
+    private TestProductMapping testProductMapping;
 
     /**
      * Creates an invoice in Odoo for the given sample data.
@@ -54,7 +58,15 @@ public class OdooIntegrationService {
         invoiceData.put("partner_id", 1);
         invoiceData.put("invoice_date", java.time.LocalDate.now().toString());
         invoiceData.put("ref", "OpenELIS-" + updateData.getAccessionNumber());
-        invoiceData.put("invoice_line_ids", createInvoiceLines(updateData));
+
+        // Format invoice lines for Odoo: [(0, 0, line_data), (0, 0, line_data), ...]
+        List<Object> formattedInvoiceLines = new ArrayList<>();
+        List<Map<String, Object>> invoiceLines = createInvoiceLines(updateData);
+        for (Map<String, Object> line : invoiceLines) {
+            formattedInvoiceLines.add(List.of(0, 0, line)); // (0, 0, line_data) format for Odoo
+        }
+        invoiceData.put("invoice_line_ids", formattedInvoiceLines);
+
         return invoiceData;
     }
 
@@ -64,12 +76,31 @@ public class OdooIntegrationService {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
                     String testName = test.getLocalizedName();
-                    Map<String, Object> invoiceLine = new HashMap<>();
-                    invoiceLine.put("name", testName);
-                    invoiceLine.put("quantity", 1.0);
-                    invoiceLine.put("price_unit", 100.0); // Default price, can be configured later
-                    invoiceLines.add(invoiceLine);
-                    log.info("Added invoice line for test: {} with price: {}", testName, 100.0);
+                    if (testProductMapping.hasValidMapping(testName)) {
+                        String productName = testProductMapping.getProductName(testName);
+                        Double price = testProductMapping.getPrice(testName);
+
+                        // Create invoice line in Odoo format
+                        Map<String, Object> invoiceLine = new HashMap<>();
+                        invoiceLine.put("name", productName);
+                        invoiceLine.put("quantity", 1.0);
+                        invoiceLine.put("price_unit", price != null ? price : 100.0);
+                        invoiceLine.put("account_id", 1); // Default account ID, should be configured
+                        invoiceLines.add(invoiceLine);
+
+                        log.info("Added invoice line for test: {} with product: {} and price: {}", testName,
+                                productName, price);
+                    } else {
+                        log.warn("No Odoo product mapping found for test: {}", testName);
+                        // Add a default line for unmapped tests
+                        Map<String, Object> invoiceLine = new HashMap<>();
+                        invoiceLine.put("name", testName);
+                        invoiceLine.put("quantity", 1.0);
+                        invoiceLine.put("price_unit", 100.0);
+                        invoiceLine.put("account_id", 1); // Default account ID
+                        invoiceLines.add(invoiceLine);
+                        log.info("Added default invoice line for unmapped test: {} with price: {}", testName, 100.0);
+                    }
                 }
             }
         }
