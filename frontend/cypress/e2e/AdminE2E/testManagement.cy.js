@@ -21,10 +21,16 @@ describe("Test Management", function () {
       testManagementPage.validatePageTitle("Test names");
       testManagementPage.clickButton("0");
       testManagementPage.button("Save");
+      testManagementPage.button("Accept");
     });
   });
 
   describe("Test Organization", () => {
+    it("Navigate to Test Management Page", () => {
+      testManagementPage = adminPage.goToTestManagementPage();
+      testManagementPage.validatePageTitle("Test Management");
+    });
+
     it("View Test Catalog", () => {
       testManagementPage.clickTestCatalog();
       testManagementPage.toggleSwitch();
