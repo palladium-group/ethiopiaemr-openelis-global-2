@@ -22,7 +22,6 @@ import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dataexchange.fhir.service.FhirPersistanceService;
 import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
-import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.externalconnections.service.BasicAuthenticationDataService;
 import org.openelisglobal.externalconnections.service.ExternalConnectionService;
 import org.openelisglobal.internationalization.MessageUtil;
@@ -32,6 +31,7 @@ import org.openelisglobal.organization.service.OrganizationTypeService;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
+import org.openelisglobal.result.controller.AnalyzerResultsController;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -57,31 +57,33 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.person", "org.openelisglobal.audittrail", "org.openelisglobal.referencetables",
         "org.openelisglobal.history", "org.openelisglobal.menu", "org.openelisglobal.login",
         "org.openelisglobal.systemusermodule", "org.openelisglobal.rolemodule", "org.openelisglobal.view",
-        "org.openelisglobal.search", "org.openelisglobal.common.util", "org.openelisglobal.view",
-        "org.openelisglobal.sample", "org.openelisglobal.sampleitem", "org.openelisglobal.analysis",
-        "org.openelisglobal.result", "org.openelisglobal.resultlimit", "org.openelisglobal.resultlimits",
-        "org.openelisglobal.typeoftestresult", "org.openelisglobal.samplehuman", "org.openelisglobal.provider",
-        "org.openelisglobal.role", "org.openelisglobal.organization", "org.openelisglobal.region",
-        "org.openelisglobal.program", "org.openelisglobal.note", "org.openelisglobal.requester",
-        "org.openelisglobal.method", "org.openelisglobal.sampleorganization", "org.openelisglobal.analyte",
-        "org.openelisglobal.panel", "org.openelisglobal.panelitem", "org.openelisglobal.reports",
-        "org.openelisglobal.userrole", "org.openelisglobal.unitofmeasure", "org.openelisglobal.testtrailer",
-        "org.openelisglobal.scriptlet", "org.openelisglobal.localization", "org.openelisglobal.systemuser",
-        "org.openelisglobal.systemmodule", "org.openelisglobal.testdictionary", "org.openelisglobal.dictionarycategory",
-
+        "org.openelisglobal.search", "org.openelisglobal.common.util", "org.openelisglobal.sample",
+        "org.openelisglobal.sampleitem", "org.openelisglobal.analysis", "org.openelisglobal.result",
+        "org.openelisglobal.resultlimit", "org.openelisglobal.resultlimits", "org.openelisglobal.typeoftestresult",
+        "org.openelisglobal.samplehuman", "org.openelisglobal.provider", "org.openelisglobal.role",
+        "org.openelisglobal.organization", "org.openelisglobal.region", "org.openelisglobal.program",
+        "org.openelisglobal.note", "org.openelisglobal.requester", "org.openelisglobal.method",
+        "org.openelisglobal.sampleorganization", "org.openelisglobal.analyte", "org.openelisglobal.panel",
+        "org.openelisglobal.panelitem", "org.openelisglobal.reports", "org.openelisglobal.userrole",
+        "org.openelisglobal.unitofmeasure", "org.openelisglobal.testtrailer", "org.openelisglobal.scriptlet",
+        "org.openelisglobal.localization", "org.openelisglobal.systemuser", "org.openelisglobal.systemmodule",
+        "org.openelisglobal.testdictionary", "org.openelisglobal.dictionarycategory", "org.openelisglobal.sampledomain",
         "org.openelisglobal.sampleproject", "org.openelisglobal.observationhistorytype",
         "org.openelisglobal.statusofsample", "org.openelisglobal.test", "org.openelisglobal.analyzerimport",
-        "org.openelisglobal.analyzer", "org.openelisglobal.systemusersection",
-
-        "org.openelisglobal.observationhistorytype", "org.openelisglobal.statusofsample", "org.openelisglobal.test",
-        "org.openelisglobal.analyzerimport", "org.openelisglobal.analyzer", "org.openelisglobal.testanalyte",
-        "org.openelisglobal.observationhistory", "org.openelisglobal.systemusersection",
-        "org.openelisglobal.citystatezip", "org.openelisglobal.typeofsample", "org.openelisglobal.siteinformation",
-        "org.openelisglobal.config", "org.openelisglobal.image", "org.openelisglobal.testresult",
-        "org.openelisglobal.barcode", "org.openelisglobal.referral", "org.openelisglobal.qaevent",
-        "org.openelisglobal.sampleproject", "org.openelisglobal.project", "org.openelisglobal.sampleqaevent",
+        "org.openelisglobal.analyzer", "org.openelisglobal.testanalyte", "org.openelisglobal.observationhistory",
+        "org.openelisglobal.systemusersection", "org.openelisglobal.citystatezip", "org.openelisglobal.typeofsample",
+        "org.openelisglobal.siteinformation", "org.openelisglobal.config", "org.openelisglobal.image",
+        "org.openelisglobal.testresult", "org.openelisglobal.barcode", "org.openelisglobal.referral",
+        "org.openelisglobal.qaevent", "org.openelisglobal.project", "org.openelisglobal.sampleqaevent",
         "org.openelisglobal.patientrelation", "org.openelisglobal.inventory", "org.openelisglobal.testcodes",
-        "org.openelisglobal.datasubmission", "org.openelisglobal.label" }, excludeFilters = {
+        "org.openelisglobal.datasubmission", "org.openelisglobal.label", "org.openelisglobal.renametestsection",
+        "org.openelisglobal.action", "org.openelisglobal.analysisqaevent", "org.openelisglobal.analysisqaeventaction",
+        "org.openelisglobal.dataexchange", "org.openelisglobal.samplepdf", "org.openelisglobal.samplenewborn",
+        "org.openelisglobal.sampleqaeventaction", "org.openelisglobal.analyzerresults", "org.openelisglobal.testreflex",
+        "org.openelisglobal.county", "org.openelisglobal.sampletracking", "org.openelisglobal.testresultsview",
+        "org.openelisglobal.projectorganization", "org.openelisglobal.sourceofsample",
+        "org.openelisglobal.testconfiguration", "org.openelisglobal.usertestsection" }, excludeFilters = {
+
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.sample.controller.*"),
@@ -183,12 +185,6 @@ public class AppTestConfig implements WebMvcConfigurer {
 
     @Bean()
     @Profile("test")
-    public ElectronicOrderService electronicOrderService() {
-        return mock(ElectronicOrderService.class);
-    }
-
-    @Bean()
-    @Profile("test")
     public AnalysisNotificationConfigService analysisNotificationConfigService() {
         return mock(AnalysisNotificationConfigService.class);
     }
@@ -281,6 +277,11 @@ public class AppTestConfig implements WebMvcConfigurer {
         WebMvcConfigurer.super.configureMessageConverters(converters);
         converters.add(new StringHttpMessageConverter());
         converters.add(jsonConverter());
+    }
+
+    @Bean()
+    public AnalyzerResultsController analyzerResultsController() {
+        return mock(AnalyzerResultsController.class);
     }
 
 }

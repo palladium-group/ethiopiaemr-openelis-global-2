@@ -31,7 +31,7 @@ Download the OpenELIS Global Installer for each Release from the
 [Release Assets](https://github.com/DIGI-UW/OpenELIS-Global-2/releases)
 
 see full
-[installtion instructions](https://docs.openelis-global.org/en/latest/install/)
+[installation instructions](https://uwdigi.atlassian.net/wiki/x/EoBIDg#Downloaded-Installer-Offline-Setup)
 for Offline Installation
 
 ### For running OpenELIS Global2 in Docker with default Settings out of the Box
@@ -121,6 +121,31 @@ accessing any of these links, simply follow these steps:
     to properly format the Java code
 
         mvn spotless:apply
+
+#### To ensure your code passes the same checks as the CI pipeline, you can run the following commands from your project directory
+
+1.  Run Code Formatting Check (Backend). This command checks code formatting and
+    performs validation similar to the CI
+
+        mvn spotless:check
+
+1.  Run Build Check (Backend). This command builds the project similar to CI
+
+        mvn clean install -Dspotless.check.skip=true
+
+1.  To run Individual Integration Test
+
+         mvn verify -Dit.test=<packageName>.<TestClassName>
+
+1.  Run Frontend Formatting, Build, and E2E Test Checks similar to CI
+
+    > **Note:** Frontend checks will only pass successfully if your development
+    > environment is properly set up and running without issues.
+
+        cd frontend/ # from project directory
+        npm install
+        npm run build
+        npm run cy:run # this will run e2e testing same CI
 
 ### Pull request guidelines
 
