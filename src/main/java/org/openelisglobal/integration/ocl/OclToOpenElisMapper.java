@@ -51,7 +51,8 @@ public class OclToOpenElisMapper {
      * Maps OCL concepts to TestAddForm objects ready for submission, applying
      * filters for datatype and concept_class.
      * 
-     * @param rootNode The root JSON node from OCL export, containing a "concepts" array.
+     * @param rootNode The root JSON node from OCL export, containing a "concepts"
+     *                 array.
      * @return A list of TestAddForm objects that pass the filters.
      */
     public List<TestAddForm> mapConceptsToTestAddForms(JsonNode rootNode) {
@@ -67,14 +68,14 @@ public class OclToOpenElisMapper {
             // Handle concepts array from OCL export
             JsonNode concepts = rootNode.get("concepts");
             if (concepts != null && concepts.isArray()) {
-                System.out.println("Processing " + concepts.size() + " concepts from collection: " + 
-                                 getText(rootNode, "full_name"));
-                
+                System.out.println("Processing " + concepts.size() + " concepts from collection: "
+                        + getText(rootNode, "full_name"));
+
                 for (JsonNode conceptNode : concepts) {
                     String conceptId = getText(conceptNode, "id");
                     String displayName = getText(conceptNode, "display_name");
                     System.out.println("\nProcessing concept: " + displayName + " (ID: " + conceptId + ")");
-                    
+
                     TestAddForm form = mapSingleConceptToForm(conceptNode);
                     if (form != null) {
                         forms.add(form);
@@ -115,8 +116,7 @@ public class OclToOpenElisMapper {
                     || dataType.equalsIgnoreCase("TEXT") || dataType.equalsIgnoreCase("STRING")
                     || dataType.equalsIgnoreCase("CODED") || dataType.equalsIgnoreCase("SELECT")
                     || dataType.equalsIgnoreCase("N/A"))) {
-                System.out.println(
-                        "Skipping concept " + conceptId + " due to unsupported datatype: " + dataType);
+                System.out.println("Skipping concept " + conceptId + " due to unsupported datatype: " + dataType);
                 return null;
             }
 
@@ -130,12 +130,9 @@ public class OclToOpenElisMapper {
             if (conceptClass != null) {
                 // Normal concept class validation
                 String normalizedConceptClass = conceptClass.toUpperCase();
-                if (normalizedConceptClass.equals("TEST") || 
-                    normalizedConceptClass.equals("LAB SET") ||
-                    normalizedConceptClass.equals("LABSET") ||
-                    normalizedConceptClass.equals("MISC") || 
-                    normalizedConceptClass.equals("FINDING") ||
-                    normalizedConceptClass.equals("PROCEDURE")) {
+                if (normalizedConceptClass.equals("TEST") || normalizedConceptClass.equals("LAB SET")
+                        || normalizedConceptClass.equals("LABSET") || normalizedConceptClass.equals("MISC")
+                        || normalizedConceptClass.equals("FINDING") || normalizedConceptClass.equals("PROCEDURE")) {
                     isAllowedConceptClass = true;
                     System.out.println("✓ Concept class '" + conceptClass + "' is allowed for concept " + conceptId);
                 }
@@ -146,21 +143,18 @@ public class OclToOpenElisMapper {
                 System.out.println("Attempting to infer concept class for concept: " + conceptId);
 
                 // Infer concept class based on available information
-                if (dataType != null && 
-                    (dataType.equalsIgnoreCase("Numeric") || 
-                     dataType.equalsIgnoreCase("Coded") ||
-                     dataType.equalsIgnoreCase("Text"))) {
+                if (dataType != null && (dataType.equalsIgnoreCase("Numeric") || dataType.equalsIgnoreCase("Coded")
+                        || dataType.equalsIgnoreCase("Text"))) {
                     conceptClass = "Test";
                     isAllowedConceptClass = true;
-                    System.out.println("✓ Inferred concept_class 'Test' for concept " + conceptId + 
-                                     " based on datatype: " + dataType);
+                    System.out.println("✓ Inferred concept_class 'Test' for concept " + conceptId
+                            + " based on datatype: " + dataType);
                 }
             }
 
             if (!isAllowedConceptClass) {
-                System.out.println("✗ Skipping concept " + conceptId + 
-                                 " (name: " + displayName + ") " +
-                                 "due to unsupported concept_class: " + conceptClass);
+                System.out.println("✗ Skipping concept " + conceptId + " (name: " + displayName + ") "
+                        + "due to unsupported concept_class: " + conceptClass);
                 return null;
             }
 
@@ -210,7 +204,7 @@ public class OclToOpenElisMapper {
 
         // Get display_name as initial English name
         englishName = getText(concept, "display_name");
-        
+
         // Process names array for best matching names
         JsonNode names = concept.get("names");
         if (names != null && names.isArray()) {
@@ -224,7 +218,7 @@ public class OclToOpenElisMapper {
                 // Handle FULLY_SPECIFIED preferred names first
                 if (name != null && "FULLY_SPECIFIED".equals(nameType) && isPreferred) {
                     if ("en".equals(locale)) {
-                        englishName = name;  // Overwrite display_name with preferred English name
+                        englishName = name; // Overwrite display_name with preferred English name
                     } else if ("fr".equals(locale)) {
                         frenchName = name;
                     }
@@ -232,13 +226,12 @@ public class OclToOpenElisMapper {
                 // Handle other cases
                 else if (name != null) {
                     // For English, prefer FULLY_SPECIFIED name if display_name wasn't found
-                    if ("en".equals(locale) && englishName == null && 
-                        ("FULLY_SPECIFIED".equals(nameType) || isPreferred)) {
+                    if ("en".equals(locale) && englishName == null
+                            && ("FULLY_SPECIFIED".equals(nameType) || isPreferred)) {
                         englishName = name;
                     }
                     // For French, prefer FULLY_SPECIFIED name
-                    else if ("fr".equals(locale) && 
-                            ("FULLY_SPECIFIED".equals(nameType) || isPreferred)) {
+                    else if ("fr".equals(locale) && ("FULLY_SPECIFIED".equals(nameType) || isPreferred)) {
                         frenchName = name;
                     }
                 }
@@ -304,10 +297,10 @@ public class OclToOpenElisMapper {
             for (JsonNode mapping : mappings) {
                 String mapType = getText(mapping, "map_type");
                 String toSourceName = getText(mapping, "to_source_name");
-                
+
                 // Look for LOINC mappings specifically
-                if (("SAME-AS".equals(mapType) || "LOINC".equals(mapType) || "BROADER-THAN".equals(mapType)) && 
-                    "LOINC".equals(toSourceName)) {
+                if (("SAME-AS".equals(mapType) || "LOINC".equals(mapType) || "BROADER-THAN".equals(mapType))
+                        && "LOINC".equals(toSourceName)) {
                     loinc = getText(mapping, "to_concept_code");
                     if (loinc != null) {
                         System.out.println("Found LOINC code: " + loinc + " for concept " + getText(concept, "id"));
@@ -467,45 +460,51 @@ public class OclToOpenElisMapper {
                     } else {
                         sigDigits = allowDecimal; // Use as-is if it's a number
                     }
-                    System.out.println("Found allow_decimal: " + allowDecimal + " -> sigDigits: " + sigDigits + 
-                                     " for concept " + getText(concept, "id"));
+                    System.out.println("Found allow_decimal: " + allowDecimal + " -> sigDigits: " + sigDigits
+                            + " for concept " + getText(concept, "id"));
                 }
 
                 // Look for other validation ranges
                 String lowReportingValue = getNumericText(extras, "low_reporting");
-                if (lowReportingValue != null) lowReporting = lowReportingValue;
+                if (lowReportingValue != null)
+                    lowReporting = lowReportingValue;
 
                 String highReportingValue = getNumericText(extras, "high_reporting");
-                if (highReportingValue != null) highReporting = highReportingValue;
+                if (highReportingValue != null)
+                    highReporting = highReportingValue;
 
                 String lowCriticalValue = getNumericText(extras, "low_critical");
-                if (lowCriticalValue != null) lowCritical = lowCriticalValue;
+                if (lowCriticalValue != null)
+                    lowCritical = lowCriticalValue;
 
                 String highCriticalValue = getNumericText(extras, "high_critical");
-                if (highCriticalValue != null) highCritical = highCriticalValue;
+                if (highCriticalValue != null)
+                    highCritical = highCriticalValue;
             }
 
             // Try direct fields as fallback
             if (lowValid.isEmpty()) {
                 String lowValidDirect = getNumericText(concept, "low_valid");
-                if (lowValidDirect != null) lowValid = lowValidDirect;
+                if (lowValidDirect != null)
+                    lowValid = lowValidDirect;
             }
 
             if (highValid.isEmpty()) {
                 String highValidDirect = getNumericText(concept, "high_valid");
-                if (highValidDirect != null) highValid = highValidDirect;
+                if (highValidDirect != null)
+                    highValid = highValidDirect;
             }
 
             if (sigDigits.isEmpty()) {
                 String sigDigitsDirect = getNumericText(concept, "significant_digits");
-                if (sigDigitsDirect != null) sigDigits = sigDigitsDirect;
+                if (sigDigitsDirect != null)
+                    sigDigits = sigDigitsDirect;
             }
 
             // Log the numeric validation setup
             if (!lowValid.isEmpty() || !highValid.isEmpty() || !sigDigits.isEmpty()) {
-                System.out.println("Numeric validation for concept " + getText(concept, "id") + 
-                                 ": lowValid=" + lowValid + ", highValid=" + highValid + 
-                                 ", sigDigits=" + sigDigits);
+                System.out.println("Numeric validation for concept " + getText(concept, "id") + ": lowValid=" + lowValid
+                        + ", highValid=" + highValid + ", sigDigits=" + sigDigits);
             }
         }
 
@@ -715,15 +714,14 @@ public class OclToOpenElisMapper {
             details.append("Display Name: ").append(getText(concept, "display_name")).append("\n");
             details.append("Concept Class: ").append(getText(concept, "concept_class")).append("\n");
             details.append("DataType: ").append(getText(concept, "datatype")).append("\n");
-            
+
             // Log names
             JsonNode names = concept.get("names");
             if (names != null && names.isArray()) {
                 details.append("Names:\n");
                 for (JsonNode name : names) {
-                    details.append("  - ").append(getText(name, "name"))
-                           .append(" (").append(getText(name, "locale")).append(")")
-                           .append(" [").append(getText(name, "name_type")).append("]\n");
+                    details.append("  - ").append(getText(name, "name")).append(" (").append(getText(name, "locale"))
+                            .append(")").append(" [").append(getText(name, "name_type")).append("]\n");
                 }
             }
 
