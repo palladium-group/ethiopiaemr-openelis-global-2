@@ -59,7 +59,7 @@ public class OdooIntegrationServiceIntegrationTest extends BaseWebContextSensiti
 
         assertEquals("out_invoice", invoice.get("move_type"));
         assertEquals(1, invoice.get("partner_id"));
-        assertEquals("OpenELIS-TEST-001", invoice.get("ref"));
+        assertEquals("OE-TEST-001", invoice.get("ref"));
 
         List<Object> lines = getInvoiceLines(invoice);
         assertEquals(1, lines.size());

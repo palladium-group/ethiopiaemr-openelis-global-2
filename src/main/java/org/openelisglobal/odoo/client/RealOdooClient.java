@@ -36,4 +36,11 @@ public class RealOdooClient implements OdooConnection {
             throw new IllegalStateException("Odoo is not available");
         return odooClient.create(model, dataParams);
     }
+
+    @Override
+    public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields) {
+        if (!available)
+            throw new IllegalStateException("Odoo is not available");
+        return odooClient.searchAndRead(model, criteria, fields);
+    }
 }

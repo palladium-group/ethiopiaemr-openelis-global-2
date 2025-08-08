@@ -17,4 +17,10 @@ public class NoOpOdooClient implements OdooConnection {
         log.warn("Odoo is not available. Skipping create operation for model: {}", model);
         return null;
     }
+
+    @Override
+    public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields) {
+        log.warn("Odoo is not available. Skipping searchAndRead operation for model: {}", model);
+        return new Object[0];
+    }
 }

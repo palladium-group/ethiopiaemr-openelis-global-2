@@ -51,6 +51,9 @@ public class TestProductMapping {
 
         if (mappingsLoaded == 0) {
             LogEvent.logWarn(getClass().getSimpleName(), "init", "No valid mappings found.");
+        } else {
+            LogEvent.logInfo(getClass().getSimpleName(), "init",
+                    "Available mapping keys: " + String.join(", ", getAllMappedTestCodes()));
         }
     }
 
@@ -108,6 +111,8 @@ public class TestProductMapping {
             try {
                 double price = Double.parseDouble(parts[1].trim());
                 testToProductInfo.put(testCode, new TestProductInfo(productName, price));
+                LogEvent.logDebug(getClass().getSimpleName(), "parseMappings", "Loaded mapping: testCode='" + testCode
+                        + "' -> productName='" + productName + "', price=" + price);
                 count++;
             } catch (NumberFormatException e) {
                 LogEvent.logError(getClass().getSimpleName(), "parseMappings",
@@ -118,7 +123,10 @@ public class TestProductMapping {
     }
 
     public boolean hasValidMapping(String testCode) {
-        return testToProductInfo.containsKey(testCode);
+        boolean hasMapping = testToProductInfo.containsKey(testCode);
+        LogEvent.logInfo(getClass().getSimpleName(), "hasValidMapping",
+                "Checking testCode='" + testCode + "' -> hasMapping=" + hasMapping);
+        return hasMapping;
     }
 
     public String getProductName(String testCode) {
@@ -129,5 +137,9 @@ public class TestProductMapping {
     public Double getPrice(String testCode) {
         TestProductInfo info = testToProductInfo.get(testCode);
         return info != null ? info.getPrice() : null;
+    }
+
+    public Set<String> getAllMappedTestCodes() {
+        return testToProductInfo.keySet();
     }
 }

@@ -9,7 +9,13 @@ import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.odoo.exception.OdooOperationException;
+import org.openelisglobal.patient.service.PatientService;
+import org.openelisglobal.patient.valueholder.Patient;
+import org.openelisglobal.person.service.PersonService;
+import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
+import org.openelisglobal.sample.valueholder.Sample;
+import org.openelisglobal.samplehuman.service.SampleHumanService;
 import org.openelisglobal.test.valueholder.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +34,15 @@ public class OdooIntegrationService {
 
     @Autowired
     private TestProductMapping testProductMapping;
+
+    @Autowired
+    private SampleHumanService sampleHumanService;
+
+    @Autowired
+    private PatientService patientService;
+
+    @Autowired
+    private PersonService personService;
 
     /**
      * Creates an invoice in Odoo for the given sample data.
@@ -55,9 +70,13 @@ public class OdooIntegrationService {
     private Map<String, Object> createInvoiceData(SamplePatientUpdateData updateData) {
         Map<String, Object> invoiceData = new HashMap<>();
         invoiceData.put("move_type", "out_invoice");
-        invoiceData.put("partner_id", 1);
+
+        Integer partnerId = getOrCreatePatientPartner(updateData);
+        invoiceData.put("partner_id", partnerId);
+
         invoiceData.put("invoice_date", java.time.LocalDate.now().toString());
-        invoiceData.put("ref", "OpenELIS-" + updateData.getAccessionNumber());
+        invoiceData.put("ref", "OE-" + updateData.getAccessionNumber());
+
         List<Object> formattedInvoiceLines = new ArrayList<>();
         List<Map<String, Object>> invoiceLines = createInvoiceLines(updateData);
         for (Map<String, Object> line : invoiceLines) {
@@ -67,15 +86,246 @@ public class OdooIntegrationService {
         return invoiceData;
     }
 
+    /**
+     * Gets or creates a partner in Odoo for the patient associated with the sample.
+     * 
+     * @param updateData The sample data containing patient information
+     * @return The partner ID in Odoo
+     */
+    private Integer getOrCreatePatientPartner(SamplePatientUpdateData updateData) {
+        try {
+            Sample sample = updateData.getSample();
+            if (sample == null) {
+                log.warn("No sample found in updateData, using default partner ID 1");
+                return 1;
+            }
+
+            Patient patient = sampleHumanService.getPatientForSample(sample);
+            if (patient == null) {
+                log.warn("No patient found for sample {}, using default partner ID 1", sample.getAccessionNumber());
+                return 1;
+            }
+
+            Person person = patient.getPerson();
+            if (person == null) {
+                log.warn("No person found for patient {}, using default partner ID 1", patient.getId());
+                return 1;
+            }
+
+            String nationalId = patientService.getNationalId(patient);
+            if (nationalId != null && !nationalId.trim().isEmpty()) {
+                Integer existingPartnerId = findPartnerByNationalId(nationalId);
+                if (existingPartnerId != null) {
+                    log.info("Found existing partner with national ID {}: {}", nationalId, existingPartnerId);
+                    return existingPartnerId;
+                } else {
+                    // Try alternative search by name as fallback
+                    existingPartnerId = findPartnerByName(person.getFirstName(), person.getLastName());
+                    if (existingPartnerId != null) {
+                        log.info("Found existing partner by name for national ID {}: {}", nationalId,
+                                existingPartnerId);
+                        return existingPartnerId;
+                    }
+                }
+            }
+
+            Map<String, Object> partnerData = createPartnerData(patient, person);
+            Integer partnerId = odooConnection.create("res.partner", List.of(partnerData));
+
+            if (partnerId == null) {
+                log.warn("Failed to create partner for patient {}, using default partner ID 1", patient.getId());
+                return 1;
+            }
+
+            log.info("Created new partner in Odoo with ID: {} for patient: {} {}", partnerId, person.getFirstName(),
+                    person.getLastName());
+            return partnerId;
+
+        } catch (Exception e) {
+            log.error("Error getting or creating patient partner: {}", e.getMessage(), e);
+            return 1;
+        }
+    }
+
+    /**
+     * Finds a partner in Odoo by national ID.
+     * 
+     * @param nationalId The patient's national ID
+     * @return The partner ID if found, null otherwise
+     */
+    private Integer findPartnerByNationalId(String nationalId) {
+        try {
+            List<Object> criteria = List.of("ref", "=", nationalId);
+            List<String> fields = List.of("id");
+
+            log.debug("Searching for partner with national ID: {} using criteria: {}", nationalId, criteria);
+
+            Object[] result = odooConnection.searchAndRead("res.partner", criteria, fields);
+
+            log.debug("Search result for national ID {}: {} records found", nationalId,
+                    result != null ? result.length : 0);
+
+            if (result != null && result.length > 0) {
+                Object firstResult = result[0];
+                log.debug("First result type: {}, content: {}", firstResult.getClass().getSimpleName(), firstResult);
+
+                if (firstResult instanceof Map) {
+                    Map<?, ?> partnerData = (Map<?, ?>) firstResult;
+                    Object id = partnerData.get("id");
+                    if (id instanceof Integer) {
+                        log.info("Found existing partner with national ID {}: partner ID {}", nationalId, id);
+                        return (Integer) id;
+                    } else {
+                        log.warn("Partner ID is not an Integer: {} (type: {})", id,
+                                id != null ? id.getClass() : "null");
+                    }
+                } else {
+                    log.warn("First result is not a Map: {} (type: {})", firstResult, firstResult.getClass());
+                }
+            } else {
+                log.debug("No partner found with national ID: {}", nationalId);
+            }
+
+            return null;
+        } catch (Exception e) {
+            log.error("Error searching for partner by national ID {}: {}", nationalId, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Finds a partner in Odoo by name as a fallback.
+     * 
+     * @param firstName The patient's first name
+     * @param lastName  The patient's last name
+     * @return The partner ID if found, null otherwise
+     */
+    private Integer findPartnerByName(String firstName, String lastName) {
+        if (firstName == null && lastName == null) {
+            return null;
+        }
+
+        try {
+            String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+            fullName = fullName.trim();
+
+            if (fullName.isEmpty()) {
+                return null;
+            }
+
+            List<Object> criteria = List.of("name", "ilike", fullName);
+            List<String> fields = List.of("id", "name");
+
+            log.debug("Searching for partner by name: '{}' using criteria: {}", fullName, criteria);
+
+            Object[] result = odooConnection.searchAndRead("res.partner", criteria, fields);
+
+            log.debug("Search result for name '{}': {} records found", fullName, result != null ? result.length : 0);
+
+            if (result != null && result.length > 0) {
+                Object firstResult = result[0];
+                if (firstResult instanceof Map) {
+                    Map<?, ?> partnerData = (Map<?, ?>) firstResult;
+                    Object id = partnerData.get("id");
+                    if (id instanceof Integer) {
+                        log.info("Found existing partner by name '{}': partner ID {}", fullName, id);
+                        return (Integer) id;
+                    }
+                }
+            }
+
+            return null;
+        } catch (Exception e) {
+            log.error("Error searching for partner by name {}: {}", firstName + " " + lastName, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Creates partner data for Odoo from patient and person information.
+     * 
+     * @param patient The patient
+     * @param person  The person associated with the patient
+     * @return Map containing partner data for Odoo
+     */
+    private Map<String, Object> createPartnerData(Patient patient, Person person) {
+        Map<String, Object> partnerData = new HashMap<>();
+
+        String firstName = person.getFirstName();
+        String lastName = person.getLastName();
+        String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+        partnerData.put("name", fullName.trim());
+
+        String nationalId = patientService.getNationalId(patient);
+        if (nationalId != null && !nationalId.trim().isEmpty()) {
+            partnerData.put("ref", nationalId);
+        }
+
+        if (person.getEmail() != null && !person.getEmail().trim().isEmpty()) {
+            partnerData.put("email", person.getEmail());
+        }
+
+        if (person.getPrimaryPhone() != null && !person.getPrimaryPhone().trim().isEmpty()) {
+            partnerData.put("phone", person.getPrimaryPhone());
+        } else if (person.getCellPhone() != null && !person.getCellPhone().trim().isEmpty()) {
+            partnerData.put("phone", person.getCellPhone());
+        } else if (person.getHomePhone() != null && !person.getHomePhone().trim().isEmpty()) {
+            partnerData.put("phone", person.getHomePhone());
+        }
+
+        if (person.getStreetAddress() != null && !person.getStreetAddress().trim().isEmpty()) {
+            partnerData.put("street", person.getStreetAddress());
+        }
+
+        if (person.getCity() != null && !person.getCity().trim().isEmpty()) {
+            partnerData.put("city", person.getCity());
+        }
+
+        if (person.getState() != null && !person.getState().trim().isEmpty()) {
+            partnerData.put("state_id", person.getState());
+        }
+
+        if (person.getZipCode() != null && !person.getZipCode().trim().isEmpty()) {
+            partnerData.put("zip", person.getZipCode());
+        }
+
+        if (person.getCountry() != null && !person.getCountry().trim().isEmpty()) {
+            partnerData.put("country_id", person.getCountry());
+        }
+
+        partnerData.put("customer_rank", 1);
+        partnerData.put("is_company", false);
+        partnerData.put("comment", "OpenELIS Patient ID: " + patient.getId());
+
+        return partnerData;
+    }
+
     private List<Map<String, Object>> createInvoiceLines(SamplePatientUpdateData updateData) {
         List<Map<String, Object>> invoiceLines = new ArrayList<>();
+
+        log.info("Available test mappings: {}", testProductMapping.getAllMappedTestCodes());
+
         if (updateData.getSampleItemsTests() != null) {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
                     String testName = test.getLocalizedName();
+                    String testId = test.getId();
+                    String description = test.getDescription();
+                    log.debug("Processing test: ID={}, LocalizedName='{}', Description='{}'", testId, testName,
+                            description);
+
+                    String mappingKey = null;
                     if (testProductMapping.hasValidMapping(testName)) {
-                        String productName = testProductMapping.getProductName(testName);
-                        Double price = testProductMapping.getPrice(testName);
+                        mappingKey = testName;
+                    } else if (testProductMapping.hasValidMapping(testId)) {
+                        mappingKey = testId;
+                    } else if (testProductMapping.hasValidMapping(description)) {
+                        mappingKey = description;
+                    }
+
+                    if (mappingKey != null) {
+                        String productName = testProductMapping.getProductName(mappingKey);
+                        Double price = testProductMapping.getPrice(mappingKey);
 
                         Map<String, Object> invoiceLine = new HashMap<>();
                         invoiceLine.put("name", productName);
@@ -83,10 +333,11 @@ public class OdooIntegrationService {
                         invoiceLine.put("price_unit", price != null ? price : 100.0);
                         invoiceLine.put("account_id", 1);
                         invoiceLines.add(invoiceLine);
-                        log.info("Added invoice line for test: {} with product: {} and price: {}", testName,
-                                productName, price);
+                        log.info("Added invoice line for test: {} (mapped from: {}) with product: {} and price: {}",
+                                testName, mappingKey, productName, price);
                     } else {
-                        log.warn("No Odoo product mapping found for test: {}", testName);
+                        log.warn("No Odoo product mapping found for test: {} (ID: {}, Description: {})", testName,
+                                testId, description);
                         Map<String, Object> invoiceLine = new HashMap<>();
                         invoiceLine.put("name", testName);
                         invoiceLine.put("quantity", 1.0);

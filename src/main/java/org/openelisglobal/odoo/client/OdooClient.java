@@ -144,7 +144,8 @@ public class OdooClient {
             params.add(getPassword());
             params.add(model);
             params.add(Constants.SEARCH_READ_METHOD);
-            params.add(singletonList(criteria));
+            // The criteria should be wrapped in a list to form the domain: [[criteria]]
+            params.add(singletonList(singletonList(criteria)));
             if (fields != null) {
                 params.add(singletonMap("fields", fields));
             }

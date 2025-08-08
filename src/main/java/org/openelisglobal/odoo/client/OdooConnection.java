@@ -9,4 +9,6 @@ public interface OdooConnection {
 
     Integer create(String model, List<Map<String, Object>> dataParams);
 
+    Object[] searchAndRead(String model, List<Object> criteria, List<String> fields);
+
 }
