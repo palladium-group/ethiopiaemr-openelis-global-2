@@ -2,8 +2,17 @@
 package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.validator.GenericValidator;
 import org.hibernate.HibernateException;
@@ -40,6 +49,7 @@ import org.openelisglobal.unitofmeasure.valueholder.UnitOfMeasure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -47,6 +57,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class OclImportInitializer implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger log = LoggerFactory.getLogger(OclImportInitializer.class);
+    private static final String CHECKSUM_FILE = "ocl_import_checksums.txt";
+    
+    @Value("${org.openelisglobal.ocl.import.directory:src/main/resources/configurations/ocl}")
+    private String oclImportDirectory;
 
     @Autowired
     private OclZipImporter oclZipImporter;
@@ -79,6 +93,12 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         try {
+            // Check if OCL files have already been processed
+            if (hasAlreadyProcessedOclFiles()) {
+                log.info("OCL Import: Files already processed (checksum match found). Skipping import.");
+                return;
+            }
+            
             List<JsonNode> oclNodes = oclZipImporter.importOclZip();
             log.info("OCL Import: Found {} nodes to process.", oclNodes.size());
 
@@ -193,6 +213,9 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             log.info(
                     "OCL Import: Finished processing. Total concepts processed: {}, Tests created: {}, Tests skipped: {}",
                     conceptCount, testsCreated, testsSkipped);
+            
+            // Save checksum to prevent re-processing
+            saveCurrentOclChecksum();
 
         } catch (java.io.IOException e) {
             log.error("OCL Import failed during file processing", e);
@@ -809,5 +832,116 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                 }
             }
         }
+    }
+
+    /**
+     * Check if OCL files have already been processed by comparing checksums
+     */
+    private boolean hasAlreadyProcessedOclFiles() {
+        try {
+            String currentChecksum = calculateOclFilesChecksum();
+            if (currentChecksum == null) {
+                return false; // No files to process
+            }
+            
+            Set<String> processedChecksums = loadProcessedChecksums();
+            return processedChecksums.contains(currentChecksum);
+        } catch (Exception e) {
+            log.warn("Error checking OCL file checksums: " + e.getMessage());
+            return false; // Continue processing if checksum check fails
+        }
+    }
+
+    /**
+     * Save the current OCL files checksum to the processed list
+     */
+    private void saveCurrentOclChecksum() {
+        try {
+            String currentChecksum = calculateOclFilesChecksum();
+            if (currentChecksum != null) {
+                Files.write(Paths.get(CHECKSUM_FILE), 
+                           (currentChecksum + "\n").getBytes(), 
+                           StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                log.info("OCL Import: Saved checksum {} to prevent duplicate processing", currentChecksum);
+            }
+        } catch (Exception e) {
+            log.warn("Error saving OCL checksum: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Calculate checksum of all OCL files in the configured import directory
+     */
+    private String calculateOclFilesChecksum() {
+        try {
+            File importDir = new File(oclImportDirectory);
+            
+            // Also check alternative locations if primary doesn't exist
+            if (!importDir.exists()) {
+                // Try volume/configurations/ocl (runtime location)
+                importDir = new File("volume/configurations/ocl");
+                if (!importDir.exists()) {
+                    // Try volume/plugins (legacy location)
+                    importDir = new File("volume/plugins");
+                    if (!importDir.exists()) {
+                        log.warn("OCL Import: No OCL import directory found. Checked: {}, volume/configurations/ocl, volume/plugins", oclImportDirectory);
+                        return null;
+                    }
+                }
+            }
+            
+            log.info("OCL Import: Using import directory: {}", importDir.getAbsolutePath());
+            
+            StringBuilder allContent = new StringBuilder();
+            File[] files = importDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
+            
+            if (files == null || files.length == 0) {
+                log.info("OCL Import: No ZIP files found in directory: {}", importDir.getAbsolutePath());
+                return null;
+            }
+            
+            // Sort files for consistent checksum
+            java.util.Arrays.sort(files);
+            
+            log.info("OCL Import: Found {} ZIP file(s) for checksum calculation", files.length);
+            for (File file : files) {
+                allContent.append(file.getName()).append(":").append(file.length()).append(";");
+                log.debug("OCL Import: Including file in checksum: {} (size: {} bytes)", file.getName(), file.length());
+            }
+            
+            // Calculate MD5 hash
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hash = md.digest(allContent.toString().getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            String checksum = hexString.toString();
+            log.debug("OCL Import: Calculated checksum: {} for content: {}", checksum, allContent.toString());
+            return checksum;
+        } catch (Exception e) {
+            log.warn("Error calculating OCL files checksum: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Load previously processed checksums from file
+     */
+    private Set<String> loadProcessedChecksums() {
+        Set<String> checksums = new HashSet<>();
+        try {
+            if (Files.exists(Paths.get(CHECKSUM_FILE))) {
+                List<String> lines = Files.readAllLines(Paths.get(CHECKSUM_FILE));
+                checksums.addAll(lines);
+            }
+        } catch (Exception e) {
+            log.warn("Error loading processed checksums: " + e.getMessage());
+        }
+        return checksums;
     }
 }
