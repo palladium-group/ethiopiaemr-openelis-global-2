@@ -3,8 +3,6 @@ package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -58,7 +56,7 @@ import org.springframework.stereotype.Component;
 public class OclImportInitializer implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger log = LoggerFactory.getLogger(OclImportInitializer.class);
     private static final String CHECKSUM_FILE = "ocl_import_checksums.txt";
-    
+
     @Value("${org.openelisglobal.ocl.import.directory:src/main/resources/configurations/ocl}")
     private String oclImportDirectory;
 
@@ -98,7 +96,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                 log.info("OCL Import: Files already processed (checksum match found). Skipping import.");
                 return;
             }
-            
+
             List<JsonNode> oclNodes = oclZipImporter.importOclZip();
             log.info("OCL Import: Found {} nodes to process.", oclNodes.size());
 
@@ -213,7 +211,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             log.info(
                     "OCL Import: Finished processing. Total concepts processed: {}, Tests created: {}, Tests skipped: {}",
                     conceptCount, testsCreated, testsSkipped);
-            
+
             // Save checksum to prevent re-processing
             saveCurrentOclChecksum();
 
@@ -315,6 +313,44 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         return false;
     }
 
+    /**
+     * Helper method to get UnitOfMeasure by ID or name. OCL concepts may provide
+     * either numeric IDs or unit name strings.
+     * 
+     * @param uomIdOrName The unit of measure ID (numeric string) or name (e.g.,
+     *                    "mg/dL")
+     * @return UnitOfMeasure object if found, null otherwise
+     */
+    private UnitOfMeasure getUnitOfMeasure(String uomIdOrName) {
+        if (GenericValidator.isBlankOrNull(uomIdOrName)) {
+            return null;
+        }
+
+        try {
+            // First try to get by ID (numeric)
+            return unitOfMeasureService.getUnitOfMeasureById(uomIdOrName);
+        } catch (NumberFormatException e) {
+            // If ID lookup fails (because it's not numeric), try lookup by name
+            log.debug("UOM '{}' is not a numeric ID, trying name lookup", uomIdOrName);
+
+            UnitOfMeasure searchUom = new UnitOfMeasure();
+            searchUom.setUnitOfMeasureName(uomIdOrName);
+            UnitOfMeasure foundUom = unitOfMeasureService.getUnitOfMeasureByName(searchUom);
+
+            if (foundUom != null) {
+                log.info("Found UOM by name: '{}' -> ID: {}", uomIdOrName, foundUom.getId());
+                return foundUom;
+            } else {
+                log.warn("UOM not found by name: '{}'. Test will be created without unit of measure.", uomIdOrName);
+                return null;
+            }
+        } catch (Exception e) {
+            log.warn("Error looking up UOM '{}': {}. Test will be created without unit of measure.", uomIdOrName,
+                    e.getMessage());
+            return null;
+        }
+    }
+
     // --- Copied Helper Methods from TestAddRestController (made private here) ---
     // These now use the local nested classes directly or are fully qualified if
     // still referring to TestAddController's inner classes
@@ -343,7 +379,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         List<TestAddController.TestSet> testSets = new ArrayList<>();
         UnitOfMeasure uom = null;
         if (!GenericValidator.isBlankOrNull(testAddParams.uomId) && !"0".equals(testAddParams.uomId)) {
-            uom = unitOfMeasureService.getUnitOfMeasureById(testAddParams.uomId);
+            uom = getUnitOfMeasure(testAddParams.uomId);
         }
         TestSection testSection = testSectionService.get(testAddParams.testSectionId);
 
@@ -843,7 +879,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             if (currentChecksum == null) {
                 return false; // No files to process
             }
-            
+
             Set<String> processedChecksums = loadProcessedChecksums();
             return processedChecksums.contains(currentChecksum);
         } catch (Exception e) {
@@ -859,9 +895,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         try {
             String currentChecksum = calculateOclFilesChecksum();
             if (currentChecksum != null) {
-                Files.write(Paths.get(CHECKSUM_FILE), 
-                           (currentChecksum + "\n").getBytes(), 
-                           StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                Files.write(Paths.get(CHECKSUM_FILE), (currentChecksum + "\n").getBytes(), StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND);
                 log.info("OCL Import: Saved checksum {} to prevent duplicate processing", currentChecksum);
             }
         } catch (Exception e) {
@@ -875,7 +910,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
     private String calculateOclFilesChecksum() {
         try {
             File importDir = new File(oclImportDirectory);
-            
+
             // Also check alternative locations if primary doesn't exist
             if (!importDir.exists()) {
                 // Try volume/configurations/ocl (runtime location)
@@ -884,31 +919,33 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                     // Try volume/plugins (legacy location)
                     importDir = new File("volume/plugins");
                     if (!importDir.exists()) {
-                        log.warn("OCL Import: No OCL import directory found. Checked: {}, volume/configurations/ocl, volume/plugins", oclImportDirectory);
+                        log.warn(
+                                "OCL Import: No OCL import directory found. Checked: {}, volume/configurations/ocl, volume/plugins",
+                                oclImportDirectory);
                         return null;
                     }
                 }
             }
-            
+
             log.info("OCL Import: Using import directory: {}", importDir.getAbsolutePath());
-            
+
             StringBuilder allContent = new StringBuilder();
             File[] files = importDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
-            
+
             if (files == null || files.length == 0) {
                 log.info("OCL Import: No ZIP files found in directory: {}", importDir.getAbsolutePath());
                 return null;
             }
-            
+
             // Sort files for consistent checksum
             java.util.Arrays.sort(files);
-            
+
             log.info("OCL Import: Found {} ZIP file(s) for checksum calculation", files.length);
             for (File file : files) {
                 allContent.append(file.getName()).append(":").append(file.length()).append(";");
                 log.debug("OCL Import: Including file in checksum: {} (size: {} bytes)", file.getName(), file.length());
             }
-            
+
             // Calculate MD5 hash
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] hash = md.digest(allContent.toString().getBytes());
