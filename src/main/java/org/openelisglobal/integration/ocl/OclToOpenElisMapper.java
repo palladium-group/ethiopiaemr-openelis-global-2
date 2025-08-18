@@ -436,7 +436,7 @@ public class OclToOpenElisMapper {
 
         if (isNumeric) {
             System.out.println("Mapping NUMERIC result type for concept: " + getText(concept, "id"));
-            
+
             // Map validation ranges from 'extras' (OCL standard attributes)
             JsonNode extras = concept.get("extras");
 
@@ -506,8 +506,8 @@ public class OclToOpenElisMapper {
 
             // Log the numeric validation setup
             if (!lowValid.isEmpty() || !highValid.isEmpty() || !sigDigits.isEmpty()) {
-                System.out.println("  Numeric validation: lowValid=" + lowValid
-                        + ", highValid=" + highValid + ", sigDigits=" + sigDigits);
+                System.out.println("  Numeric validation: lowValid=" + lowValid + ", highValid=" + highValid
+                        + ", sigDigits=" + sigDigits);
             } else {
                 System.out.println("  Numeric field with no validation constraints");
             }
@@ -543,7 +543,7 @@ public class OclToOpenElisMapper {
 
         if (isDictionary) {
             System.out.println("Mapping CODED/SELECT result type for concept: " + getText(concept, "id"));
-            
+
             // Map dictionary values if available
             ArrayNode dictionaryArray = objectMapper.createArrayNode();
             int nextId = 1; // Start with ID 1 for dictionary entries
@@ -555,9 +555,10 @@ public class OclToOpenElisMapper {
                     ObjectNode dictEntry = objectMapper.createObjectNode();
                     String answerName = getText(answer, "display_name");
                     String answerId = getText(answer, "id");
-                    
+
                     if (answerName != null) {
-                        // Use numeric ID for value (required by OpenELIS), store display name separately
+                        // Use numeric ID for value (required by OpenELIS), store display name
+                        // separately
                         dictEntry.put("value", String.valueOf(nextId));
                         dictEntry.put("displayName", answerName);
                         dictEntry.put("qualified", "D"); // Default to non-quantifiable
@@ -578,21 +579,21 @@ public class OclToOpenElisMapper {
                 System.out.println("  Warning: No answers found for CODED concept, creating basic select list");
                 // Create basic Yes/No options as fallback for coded types without answers
                 ArrayNode fallbackArray = objectMapper.createArrayNode();
-                
+
                 ObjectNode yesOption = objectMapper.createObjectNode();
-                yesOption.put("value", "1");  // Use numeric ID
+                yesOption.put("value", "1"); // Use numeric ID
                 yesOption.put("displayName", "Yes");
                 yesOption.put("qualified", "D");
                 fallbackArray.add(yesOption);
-                
+
                 ObjectNode noOption = objectMapper.createObjectNode();
-                noOption.put("value", "2");  // Use numeric ID
+                noOption.put("value", "2"); // Use numeric ID
                 noOption.put("displayName", "No");
                 noOption.put("qualified", "D");
                 fallbackArray.add(noOption);
-                
+
                 jsonWad.put("dictionary", fallbackArray.toString());
-                jsonWad.put("defaultTestResult", "1");  // Use numeric ID for default
+                jsonWad.put("defaultTestResult", "1"); // Use numeric ID for default
                 jsonWad.put("dictionaryReference", "1"); // Use numeric ID for reference
             }
         }
@@ -605,27 +606,27 @@ public class OclToOpenElisMapper {
 
         if (isText) {
             System.out.println("Mapping TEXT/STRING result type for concept: " + getText(concept, "id"));
-            
+
             // For text results, we need to ensure proper free text configuration
             // Clear any dictionary settings that might have been set by default
             jsonWad.put("dictionary", "");
             jsonWad.put("dictionaryReference", "");
             jsonWad.put("defaultTestResult", "");
-            
+
             // Set text-specific configuration
             JsonNode extras = concept.get("extras");
-            
+
             // Check for text constraints from OCL extras
             String maxLength = null;
             String textPattern = null;
             String defaultValue = null;
-            
+
             if (extras != null) {
                 maxLength = getText(extras, "max_length");
                 textPattern = getText(extras, "text_pattern");
                 defaultValue = getText(extras, "default_value");
             }
-            
+
             // Try direct fields as fallback
             if (maxLength == null) {
                 maxLength = getText(concept, "max_length");
@@ -636,7 +637,7 @@ public class OclToOpenElisMapper {
             if (defaultValue == null) {
                 defaultValue = getText(concept, "default_value");
             }
-            
+
             // Log text configuration
             StringBuilder textConfig = new StringBuilder("Text configuration: ");
             if (maxLength != null) {
@@ -648,13 +649,13 @@ public class OclToOpenElisMapper {
             if (defaultValue != null) {
                 textConfig.append("default=").append(defaultValue).append(" ");
             }
-            
+
             if (maxLength != null || textPattern != null || defaultValue != null) {
                 System.out.println("  " + textConfig.toString());
             } else {
                 System.out.println("  Free text field with no constraints");
             }
-            
+
             // Store text constraints in a format that can be used by OpenELIS
             // Note: These might need to be handled in the UI or validation layer
             if (maxLength != null) {
@@ -666,7 +667,7 @@ public class OclToOpenElisMapper {
             if (defaultValue != null) {
                 jsonWad.put("textDefaultValue", defaultValue);
             }
-            
+
             System.out.println("  Text result type configuration complete");
         }
     }
