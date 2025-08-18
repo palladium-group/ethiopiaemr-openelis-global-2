@@ -56,9 +56,15 @@ import org.springframework.stereotype.Component;
 public class OclImportInitializer implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger log = LoggerFactory.getLogger(OclImportInitializer.class);
     private static final String CHECKSUM_FILE = "ocl_import_checksums.txt";
+    
+    @Value("${org.openelisglobal.ocl.import.autocreate:true}")
+    private boolean autocreateOn;
 
     @Value("${org.openelisglobal.ocl.import.directory:src/main/resources/configurations/ocl}")
     private String oclImportDirectory;
+    
+    // Flag to ensure OCL import runs only once
+    private static volatile boolean hasExecuted = false;
 
     @Autowired
     private OclZipImporter oclZipImporter;
@@ -90,6 +96,31 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        // Check if OCL import has already been started
+        if (hasExecuted) {
+            log.debug("OCL Import: Already executed, skipping duplicate execution.");
+            return;
+        }
+        
+        // Set the flag immediately to prevent duplicate execution
+        hasExecuted = true;
+        
+        if (!autocreateOn) {
+            log.info("OCL Import: Auto-import is disabled. Skipping OCL import.");
+            return;
+        }
+        
+        log.info("OCL Import: Starting OCL import process...");
+        
+        // Add delay to ensure all services are properly initialized
+        try {
+            Thread.sleep(2000); // 2 second delay to let other @PostConstruct methods complete
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("OCL Import: Interrupted during initialization delay");
+            return;
+        }
+        
         try {
             // Check if OCL files have already been processed
             if (hasAlreadyProcessedOclFiles()) {
@@ -373,9 +404,8 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         Double lowCritical = null;
         Double highCritical = null;
         String significantDigits = testAddParams.significantDigits;
-        boolean numericResults = TypeOfTestResultServiceImpl.ResultType.isNumericById(testAddParams.resultTypeId);
-        boolean dictionaryResults = TypeOfTestResultServiceImpl.ResultType
-                .isDictionaryVarientById(testAddParams.resultTypeId);
+        boolean numericResults = safeIsNumericById(testAddParams.resultTypeId);
+        boolean dictionaryResults = safeIsDictionaryVarientById(testAddParams.resultTypeId);
         List<TestAddController.TestSet> testSets = new ArrayList<>();
         UnitOfMeasure uom = null;
         if (!GenericValidator.isBlankOrNull(testAddParams.uomId) && !"0".equals(testAddParams.uomId)) {
@@ -744,7 +774,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             testAddParams.notifyResults = (String) obj.get("notifyResults");
             testAddParams.inLabOnly = (String) obj.get("inLabOnly");
             testAddParams.antimicrobialResistance = (String) obj.get("antimicrobialResistance");
-            if (TypeOfTestResultServiceImpl.ResultType.isNumericById(testAddParams.resultTypeId)) {
+            if (safeIsNumericById(testAddParams.resultTypeId)) {
                 testAddParams.lowValid = (String) obj.get("lowValid");
                 testAddParams.highValid = (String) obj.get("highValid");
                 testAddParams.lowReportingRange = (String) obj.get("lowReportingRange");
@@ -753,7 +783,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                 testAddParams.highCritical = (String) obj.get("highCritical");
                 testAddParams.significantDigits = (String) obj.get("significantDigits");
                 extractLimits(obj, parser, testAddParams);
-            } else if (TypeOfTestResultServiceImpl.ResultType.isDictionaryVarientById(testAddParams.resultTypeId)) {
+            } else if (safeIsDictionaryVarientById(testAddParams.resultTypeId)) {
                 String dictionary = (String) obj.get("dictionary");
                 if (dictionary != null) { // Add null check for safety
                     JSONArray dictionaryArray = (JSONArray) parser.parse(dictionary);
@@ -980,5 +1010,60 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             log.warn("Error loading processed checksums: " + e.getMessage());
         }
         return checksums;
+    }
+
+    /**
+     * Safe wrapper around TypeOfTestResultServiceImpl.ResultType.isNumericById()
+     * that handles the case where ResultType IDs haven't been initialized yet.
+     * 
+     * @param resultTypeId The result type ID to check
+     * @return true if the result type is numeric, false otherwise or if there's an error
+     */
+    private boolean safeIsNumericById(String resultTypeId) {
+        try {
+            if (GenericValidator.isBlankOrNull(resultTypeId)) {
+                return false;
+            }
+            return TypeOfTestResultServiceImpl.ResultType.isNumericById(resultTypeId);
+        } catch (NullPointerException e) {
+            log.warn("OCL Import: ResultType IDs not initialized yet, treating as non-numeric. ResultTypeId: {}", resultTypeId);
+            return false;
+        }
+    }
+
+    /**
+     * Safe wrapper around TypeOfTestResultServiceImpl.ResultType.isDictionaryVarientById()
+     * that handles the case where ResultType IDs haven't been initialized yet.
+     * 
+     * @param resultTypeId The result type ID to check
+     * @return true if the result type is dictionary variant, false otherwise or if there's an error
+     */
+    private boolean safeIsDictionaryVarientById(String resultTypeId) {
+        try {
+            if (GenericValidator.isBlankOrNull(resultTypeId)) {
+                return false;
+            }
+            return TypeOfTestResultServiceImpl.ResultType.isDictionaryVarientById(resultTypeId);
+        } catch (NullPointerException e) {
+            log.warn("OCL Import: ResultType IDs not initialized yet, treating as non-dictionary. ResultTypeId: {}", resultTypeId);
+            return false;
+        }
+    }
+
+    /**
+     * Reset the execution flag - primarily for testing purposes.
+     * This allows the OCL import to run again if needed.
+     */
+    public static void resetExecutionFlag() {
+        hasExecuted = false;
+        log.info("OCL Import: Execution flag has been reset.");
+    }
+
+    /**
+     * Check if the OCL import has been executed.
+     * @return true if the import has been executed, false otherwise
+     */
+    public static boolean hasBeenExecuted() {
+        return hasExecuted;
     }
 }
