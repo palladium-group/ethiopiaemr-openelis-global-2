@@ -25,6 +25,9 @@ import {
   UnorderedList,
   ListItem,
   ClickableTile,
+  FileUploader,
+  ProgressBar,
+  InlineLoading,
 } from "@carbon/react";
 import {
   getFromOpenElisServer,
@@ -60,6 +63,82 @@ function TestManagementConfigMenu() {
 
   const componentMounted = useRef(false);
 
+  // OCL Import state
+  const [isReimporting, setIsReimporting] = useState(false);
+  const [reimportProgress, setReimportProgress] = useState(0);
+
+  // Handle OCL re-import
+  const handleOclReimport = async () => {
+    setIsReimporting(true);
+    setReimportProgress(0);
+
+    try {
+      // Start progress animation
+      const progressInterval = setInterval(() => {
+        setReimportProgress((prev) => {
+          if (prev < 90) return prev + 5;
+          return prev;
+        });
+      }, 200);
+
+      // Create a promise with timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error("Request timeout - processing continues in background"),
+            ),
+          30000,
+        ); // 30 second timeout
+      });
+
+      const reimportPromise = postToOpenElisServerJsonResponse(
+        "/rest/ocl/reimport",
+        {},
+      );
+
+      // Race between reimport and timeout
+      const response = await Promise.race([reimportPromise, timeoutPromise]);
+
+      clearInterval(progressInterval);
+      setReimportProgress(100);
+
+      if (response && response.success) {
+        addNotification({
+          kind: NotificationKinds.success,
+          title: intl.formatMessage({ id: "notification.title" }),
+          message:
+            response.message ||
+            "OCL re-import started successfully! Processing in background.",
+        });
+      } else {
+        throw new Error(response?.message || "Re-import failed");
+      }
+    } catch (error) {
+      console.error("OCL re-import failed:", error);
+
+      if (error.message.includes("timeout")) {
+        // Handle timeout gracefully
+        addNotification({
+          kind: NotificationKinds.warning,
+          title: intl.formatMessage({ id: "notification.title" }),
+          message:
+            "Re-import is taking longer than expected but may be processing in background. Check logs for progress.",
+        });
+      } else {
+        addNotification({
+          kind: NotificationKinds.error,
+          title: intl.formatMessage({ id: "notification.title" }),
+          message:
+            error.message || "Failed to start re-import. Please try again.",
+        });
+      }
+    } finally {
+      setIsReimporting(false);
+      setTimeout(() => setReimportProgress(0), 2000);
+    }
+  };
+
   return (
     <>
       {notificationVisible === true ? <AlertDialog /> : ""}
@@ -86,6 +165,126 @@ function TestManagementConfigMenu() {
                     </Heading>
                   </Section>
                 </Section>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <hr />
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Section>
+                  <Section>
+                    <Heading>
+                      <FormattedMessage id="configuration.test.management.ocl" />
+                    </Heading>
+                  </Section>
+                </Section>
+              </Section>
+            </Column>
+          </Grid>
+          <br />
+          <Grid fullWidth={true}>
+            <Column lg={16} md={8} sm={4}>
+              <Section>
+                <Stack gap={5}>
+                  <div>
+                    <h5 style={{ marginBottom: "1rem" }}>
+                      Re-import OCL Concepts
+                    </h5>
+                    <p style={{ marginBottom: "1rem", color: "#525252" }}>
+                      Re-process the existing OCL concepts file to import any
+                      new or updated tests into OpenELIS.
+                    </p>
+                  </div>
+
+                  {isReimporting && (
+                    <div style={{ marginTop: "1rem" }}>
+                      <InlineLoading
+                        status="active"
+                        description="Re-importing OCL concepts..."
+                      />
+                      <div style={{ marginTop: "1rem" }}>
+                        <ProgressBar
+                          label={`Processing... ${reimportProgress}%`}
+                          value={reimportProgress}
+                          max={100}
+                          size="big"
+                        />
+                      </div>
+                      <p
+                        style={{
+                          fontSize: "0.875rem",
+                          color: "#6f6f6f",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        Re-importing existing OCL file. This may take several
+                        minutes. The process continues in background if it times
+                        out.
+                      </p>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: "1rem" }}>
+                    <Button
+                      kind="primary"
+                      onClick={handleOclReimport}
+                      disabled={isReimporting}
+                      size="md"
+                    >
+                      {isReimporting
+                        ? "Re-importing..."
+                        : "Re-import OCL Concepts"}
+                    </Button>
+
+                    {isReimporting && (
+                      <Button
+                        kind="secondary"
+                        onClick={() => {
+                          setIsReimporting(false);
+                          setReimportProgress(0);
+                        }}
+                        size="md"
+                        style={{ marginLeft: "1rem" }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "1rem",
+                      padding: "1rem",
+                      backgroundColor: "#f4f4f4",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <h6>How Re-import Works:</h6>
+                    <ul style={{ marginTop: "0.5rem", paddingLeft: "1.5rem" }}>
+                      <li>
+                        Uses the existing OCL concepts file from previous setup
+                      </li>
+                      <li>
+                        Processes the file again to import any new or updated
+                        concepts
+                      </li>
+                      <li>
+                        Duplicate concepts are automatically detected and
+                        skipped
+                      </li>
+                      <li>
+                        Check server logs for detailed progress information
+                      </li>
+                      <li>
+                        The process runs in the background and may take several
+                        minutes
+                      </li>
+                    </ul>
+                  </div>
+                </Stack>
               </Section>
             </Column>
           </Grid>

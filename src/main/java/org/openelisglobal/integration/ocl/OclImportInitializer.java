@@ -112,6 +112,23 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
 
         log.info("OCL Import: Starting OCL import process...");
 
+        performImport();
+    }
+
+    /**
+     * Public method to trigger OCL import manually This can be called from REST
+     * endpoints
+     */
+    public void performOclImport() {
+        log.info("OCL Import: Manual import triggered");
+        performImport();
+    }
+
+    /**
+     * Internal method that contains the actual import logic
+     */
+    private void performImport() {
+
         // Add delay to ensure all services are properly initialized
         try {
             Thread.sleep(2000); // 2 second delay to let other @PostConstruct methods complete
