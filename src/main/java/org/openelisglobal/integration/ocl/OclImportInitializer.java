@@ -3,6 +3,7 @@ package org.openelisglobal.integration.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -56,6 +57,7 @@ import org.springframework.stereotype.Component;
 public class OclImportInitializer implements ApplicationListener<ContextRefreshedEvent> {
     private static final Logger log = LoggerFactory.getLogger(OclImportInitializer.class);
     private static final String CHECKSUM_FILE = "ocl_import_checksums.txt";
+    private static final String EXECUTION_FLAG_FILE = "ocl_import_executed.flag";
 
     @Value("${org.openelisglobal.ocl.import.autocreate:true}")
     private boolean autocreateOn;
@@ -96,19 +98,39 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        // Check if OCL import has already been started
-        if (hasExecuted) {
-            log.debug("OCL Import: Already executed, skipping duplicate execution.");
-            return;
-        }
-
-        // Set the flag immediately to prevent duplicate execution
-        hasExecuted = true;
-
         if (!autocreateOn) {
             log.info("OCL Import: Auto-import is disabled. Skipping OCL import.");
             return;
         }
+
+        // Check static flag first (prevents multiple calls in same JVM session)
+        if (hasExecuted) {
+            log.debug("OCL Import: Already executed in this session, skipping duplicate execution.");
+            return;
+        }
+
+        // Check persistent flag file (prevents execution across app restarts)
+        if (hasExecutionFlagFile()) {
+            log.info("OCL Import: Execution flag file exists. Import already completed. Skipping.");
+            hasExecuted = true; // Set static flag to prevent further checks
+            return;
+        }
+
+        // Check file-based flag (prevents execution across app restarts)
+        try {
+            if (hasAlreadyProcessedOclFiles()) {
+                log.info("OCL Import: Files already processed (checksum match found). Skipping import.");
+                hasExecuted = true; // Set static flag to prevent further checks
+                createExecutionFlagFile(); // Create persistent flag
+                return;
+            }
+        } catch (Exception e) {
+            log.warn("OCL Import: Could not check file processing status: " + e.getMessage());
+            // Continue with import if check fails
+        }
+
+        // Set the flag immediately to prevent duplicate execution
+        hasExecuted = true;
 
         log.info("OCL Import: Starting OCL import process...");
 
@@ -139,12 +161,6 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         }
 
         try {
-            // Check if OCL files have already been processed
-            if (hasAlreadyProcessedOclFiles()) {
-                log.info("OCL Import: Files already processed (checksum match found). Skipping import.");
-                return;
-            }
-
             List<JsonNode> oclNodes = oclZipImporter.importOclZip();
             log.info("OCL Import: Found {} nodes to process.", oclNodes.size());
 
@@ -262,6 +278,9 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
 
             // Save checksum to prevent re-processing
             saveCurrentOclChecksum();
+
+            // Create execution flag file to prevent future runs
+            createExecutionFlagFile();
 
         } catch (java.io.IOException e) {
             log.error("OCL Import failed during file processing", e);
@@ -1079,6 +1098,17 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
     public static void resetExecutionFlag() {
         hasExecuted = false;
         log.info("OCL Import: Execution flag has been reset.");
+
+        // Also delete the persistent flag file
+        try {
+            String workingDir = System.getProperty("user.dir");
+            File flagFile = new File(workingDir, EXECUTION_FLAG_FILE);
+            if (flagFile.exists() && flagFile.delete()) {
+                log.info("OCL Import: Persistent execution flag file deleted.");
+            }
+        } catch (Exception e) {
+            log.warn("OCL Import: Could not delete execution flag file: " + e.getMessage());
+        }
     }
 
     /**
@@ -1087,6 +1117,39 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
      * @return true if the import has been executed, false otherwise
      */
     public static boolean hasBeenExecuted() {
-        return hasExecuted;
+        return hasExecuted || hasExecutionFlagFile();
+    }
+
+    /**
+     * Check if execution flag file exists
+     */
+    private static boolean hasExecutionFlagFile() {
+        try {
+            String workingDir = System.getProperty("user.dir");
+            File flagFile = new File(workingDir, EXECUTION_FLAG_FILE);
+            return flagFile.exists();
+        } catch (Exception e) {
+            log.warn("OCL Import: Could not check execution flag file: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create execution flag file to prevent future runs
+     */
+    private void createExecutionFlagFile() {
+        try {
+            String workingDir = System.getProperty("user.dir");
+            File flagFile = new File(workingDir, EXECUTION_FLAG_FILE);
+
+            if (!flagFile.exists()) {
+                try (FileWriter writer = new FileWriter(flagFile)) {
+                    writer.write("OCL Import executed on: " + java.time.LocalDateTime.now().toString());
+                }
+                log.info("OCL Import: Created execution flag file: " + flagFile.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            log.warn("OCL Import: Could not create execution flag file: " + e.getMessage());
+        }
     }
 }
