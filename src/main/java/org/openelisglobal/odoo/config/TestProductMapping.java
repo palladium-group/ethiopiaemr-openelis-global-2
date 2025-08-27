@@ -4,50 +4,49 @@ import jakarta.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.openelisglobal.common.log.LogEvent;
 import org.springframework.stereotype.Component;
 
-/**
- * Loads and provides mapping between OpenELIS test codes and Odoo product info
- * (name, price) from a properties file (odoo-test-product-mapping.properties).
- */
 @Component
 public class TestProductMapping {
 
     private static final String ENV_MAPPING_FILE = "ODOO_MAPPING_FILE";
-    private static final String DEFAULT_FILE = "odoo-test-product-mapping.properties";
-    private static final String PREFIX = "odoo.test.product.map.";
+    private static final String DEFAULT_CSV_FILE = "odoo-test-product-mapping.csv";
+    private final Map<String, TestProductInfo> testToProductInfo = new HashMap<>();
 
     @Getter
     public static class TestProductInfo {
         private final String productName;
-        private final double price;
+        private final double priceUnit;
+        private final double quantity;
 
-        public TestProductInfo(String productName, double price) {
+        public TestProductInfo(String productName, double quantity, double priceUnit) {
             this.productName = productName;
-            this.price = price;
+            this.quantity = quantity;
+            this.priceUnit = priceUnit;
         }
-
     }
-
-    private final Map<String, TestProductInfo> testToProductInfo = new HashMap<>();
 
     @PostConstruct
     public void init() {
-        Properties props = new Properties();
-        boolean loaded = loadFromEnvironment(props) || loadFromClasspath(props);
-
-        if (!loaded) {
+        boolean loaded = loadCsvFromEnvironment() || loadCsvFromClasspath();
+        int mappingsLoaded;
+        if (loaded) {
+            mappingsLoaded = testToProductInfo.size();
+            LogEvent.logInfo(getClass().getSimpleName(), "init",
+                    "Loaded CSV mapping. Total mappings loaded: " + mappingsLoaded);
+        } else {
             LogEvent.logError(getClass().getSimpleName(), "init",
-                    "No mapping file could be loaded (environment or classpath).");
+                    "No CSV mapping file could be loaded (environment or classpath).");
             return;
         }
-
-        int mappingsLoaded = parseMappings(props);
-
-        LogEvent.logInfo(getClass().getSimpleName(), "init", "Total mappings loaded: " + mappingsLoaded);
 
         if (mappingsLoaded == 0) {
             LogEvent.logWarn(getClass().getSimpleName(), "init", "No valid mappings found.");
@@ -57,66 +56,63 @@ public class TestProductMapping {
         }
     }
 
-    private boolean loadFromEnvironment(Properties props) {
+    private boolean loadCsvFromEnvironment() {
         String path = System.getenv(ENV_MAPPING_FILE);
-        if (path != null && !path.isBlank()) {
-            try (InputStream in = new FileInputStream(path)) {
-                props.load(in);
-                LogEvent.logInfo(getClass().getSimpleName(), "loadFromEnvironment",
-                        "Loaded mapping file from ODOO_MAPPING_FILE: " + path);
-                return true;
-            } catch (IOException e) {
-                LogEvent.logError(getClass().getSimpleName(), "loadFromEnvironment",
-                        "Failed to load mapping from path " + path + ": " + e.getMessage());
-            }
+        if (path == null || path.isBlank()) {
+            return false;
         }
-        return false;
-    }
-
-    private boolean loadFromClasspath(Properties props) {
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream(DEFAULT_FILE)) {
-            if (in != null) {
-                props.load(in);
-                LogEvent.logInfo(getClass().getSimpleName(), "loadFromClasspath",
-                        "Loaded mapping file from classpath: " + DEFAULT_FILE);
-                return true;
-            } else {
-                LogEvent.logWarn(getClass().getSimpleName(), "loadFromClasspath",
-                        "Mapping file not found on classpath: " + DEFAULT_FILE);
-            }
+        try (InputStream in = new FileInputStream(path)) {
+            int count = parseCsv(in);
+            LogEvent.logInfo(getClass().getSimpleName(), "loadCsvFromEnvironment",
+                    "Loaded CSV mapping from ODOO_MAPPING_FILE: " + path + ", rows=" + count);
+            return count > 0;
         } catch (IOException e) {
-            LogEvent.logError(getClass().getSimpleName(), "loadFromClasspath",
-                    "Failed to load mapping from classpath: " + e.getMessage());
+            LogEvent.logError(getClass().getSimpleName(), "loadCsvFromEnvironment",
+                    "Failed to load CSV from path " + path + ": " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
-    private int parseMappings(Properties props) {
-        int count = 0;
-        for (String key : props.stringPropertyNames()) {
-            if (!key.startsWith(PREFIX))
-                continue;
-
-            String testCode = key.substring(PREFIX.length());
-            String value = props.getProperty(key);
-            String[] parts = value.split(",");
-
-            if (parts.length != 2) {
-                LogEvent.logError(getClass().getSimpleName(), "parseMappings",
-                        "Invalid format for " + key + ": " + value);
-                continue;
+    private boolean loadCsvFromClasspath() {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(DEFAULT_CSV_FILE)) {
+            if (in == null) {
+                LogEvent.logDebug(getClass().getSimpleName(), "loadCsvFromClasspath",
+                        "CSV mapping file not found on classpath: " + DEFAULT_CSV_FILE);
+                return false;
             }
+            int count = parseCsv(in);
+            LogEvent.logInfo(getClass().getSimpleName(), "loadCsvFromClasspath",
+                    "Loaded CSV mapping from classpath: " + DEFAULT_CSV_FILE + ", rows=" + count);
+            return count > 0;
+        } catch (IOException e) {
+            LogEvent.logError(getClass().getSimpleName(), "loadCsvFromClasspath",
+                    "Failed to load CSV from classpath: " + e.getMessage());
+            return false;
+        }
+    }
 
-            String productName = parts[0].trim();
-            try {
-                double price = Double.parseDouble(parts[1].trim());
-                testToProductInfo.put(testCode, new TestProductInfo(productName, price));
-                LogEvent.logDebug(getClass().getSimpleName(), "parseMappings", "Loaded mapping: testCode='" + testCode
-                        + "' -> productName='" + productName + "', price=" + price);
-                count++;
-            } catch (NumberFormatException e) {
-                LogEvent.logError(getClass().getSimpleName(), "parseMappings",
-                        "Invalid price for " + key + ": " + parts[1]);
+    private int parseCsv(InputStream in) throws IOException {
+        CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setIgnoreEmptyLines(true)
+                .setTrim(true).setIgnoreHeaderCase(true).build();
+        int count = 0;
+        try (CSVParser parser = CSVParser.parse(in, java.nio.charset.StandardCharsets.UTF_8, format)) {
+            for (CSVRecord record : parser) {
+                String key = record.get("test_name").trim();
+                String productName = record.get("product_name").trim();
+                String quantityStr = record.get("quantity").trim();
+                String priceStr = record.get("price_unit").trim();
+
+                if (key.isEmpty() || productName.isEmpty()) {
+                    continue;
+                }
+                try {
+                    testToProductInfo.put(key, new TestProductInfo(productName, Double.parseDouble(quantityStr),
+                            Double.parseDouble(priceStr)));
+                    count++;
+                } catch (NumberFormatException ex) {
+                    LogEvent.logError(getClass().getSimpleName(), "parseCsv", "Invalid numeric value in row for key '"
+                            + key + "': quantity='" + quantityStr + "', price_unit='" + priceStr + "'");
+                }
             }
         }
         return count;
@@ -129,14 +125,16 @@ public class TestProductMapping {
         return hasMapping;
     }
 
-    public String getProductName(String testCode) {
-        TestProductInfo info = testToProductInfo.get(testCode);
-        return info != null ? info.getProductName() : null;
+    public TestProductInfo getProductName(String testCode) {
+        return testToProductInfo.get(testCode);
     }
 
-    public Double getPrice(String testCode) {
-        TestProductInfo info = testToProductInfo.get(testCode);
-        return info != null ? info.getPrice() : null;
+    public TestProductInfo getPrice(String testCode) {
+        return testToProductInfo.get(testCode);
+    }
+
+    public TestProductInfo getQuantity(String testCode) {
+        return testToProductInfo.get(testCode);
     }
 
     public Set<String> getAllMappedTestCodes() {

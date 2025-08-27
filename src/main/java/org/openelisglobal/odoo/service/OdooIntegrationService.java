@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.config.TestProductMapping;
@@ -25,9 +26,10 @@ import org.springframework.stereotype.Service;
  * This service handles the creation of invoices in Odoo when orders are created
  * in OpenELIS.
  */
-@Slf4j
 @Service
 public class OdooIntegrationService {
+
+    private static final Logger log = LogManager.getLogger(OdooIntegrationService.class);
 
     @Autowired
     private OdooConnection odooConnection;
@@ -309,42 +311,32 @@ public class OdooIntegrationService {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
                     String testName = test.getLocalizedName();
-                    String testId = test.getId();
-                    String description = test.getDescription();
-                    log.debug("Processing test: ID={}, LocalizedName='{}', Description='{}'", testId, testName,
-                            description);
+                    String testLoinc = test.getLoinc();
+                    log.debug("Processing test: ID={}, LocalizedName='{}'", testLoinc, testName);
 
                     String mappingKey = null;
                     if (testProductMapping.hasValidMapping(testName)) {
                         mappingKey = testName;
-                    } else if (testProductMapping.hasValidMapping(testId)) {
-                        mappingKey = testId;
-                    } else if (testProductMapping.hasValidMapping(description)) {
-                        mappingKey = description;
+                    } else if (testProductMapping.hasValidMapping(testLoinc)) {
+                        mappingKey = testLoinc;
                     }
 
                     if (mappingKey != null) {
-                        String productName = testProductMapping.getProductName(mappingKey);
-                        Double price = testProductMapping.getPrice(mappingKey);
+                        TestProductMapping.TestProductInfo productInfo = testProductMapping.getProductName(mappingKey);
 
                         Map<String, Object> invoiceLine = new HashMap<>();
-                        invoiceLine.put("name", productName);
-                        invoiceLine.put("quantity", 1.0);
-                        invoiceLine.put("price_unit", price != null ? price : 100.0);
+                        invoiceLine.put("name", productInfo != null ? productInfo.getProductName() : testName);
+                        invoiceLine.put("quantity", productInfo != null ? productInfo.getQuantity() : 1.0);
+                        invoiceLine.put("price_unit", productInfo != null ? productInfo.getPriceUnit() : 100.0);
                         invoiceLine.put("account_id", 1);
                         invoiceLines.add(invoiceLine);
-                        log.info("Added invoice line for test: {} (mapped from: {}) with product: {} and price: {}",
-                                testName, mappingKey, productName, price);
+                        log.info(
+                                "Added invoice line for test: {} (mapped from: {}) with product: {}, quantity: {}, price: {}",
+                                testName, mappingKey, productInfo != null ? productInfo.getProductName() : "null",
+                                productInfo != null ? productInfo.getQuantity() : "null",
+                                productInfo != null ? productInfo.getPriceUnit() : "null");
                     } else {
-                        log.warn("No Odoo product mapping found for test: {} (ID: {}, Description: {})", testName,
-                                testId, description);
-                        Map<String, Object> invoiceLine = new HashMap<>();
-                        invoiceLine.put("name", testName);
-                        invoiceLine.put("quantity", 1.0);
-                        invoiceLine.put("price_unit", 100.0);
-                        invoiceLine.put("account_id", 1);
-                        invoiceLines.add(invoiceLine);
-                        log.info("Added default invoice line for unmapped test: {} with price: {}", testName, 100.0);
+                        log.warn("No Odoo product mapping found for test: {} (ID: {})", testName, testLoinc);
                     }
                 }
             }
