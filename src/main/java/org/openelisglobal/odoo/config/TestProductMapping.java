@@ -17,8 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TestProductMapping {
 
-    private static final String ENV_MAPPING_FILE = "ODOO_MAPPING_FILE";
-    private static final String DEFAULT_CSV_FILE = "odoo-test-product-mapping.csv";
+    private static final String FIXED_CSV_PATH = "/var/lib/openelis-global/properties/odoo-test-product-mapping.csv";
     private final Map<String, TestProductInfo> testToProductInfo = new HashMap<>();
 
     @Getter
@@ -36,7 +35,7 @@ public class TestProductMapping {
 
     @PostConstruct
     public void init() {
-        boolean loaded = loadCsvFromEnvironment() || loadCsvFromClasspath();
+        boolean loaded = loadCsvFromFixedPath();
         int mappingsLoaded;
         if (loaded) {
             mappingsLoaded = testToProductInfo.size();
@@ -44,7 +43,7 @@ public class TestProductMapping {
                     "Loaded CSV mapping. Total mappings loaded: " + mappingsLoaded);
         } else {
             LogEvent.logError(getClass().getSimpleName(), "init",
-                    "No CSV mapping file could be loaded (environment or classpath).");
+                    "No CSV mapping file could be loaded from fixed path: " + FIXED_CSV_PATH);
             return;
         }
 
@@ -52,41 +51,19 @@ public class TestProductMapping {
             LogEvent.logWarn(getClass().getSimpleName(), "init", "No valid mappings found.");
         } else {
             LogEvent.logInfo(getClass().getSimpleName(), "init",
-                    "Available mapping keys: " + String.join(", ", getAllMappedTestCodes()));
+                    "Available mapping keys: " + String.join(", ", getAllMappedLoincCodes()));
         }
     }
 
-    private boolean loadCsvFromEnvironment() {
-        String path = System.getenv(ENV_MAPPING_FILE);
-        if (path == null || path.isBlank()) {
-            return false;
-        }
-        try (InputStream in = new FileInputStream(path)) {
+    private boolean loadCsvFromFixedPath() {
+        try (InputStream in = new FileInputStream(FIXED_CSV_PATH)) {
             int count = parseCsv(in);
-            LogEvent.logInfo(getClass().getSimpleName(), "loadCsvFromEnvironment",
-                    "Loaded CSV mapping from ODOO_MAPPING_FILE: " + path + ", rows=" + count);
+            LogEvent.logInfo(getClass().getSimpleName(), "loadCsvFromFixedPath",
+                    "Loaded CSV mapping from fixed path: " + FIXED_CSV_PATH + ", rows=" + count);
             return count > 0;
         } catch (IOException e) {
-            LogEvent.logError(getClass().getSimpleName(), "loadCsvFromEnvironment",
-                    "Failed to load CSV from path " + path + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    private boolean loadCsvFromClasspath() {
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream(DEFAULT_CSV_FILE)) {
-            if (in == null) {
-                LogEvent.logDebug(getClass().getSimpleName(), "loadCsvFromClasspath",
-                        "CSV mapping file not found on classpath: " + DEFAULT_CSV_FILE);
-                return false;
-            }
-            int count = parseCsv(in);
-            LogEvent.logInfo(getClass().getSimpleName(), "loadCsvFromClasspath",
-                    "Loaded CSV mapping from classpath: " + DEFAULT_CSV_FILE + ", rows=" + count);
-            return count > 0;
-        } catch (IOException e) {
-            LogEvent.logError(getClass().getSimpleName(), "loadCsvFromClasspath",
-                    "Failed to load CSV from classpath: " + e.getMessage());
+            LogEvent.logError(getClass().getSimpleName(), "loadCsvFromFixedPath",
+                    "Failed to load CSV from fixed path " + FIXED_CSV_PATH + ": " + e.getMessage());
             return false;
         }
     }
@@ -97,7 +74,7 @@ public class TestProductMapping {
         int count = 0;
         try (CSVParser parser = CSVParser.parse(in, java.nio.charset.StandardCharsets.UTF_8, format)) {
             for (CSVRecord record : parser) {
-                String key = record.get("test_name").trim();
+                String key = record.get("loinc_code").trim();
                 String productName = record.get("product_name").trim();
                 String quantityStr = record.get("quantity").trim();
                 String priceStr = record.get("price_unit").trim();
@@ -137,7 +114,7 @@ public class TestProductMapping {
         return testToProductInfo.get(testCode);
     }
 
-    public Set<String> getAllMappedTestCodes() {
+    public Set<String> getAllMappedLoincCodes() {
         return testToProductInfo.keySet();
     }
 }

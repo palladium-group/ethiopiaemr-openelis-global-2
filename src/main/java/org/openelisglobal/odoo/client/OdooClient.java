@@ -27,16 +27,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class OdooClient {
 
-    @Value("${odoo.baseUrl}")
+    @Value("${org.openelisglobal.odoo.baseUrl}")
     private String url;
 
-    @Value("${odoo.database}")
+    @Value("${org.openelisglobal.odoo.database}")
     private String database;
 
-    @Value("${odoo.username}")
+    @Value("${org.openelisglobal.odoo.username}")
     private String username;
 
-    @Value("${odoo.password}")
+    @Value("${org.openelisglobal.odoo.password}")
     private String password;
 
     private Integer uid;
@@ -57,10 +57,10 @@ public class OdooClient {
     }
 
     public void validateConfig() {
-        validateRequiredField("odoo.server.url", url);
-        validateRequiredField("odoo.database.name", database);
-        validateRequiredField("odoo.username", username);
-        validateRequiredField("odoo.password", password);
+        validateRequiredField("org.openelisglobal.odoo.server.url", url);
+        validateRequiredField("org.openelisglobal.odoo.database.name", database);
+        validateRequiredField("org.openelisglobal.odoo.username", username);
+        validateRequiredField("org.openelisglobal.odoo.password", password);
         log.info("Odoo configuration validated: url={}, database={}, username={}", url, database, username);
     }
 

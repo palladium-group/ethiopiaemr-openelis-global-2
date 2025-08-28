@@ -12,7 +12,6 @@ import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.odoo.exception.OdooOperationException;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
-import org.openelisglobal.person.service.PersonService;
 import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.sample.valueholder.Sample;
@@ -42,9 +41,6 @@ public class OdooIntegrationService {
 
     @Autowired
     private PatientService patientService;
-
-    @Autowired
-    private PersonService personService;
 
     /**
      * Creates an invoice in Odoo for the given sample data.
@@ -305,38 +301,33 @@ public class OdooIntegrationService {
     private List<Map<String, Object>> createInvoiceLines(SamplePatientUpdateData updateData) {
         List<Map<String, Object>> invoiceLines = new ArrayList<>();
 
-        log.info("Available test mappings: {}", testProductMapping.getAllMappedTestCodes());
+        log.info("Available test mappings: {}", testProductMapping.getAllMappedLoincCodes());
 
         if (updateData.getSampleItemsTests() != null) {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
-                    String testName = test.getLocalizedName();
                     String testLoinc = test.getLoinc();
-                    log.debug("Processing test: ID={}, LocalizedName='{}'", testLoinc, testName);
+                    log.debug("Processing test: ID={}", testLoinc);
 
                     String mappingKey = null;
-                    if (testProductMapping.hasValidMapping(testName)) {
-                        mappingKey = testName;
-                    } else if (testProductMapping.hasValidMapping(testLoinc)) {
+                    if (testProductMapping.hasValidMapping(testLoinc)) {
                         mappingKey = testLoinc;
                     }
 
                     if (mappingKey != null) {
                         TestProductMapping.TestProductInfo productInfo = testProductMapping.getProductName(mappingKey);
-
                         Map<String, Object> invoiceLine = new HashMap<>();
-                        invoiceLine.put("name", productInfo != null ? productInfo.getProductName() : testName);
-                        invoiceLine.put("quantity", productInfo != null ? productInfo.getQuantity() : 1.0);
-                        invoiceLine.put("price_unit", productInfo != null ? productInfo.getPriceUnit() : 100.0);
+                        invoiceLine.put("name", productInfo.getProductName());
+                        invoiceLine.put("quantity", productInfo.getQuantity());
+                        invoiceLine.put("price_unit", productInfo.getPriceUnit());
                         invoiceLine.put("account_id", 1);
                         invoiceLines.add(invoiceLine);
                         log.info(
                                 "Added invoice line for test: {} (mapped from: {}) with product: {}, quantity: {}, price: {}",
-                                testName, mappingKey, productInfo != null ? productInfo.getProductName() : "null",
-                                productInfo != null ? productInfo.getQuantity() : "null",
-                                productInfo != null ? productInfo.getPriceUnit() : "null");
+                                testLoinc, mappingKey, productInfo.getProductName(), productInfo.getQuantity(),
+                                productInfo.getPriceUnit());
                     } else {
-                        log.warn("No Odoo product mapping found for test: {} (ID: {})", testName, testLoinc);
+                        log.warn("No Odoo product mapping found for test: {}", testLoinc);
                     }
                 }
             }
