@@ -37,7 +37,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
     private static final String MARKER_VALUE = "TRUE";
     File file = new File(MARKER_FILE);
 
-    @Value("${org.openelisglobal.ocl.import.autocreate:true}")
+    @Value("${org.openelisglobal.ocl.import.autocreate:false}")
     private boolean autocreateOn;
 
     @Value("${org.openelisglobal.ocl.import.default.testsection:Hematology}")
