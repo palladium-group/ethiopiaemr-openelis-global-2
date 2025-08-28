@@ -106,14 +106,6 @@ public class TestProductMapping {
         return testToProductInfo.get(testCode);
     }
 
-    public TestProductInfo getPrice(String testCode) {
-        return testToProductInfo.get(testCode);
-    }
-
-    public TestProductInfo getQuantity(String testCode) {
-        return testToProductInfo.get(testCode);
-    }
-
     public Set<String> getAllMappedLoincCodes() {
         return testToProductInfo.keySet();
     }

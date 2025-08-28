@@ -16,6 +16,7 @@ import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
+import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class OdooIntegrationService {
 
     @Autowired
     private PatientService patientService;
+
+    @Autowired
+    private TestService testService;
 
     /**
      * Creates an invoice in Odoo for the given sample data.
@@ -306,8 +310,12 @@ public class OdooIntegrationService {
         if (updateData.getSampleItemsTests() != null) {
             for (SampleTestCollection sampleTest : updateData.getSampleItemsTests()) {
                 for (Test test : sampleTest.tests) {
-                    String testLoinc = test.getLoinc();
-                    log.debug("Processing test: ID={}", testLoinc);
+                    String testLoinc = testService.get(test.getId()).getLoinc();
+                    if (testLoinc == null) {
+                        continue;
+                    }
+
+                    log.info("Processing test: ID={}", testLoinc);
 
                     String mappingKey = null;
                     if (testProductMapping.hasValidMapping(testLoinc)) {
