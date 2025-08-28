@@ -61,15 +61,10 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             log.info("OCL Import: Auto-import is disabled. Skipping OCL import.");
             return;
         }
-
         if (isOCLImported()) {
             return;
         }
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> INVOKE");
         log.info("OCL Import: Starting OCL import process...");
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> RUN IMPORT");
         performOclImport();
 
     }
@@ -84,7 +79,6 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         if (!Files.exists(configDir)) {
             return;
         }
-
         File[] zipFiles = configDir.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
         if (zipFiles == null || zipFiles.length == 0) {
             return;
@@ -98,7 +92,6 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
                 e.printStackTrace();
             }
         }
-
         performImport(oclNodes);
     }
 
@@ -113,9 +106,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
         int conceptCount = 0;
         int testsCreated = 0;
         int testsSkipped = 0;
-
         OclToOpenElisMapper mapper = new OclToOpenElisMapper(defaultTestSection, defaultSampleType);
-
         for (JsonNode node : oclNodes) {
             // If the node is a Collection Version, get its concepts array
             if (node.has("concepts") && node.get("concepts").isArray()) {
@@ -143,7 +134,6 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
 
         log.info("OCL Import: Finished processing. Total concepts processed: {}, Tests created: {}, Tests skipped: {}",
                 conceptCount, testsCreated, testsSkipped);
-
     }
 
     private boolean isOCLImported() {
@@ -158,7 +148,6 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             e.printStackTrace();
             isImported = false;
         }
-
         return isImported;
     }
 
@@ -176,9 +165,7 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
     public TestAddForm handlenNewTests(TestAddForm form) {
 
         String jsonString = (form.getJsonWad());
-
         JSONParser parser = new JSONParser();
-
         JSONObject obj = null;
         try {
             obj = (JSONObject) parser.parse(jsonString);
@@ -186,17 +173,14 @@ public class OclImportInitializer implements ApplicationListener<ContextRefreshe
             LogEvent.logError(e.getMessage(), e);
         }
         TestAddParams testAddParams = testAddControllerUtills.extractTestAddParms(obj, parser);
-
         List<TestSet> testSets = testAddControllerUtills.createTestSets(testAddParams);
         Localization nameLocalization = testAddControllerUtills.createNameLocalization(testAddParams);
         Localization reportingNameLocalization = testAddControllerUtills.createReportingNameLocalization(testAddParams);
-
         try {
             testAddService.addTests(testSets, nameLocalization, reportingNameLocalization, "1");
         } catch (HibernateException e) {
             LogEvent.logDebug(e);
         }
-
         return form;
     }
 

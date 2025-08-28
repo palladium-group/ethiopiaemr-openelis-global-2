@@ -524,19 +524,6 @@ public class OclToOpenElisMapper {
     }
 
     private void mapResultLimits(JsonNode concept, ObjectNode jsonWad) {
-        // Create the exact structure as shown in your target format
-        // This is a fixed set of age ranges and normal/critical limits
-        // String resultLimitsJson = "["
-        // + "{"
-        // + "\"ageRange\": \"0\","
-        // + "\"highAgeRange\": \"Infinity\","
-        // + "\"gender\": false,"
-        // + "\"lowNormal\": \"-Infinity\","
-        // + "\"highNormal\": \"Infinity\","
-        // + "\"lowNormalFemale\": \"-Infinity\","
-        // + "\"highNormalFemale\": \"Infinity\""
-        // + "}"
-        // + "]";
         ArrayNode resultLimitsArray = objectMapper.createArrayNode();
         ObjectNode limit = objectMapper.createObjectNode();
         limit.put("ageRange", "0");
@@ -598,7 +585,6 @@ public class OclToOpenElisMapper {
 
                 }
             }
-
         }
         jsonWad.put("dictionary", dictionaryArray);
         jsonWad.put("defaultTestResult", "");
