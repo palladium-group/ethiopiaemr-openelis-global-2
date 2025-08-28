@@ -1,19 +1,10 @@
-package org.openelisglobal.integration.ocl;
+package org.openelisglobal.ocl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.slf4j.Logger;
@@ -23,10 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OclZipImporter {
     private static final Logger log = LoggerFactory.getLogger(OclZipImporter.class);
-    private static final String OCL_CONFIG_DIR = "configurations/ocl";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final CsvMapper csvMapper = new CsvMapper();
 
     /**
      * Imports and parses the OCL ZIP package from the configurations/ocl directory.
@@ -34,23 +23,11 @@ public class OclZipImporter {
      * @return List of JsonNode objects representing parsed JSON/CSV files.
      * @throws IOException if the import fails.
      */
-    public List<JsonNode> importOclZip() throws IOException {
-        Path configDir = Paths.get(OCL_CONFIG_DIR);
-        if (!Files.exists(configDir)) {
-            Files.createDirectories(configDir);
-            log.info("Created OCL configuration directory at: {}", configDir.toAbsolutePath());
-        }
+    public List<JsonNode> importOclZip(String file, List<JsonNode> nodes) throws IOException {
 
-        File[] zipFiles = configDir.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
-        if (zipFiles == null || zipFiles.length == 0) {
-            throw new IOException("No OCL ZIP files found in " + configDir.toAbsolutePath());
-        }
+        log.info("Found OCL ZIP package: {}", file);
 
-        // Use the first zip file found
-        String zipPath = zipFiles[0].getAbsolutePath();
-        log.info("Found OCL ZIP package: {}", zipPath);
-
-        List<JsonNode> nodes = importOclPackage(zipPath);
+        importOclPackage(file, nodes);
         log.info("Finished importing OCL package. Parsed {} nodes.", nodes.size());
 
         return nodes;
@@ -63,13 +40,12 @@ public class OclZipImporter {
      * @return List of JsonNode objects from JSON/CSV files.
      * @throws IOException if the file doesn't exist or parsing fails.
      */
-    List<JsonNode> importOclPackage(String zipPath) throws IOException {
+    List<JsonNode> importOclPackage(String zipPath, List<JsonNode> jsonNodes) throws IOException {
         File file = new File(zipPath);
         if (!file.exists() || !file.isFile()) {
             throw new IOException("OCL package not found or invalid at: " + zipPath);
         }
 
-        List<JsonNode> jsonNodes = new ArrayList<>();
         try (ZipFile zipFile = new ZipFile(file)) {
             log.debug("ZIP file details: size={} bytes, entries={}", file.length(), zipFile.size());
 
@@ -85,9 +61,6 @@ public class OclZipImporter {
                     if (entry.getName().endsWith(".json")) {
                         log.info("Parsing as JSON: {}", entry.getName());
                         node = parseJsonEntry(zipFile, entry);
-                    } else if (entry.getName().endsWith(".csv")) {
-                        log.info("Parsing as CSV: {}", entry.getName());
-                        node = parseCsvEntry(zipFile, entry);
                     } else {
                         log.warn("Skipping unsupported file type: {}", entry.getName());
                         return;
@@ -117,36 +90,6 @@ public class OclZipImporter {
             return node;
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse JSON: " + entry.getName(), e);
-        }
-    }
-
-    private JsonNode parseCsvEntry(ZipFile zipFile, ZipEntry entry) {
-        try {
-            log.debug("Parsing CSV file: {}", entry.getName());
-            // Read CSV into List<Map<String,String>>
-            CsvSchema schema = csvMapper.schemaFor(Map.class).withHeader();
-            List<Object> rawRows = csvMapper.readerFor(Map.class).with(schema).readValues(zipFile.getInputStream(entry))
-                    .readAll();
-            List<Map<String, Object>> rows = new ArrayList<>();
-            for (Object obj : rawRows) {
-                rows.add((Map<String, Object>) obj);
-            }
-
-            // Build an array of concept nodes
-            List<JsonNode> concepts = new ArrayList<>();
-            for (Map<String, Object> row : rows) {
-                ObjectNode node = objectMapper.createObjectNode();
-                for (Map.Entry<String, Object> entrySet : row.entrySet()) {
-                    node.put(entrySet.getKey(), Objects.toString(entrySet.getValue(), ""));
-                }
-                concepts.add(node);
-            }
-
-            // Return as a Json array node
-            return objectMapper.valueToTree(concepts);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse CSV: " + entry.getName(), e);
         }
     }
 }

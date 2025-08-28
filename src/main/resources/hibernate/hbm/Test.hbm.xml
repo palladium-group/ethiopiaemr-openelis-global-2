@@ -18,8 +18,7 @@
         <many-to-one name="testSection"
             class="org.openelisglobal.test.valueholder.TestSection"
             fetch="select" lazy="false">
-            <column name="TEST_SECTION_ID" length="20"
-                sql-type="varchar(20)" />
+            <column name="TEST_SECTION_ID" precision="10" scale="0" />
         </many-to-one>
         <many-to-one name="label"
             class="org.openelisglobal.label.valueholder.Label" fetch="select"
