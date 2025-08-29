@@ -31,7 +31,7 @@ import org.openelisglobal.unitofmeasure.valueholder.UnitOfMeasure;
 
 public class OclToOpenElisMapper {
     private static final Log log = LogFactory.getLog(OclToOpenElisMapper.class);
-    
+
     private String defaultTestSection;
     private String defaultSampleType;
     private JsonNode rootNode;
@@ -363,7 +363,8 @@ public class OclToOpenElisMapper {
                 jsonWad.put("resultType", typeObj.getId());
             }
         } catch (Exception e) {
-            log.error("Error mapping result type (Spring context not available or service failed): " + e.getMessage(), e);
+            log.error("Error mapping result type (Spring context not available or service failed): " + e.getMessage(),
+                    e);
         }
     }
 
