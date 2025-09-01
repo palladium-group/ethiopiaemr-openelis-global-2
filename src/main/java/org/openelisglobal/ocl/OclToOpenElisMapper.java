@@ -307,40 +307,48 @@ public class OclToOpenElisMapper {
     }
 
     private void mapLoinc(JsonNode concept, ObjectNode jsonWad) {
-        String loinc = null;
         String id = getText(concept, "id");
+        String loinc = getLoinc(id);
+        jsonWad.put("loinc", loinc != null ? loinc : "");
+    }
 
-        // Try mappings array first (OCL standard format for LOINC)
+    private String getLoinc(String id) {
+        String loinc = null;
+
         JsonNode mappings = this.rootNode.get("mappings");
         if (mappings != null && mappings.isArray()) {
+            String fallbackLoinc = null;
+
             for (JsonNode mapping : mappings) {
-                String fromConceptCode = getText(mapping, "from_concept_code");
-                if (!fromConceptCode.equals(id)) {
+                if (!id.equals(getText(mapping, "from_concept_code"))) {
                     continue;
                 }
+
                 String mapType = getText(mapping, "map_type");
                 String toSourceName = getText(mapping, "to_source_name");
+                String candidateLoinc = getText(mapping, "to_concept_code");
 
-                if ("SAME-AS".equals(mapType) && "LOINC".equals(toSourceName)) {
-                    loinc = getText(mapping, "to_concept_code");
-                    if (StringUtils.isNotBlank(loinc)) {
-                        log.info("Found LOINC code: " + loinc + " for concept " + getText(concept, "id"));
-                        break;
-                    }
-                } else if ("LOINC".equals(toSourceName)) {
-                    loinc = getText(mapping, "to_concept_code");
+                // Priority 1: SAME-AS mapping pointing to LOINC
+                if ("SAME-AS".equals(mapType) && "LOINC".equals(toSourceName)
+                        && StringUtils.isNotBlank(candidateLoinc)) {
+                    loinc = candidateLoinc;
+                    log.info("Found SAME-AS LOINC code: " + loinc + " for concept " + id);
+                    break; // stop immediately since we found the best match
+                }
+
+                // Priority 2: any mapping pointing to LOINC (keep as fallback)
+                if ("LOINC".equals(toSourceName) && StringUtils.isNotBlank(candidateLoinc)) {
+                    fallbackLoinc = candidateLoinc;
                 }
             }
-        }
 
-        // Try extras section for LOINC
-        if (loinc == null) {
-            JsonNode extras = concept.get("extras");
-            if (extras != null && extras.has("loinc")) {
-                loinc = getText(extras, "loinc");
+            // If we didn’t find a SAME-AS → LOINC, use fallback if available
+            if (loinc == null && fallbackLoinc != null) {
+                loinc = fallbackLoinc;
+                log.info("Found Other LOINC code: " + loinc + " for concept " + id);
             }
         }
-        jsonWad.put("loinc", loinc != null ? loinc : "");
+        return loinc;
     }
 
     private void mapResultType(JsonNode concept, ObjectNode jsonWad) {
@@ -371,13 +379,9 @@ public class OclToOpenElisMapper {
     private void mapOrderableFlags(JsonNode concept, ObjectNode jsonWad) {
 
         jsonWad.put("orderable", "Y");
-
         jsonWad.put("notifyResults", "N");
-
         jsonWad.put("inLabOnly", "N");
-
         jsonWad.put("antimicrobialResistance", "N");
-
         Boolean retired = Boolean.valueOf(getText(concept, "retired"));
         jsonWad.put("active", retired ? "N" : "Y");
     }
@@ -557,7 +561,7 @@ public class OclToOpenElisMapper {
                     String toCoceptCode = getText(mapping, "to_concept_code");
                     String toCoceptName = getText(mapping, "to_concept_name_resolved");
                     String mapType = getText(mapping, "map_type");
-                    if (!fromConceptCode.equals(id) || mapType.equals("Q-AND-A")) {
+                    if (!fromConceptCode.equals(id) || !mapType.equals("Q-AND-A")) {
                         continue;
                     }
 
@@ -567,7 +571,7 @@ public class OclToOpenElisMapper {
                     dictionary.setDictEntry(toCoceptName);
                     dictionary.setLocalAbbreviation(toCoceptCode);
                     dictionary.setSysUserId("1");
-                    dictionary.setLoincCode("");
+                    dictionary.setLoincCode(getLoinc(toCoceptCode));
                     dictionary.setDictionaryCategory(
                             dictionaryCategoryService.getDictionaryCategoryByName("Test Result"));
 
