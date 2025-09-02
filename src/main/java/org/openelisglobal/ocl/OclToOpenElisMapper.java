@@ -557,8 +557,8 @@ public class OclToOpenElisMapper {
         limit.put("ageRange", "0");
         limit.put("highAgeRange", "Infinity");
         limit.put("gender", false);
-        limit.put("lowNormal", "-Infinity");
-        limit.put("highNormal", "Infinity");
+        limit.put("lowNormal", jsonWad.get("lowNormal").asText());
+        limit.put("highNormal", jsonWad.get("highNormal").asText());
         limit.put("lowNormalFemale", "-Infinity");
         limit.put("highNormalFemale", "Infinity");
         resultLimitsArray.add(limit);
