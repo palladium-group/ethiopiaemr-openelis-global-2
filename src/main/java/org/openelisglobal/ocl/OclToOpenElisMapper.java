@@ -157,8 +157,10 @@ public class OclToOpenElisMapper {
 
             Test dbTest = testService.getTestByLocalizedName(englishName, Locale.ENGLISH);
             if (dbTest != null) {
-                dbTest.setLoinc(loinc != null ? loinc : loinc);
-                testService.update(dbTest);
+                if (StringUtils.isNotBlank(loinc)) {
+                    dbTest.setLoinc(loinc);
+                    testService.update(dbTest);
+                }
                 return null;
             }
             // Log detailed concept information for debugging
@@ -169,9 +171,11 @@ public class OclToOpenElisMapper {
                 Panel panel = createPanel(englishName, description, systemUserId, loinc);
 
                 if (panelService.getPanelByName(panel) != null) {
-                    panel = panelService.getPanelByName(panel);
-                    panel.setLoinc(loinc);
-                    panelService.update(panel);
+                    if (StringUtils.isNotBlank(loinc)) {
+                        panel = panelService.getPanelByName(panel);
+                        panel.setLoinc(loinc);
+                        panelService.update(panel);
+                    }
                 } else {
                     Localization localization = createLocalization(frenchName, englishName, "create panel",
                             systemUserId);
@@ -588,6 +592,7 @@ public class OclToOpenElisMapper {
                     Map<String, String> names = extractNames(mapConcept);
                     String englishName = names.get("englishName");
                     String frenchName = names.get("frenchName");
+                    String loinc = getLoinc(toCoceptCode);
 
                     Dictionary dictionary = new Dictionary();
                     dictionary.setSortOrder(1);
@@ -595,13 +600,15 @@ public class OclToOpenElisMapper {
                     dictionary.setDictEntry(englishName);
                     dictionary.setLocalAbbreviation(toCoceptCode);
                     dictionary.setSysUserId(systemUserId);
-                    dictionary.setLoincCode(getLoinc(toCoceptCode));
+                    dictionary.setLoincCode(loinc);
                     dictionary.setDictionaryCategory(
                             dictionaryCategoryService.getDictionaryCategoryByName("Test Result"));
                     if (dictionaryService.duplicateDictionaryExists(dictionary)) {
-                        dictionary = dictionaryService.getDictionaryByDictEntry(englishName);
-                        dictionary.setLoincCode(getLoinc(toCoceptCode));
-                        dictionary = dictionaryService.update(dictionary);
+                        if (StringUtils.isNotBlank(loinc)) {
+                            dictionary = dictionaryService.getDictionaryByDictEntry(englishName);
+                            dictionary.setLoincCode(loinc);
+                            dictionary = dictionaryService.update(dictionary);
+                        }
                     } else {
                         Localization localization = createLocalization(frenchName, englishName, "create Dictionary",
                                 systemUserId);
