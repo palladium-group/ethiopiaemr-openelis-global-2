@@ -6,26 +6,18 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
-import org.openelisglobal.localization.service.LocalizationService;
-import org.openelisglobal.typeofsample.service.TypeOfSampleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class OclInnitializerTest extends BaseWebContextSensitiveTest {
-    private static final Logger log = LoggerFactory.getLogger(OclZipImporterIntegrationTest.class);
+    private static final Logger log = LoggerFactory.getLogger(OclInnitializerTest.class);
 
     @Autowired
     private OclZipImporter oclZipImporter;
 
     @Autowired
-    OclImportInitializer oclImportInitializer;
-
-    @Autowired
-    TypeOfSampleService typeOfSampleService;
-
-    @Autowired
-    LocalizationService localizationService;
+    private OclImportInitializer oclImportInitializer;
 
     private static String oclDirPath;
     private static String sampleType = "Whole Blood";
