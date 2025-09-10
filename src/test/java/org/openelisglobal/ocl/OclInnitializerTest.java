@@ -25,6 +25,7 @@ public class OclInnitializerTest extends BaseWebContextSensitiveTest {
     @Before
     public void setUp() throws Exception {
         executeDataSetWithStateManagement("testdata/ocl-import.xml");
+        executeDataSetWithStateManagement("testdata/type-of-testresult.xml");
         if (oclZipImporter == null) {
             fail("OclZipImporter bean not autowired. Check Spring configuration.");
         }
