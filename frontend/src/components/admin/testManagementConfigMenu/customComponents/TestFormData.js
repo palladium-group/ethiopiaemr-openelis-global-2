@@ -157,10 +157,6 @@ export const mapTestCatBeanToFormData = (test) => {
               let low = "-Infinity",
                 high = "Infinity";
 
-              const isAnyValue =
-                typeof limit.normalRange === "string" &&
-                limit.normalRange.trim().toLowerCase() === "any value";
-
               if (isNumericRange(limit.normalRange)) {
                 const parts = limit.normalRange.split("-");
                 low = parts[0]?.trim() || "-Infinity";
