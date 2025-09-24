@@ -26,8 +26,8 @@ jobs:
       - name: 🔄 Create PR if necessary
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: '(chore) Update translations from Transifex'
-          title: '(chore) Update translations from Transifex'
+          commit-message: 'Update OpenELIS translations from Transifex'
+          title: 'Update OpenELIS translations from Transifex'
           body: |
             # OpenELIS Translation Updates
 
