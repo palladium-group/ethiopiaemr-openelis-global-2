@@ -8,6 +8,7 @@ name: "Scheduled Transifex Update"
 
 jobs:
   pull-translations-from-transifex:
+    if: ${{ github.repository == 'DIGI-UW/OpenELIS-Global-2' }}
     name: pull-translations-from-transifex
 
     runs-on: ubuntu-latest
