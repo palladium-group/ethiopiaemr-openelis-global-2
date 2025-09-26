@@ -17,7 +17,6 @@
 package org.openelisglobal.common.services;
 
 import jakarta.annotation.PostConstruct;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -46,8 +44,7 @@ import org.springframework.stereotype.Service;
 public class PluginAnalyzerService {
 
     private static PluginAnalyzerService INSTANCE;
-    protected static final String TEST_MAPPING_FILE_PATH =
-      "/var/lib/openelis-global/analyzer/analyzer-test-map.csv";
+    protected static final String TEST_MAPPING_FILE_PATH = "/var/lib/openelis-global/analyzer/analyzer-test-map.csv";
     protected static final String CSV_TEST_MAP_COULMN_ANALYSER = "ANALYZER";
     protected static final String CSV_TEST_MAP_COULMN_ANALYSER_TEST_NAME = "ANALYZER_TEST_NAME";
     protected static final String CSV_TEST_MAP_COULMN_LOINC = "LOINC_CODE";
@@ -201,12 +198,10 @@ public class PluginAnalyzerService {
         AnalyzerTestNameCache.getInstance().registerPluginAnalyzer(name, id);
     }
 
-    public void loadNamingMappingsFromCSV(List<PluginAnalyzerService.TestMapping> nameMapping ,String analyzerName) {
+    public void loadNamingMappingsFromCSV(List<PluginAnalyzerService.TestMapping> nameMapping, String analyzerName) {
         File file = new File(TEST_MAPPING_FILE_PATH);
         if (!file.exists()) {
-            LogEvent.logDebug(
-                    this.getClass().getName(),
-                    "loadNamingMappingsFromCSV",
+            LogEvent.logDebug(this.getClass().getName(), "loadNamingMappingsFromCSV",
                     "CSV file not found: " + TEST_MAPPING_FILE_PATH);
             return; // Exit if file doesn't exist
         }
@@ -220,22 +215,19 @@ public class PluginAnalyzerService {
                 String loincCode = record.get(CSV_TEST_MAP_COULMN_LOINC).trim();
                 String actualTestName = record.get(CSV_TEST_MAP_COULMN_ACTUAL_TEST_NAME).trim();
                 if (analyzerName.equals(analyser)) {
-                    nameMapping.add(
-                            new PluginAnalyzerService.TestMapping(analyserTestName, actualTestName, loincCode));
+                    nameMapping.add(new PluginAnalyzerService.TestMapping(analyserTestName, actualTestName, loincCode));
                 }
             }
         } catch (IOException e) {
-             LogEvent.logError(this.getClass().getSimpleName(), "loadNamingMappingsFromCSV",
-                "Unable to Load analyzer test map for  " + analyzerName );
+            LogEvent.logError(this.getClass().getSimpleName(), "loadNamingMappingsFromCSV",
+                    "Unable to Load analyzer test map for  " + analyzerName);
         }
     }
 
     public void loadLoincMappingsFromCSV(Map<String, String> testToLoincMap, String analyzerName) {
         File file = new File(TEST_MAPPING_FILE_PATH);
         if (!file.exists()) {
-            LogEvent.logDebug(
-                    this.getClass().getName(),
-                    "loadLoincMappingsFromCSV",
+            LogEvent.logDebug(this.getClass().getName(), "loadLoincMappingsFromCSV",
                     "CSV file not found: " + TEST_MAPPING_FILE_PATH);
             return; // Exit if file doesn't exist
         }
@@ -260,9 +252,7 @@ public class PluginAnalyzerService {
     public void loadLoincTestsMappingsFromCSV(HashMap<String, List<Test>> testToLoincMap, String analyzerName) {
         File file = new File(TEST_MAPPING_FILE_PATH);
         if (!file.exists()) {
-            LogEvent.logDebug(
-                    this.getClass().getName(),
-                    "loadLoincTestsMappingsFromCSV",
+            LogEvent.logDebug(this.getClass().getName(), "loadLoincTestsMappingsFromCSV",
                     "CSV file not found: " + TEST_MAPPING_FILE_PATH);
             return; // Exit if file doesn't exist
         }
