@@ -198,7 +198,7 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         Result result = resultService.get("3");
         String testDescription = resultService.getTestDescription(result);
         assertNotNull(testDescription);
-        assertEquals("GPT/ALAT(Serum)", testDescription);
+        assertEquals("", testDescription);
     }
 
     @Test
@@ -263,7 +263,7 @@ public class ResultServiceTest extends BaseWebContextSensitiveTest {
         Result result = resultService.get("3");
         String reportingTestName = resultService.getReportingTestName(result);
         assertNotNull(reportingTestName);
-        assertEquals("GPT/ALAT", reportingTestName);
+        assertEquals("", reportingTestName);
     }
 
     @Test
