@@ -104,7 +104,7 @@ public class SampleTypeCreateServiceTest extends BaseWebContextSensitiveTest {
         List<TypeOfSample> newTypeOfSamples = typeOfSampleService.getAll();
 
         assertEquals((initialTypeOfSampleCount + 1), newTypeOfSamples.size());
-        assertEquals("blood tests", newTypeOfSamples.get(initialTypeOfSampleCount).getDescription());
+        assertEquals("Fluidal acids", newTypeOfSamples.get(initialTypeOfSampleCount).getDescription());
 
         List<SystemModule> newSystemModules = systemModuleService.getAll();
         assertEquals(initialSystemModuleCount + 3, newSystemModules.size());
