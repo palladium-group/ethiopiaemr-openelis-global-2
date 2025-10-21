@@ -40,6 +40,7 @@ import org.openelisglobal.panelitem.service.PanelItemService;
 import org.openelisglobal.panelitem.valueholder.PanelItem;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.sampleitem.valueholder.SampleItem;
+import org.openelisglobal.unitofmeasure.service.UnitOfMeasureService;
 import org.openelisglobal.spring.util.SpringContext;
 import org.openelisglobal.test.valueholder.Test;
 import org.openelisglobal.typeofsample.service.TypeOfSampleService;
@@ -67,6 +68,7 @@ public class SampleAddService {
     private static PanelItemService panelItemService = SpringContext.getBean(PanelItemService.class);
     private static ObservationHistoryTypeService ohtService = SpringContext
             .getBean(ObservationHistoryTypeService.class);
+    private static UnitOfMeasureService unitOfMeasureService = SpringContext.getBean(UnitOfMeasureService.class);
 
     private static String getObservationHistoryTypeId(String name) {
         ObservationHistoryType oht;
@@ -149,6 +151,8 @@ public class SampleAddService {
                     item.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(SampleStatus.Entered));
                 }
                 item.setCollector(sampleItem.attributeValue("collector"));
+                item.setQuantity(sampleItem.attributeValue("quantity"));
+                item.setUnitOfMeasure(unitOfMeasureService.getUnitOfMeasureById(sampleItem.attributeValue("uom")));
                 item.setRejected(rejected);
                 item.setRejectReasonId(rejectReasonId);
 

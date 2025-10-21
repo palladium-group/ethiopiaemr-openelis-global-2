@@ -10,7 +10,7 @@ const CustomSelect = (props) => {
     <>
       <Select
         onChange={handleSelect}
-        labelText=""
+        labelText={props.labelText || ""}
         id={props.id}
         defaultValue={props.value ? props.value : null}
         disabled={props.disabled}
