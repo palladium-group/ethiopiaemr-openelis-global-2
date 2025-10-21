@@ -119,7 +119,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             displayBean.setFirstName(patientService.getFirstName(patient));
             displayBean.setGender(patientService.getGender(patient));
             displayBean.setTags(noteBook.getTags());
-            displayBean.setDateCreated(noteBook.getDateCreated().toString());
+            displayBean.setDateCreated(DateUtil.formatDateAsText(noteBook.getDateCreated()));
         }
         return displayBean;
     }
@@ -138,7 +138,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setFirstName(patientService.getFirstName(patient));
             fullDisplayBean.setGender(patientService.getGender(patient));
             fullDisplayBean.setTags(noteBook.getTags());
-            fullDisplayBean.setDateCreated(noteBook.getDateCreated().toString());
+            fullDisplayBean.setDateCreated(DateUtil.formatDateAsText(noteBook.getDateCreated()));
             fullDisplayBean.setContent(noteBook.getContent());
             fullDisplayBean.setObjective(noteBook.getObjective());
             fullDisplayBean.setProtocol(noteBook.getProtocol());
