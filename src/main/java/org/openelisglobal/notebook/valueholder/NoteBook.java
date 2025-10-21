@@ -5,24 +5,47 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.common.valueholder.BaseObject;
+import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.sampleitem.valueholder.SampleItem;
+import org.openelisglobal.systemuser.valueholder.SystemUser;
 
 @Entity
 @Table(name = "notebook")
 public class NoteBook extends BaseObject<Integer> {
 
     private static final long serialVersionUID = -979624722823577192L;
+
+    public enum NoteBookStatus {
+        DRAFT("Draft"), SUBMITTED("Submitted"), FINALIZED("Finalized"), LOCKED("Locked"), ARCHIVED("Archived");
+
+        private String display;
+
+        NoteBookStatus(String display) {
+            this.display = display;
+        }
+
+        public String getDisplay() {
+            return display;
+        }
+    }
+
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "notebook_generator")
@@ -46,6 +69,24 @@ public class NoteBook extends BaseObject<Integer> {
 
     @Column(name = "content")
     private String content;
+
+    @Column(name = "date_created")
+    private Date dateCreated;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "status")
+    private NoteBookStatus status = NoteBookStatus.DRAFT;
+
+    @Valid
+    @OneToOne
+    @JoinColumn(name = "patient_id", referencedColumnName = "id")
+    private Patient patient;
+
+    @Valid
+    @OneToOne
+    @JoinColumn(name = "technician_id", referencedColumnName = "id")
+    private SystemUser technician;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(name = "notebook_samples", joinColumns = @JoinColumn(name = "notebook_id"), inverseJoinColumns = @JoinColumn(name = "sample_item_id"))
@@ -156,6 +197,46 @@ public class NoteBook extends BaseObject<Integer> {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public SystemUser getTechnician() {
+        return technician;
+    }
+
+    public void setTechnician(SystemUser technician) {
+        this.technician = technician;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public List<NoteBookFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<NoteBookFile> files) {
+        this.files = files;
+    }
+
+    public NoteBookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NoteBookStatus status) {
+        this.status = status;
     }
 
 }
