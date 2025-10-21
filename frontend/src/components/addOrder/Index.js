@@ -487,7 +487,7 @@ const Index = () => {
       sampleXML: {
         collectionDate: "",
         collector: "",
-        quantity:"",
+        quantity: "",
         uom: "",
         rejected: false,
         rejectionReason: "",

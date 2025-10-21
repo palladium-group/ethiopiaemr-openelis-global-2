@@ -415,10 +415,7 @@ const SampleType = (props) => {
   }, [selectedSampleType.id]);
 
   useEffect(() => {
-      getFromOpenElisServer(
-        `/rest/UomCreate`,
-        fetchUomCreate,
-      );
+    getFromOpenElisServer(`/rest/UomCreate`, fetchUomCreate);
   }, []);
 
   const fetchUomCreate = (res) => {
@@ -516,32 +513,31 @@ const SampleType = (props) => {
             onChange={(e) => handleReasons(e)}
           />
         )}
-        <div className="inlineDiv" style={{ display: 'flex', gap: '1rem' }}>
-        <TextInput
-                          value={sampleXml.quantity}
-                          name="quantity"
-                          labelText={intl.formatMessage({
-                            id: "sample.quantity.label",
-                          })}
-                          id="quantity"
-                          type="number"
-                          min="0"
-                          onChange={(value) => handleQuantity(value)}
-                          placeholder={intl.formatMessage({
-                            id: "sample.quantity.label",
-                          })}
-                        />
+        <div className="inlineDiv" style={{ display: "flex", gap: "1rem" }}>
+          <TextInput
+            value={sampleXml.quantity}
+            name="quantity"
+            labelText={intl.formatMessage({
+              id: "sample.quantity.label",
+            })}
+            id="quantity"
+            type="number"
+            min="0"
+            onChange={(value) => handleQuantity(value)}
+            placeholder={intl.formatMessage({
+              id: "sample.quantity.label",
+            })}
+          />
 
-
-        <CustomSelect
-          id={"uomId_" + index}
-          labelText={intl.formatMessage({ id: "sample.uom.label" })}
-          options={uomList}
-          disabled={false}
-          defaultSelect=""
-          onChange={(value) => handleUom(value)}
-        />
-      </div>         
+          <CustomSelect
+            id={"uomId_" + index}
+            labelText={intl.formatMessage({ id: "sample.uom.label" })}
+            options={uomList}
+            disabled={false}
+            defaultSelect=""
+            onChange={(value) => handleUom(value)}
+          />
+        </div>
         <div className="inlineDiv">
           <CustomDatePicker
             id={"collectionDate_" + index}
