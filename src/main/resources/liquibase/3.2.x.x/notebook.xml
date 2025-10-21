@@ -153,7 +153,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="mozzymutes" id="create-notebook-menu-option">
+    <changeSet author="mozzymutesa" id="create-notebook-menu-option">
         <preConditions>
             <sqlCheck expectedResult="0">
                 SELECT COUNT(*) FROM clinlims.menu WHERE element_id = 'menu_notebook'
