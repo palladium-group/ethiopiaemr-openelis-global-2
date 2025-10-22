@@ -6,19 +6,21 @@ import org.openelisglobal.notebook.valueholder.NoteBookFile;
 import org.openelisglobal.notebook.valueholder.NoteBookPage;
 
 public class NoteBookForm {
+    private Integer id;
     private String title;
-    private String type;
+    private Integer type;
     private String project;
     private String objective;
     private String protocol;
     private String content;
-    private String technicianId;
-    private String patientId;
-    private List<String> sampleIds;
+    private Integer technicianId;
+    private Integer patientId;
+    private Integer systemUserId;
+    private List<Integer> sampleIds;
     private List<String> tags;
     private List<NoteBookPage> pages;
     private List<NoteBookFileForm> files;
-    private List<String> analyserIds;
+    private List<Integer> analyserIds;
 
     public String getTitle() {
         return title;
@@ -28,11 +30,11 @@ public class NoteBookForm {
         this.title = title;
     }
 
-    public String getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 
@@ -68,19 +70,19 @@ public class NoteBookForm {
         this.content = content;
     }
 
-    public String getTechnicianId() {
+    public Integer getTechnicianId() {
         return technicianId;
     }
 
-    public void setTechnicianId(String technicianId) {
+    public void setTechnicianId(Integer technicianId) {
         this.technicianId = technicianId;
     }
 
-    public List<String> getSampleIds() {
+    public List<Integer> getSampleIds() {
         return sampleIds;
     }
 
-    public void setSampleIds(List<String> sampleIds) {
+    public void setSampleIds(List<Integer> sampleIds) {
         this.sampleIds = sampleIds;
     }
 
@@ -100,19 +102,19 @@ public class NoteBookForm {
         this.files = files;
     }
 
-    public List<String> getAnalyserIds() {
+    public List<Integer> getAnalyserIds() {
         return analyserIds;
     }
 
-    public void setAnalyserIds(List<String> analyserIds) {
+    public void setAnalyserIds(List<Integer> analyserIds) {
         this.analyserIds = analyserIds;
     }
 
-    public String getPatientId() {
+    public Integer getPatientId() {
         return patientId;
     }
 
-    public void setPatientId(String patientId) {
+    public void setPatientId(Integer patientId) {
         this.patientId = patientId;
     }
 
@@ -122,6 +124,22 @@ public class NoteBookForm {
 
     public void setPages(List<NoteBookPage> pages) {
         this.pages = pages;
+    }
+
+    public Integer getSystemUserId() {
+        return systemUserId;
+    }
+
+    public void setSystemUserId(Integer systemUserId) {
+        this.systemUserId = systemUserId;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public static class NoteBookFileForm extends NoteBookFile {
@@ -142,4 +160,5 @@ public class NoteBookForm {
             setFileData(Base64.getDecoder().decode(imageInfo[1]));
         }
     }
+
 }

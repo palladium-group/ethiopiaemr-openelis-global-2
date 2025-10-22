@@ -28,6 +28,8 @@ import StudyValidation from "./components/validation/Index";
 import AnalyserResultIndex from "./components/analyserResults/Index";
 import PathologyDashboard from "./components/pathology/PathologyDashboard";
 import CytologyDashboard from "./components/cytology/CytologyDashBoard";
+import NoteBookDashBoard from "./components/notebook/NoteBookDashBoard";
+import NoteBookEntryForm from "./components/notebook/NoteBookEntryForm";
 import CytologyCaseView from "./components/cytology/CytologyCaseView";
 import PathologyCaseView from "./components/pathology/PathologyCaseView";
 import ImmunohistochemistryDashboard from "./components/immunohistochemistry/ImmunohistochemistryDashboard";
@@ -294,6 +296,19 @@ export default function App() {
                   path="/CytologyDashboard"
                   exact
                   component={() => <CytologyDashboard />}
+                  role=""
+                  labUnitRole={{ Cytology: [Roles.RESULTS] }}
+                />
+                <SecureRoute
+                  path="/NoteBookDashboard"
+                  exact
+                  component={() => <NoteBookDashBoard />}
+                  role={Roles.RECEPTION}
+                />
+                <SecureRoute
+                  path="/NoteBookEntryForm"
+                  exact
+                  component={() => <NoteBookEntryForm />}
                   role=""
                   labUnitRole={{ Cytology: [Roles.RESULTS] }}
                 />

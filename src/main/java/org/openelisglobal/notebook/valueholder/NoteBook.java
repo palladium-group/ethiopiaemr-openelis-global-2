@@ -18,6 +18,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
@@ -224,6 +225,9 @@ public class NoteBook extends BaseObject<Integer> {
     }
 
     public List<NoteBookFile> getFiles() {
+        if (files == null) {
+            files = new ArrayList<>();
+        }
         return files;
     }
 

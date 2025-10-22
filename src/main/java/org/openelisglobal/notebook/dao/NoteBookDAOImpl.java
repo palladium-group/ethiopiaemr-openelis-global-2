@@ -1,7 +1,9 @@
 package org.openelisglobal.notebook.dao;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.openelisglobal.common.daoimpl.BaseDAOImpl;
@@ -48,7 +50,7 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
         Query<NoteBook> query = entityManager.unwrap(Session.class).createQuery(hql.toString(), NoteBook.class);
 
         if (statuses != null && !statuses.isEmpty()) {
-            query.setParameterList("statuses", statuses);
+            query.setParameterList("statuses", statuses.stream().map(e -> e.toString()).collect(Collectors.toList()));
         }
 
         if (types != null && !types.isEmpty()) {
@@ -68,6 +70,35 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
         }
 
         return query.list();
+    }
+
+    @Override
+    public Long getCountWithStatus(List<NoteBookStatus> statuses) {
+        String sql = "select count(*) from NoteBook nb where status in (:statuses)";
+        Query<Long> query = entityManager.unwrap(Session.class).createQuery(sql, Long.class);
+        query.setParameterList("statuses", statuses.stream().map(e -> e.toString()).collect(Collectors.toList()));
+        Long count = query.uniqueResult();
+        return count;
+    }
+
+    @Override
+    public Long getCountWithStatusBetweenDates(List<NoteBookStatus> statuses, Timestamp from, Timestamp to) {
+        String sql = "select count(*) from NoteBook nb where nb.status in (:statuses) and nb.lastupdated"
+                + " between :datefrom and :dateto";
+        Query<Long> query = entityManager.unwrap(Session.class).createQuery(sql, Long.class);
+        query.setParameterList("statuses", statuses.stream().map(e -> e.toString()).collect(Collectors.toList()));
+        query.setParameter("datefrom", from);
+        query.setParameter("dateto", to);
+        Long count = query.uniqueResult();
+        return count;
+    }
+
+    @Override
+    public Long getTotalCount() {
+        String sql = "select count(*) from NoteBook";
+        Query<Long> query = entityManager.unwrap(Session.class).createQuery(sql, Long.class);
+        Long count = query.uniqueResult();
+        return count;
     }
 
 }

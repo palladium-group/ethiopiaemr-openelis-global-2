@@ -9,12 +9,15 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
     private String protocol;
     private String objective;
     private List<String> instruments;
+    private List<Integer> instrumentIds;
     private String project;
     private String content;
     private List<NoteBookPage> pages;
     private List<NoteBookFile> files;
     private List<SampleDisplayBean> samples;
-    private String assignedTechnician;
+    private Integer technicianId;
+    private String technicianName;
+    private Integer patientId;
 
     public String getProtocol() {
         return protocol;
@@ -72,12 +75,12 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
         this.files = files;
     }
 
-    public String getAssignedTechnician() {
-        return assignedTechnician;
+    public Integer getTechnicianId() {
+        return technicianId;
     }
 
-    public void setAssignedTechnician(String assignedTechnician) {
-        this.assignedTechnician = assignedTechnician;
+    public void setTechnicianId(Integer technicianId) {
+        this.technicianId = technicianId;
     }
 
     public List<SampleDisplayBean> getSamples() {
@@ -88,64 +91,28 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
         this.samples = samples;
     }
 
-    public static class SampleDisplayBean {
-        private String sampleType;
-        private String collectionDate;
-        private List<ResultDisplayBean> results;
-
-        public String getSampleType() {
-            return sampleType;
-        }
-
-        public void setSampleType(String sampleType) {
-            this.sampleType = sampleType;
-        }
-
-        public String getCollectionDate() {
-            return collectionDate;
-        }
-
-        public void setCollectionDate(String collectionDate) {
-            this.collectionDate = collectionDate;
-        }
-
-        public List<ResultDisplayBean> getResults() {
-            return results;
-        }
-
-        public void setResults(List<ResultDisplayBean> results) {
-            this.results = results;
-        }
-
+    public String getTechnicianName() {
+        return technicianName;
     }
 
-    public static class ResultDisplayBean {
-        private String test;
-        private String result;
-        private String dateCreated;
-
-        public String getTest() {
-            return test;
-        }
-
-        public void setTest(String test) {
-            this.test = test;
-        }
-
-        public String getResult() {
-            return result;
-        }
-
-        public void setResult(String result) {
-            this.result = result;
-        }
-
-        public String getDateCreated() {
-            return dateCreated;
-        }
-
-        public void setDateCreated(String dateCreated) {
-            this.dateCreated = dateCreated;
-        }
+    public void setTechnicianName(String technicianName) {
+        this.technicianName = technicianName;
     }
+
+    public Integer getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Integer patientId) {
+        this.patientId = patientId;
+    }
+
+    public List<Integer> getInstrumentIds() {
+        return instrumentIds;
+    }
+
+    public void setInstrumentIds(List<Integer> instrumentIds) {
+        this.instrumentIds = instrumentIds;
+    }
+
 }

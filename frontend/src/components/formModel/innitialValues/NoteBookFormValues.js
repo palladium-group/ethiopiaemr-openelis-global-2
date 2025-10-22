@@ -1,0 +1,98 @@
+export const NoteBookFormValues = {
+  id: null,
+  title: "",
+  type: null,
+  project: "",
+  objective: "",
+  protocol: "",
+  content: "",
+  technicianId: null,
+  patientId: null,
+  systemUserId: null,
+  sampleIds: [],
+  tags: [],
+  analyserIds: [],
+  pages: [
+    {
+      title: "",
+      content: "",
+      instructions: "",
+    },
+  ],
+  files: [
+    {
+      base64File: "",
+      fileType: "",
+    },
+  ],
+};
+
+export const NoteBookInitialData = {
+  id: null,
+  title: "",
+  type: null,
+  lastName: "",
+  firstName: "",
+  gender: "",
+  dateCreated: "",
+  tags: [],
+  project: "",
+  objective: "",
+  protocol: "",
+  content: "",
+  technicianId: null,
+  patientId: null,
+  systemUserId: null,
+  technicianName: "",
+  samples: [],
+  analyserIds: [],
+  pages: [],
+  files: [],
+};
+
+// export const NoteBookInitialData = {
+//   id: null,
+//   title: "",
+//   type: null,
+//   lastName: "",
+//   firstName: "",
+//   gender: "",
+//   dateCreated: "",
+//   tags: [],
+//   project: "",
+//   objective: "",
+//   protocol: "",
+//   content: "",
+//   technicianId: null,
+//   patientId: null,
+//   systemUserId: null,
+//   technicianName: "",
+//   samples: [
+//     {
+//       id: null,
+//       sampleType: "",
+//       collectionDate: "",
+//       results: [
+//         {
+//           test: "",
+//           result: "",
+//           dateCreated: "",
+//         },
+//       ],
+//     },
+//   ],
+//   analyserIds: [],
+//   pages: [
+//     {
+//       title: "",
+//       content: "",
+//       instructions: "",
+//     },
+//   ],
+//   files: [
+//     {
+//       fileData: "",
+//       fileType: "",
+//     },
+//   ],
+// };

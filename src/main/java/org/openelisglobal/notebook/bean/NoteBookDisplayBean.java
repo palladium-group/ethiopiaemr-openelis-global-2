@@ -5,7 +5,7 @@ import java.util.List;
 public class NoteBookDisplayBean {
     private Integer id;
     private String title;
-    private String type;
+    private Integer type;
     private String lastName;
     private String firstName;
     private String gender;
@@ -20,11 +20,11 @@ public class NoteBookDisplayBean {
         this.title = title;
     }
 
-    public String getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 
