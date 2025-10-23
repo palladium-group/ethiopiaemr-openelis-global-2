@@ -19,6 +19,7 @@ import {
   InlineNotification,
   FileUploaderDropContainer,
   FileUploaderItem,
+  Loading,
 } from "@carbon/react";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import { NotificationContext } from "../layout/Layout";
@@ -45,7 +46,7 @@ const NoteBookEntryForm = () => {
   ];
   const intl = useIntl();
   const componentMounted = useRef(false);
-  const { noteBookId } = useParams();
+  const { notebookid } = useParams();
 
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
@@ -53,6 +54,7 @@ const NoteBookEntryForm = () => {
   const [statuses, setStatuses] = useState([]);
   const [types, setTypes] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [noteBookData, setNoteBookData] = useState(NoteBookInitialData);
   const [noteBookForm, setNoteBookForm] = useState(NoteBookFormValues);
   const [sampleList, setSampleList] = useState([]);
@@ -61,6 +63,10 @@ const NoteBookEntryForm = () => {
   const [addedSampleIds, setAddedSampleIds] = useState([]);
 
   const handleSubmit = () => {
+    if (isSubmitting) {
+      return;
+    }
+    setIsSubmitting(true);
     noteBookForm.title = noteBookData.title;
     noteBookForm.type = noteBookData.type;
     noteBookForm.project = noteBookData.project;
@@ -68,17 +74,37 @@ const NoteBookEntryForm = () => {
     noteBookForm.protocol = noteBookData.protocol;
     noteBookForm.content = noteBookData.content;
     noteBookForm.patientId = noteBookData.patientId;
+    noteBookForm.technicianId = noteBookData.technicianId;
     noteBookForm.sampleIds = noteBookData.samples.map((entry) =>
       Number(entry.id),
     );
     noteBookForm.pages = noteBookData.pages;
     noteBookForm.files = noteBookData.files;
     console.log(JSON.stringify(noteBookForm));
-    postToOpenElisServer(
-      "/rest/notebook/create",
-      JSON.stringify(noteBookForm),
-      () => {},
-    );
+    var url =
+      notebookid != 0
+        ? "/rest/notebook/update/" + notebookid
+        : "/rest/notebook/create";
+    postToOpenElisServer(url, JSON.stringify(noteBookForm), handleSubmited);
+  };
+
+  const handleSubmited = (status) => {
+    setIsSubmitting(false);
+    setNotificationVisible(true);
+    if (status == "200") {
+      addNotification({
+        kind: NotificationKinds.success,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: "Succesfuly saved",
+      });
+    } else {
+      addNotification({
+        kind: NotificationKinds.error,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: "Duplicate Calculation Name or Error while saving",
+      });
+    }
+    window.location.reload()
   };
 
   // Add sample to noteBookData.samples
@@ -197,10 +223,24 @@ const NoteBookEntryForm = () => {
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_STATUS", setStatuses);
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_EXPT_TYPE", setTypes);
 
+    if (notebookid != 0) {
+      setLoading(true);
+      getFromOpenElisServer(
+        "/rest/notebook/view//" + notebookid,
+        loadInitialData,
+      );
+    }
     return () => {
       componentMounted.current = false;
     };
   }, []);
+
+  const loadInitialData = (data) => {
+    if (componentMounted.current) {
+      setNoteBookData(data);
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -216,6 +256,8 @@ const NoteBookEntryForm = () => {
           </Section>
         </Column>
       </Grid>
+      {notificationVisible === true ? <AlertDialog /> : ""}
+      {loading && <Loading></Loading>}
       <Grid fullWidth={true} className="orderLegendBody">
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
@@ -500,17 +542,19 @@ const NoteBookEntryForm = () => {
             </Column>
             <Column lg={16} md={8} sm={4}>
               <h5>Available Samples</h5>
-              {sampleList.length === 0 && (
-                <InlineNotification
-                  kind="info"
-                  title="No samples found"
-                  subtitle="No samples were returned from the backend"
-                />
-              )}
             </Column>
 
             <Column lg={16} md={8} sm={4}>
               <Grid className="gridBoundary">
+                {sampleList.length === 0 && (
+                  <Column lg={16} md={8} sm={4}>
+                    <InlineNotification
+                      kind="info"
+                      title="No samples found"
+                      subtitle="No samples were returned from the backend"
+                    />
+                  </Column>
+                )}
                 {sampleList.map((sample) => (
                   <Column key={sample.id} lg={16} md={8} sm={12}>
                     <Tile style={{ marginBottom: "1rem" }}>
@@ -640,7 +684,11 @@ const NoteBookEntryForm = () => {
 
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
-            <Button kind="danger--tertiary" onClick={() => handleSubmit()}>
+            <Button
+              kind="danger--tertiary"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit()}
+            >
               Submit
             </Button>
           </Grid>

@@ -306,7 +306,7 @@ export default function App() {
                   role={Roles.RECEPTION}
                 />
                 <SecureRoute
-                  path="/NoteBookEntryForm"
+                  path="/NoteBookEntryForm/:notebookid"
                   exact
                   component={() => <NoteBookEntryForm />}
                   role=""

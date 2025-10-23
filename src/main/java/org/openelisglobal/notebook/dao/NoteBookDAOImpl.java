@@ -100,5 +100,4 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
         Long count = query.uniqueResult();
         return count;
     }
-
 }

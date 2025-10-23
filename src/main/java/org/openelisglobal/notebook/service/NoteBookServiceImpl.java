@@ -8,12 +8,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
+import org.hibernate.Hibernate;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.common.dao.BaseDAO;
 import org.openelisglobal.common.service.AuditableBaseObjectServiceImpl;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.dictionary.service.DictionaryService;
 import org.openelisglobal.notebook.bean.NoteBookDisplayBean;
 import org.openelisglobal.notebook.bean.NoteBookFullDisplayBean;
 import org.openelisglobal.notebook.bean.SampleDisplayBean;
@@ -22,6 +24,8 @@ import org.openelisglobal.notebook.dao.NoteBookDAO;
 import org.openelisglobal.notebook.form.NoteBookForm;
 import org.openelisglobal.notebook.valueholder.NoteBook;
 import org.openelisglobal.notebook.valueholder.NoteBook.NoteBookStatus;
+import org.openelisglobal.notebook.valueholder.NoteBookFile;
+import org.openelisglobal.notebook.valueholder.NoteBookPage;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.result.service.ResultService;
@@ -34,6 +38,7 @@ import org.openelisglobal.systemuser.service.SystemUserService;
 import org.openelisglobal.typeofsample.service.TypeOfSampleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook, Integer> implements NoteBookService {
@@ -65,9 +70,11 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
     @Autowired
     private SystemUserService systemUserService;
 
+    @Autowired
+    private DictionaryService dictionaryService;
+
     public NoteBookServiceImpl() {
         super(NoteBook.class);
-        this.auditTrailLog = true;
     }
 
     @Override
@@ -76,39 +83,44 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
     }
 
     @Override
+    @Transactional
     public List<NoteBook> filterNoteBooks(List<NoteBookStatus> statuses, List<String> types, List<String> tags,
             Date fromDate, Date toDate) {
         return baseObjectDAO.filterNoteBooks(statuses, types, tags, fromDate, toDate);
     }
 
     @Override
+    @Transactional
     public void updateWithStatus(Integer notebookId, NoteBookStatus status) {
         Optional<NoteBook> optionalNoteBook = baseObjectDAO.get(notebookId);
         if (optionalNoteBook.isPresent()) {
             NoteBook noteBook = optionalNoteBook.get();
             noteBook.setStatus(status);
-            baseObjectDAO.update(noteBook);
+            update(noteBook);
         }
     }
 
     @Override
+    @Transactional
     public void createWithFormValues(NoteBookForm form) {
         NoteBook noteBook = new NoteBook();
         noteBook = createNoteBookFromForm(noteBook, form);
-        baseObjectDAO.insert(noteBook);
+        save(noteBook);
     }
 
     @Override
+    @Transactional
     public void updateWithFormValues(Integer noteBookId, NoteBookForm form) {
         Optional<NoteBook> optionalNoteBook = baseObjectDAO.get(noteBookId);
         if (optionalNoteBook.isPresent()) {
             NoteBook noteBook = optionalNoteBook.get();
             noteBook = createNoteBookFromForm(noteBook, form);
-            baseObjectDAO.update(noteBook);
+            update(noteBook);
         }
     }
 
     @Override
+    @Transactional
     public NoteBookDisplayBean convertToDisplayBean(Integer noteBookId) {
         NoteBookDisplayBean displayBean = new NoteBookDisplayBean();
         Optional<NoteBook> optionalNoteBook = baseObjectDAO.get(noteBookId);
@@ -123,16 +135,24 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             displayBean.setGender(patientService.getGender(patient));
             displayBean.setTags(noteBook.getTags());
             displayBean.setDateCreated(DateUtil.formatDateAsText(noteBook.getDateCreated()));
+            displayBean.setStatus(noteBook.getStatus());
+            displayBean.setTypeName(dictionaryService.get(noteBook.getType().toString()).getDictEntry());
         }
         return displayBean;
     }
 
     @Override
+    @Transactional
     public NoteBookFullDisplayBean convertToFullDisplayBean(Integer noteBookId) {
         NoteBookFullDisplayBean fullDisplayBean = new NoteBookFullDisplayBean();
         Optional<NoteBook> optionalNoteBook = baseObjectDAO.get(noteBookId);
         if (optionalNoteBook.isPresent()) {
             NoteBook noteBook = optionalNoteBook.get();
+            Hibernate.initialize(noteBook.getAnalysers());
+            Hibernate.initialize(noteBook.getSamples());
+            Hibernate.initialize(noteBook.getPages());
+            Hibernate.initialize(noteBook.getFiles());
+            Hibernate.initialize(noteBook.getTags());
             Patient patient = patientService.getData(noteBook.getPatient().getId());
             fullDisplayBean.setId(noteBook.getId());
             fullDisplayBean.setTitle(noteBook.getTitle());
@@ -142,6 +162,8 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setGender(patientService.getGender(patient));
             fullDisplayBean.setTags(noteBook.getTags());
             fullDisplayBean.setDateCreated(DateUtil.formatDateAsText(noteBook.getDateCreated()));
+            fullDisplayBean.setStatus(noteBook.getStatus());
+            fullDisplayBean.setTypeName(dictionaryService.get(noteBook.getType().toString()).getDictEntry());
             fullDisplayBean.setContent(noteBook.getContent());
             fullDisplayBean.setObjective(noteBook.getObjective());
             fullDisplayBean.setProtocol(noteBook.getProtocol());
@@ -194,15 +216,11 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         if (!GenericValidator.isBlankOrNull(form.getTitle())) {
             noteBook.setTitle(form.getTitle());
         }
-        if (!GenericValidator.isBlankOrNull(form.getType().toString())) {
+        if (form.getType() != null) {
             noteBook.setType(form.getType().toString());
         }
         if (form.getTags() != null && !form.getTags().isEmpty()) {
-            noteBook.setTags(form.getTags());
-        }
-
-        if (form.getPages() != null && !form.getPages().isEmpty()) {
-            noteBook.setPages(form.getPages());
+            noteBook.setTags(new ArrayList<>(form.getTags()));
         }
         if (!GenericValidator.isBlankOrNull(form.getContent())) {
             noteBook.setContent(form.getContent());
@@ -217,48 +235,73 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             noteBook.setProject(form.getProject());
         }
 
-        noteBook.setDateCreated(noteBook.getId() != null ? noteBook.getDateCreated() : new Date());
-        noteBook.setStatus(noteBook.getId() != null ? noteBook.getStatus() : NoteBookStatus.DRAFT);
-        noteBook.setPatient(patientService.getData((form.getPatientId().toString())));
-        noteBook.setTechnician(noteBook.getId() != null ? systemUserService.get(form.getTechnicianId().toString())
-                : systemUserService.get(form.getSystemUserId().toString()));
-        if (form.getAnalyserIds() != null && !form.getAnalyserIds().isEmpty()) {
-            noteBook.setAnalysers(form.getAnalyserIds().stream()
-                    .map(analyserId -> analyzerService.get(analyserId.toString())).toList());
+        if (noteBook.getId() == null) {
+            noteBook.setDateCreated(new Date());
+            noteBook.setStatus(NoteBookStatus.DRAFT);
+            noteBook.setTechnician(systemUserService.get(form.getSystemUserId().toString()));
+        } else {
+            noteBook.setDateCreated(noteBook.getDateCreated());
+            noteBook.setStatus(noteBook.getStatus());
+            noteBook.setTechnician(systemUserService.get(form.getTechnicianId().toString()));
         }
 
-        if (form.getSampleIds() != null && !form.getSampleIds().isEmpty()) {
-            noteBook.setSamples(
-                    form.getSampleIds().stream().map(sampleId -> sampleItemService.get(sampleId.toString())).toList());
+        noteBook.setPatient(patientService.getData(form.getPatientId().toString()));
+
+        noteBook.getAnalysers().clear();
+        if (form.getAnalyserIds() != null) {
+            for (Integer analyserId : form.getAnalyserIds()) {
+                noteBook.getAnalysers().add(analyzerService.get(analyserId.toString()));
+            }
         }
 
-        if (noteBook.getFiles() != null) {
-            noteBook.getFiles().removeAll(noteBook.getFiles());
+        noteBook.getSamples().clear();
+        if (form.getSampleIds() != null) {
+            for (Integer sampleId : form.getSampleIds()) {
+                noteBook.getSamples().add(sampleItemService.get(sampleId.toString()));
+            }
         }
-        if (form.getFiles() != null && !form.getFiles().isEmpty()) {
-            form.getFiles().stream().forEach(e -> e.setId(null));
-            noteBook.getFiles().addAll(form.getFiles());
+
+        noteBook.getFiles().clear();
+        if (form.getFiles() != null) {
+            for (NoteBookFile file : form.getFiles()) {
+                file.setId(null);
+                file.setNotebook(noteBook);
+                noteBook.getFiles().add(file);
+            }
+        }
+
+        noteBook.getPages().clear();
+        if (form.getPages() != null) {
+            for (NoteBookPage page : form.getPages()) {
+                page.setId(null);
+                page.setNotebook(noteBook);
+                noteBook.getPages().add(page);
+            }
         }
 
         return noteBook;
     }
 
     @Override
+    @Transactional
     public Long getCountWithStatus(List<NoteBookStatus> statuses) {
         return baseObjectDAO.getCountWithStatus(statuses);
     }
 
     @Override
+    @Transactional
     public Long getCountWithStatusBetweenDates(List<NoteBookStatus> statuses, Timestamp from, Timestamp to) {
         return baseObjectDAO.getCountWithStatusBetweenDates(statuses, from, to);
     }
 
     @Override
+    @Transactional
     public Long getTotalCount() {
         return baseObjectDAO.getTotalCount();
     }
 
     @Override
+    @Transactional
     public List<SampleDisplayBean> searchSampleItems(String patientId, String accession) {
 
         List<Sample> samples = StringUtils.isNotBlank(accession)

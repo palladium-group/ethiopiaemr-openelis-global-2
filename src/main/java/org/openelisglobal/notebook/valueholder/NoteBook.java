@@ -89,11 +89,11 @@ public class NoteBook extends BaseObject<Integer> {
     @JoinColumn(name = "technician_id", referencedColumnName = "id")
     private SystemUser technician;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany
     @JoinTable(name = "notebook_samples", joinColumns = @JoinColumn(name = "notebook_id"), inverseJoinColumns = @JoinColumn(name = "sample_item_id"))
     private List<SampleItem> samples;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany
     @JoinTable(name = "notebook_analysers", joinColumns = @JoinColumn(name = "notebook_id"), inverseJoinColumns = @JoinColumn(name = "analyser_id"))
     private List<Analyzer> analysers;
 
@@ -102,12 +102,10 @@ public class NoteBook extends BaseObject<Integer> {
     @Column(name = "tag")
     private List<String> tags;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "notebook_id", referencedColumnName = "id")
+    @OneToMany(mappedBy = "notebook", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NoteBookPage> pages;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "notebook_id", referencedColumnName = "id")
+    @OneToMany(mappedBy = "notebook", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NoteBookFile> files;
 
     @Override
@@ -169,6 +167,9 @@ public class NoteBook extends BaseObject<Integer> {
     }
 
     public List<SampleItem> getSamples() {
+        if (samples == null) {
+            samples = new ArrayList<>();
+        }
         return samples;
     }
 
@@ -177,6 +178,9 @@ public class NoteBook extends BaseObject<Integer> {
     }
 
     public List<NoteBookPage> getPages() {
+        if (pages == null) {
+            pages = new ArrayList<>();
+        }
         return pages;
     }
 
@@ -185,6 +189,9 @@ public class NoteBook extends BaseObject<Integer> {
     }
 
     public List<Analyzer> getAnalysers() {
+        if (analysers == null) {
+            analysers = new ArrayList<>();
+        }
         return analysers;
     }
 
@@ -193,6 +200,9 @@ public class NoteBook extends BaseObject<Integer> {
     }
 
     public List<String> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
         return tags;
     }
 

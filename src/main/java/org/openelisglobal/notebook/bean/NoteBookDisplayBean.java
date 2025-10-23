@@ -1,6 +1,7 @@
 package org.openelisglobal.notebook.bean;
 
 import java.util.List;
+import org.openelisglobal.notebook.valueholder.NoteBook.NoteBookStatus;
 
 public class NoteBookDisplayBean {
     private Integer id;
@@ -11,6 +12,8 @@ public class NoteBookDisplayBean {
     private String gender;
     private String dateCreated;
     private List<String> tags;
+    private String typeName;
+    private NoteBookStatus status;
 
     public String getTitle() {
         return title;
@@ -74,6 +77,22 @@ public class NoteBookDisplayBean {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public NoteBookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NoteBookStatus status) {
+        this.status = status;
     }
 
 }

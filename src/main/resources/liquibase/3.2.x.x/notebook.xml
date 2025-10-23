@@ -55,8 +55,9 @@
                 <constraints primaryKey="true" nullable="false" primaryKeyName="pk_notebook_page"/>
             </column>
             <column name="title" type="VARCHAR(255)"/>
-            <column name="instructions" type="CLOB"/>
-            <column name="content" type="CLOB"/>
+             <column name="last_updated" type="datetime" valueComputed="${now}" />
+            <column name="instructions" type="TEXT"/>
+            <column name="content" type="TEXT"/>
             <column name="notebook_id" type="INTEGER">
                 <constraints nullable="false" foreignKeyName="fk_page_notebook"
                              referencedTableName="notebook" referencedColumnNames="id"/>
@@ -80,8 +81,9 @@
             <column name="id" type="INTEGER" valueSequenceNext="notebook_file_seq">
                 <constraints primaryKey="true" nullable="false" primaryKeyName="pk_notebook_file"/>
             </column>
-            <column name="file_data" type="BLOB"/>
+            <column name="file_data" type="bytea"/>
             <column name="file_type" type="VARCHAR(255)"/>
+             <column name="last_updated" type="datetime" valueComputed="${now}" />
             <column name="notebook_id" type="INTEGER">
                 <constraints nullable="false" foreignKeyName="fk_file_notebook"
                              referencedTableName="notebook" referencedColumnNames="id"/>

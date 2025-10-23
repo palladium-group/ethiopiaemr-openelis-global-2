@@ -67,22 +67,6 @@ function NoteBookDashBoard() {
     }
   };
 
-  const assignCurrentUserAsTechnician = (event, pathologySampleId) => {
-    postToOpenElisServerFullResponse(
-      "/rest/cytology/assignTechnician?cytologySampleId=" + pathologySampleId,
-      {},
-      refreshItems,
-    );
-  };
-
-  const assignCurrentUserAsPathologist = (event, pathologySampleId) => {
-    postToOpenElisServerFullResponse(
-      "/rest/cytology/assignCytoPathologist?cytologySampleId=" +
-        pathologySampleId,
-      {},
-      refreshItems,
-    );
-  };
   const handlePageChange = (pageInfo) => {
     if (page != pageInfo.page) {
       setPage(pageInfo.page);
@@ -94,44 +78,7 @@ function NoteBookDashBoard() {
   };
 
   const renderCell = (cell, row) => {
-    var status = row.cells.find((e) => e.info.header === "status").value;
-    var pathologySampleId = row.id;
-
-    if (cell.info.header === "assignedTechnician" && !cell.value) {
-      return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsTechnician(e, pathologySampleId);
-            }}
-          >
-            <FormattedMessage id="label.button.start" />
-          </Button>
-        </TableCell>
-      );
-    }
-    if (
-      cell.info.header === "assignedCytoPathologist" &&
-      !cell.value &&
-      status === "READY_FOR_CYTOPATHOLOGIST" &&
-      hasRole(userSessionDetails, "Cytopathologist")
-    ) {
-      return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsPathologist(e, pathologySampleId);
-            }}
-          >
-            <FormattedMessage id="label.button.start" />
-          </Button>
-        </TableCell>
-      );
-    } else {
-      return <TableCell key={cell.id}>{cell.value}</TableCell>;
-    }
+    return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
   const setNoteBookEntriesWithIds = (entries) => {
@@ -170,11 +117,11 @@ function NoteBookDashBoard() {
   };
 
   const openNoteBookView = (id) => {
-    window.location.href = "/NoteBookView/" + id;
+    window.location.href = "/NoteBookEntryForm/" + id;
   };
 
-  const openNoteBookEntryForm = (id) => {
-    window.location.href = "/NoteBookEntryForm";
+  const openNoteBookEntryForm = () => {
+    window.location.href = "/NoteBookEntryForm/0";
   };
 
   useEffect(() => {
@@ -351,36 +298,33 @@ function NoteBookDashBoard() {
               )}
               headers={[
                 {
-                  key: "requestDate",
-                  header: intl.formatMessage({ id: "sample.requestDate" }),
+                  key: "title",
+                  header: intl.formatMessage({ id: "Title" }),
+                },
+                {
+                  key: "typeName",
+                  header: intl.formatMessage({ id: "Experiment Type" }),
                 },
                 {
                   key: "status",
-                  header: intl.formatMessage({ id: "label.filters.status" }),
-                },
-                {
-                  key: "lastName",
-                  header: intl.formatMessage({ id: "patient.last.name" }),
+                  header: intl.formatMessage({ id: "Status" }),
                 },
                 {
                   key: "firstName",
                   header: intl.formatMessage({ id: "patient.first.name" }),
                 },
                 {
-                  key: "assignedTechnician",
-                  header: intl.formatMessage({
-                    id: "label.button.select.technician",
-                  }),
+                  key: "lastName",
+                  header: intl.formatMessage({ id: "patient.last.name" }),
                 },
                 {
-                  key: "assignedCytoPathologist",
-                  header: intl.formatMessage({
-                    id: "assigned.cytopathologist.label",
-                  }),
+                  key: "gender",
+                  header: intl.formatMessage({ id: "patient.first.gender" }),
                 },
+
                 {
-                  key: "labNumber",
-                  header: intl.formatMessage({ id: "sample.label.labnumber" }),
+                  key: "dateCreated",
+                  header: intl.formatMessage({ id: "Date Created" }),
                 },
               ]}
               isSortable

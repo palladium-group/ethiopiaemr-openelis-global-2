@@ -1,10 +1,14 @@
 package org.openelisglobal.notebook.valueholder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Type;
@@ -26,6 +30,11 @@ public class NoteBookFile extends BaseObject<Integer> {
 
     @Column(name = "file_type")
     private String fileType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notebook_id", nullable = false)
+    @JsonIgnore
+    private NoteBook notebook;
 
     @Override
     public Integer getId() {
@@ -51,4 +60,13 @@ public class NoteBookFile extends BaseObject<Integer> {
     public void setFileType(String fileType) {
         this.fileType = fileType;
     }
+
+    public NoteBook getNotebook() {
+        return notebook;
+    }
+
+    public void setNotebook(NoteBook notebook) {
+        this.notebook = notebook;
+    }
+
 }
