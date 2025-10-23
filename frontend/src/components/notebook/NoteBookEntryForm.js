@@ -104,7 +104,7 @@ const NoteBookEntryForm = () => {
         message: "Duplicate Calculation Name or Error while saving",
       });
     }
-    window.location.reload()
+    window.location.reload();
   };
 
   // Add sample to noteBookData.samples

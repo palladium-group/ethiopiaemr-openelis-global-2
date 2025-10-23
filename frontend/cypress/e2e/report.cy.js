@@ -175,6 +175,7 @@ describe("Routine Reports", function () {
   });
 
   it("Visits Referred Out Test Report", () => {
+    cy.wait(1000);
     reportPage = homePage.goToRoutineReports();
     reportPage.navigateToManagementReports();
     reportPage.selectReferredOutTestReport();
@@ -193,6 +194,7 @@ describe("Routine Reports", function () {
   });
 
   it("Visits Non Conformity Report By Date", () => {
+    cy.wait(1000);
     reportPage = homePage.goToRoutineReports();
     reportPage.navigateToManagementReports();
     reportPage.navigateToNCReports();

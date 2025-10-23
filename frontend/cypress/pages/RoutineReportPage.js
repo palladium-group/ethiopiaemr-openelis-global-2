@@ -53,7 +53,10 @@ class RoutineReportPage {
   }
 
   selectByUnit() {
-    cy.get("#menu_activity_report_bench").should("be.visible").click();
+    cy.get("#menu_activity_report_bench")
+      .scrollIntoView()
+      .should("be.visible")
+      .click();
   }
   selectReferredOutTestReport() {
     cy.get("#menu_reports_referred").should("be.visible").click();
