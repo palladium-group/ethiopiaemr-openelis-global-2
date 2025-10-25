@@ -61,7 +61,7 @@ public class OdooIntegrationService {
                     updateData.getAccessionNumber());
             return;
         }
-        
+
         try {
             Map<String, Object> invoiceData = createInvoiceData(updateData);
             Integer invoiceId = odooConnection.create("account.move", List.of(invoiceData));

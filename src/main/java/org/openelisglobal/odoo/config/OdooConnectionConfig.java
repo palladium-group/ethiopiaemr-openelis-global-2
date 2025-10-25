@@ -20,12 +20,12 @@ public class OdooConnectionConfig {
         // Check if Odoo integration is enabled in configuration
         boolean odooEnabled = ConfigurationProperties.getInstance()
                 .isPropertyValueEqual(Property.ENABLE_OPENELIS_TO_ODOO_CONNECTION, "true");
-        
+
         if (!odooEnabled) {
             log.info("Odoo integration is disabled in configuration. Using NoOpOdooClient.");
             return new NoOpOdooClient();
         }
-        
+
         try {
             log.info("Odoo integration is enabled. Attempting to connect to Odoo...");
             odooClient.init();
