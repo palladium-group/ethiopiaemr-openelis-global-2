@@ -52,8 +52,7 @@
         <property name="sourceOther" type="java.lang.String">
             <column name="SOURCE_OTHER" length="40" />
         </property>
-        <property name="quantity"
-            type="org.openelisglobal.hibernate.resources.usertype.LIMSStringNumberUserType">
+        <property name="quantity" type="double">
             <column name="QUANTITY" precision="22" scale="0" />
         </property>
 
@@ -71,5 +70,9 @@
             type="java.lang.Boolean" />
         <property name="rejectReasonId" column="reject_reason_id"
             type="org.openelisglobal.hibernate.resources.usertype.LIMSStringNumberUserType" />
+        <property name="voided" column="voided"
+            type="java.lang.Boolean" />
+        <property name="voidReason" column="void_reason"
+            type="java.lang.String" />
     </class>
 </hibernate-mapping>

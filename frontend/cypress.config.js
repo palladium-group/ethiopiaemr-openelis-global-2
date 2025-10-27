@@ -11,6 +11,17 @@ module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
       try {
+        // Check if --spec was passed via command line to allow specific file runs
+        const specFromCommandLine = config.specPattern;
+        const isCustomSpec =
+          specFromCommandLine &&
+          specFromCommandLine !== "**/*.cy.{js,jsx,ts,tsx}" &&
+          !Array.isArray(specFromCommandLine);
+
+        if (isCustomSpec) {
+          console.log("Using command line spec:", specFromCommandLine);
+          return config;
+        }
         const e2eFolder = path.join(__dirname, "cypress/e2e");
 
         // Define the first four prioritized tests

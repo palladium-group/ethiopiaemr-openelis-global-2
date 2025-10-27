@@ -151,8 +151,19 @@ public class SampleAddService {
                     item.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(SampleStatus.Entered));
                 }
                 item.setCollector(sampleItem.attributeValue("collector"));
-                item.setQuantity(sampleItem.attributeValue("quantity"));
-                item.setUnitOfMeasure(unitOfMeasureService.getUnitOfMeasureById(sampleItem.attributeValue("uom")));
+
+                String quantityStr = sampleItem.attributeValue("quantity");
+                if (quantityStr != null && !quantityStr.trim().isEmpty()) {
+                    item.setQuantity(Double.valueOf(quantityStr));
+                }
+
+                item.setExternalId(sample.getAccessionNumber() + "-" + sampleItemIdIndex);
+
+                String uomId = sampleItem.attributeValue("uom");
+                if (uomId != null && !uomId.trim().isEmpty()) {
+                    item.setUnitOfMeasure(unitOfMeasureService.getUnitOfMeasureById(uomId));
+                }
+
                 item.setRejected(rejected);
                 item.setRejectReasonId(rejectReasonId);
 

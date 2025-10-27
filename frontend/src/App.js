@@ -18,6 +18,7 @@ import "./index.scss";
 import RedirectOldUI from "./RedirectOldUI";
 import PatientManagement from "./components/patient/PatientManagement";
 import PatientHistory from "./components/patient/PatientHistory";
+import Aliquot from "./components/sample/Aliquot";
 import Workplan from "./components/workplan/Workplan";
 import AddOrder from "./components/addOrder/Index";
 import FindOrder from "./components/modifyOrder/Index";
@@ -379,6 +380,13 @@ export default function App() {
                   component={() => <PatientHistory />}
                   role={Roles.RECEPTION}
                 />
+                <SecureRoute
+                  path="/Aliquot"
+                  exact
+                  component={() => <Aliquot />}
+                  role={Roles.RECEPTION}
+                />
+
                 <SecureRoute
                   path="/PatientResults/:patientId"
                   exact

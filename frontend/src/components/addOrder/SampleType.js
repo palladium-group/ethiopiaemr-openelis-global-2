@@ -534,7 +534,6 @@ const SampleType = (props) => {
             labelText={intl.formatMessage({ id: "sample.uom.label" })}
             options={uomList}
             disabled={false}
-            defaultSelect=""
             onChange={(value) => handleUom(value)}
           />
         </div>
