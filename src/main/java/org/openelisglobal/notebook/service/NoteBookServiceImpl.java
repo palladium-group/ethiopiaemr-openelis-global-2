@@ -15,6 +15,7 @@ import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.common.dao.BaseDAO;
 import org.openelisglobal.common.service.AuditableBaseObjectServiceImpl;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.common.util.IdValuePair;
 import org.openelisglobal.dictionary.service.DictionaryService;
 import org.openelisglobal.notebook.bean.NoteBookDisplayBean;
 import org.openelisglobal.notebook.bean.NoteBookFullDisplayBean;
@@ -168,8 +169,9 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setObjective(noteBook.getObjective());
             fullDisplayBean.setProtocol(noteBook.getProtocol());
             fullDisplayBean.setProject(noteBook.getProject());
-            List<String> instruments = noteBook.getAnalysers().stream().map(analyzer -> analyzer.getName()).toList();
-            fullDisplayBean.setInstruments(instruments);
+            List<IdValuePair> analyzers = noteBook.getAnalysers().stream()
+                    .map(analyzer -> new IdValuePair(analyzer.getId(), analyzer.getName())).toList();
+            fullDisplayBean.setAnalyzers(analyzers);
             fullDisplayBean.setPages(noteBook.getPages());
             fullDisplayBean.setFiles(noteBook.getFiles());
             fullDisplayBean.setTechnicianName(noteBook.getTechnician().getDisplayName());
@@ -248,8 +250,8 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         noteBook.setPatient(patientService.getData(form.getPatientId().toString()));
 
         noteBook.getAnalysers().clear();
-        if (form.getAnalyserIds() != null) {
-            for (Integer analyserId : form.getAnalyserIds()) {
+        if (form.getAnalyzerIds() != null) {
+            for (Integer analyserId : form.getAnalyzerIds()) {
                 noteBook.getAnalysers().add(analyzerService.get(analyserId.toString()));
             }
         }

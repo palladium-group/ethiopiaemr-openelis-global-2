@@ -1,6 +1,7 @@
 package org.openelisglobal.notebook.bean;
 
 import java.util.List;
+import org.openelisglobal.common.util.IdValuePair;
 import org.openelisglobal.notebook.valueholder.NoteBookFile;
 import org.openelisglobal.notebook.valueholder.NoteBookPage;
 
@@ -8,8 +9,7 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
 
     private String protocol;
     private String objective;
-    private List<String> instruments;
-    private List<Integer> instrumentIds;
+    private List<IdValuePair> analyzers;
     private String project;
     private String content;
     private List<NoteBookPage> pages;
@@ -33,14 +33,6 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
 
     public void setObjective(String objective) {
         this.objective = objective;
-    }
-
-    public List<String> getInstruments() {
-        return instruments;
-    }
-
-    public void setInstruments(List<String> instruments) {
-        this.instruments = instruments;
     }
 
     public String getProject() {
@@ -107,12 +99,11 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
         this.patientId = patientId;
     }
 
-    public List<Integer> getInstrumentIds() {
-        return instrumentIds;
+    public List<IdValuePair> getAnalyzers() {
+        return analyzers;
     }
 
-    public void setInstrumentIds(List<Integer> instrumentIds) {
-        this.instrumentIds = instrumentIds;
+    public void setAnalyzers(List<IdValuePair> analyzers) {
+        this.analyzers = analyzers;
     }
-
 }

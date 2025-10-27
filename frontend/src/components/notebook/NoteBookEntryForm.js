@@ -9,6 +9,7 @@ import {
   SelectItem,
   MultiSelect,
   FileUploader,
+  FilterableMultiSelect,
   Grid,
   Column,
   InlineLoading,
@@ -20,7 +21,9 @@ import {
   FileUploaderDropContainer,
   FileUploaderItem,
   Loading,
+  Tag,
 } from "@carbon/react";
+import { Launch, Subtract, ArrowLeft, ArrowRight } from "@carbon/react/icons";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import { NotificationContext } from "../layout/Layout";
 import { AlertDialog, NotificationKinds } from "../common/CustomNotification";
@@ -38,6 +41,7 @@ import {
   toBase64,
 } from "../utils/Utils";
 import SearchPatientForm from "../patient/SearchPatientForm";
+import { fil } from "date-fns/locale";
 
 const NoteBookEntryForm = () => {
   let breadcrumbs = [
@@ -58,6 +62,7 @@ const NoteBookEntryForm = () => {
   const [noteBookData, setNoteBookData] = useState(NoteBookInitialData);
   const [noteBookForm, setNoteBookForm] = useState(NoteBookFormValues);
   const [sampleList, setSampleList] = useState([]);
+  const [analyzerList, setAnalyzerList] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
   const [addedSampleIds, setAddedSampleIds] = useState([]);
@@ -80,6 +85,10 @@ const NoteBookEntryForm = () => {
     );
     noteBookForm.pages = noteBookData.pages;
     noteBookForm.files = noteBookData.files;
+    noteBookForm.analyzerIds = noteBookData.analyzers.map((entry) =>
+      Number(entry.id),
+    );
+    noteBookForm.tags = noteBookData.tags;
     console.log(JSON.stringify(noteBookForm));
     var url =
       notebookid != 0
@@ -128,12 +137,15 @@ const NoteBookEntryForm = () => {
   };
 
   const [showPageModal, setShowPageModal] = useState(false);
+  const [showTagModal, setShowTagModal] = useState(false);
   const [newPage, setNewPage] = useState({
     title: "",
     content: "",
     instructions: "",
   });
+  const [newTag, setNewTag] = useState("");
   const [pageError, setPageError] = useState("");
+  const [tagError, setTagError] = useState("");
 
   // Open modal
   const openPageModal = () => {
@@ -142,13 +154,25 @@ const NoteBookEntryForm = () => {
     setShowPageModal(true);
   };
 
+  const openTagModal = () => {
+    setNewTag("");
+    setTagError("");
+    setShowTagModal(true);
+  };
+
   // Close modal
   const closePageModal = () => setShowPageModal(false);
+  const closeTagModal = () => setShowTagModal(false);
 
   // Handle modal input changes
   const handlePageChange = (e) => {
     const { name, value } = e.target;
     setNewPage((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTagChange = (e) => {
+    const { name, value } = e.target;
+    setNewTag(value);
   };
 
   // Add new page to noteBookData.pages
@@ -164,11 +188,30 @@ const NoteBookEntryForm = () => {
     setShowPageModal(false);
   };
 
+  const handleAddTag = () => {
+    if (!newTag.trim()) {
+      setTagError("Tag is required.");
+      return;
+    }
+    setNoteBookData((prev) => ({
+      ...prev,
+      tags: [...prev.tags, newTag],
+    }));
+    setShowTagModal(false);
+  };
+
   // Remove page by index
   const handleRemovePage = (index) => {
     setNoteBookData((prev) => ({
       ...prev,
       pages: prev.pages.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleRemoveTag = (index) => {
+    setNoteBookData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((_, i) => i !== index),
     }));
   };
 
@@ -222,11 +265,11 @@ const NoteBookEntryForm = () => {
     componentMounted.current = true;
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_STATUS", setStatuses);
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_EXPT_TYPE", setTypes);
-
+    getFromOpenElisServer("/rest/displayList/ANALYZER_LIST", setAnalyzerList);
     if (notebookid != 0) {
       setLoading(true);
       getFromOpenElisServer(
-        "/rest/notebook/view//" + notebookid,
+        "/rest/notebook/view/" + notebookid,
         loadInitialData,
       );
     }
@@ -657,7 +700,8 @@ const NoteBookEntryForm = () => {
                   onDelete={() => handleRemoveFile(index)}
                 />
               ))}
-
+            </Column>
+            <Column lg={16} md={8} sm={4}>
               {noteBookData.files.length > 0 && (
                 <Grid style={{ marginTop: "1rem" }}>
                   {noteBookData.files.map((file, index) => (
@@ -666,6 +710,22 @@ const NoteBookEntryForm = () => {
                         <p>
                           <strong>File Type:</strong> {file.fileType}
                         </p>
+                        <Button
+                          onClick={() => {
+                            var win = window.open();
+                            win.document.write(
+                              '<iframe src="' +
+                                "data:" +
+                                file.fileType +
+                                ";base64," +
+                                file.fileData +
+                                '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>',
+                            );
+                          }}
+                        >
+                          <Launch />{" "}
+                          <FormattedMessage id="pathology.label.view" />
+                        </Button>
                         <Button
                           kind="danger--tertiary"
                           size="sm"
@@ -681,7 +741,107 @@ const NoteBookEntryForm = () => {
             </Column>
           </Grid>
         </Column>
+        <Column lg={16} md={8} sm={4}>
+          <Grid fullWidth={true} className="gridBoundary">
+            <Column lg={8} md={8} sm={4}>
+              <h5> Instruments</h5>
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              <br></br>
+            </Column>
 
+            <Column lg={4} md={8} sm={4}>
+              <FilterableMultiSelect
+                id="instruments"
+                titleText={<FormattedMessage id="Instruments" />}
+                items={analyzerList}
+                itemToString={(item) => (item ? item.value : "")}
+                initialSelectedItems={noteBookData.analyzers}
+                onChange={(changes) => {
+                  setNoteBookData({
+                    ...noteBookData,
+                    analyzers: changes.selectedItems,
+                  });
+                }}
+                selectionFeedback="top-after-reopen"
+              />
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              {noteBookData.analyzers &&
+                noteBookData.analyzers.map((item, index) => (
+                  <Tag
+                    key={index}
+                    filter
+                    onClose={() => {
+                      var info = { ...noteBookData };
+                      info["analyzers"].splice(index, 1);
+                      setNoteBookData(info);
+                    }}
+                  >
+                    {item.value}
+                  </Tag>
+                ))}
+            </Column>
+          </Grid>
+        </Column>
+        <Column lg={16} md={8} sm={4}>
+          <Grid fullWidth={true} className="gridBoundary">
+            <Column lg={16} md={8} sm={4}>
+              <h5>
+                {" "}
+                <FormattedMessage id="Tags" />
+              </h5>
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              <br></br>
+            </Column>
+            <Column lg={8} md={8} sm={4}>
+              <Button onClick={openTagModal} kind="primary">
+                <FormattedMessage id="Add Tag" />
+              </Button>
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              <br></br>
+            </Column>
+            <Column lg={16} md={8} sm={4}>
+              {noteBookData.tags.map((tag, index) => (
+                <Tag
+                  key={index}
+                  filter
+                  onClose={() => {
+                    handleRemoveTag(index);
+                  }}
+                >
+                  {tag}
+                </Tag>
+              ))}
+            </Column>
+          </Grid>
+          <Modal
+            open={showTagModal}
+            modalHeading="Add New Tag"
+            primaryButtonText="Add Tag"
+            secondaryButtonText="Cancel"
+            onRequestClose={closeTagModal}
+            onRequestSubmit={handleAddTag}
+          >
+            {tagError && (
+              <InlineNotification
+                kind="error"
+                title="Error"
+                subtitle={tagError}
+              />
+            )}
+            <TextInput
+              id="tag"
+              name="tag"
+              labelText="Tag"
+              value={newTag}
+              onChange={handleTagChange}
+              required
+            />
+          </Modal>
+        </Column>
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
             <Button

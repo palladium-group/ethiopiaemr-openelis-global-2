@@ -11,7 +11,7 @@ export const NoteBookFormValues = {
   systemUserId: null,
   sampleIds: [],
   tags: [],
-  analyserIds: [],
+  analyzerIds: [],
   pages: [
     {
       title: "",
@@ -45,7 +45,7 @@ export const NoteBookInitialData = {
   systemUserId: null,
   technicianName: "",
   samples: [],
-  analyserIds: [],
+  analyzers: [],
   pages: [],
   files: [],
 };

@@ -20,7 +20,7 @@ public class NoteBookForm {
     private List<String> tags;
     private List<NoteBookPage> pages;
     private List<NoteBookFileForm> files;
-    private List<Integer> analyserIds;
+    private List<Integer> analyzerIds;
 
     public String getTitle() {
         return title;
@@ -102,14 +102,6 @@ public class NoteBookForm {
         this.files = files;
     }
 
-    public List<Integer> getAnalyserIds() {
-        return analyserIds;
-    }
-
-    public void setAnalyserIds(List<Integer> analyserIds) {
-        this.analyserIds = analyserIds;
-    }
-
     public Integer getPatientId() {
         return patientId;
     }
@@ -140,6 +132,14 @@ public class NoteBookForm {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public List<Integer> getAnalyzerIds() {
+        return analyzerIds;
+    }
+
+    public void setAnalyzerIds(List<Integer> analyzerIds) {
+        this.analyzerIds = analyzerIds;
     }
 
     public static class NoteBookFileForm extends NoteBookFile {

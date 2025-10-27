@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.GenericValidator;
+import org.openelisglobal.analyzer.service.AnalyzerService;
+import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.IdValuePair;
@@ -97,9 +99,9 @@ public class DisplayListService implements LocaleChangeListener {
         CYTOLOGY_SATISFACTORY_FOR_EVALUATION, CYTOLOGY_UN_SATISFACTORY_FOR_EVALUATION, CYTOLOGY_REPORT_TYPES,
         CYTOLOGY_DIAGNOSIS_RESULT_EPITHELIAL_CELL_SQUAMOUS, CYTOLOGY_DIAGNOSIS_RESULT_EPITHELIAL_CELL_GLANDULAR,
         CYTOLOGY_DIAGNOSIS_RESULT_NON_NEO_PLASTIC_CELLULAR, CYTOLOGY_DIAGNOSIS_RESULT_REACTIVE_CELLULAR,
-        NOTEBOOK_EXPT_TYPE, CYTOLOGY_DIAGNOSIS_RESULT_ORGANISMS, CYTOLOGY_DIAGNOSIS_RESULT_OTHER, TB_ORDER_REASONS,
-        TB_DIAGNOSTIC_REASONS, TB_FOLLOWUP_REASONS, TB_ANALYSIS_METHODS, TB_SAMPLE_ASPECTS, TB_FOLLOWUP_LINE1,
-        TB_FOLLOWUP_LINE2, ARV_ORG_LIST, ACTIVE_ORG_LIST, IHC_BREAST_CANCER_REPORT_INTENSITY,
+        NOTEBOOK_EXPT_TYPE, ANALYZER_LIST, CYTOLOGY_DIAGNOSIS_RESULT_ORGANISMS, CYTOLOGY_DIAGNOSIS_RESULT_OTHER,
+        TB_ORDER_REASONS, TB_DIAGNOSTIC_REASONS, TB_FOLLOWUP_REASONS, TB_ANALYSIS_METHODS, TB_SAMPLE_ASPECTS,
+        TB_FOLLOWUP_LINE1, TB_FOLLOWUP_LINE2, ARV_ORG_LIST, ACTIVE_ORG_LIST, IHC_BREAST_CANCER_REPORT_INTENSITY,
         IHC_BREAST_CANCER_REPORT_CERBB2_PATTERN, IHC_BREAST_CANCER_REPORT_MOLE_SUBTYPE;
     }
 
@@ -138,6 +140,8 @@ public class DisplayListService implements LocaleChangeListener {
     private ProgramService programService;
     @Autowired
     private LocaleResolver localeResolver;
+    @Autowired
+    private AnalyzerService analyzerService;
 
     @PostConstruct
     private void setupGlobalVariables() {
@@ -252,6 +256,7 @@ public class DisplayListService implements LocaleChangeListener {
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_REACTIVE_CELLULAR,
                 createDictionaryListForCategory("cytology_reactive_cellular_changes"));
         typeToListMap.put(ListType.NOTEBOOK_EXPT_TYPE, createDictionaryListForCategory("notebook_experiment_type"));
+        typeToListMap.put(ListType.ANALYZER_LIST, createAnalyzerList());
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_ORGANISMS,
                 createDictionaryListForCategory("cytology_diagnosis_organisms"));
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_OTHER,
@@ -522,6 +527,7 @@ public class DisplayListService implements LocaleChangeListener {
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_REACTIVE_CELLULAR,
                 createDictionaryListForCategory("cytology_reactive_cellular_changes"));
         typeToListMap.put(ListType.NOTEBOOK_EXPT_TYPE, createDictionaryListForCategory("notebook_experiment_type"));
+        typeToListMap.put(ListType.ANALYZER_LIST, createAnalyzerList());
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_ORGANISMS,
                 createDictionaryListForCategory("cytology_diagnosis_organisms"));
         typeToListMap.put(ListType.CYTOLOGY_DIAGNOSIS_RESULT_OTHER,
@@ -1127,5 +1133,11 @@ public class DisplayListService implements LocaleChangeListener {
         priorities.add(
                 new IdValuePair(OrderPriority.FUTURE_STAT.name(), MessageUtil.getMessage("label.priority.futureStat")));
         return priorities;
+    }
+
+    private List<IdValuePair> createAnalyzerList() {
+        List<Analyzer> analyzerList = analyzerService.getAll();
+        return analyzerList.stream().map(analyzer -> new IdValuePair(analyzer.getId(), analyzer.getName()))
+                .collect(Collectors.toList());
     }
 }
