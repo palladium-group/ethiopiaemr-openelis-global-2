@@ -233,7 +233,7 @@ class HomePage {
 
   // Reports related functions
   goToRoutineReports() {
-    cy.wait(1000);
+    cy.wait(3000);
     this.openNavigationMenu();
     cy.get(this.selectors.reportsMenu).click();
     cy.get(this.selectors.reportsRoutine).should("be.visible").click();
@@ -241,7 +241,7 @@ class HomePage {
   }
 
   goToStudyReports() {
-    cy.wait(1000);
+    cy.wait(3000);
     this.openNavigationMenu();
     cy.get(this.selectors.reportsMenu).click();
     cy.get(this.selectors.reportsStudy).should("be.visible").click();
@@ -249,7 +249,7 @@ class HomePage {
   }
 
   goToReports() {
-    cy.wait(1000);
+    cy.wait(3000);
     this.openNavigationMenu();
     cy.get(this.selectors.reportsMenu).click();
   }
