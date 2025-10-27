@@ -660,7 +660,7 @@ const NoteBookEntryForm = () => {
             </Column>
             {mode === MODES.CREATE && (
               <>
-                <Column lg={8} md={8} sm={4}>
+                <Column lg={16} md={8} sm={4}>
                   <Tabs>
                     <TabList
                       style={{ width: "100%" }}
@@ -694,13 +694,20 @@ const NoteBookEntryForm = () => {
                       <TextInput
                         id="aceesion"
                         name="acession"
-                        labelText="Search By Accesion"
+                        //labelText="Search By Accesion"
                         value={accession}
+                        placeholder="Search By Accession"
                         onChange={handleAccesionChange}
                       />
                     </Column>
                     <Column lg={8} md={8} sm={4}>
-                      <Button onClick={handleAccesionSearch}>Search</Button>
+                      <Button
+                        size="md"
+                        onClick={handleAccesionSearch}
+                        labelText="Search"
+                      >
+                        Search
+                      </Button>
                     </Column>
                   </>
                 )}
