@@ -532,14 +532,12 @@ export function SampleItemsDisplay(props) {
         handlePost,
       );
     } catch (error) {
-
       addNotification({
         title: intl.formatMessage({ id: "notification.title" }),
         message: intl.formatMessage({ id: "aliquot.save.error" }),
         kind: NotificationKinds.error,
       });
     } finally {
-
       setIsSubmitting(false);
       setNotificationVisible(true);
     }
