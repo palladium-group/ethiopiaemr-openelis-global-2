@@ -745,8 +745,9 @@ const NoteBookEntryForm = () => {
                         {sample.results.length}
                       </p>
                       <Button
-                        kind="secondary"
+                        kind="primary"
                         disabled={addedSampleIds.includes(sample.id)}
+                        size="sm"
                         onClick={() => handleAddSample(sample)}
                       >
                         {addedSampleIds.includes(sample.id) ? "Added" : "Add"}
