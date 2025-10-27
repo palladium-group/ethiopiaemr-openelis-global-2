@@ -5,6 +5,7 @@ import java.util.List;
 public class SampleDisplayBean {
 
     private Integer id;
+    private Integer patientId;
     private String sampleType;
     private String collectionDate;
     private List<ResultDisplayBean> results;
@@ -39,6 +40,14 @@ public class SampleDisplayBean {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Integer patientId) {
+        this.patientId = patientId;
     }
 
     public static class ResultDisplayBean {

@@ -74,6 +74,8 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
     @Autowired
     private DictionaryService dictionaryService;
 
+    private Patient patient;
+
     public NoteBookServiceImpl() {
         super(NoteBook.class);
     }
@@ -154,13 +156,16 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             Hibernate.initialize(noteBook.getPages());
             Hibernate.initialize(noteBook.getFiles());
             Hibernate.initialize(noteBook.getTags());
-            Patient patient = patientService.getData(noteBook.getPatient().getId());
+            patient = patientService.getData(noteBook.getPatient().getId());
             fullDisplayBean.setId(noteBook.getId());
             fullDisplayBean.setTitle(noteBook.getTitle());
             fullDisplayBean.setType((Integer.valueOf(noteBook.getType())));
-            fullDisplayBean.setLastName(patientService.getLastName(patient));
-            fullDisplayBean.setFirstName(patientService.getFirstName(patient));
-            fullDisplayBean.setGender(patientService.getGender(patient));
+            if (patient != null) {
+                fullDisplayBean.setLastName(patientService.getLastName(patient));
+                fullDisplayBean.setFirstName(patientService.getFirstName(patient));
+                fullDisplayBean.setGender(patientService.getGender(patient));
+                fullDisplayBean.setPatientId(Integer.valueOf(patient.getId()));
+            }
             fullDisplayBean.setTags(noteBook.getTags());
             fullDisplayBean.setDateCreated(DateUtil.formatDateAsText(noteBook.getDateCreated()));
             fullDisplayBean.setStatus(noteBook.getStatus());
@@ -175,7 +180,6 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setPages(noteBook.getPages());
             fullDisplayBean.setFiles(noteBook.getFiles());
             fullDisplayBean.setTechnicianName(noteBook.getTechnician().getDisplayName());
-            fullDisplayBean.setPatientId(Integer.valueOf(patient.getId()));
             fullDisplayBean.setTechnicianId(Integer.valueOf(noteBook.getTechnician().getId()));
 
             List<SampleDisplayBean> sampleDisplayBeans = new ArrayList<>();
@@ -195,6 +199,9 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         sampleDisplayBean.setId(Integer.valueOf(sampleItem.getId()));
         sampleDisplayBean
                 .setSampleType(typeOfSampleService.getNameForTypeOfSampleId(sampleItem.getTypeOfSample().getId()));
+        if (patient != null) {
+            sampleDisplayBean.setPatientId(Integer.valueOf(patient.getId()));
+        }
         sampleDisplayBean.setCollectionDate(DateUtil.convertTimestampToStringDate(sampleItem.getLastupdated()));
 
         List<Analysis> analyses = analysisService.getAnalysesBySampleItem(sampleItem);
@@ -243,7 +250,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             noteBook.setTechnician(systemUserService.get(form.getSystemUserId().toString()));
         } else {
             noteBook.setDateCreated(noteBook.getDateCreated());
-            noteBook.setStatus(noteBook.getStatus());
+            noteBook.setStatus(form.getStatus());
             noteBook.setTechnician(systemUserService.get(form.getTechnicianId().toString()));
         }
 
@@ -306,6 +313,14 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
     @Transactional
     public List<SampleDisplayBean> searchSampleItems(String patientId, String accession) {
 
+        if (StringUtils.isNotBlank(patientId)) {
+            patient = patientService.get(patientId);
+        } else if (StringUtils.isBlank(accession)) {
+            Sample sample = sampleService.getSampleByAccessionNumber(accession);
+            if (sample != null) {
+                patient = sampleService.getPatient(sample);
+            }
+        }
         List<Sample> samples = StringUtils.isNotBlank(accession)
                 ? Optional.ofNullable(sampleService.getSampleByAccessionNumber(accession)).map(List::of)
                         .orElseGet(List::of)

@@ -22,6 +22,9 @@ import {
   FileUploaderItem,
   Loading,
   Tag,
+  Tabs,
+  TabList,
+  Tab,
 } from "@carbon/react";
 import { Launch, Subtract, ArrowLeft, ArrowRight } from "@carbon/react/icons";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
@@ -42,14 +45,26 @@ import {
 } from "../utils/Utils";
 import SearchPatientForm from "../patient/SearchPatientForm";
 import { fil } from "date-fns/locale";
+import { Add } from "@carbon/icons-react";
 
 const NoteBookEntryForm = () => {
   let breadcrumbs = [
     { label: "home.label", link: "/" },
     { label: "notebook.label.dashboard", link: "/NoteBookDashboard" },
   ];
+
+  const MODES = Object.freeze({
+    CREATE: "CREATE",
+    EDIT: "EDIT",
+  });
+
+  const TABS = Object.freeze({
+    ACCESSION: "ACCESSION",
+    PATIENT: "PATIENT",
+  });
   const intl = useIntl();
   const componentMounted = useRef(false);
+  const [mode, setMode] = useState(MODES.CREATE);
   const { notebookid } = useParams();
 
   const { notificationVisible, setNotificationVisible, addNotification } =
@@ -64,21 +79,24 @@ const NoteBookEntryForm = () => {
   const [sampleList, setSampleList] = useState([]);
   const [analyzerList, setAnalyzerList] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-
   const [addedSampleIds, setAddedSampleIds] = useState([]);
+  const [activeTab, setActiveTab] = useState(TABS.ACCESSION);
+  const [accession, setAccesiion] = useState("");
 
   const handleSubmit = () => {
     if (isSubmitting) {
       return;
     }
     setIsSubmitting(true);
+    noteBookForm.id = noteBookData.id;
+    noteBookForm.patientId = noteBookData.patientId;
     noteBookForm.title = noteBookData.title;
     noteBookForm.type = noteBookData.type;
     noteBookForm.project = noteBookData.project;
     noteBookForm.objective = noteBookData.objective;
     noteBookForm.protocol = noteBookData.protocol;
     noteBookForm.content = noteBookData.content;
-    noteBookForm.patientId = noteBookData.patientId;
+    noteBookForm.status = getNextStatus(noteBookData.status).id;
     noteBookForm.technicianId = noteBookData.technicianId;
     noteBookForm.sampleIds = noteBookData.samples.map((entry) =>
       Number(entry.id),
@@ -91,7 +109,7 @@ const NoteBookEntryForm = () => {
     noteBookForm.tags = noteBookData.tags;
     console.log(JSON.stringify(noteBookForm));
     var url =
-      notebookid != 0
+      mode === MODES.EDIT
         ? "/rest/notebook/update/" + notebookid
         : "/rest/notebook/create";
     postToOpenElisServer(url, JSON.stringify(noteBookForm), handleSubmited);
@@ -225,6 +243,7 @@ const NoteBookEntryForm = () => {
         return {
           base64File: base64,
           fileType: file.type,
+          fileName: file.name,
         };
       }),
     );
@@ -261,29 +280,84 @@ const NoteBookEntryForm = () => {
     );
   };
 
+  const handleAccesionChange = (e) => {
+    const { name, value } = e.target;
+    setAccesiion(value);
+  };
+
+  const handleAccesionSearch = () => {
+    getFromOpenElisServer(
+      "/rest/notebook/samples?accession=" + accession,
+      setSampleList,
+    );
+  };
+
   useEffect(() => {
     componentMounted.current = true;
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_STATUS", setStatuses);
     getFromOpenElisServer("/rest/displayList/NOTEBOOK_EXPT_TYPE", setTypes);
     getFromOpenElisServer("/rest/displayList/ANALYZER_LIST", setAnalyzerList);
-    if (notebookid != 0) {
+    return () => {
+      componentMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!notebookid || notebookid === "0") {
+      setMode(MODES.CREATE);
+    } else {
+      setMode(MODES.EDIT);
       setLoading(true);
       getFromOpenElisServer(
         "/rest/notebook/view/" + notebookid,
         loadInitialData,
       );
     }
-    return () => {
-      componentMounted.current = false;
-    };
-  }, []);
+  }, [notebookid]);
+
+  useEffect(() => {
+    if (mode === MODES.CREATE && sampleList && sampleList.length > 0) {
+      setNoteBookData({
+        ...noteBookData,
+        patientId: sampleList[0].patientId,
+      });
+    }
+  }, [sampleList]);
 
   const loadInitialData = (data) => {
     if (componentMounted.current) {
       setNoteBookData(data);
       setLoading(false);
+      getFromOpenElisServer(
+        "/rest/notebook/samples?patientId=" + data.patientId,
+        setSampleList,
+      );
     }
   };
+
+  const statusMap = [
+    { id: "DRAFT", value: "Save Draft" },
+    { id: "SUBMITTED", value: "Submit for Review" },
+    { id: "FINALIZED", value: "Finalize Entry" },
+    { id: "LOCKED", value: "Lock Entry" },
+    { id: "ARCHIVED", value: "Archived" },
+  ];
+
+  const statusFlow = {
+    NEW: "DRAFT",
+    DRAFT: "SUBMITTED",
+    SUBMITTED: "FINALIZED",
+    FINALIZED: "LOCKED",
+    LOCKED: "ARCHIVED",
+    ARCHIVED: "ARCHIVED",
+  };
+
+  function getNextStatus(currentStatus) {
+    const nextStatus = currentStatus
+      ? statusFlow[currentStatus]
+      : statusFlow["NEW"];
+    return statusMap.find((s) => s.id === nextStatus);
+  }
 
   return (
     <>
@@ -484,15 +558,15 @@ const NoteBookEntryForm = () => {
         <Column lg={16} md={8} sm={4}>
           <br></br>
         </Column>
-        <Column lg={8} md={8} sm={4}>
+        <Column lg={2} md={2} sm={4}>
           <h5>
             {" "}
             <FormattedMessage id="notebook.label.pages" />
           </h5>
         </Column>
-        <Column lg={8} md={8} sm={4}>
+        <Column lg={2} md={2} sm={4}>
           <Button onClick={openPageModal} kind="primary">
-            <FormattedMessage id="notebook.label.addpage" />
+            <Add /> <FormattedMessage id="notebook.label.addpage" />
           </Button>
         </Column>
         <Column lg={16} md={8} sm={4}>
@@ -500,6 +574,15 @@ const NoteBookEntryForm = () => {
         </Column>
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
+            {noteBookData?.pages?.length === 0 && (
+              <Column lg={16} md={8} sm={4}>
+                <InlineNotification
+                  kind="info"
+                  title="No Pages Added"
+                  subtitle="Click to add Pages"
+                />
+              </Column>
+            )}
             {noteBookData.pages.map((page, index) => (
               <Column key={index} lg={16} md={8} sm={4}>
                 <Grid fullWidth={true} className="gridBoundary">
@@ -575,11 +658,55 @@ const NoteBookEntryForm = () => {
             <Column lg={16} md={8} sm={4}>
               <br></br>
             </Column>
-            <Column lg={16} md={8} sm={4}>
-              <SearchPatientForm
-                getSelectedPatient={getSelectedPatient}
-              ></SearchPatientForm>
-            </Column>
+            {mode === MODES.CREATE && (
+              <>
+                <Column lg={8} md={8} sm={4}>
+                  <Tabs>
+                    <TabList
+                      style={{ width: "100%" }}
+                      aria-label="List of tabs"
+                      contained
+                    >
+                      <Tab onClick={() => setActiveTab(TABS.ACCESSION)}>
+                        Search By Accesion
+                      </Tab>
+                      <Tab onClick={() => setActiveTab(TABS.PATIENT)}>
+                        Search By Patient
+                      </Tab>
+                    </TabList>
+                  </Tabs>
+                </Column>
+                <Column lg={16} md={8} sm={4}>
+                  <br></br>
+                </Column>
+
+                {activeTab === TABS.PATIENT && (
+                  <Column lg={16} md={8} sm={4}>
+                    <SearchPatientForm
+                      getSelectedPatient={getSelectedPatient}
+                    ></SearchPatientForm>
+                  </Column>
+                )}
+
+                {activeTab === TABS.ACCESSION && (
+                  <>
+                    <Column lg={8} md={8} sm={4}>
+                      <TextInput
+                        id="aceesion"
+                        name="acession"
+                        labelText="Search By Accesion"
+                        value={accession}
+                        onChange={handleAccesionChange}
+                      />
+                    </Column>
+                    <Column lg={8} md={8} sm={4}>
+                      <Button onClick={handleAccesionSearch}>Search</Button>
+                    </Column>
+                  </>
+                )}
+              </>
+            )}
+
             <Column lg={16} md={8} sm={4}>
               <br></br>
             </Column>
@@ -589,26 +716,19 @@ const NoteBookEntryForm = () => {
 
             <Column lg={16} md={8} sm={4}>
               <Grid className="gridBoundary">
-                {sampleList.length === 0 && (
+                {sampleList?.length === 0 && (
                   <Column lg={16} md={8} sm={4}>
                     <InlineNotification
                       kind="info"
-                      title="No samples found"
-                      subtitle="No samples were returned from the backend"
+                      title="No samples Avalibale"
+                      subtitle="Search Samples By Patient or Accesiion Number"
                     />
                   </Column>
                 )}
-                {sampleList.map((sample) => (
+                {sampleList?.map((sample) => (
                   <Column key={sample.id} lg={16} md={8} sm={12}>
                     <Tile style={{ marginBottom: "1rem" }}>
-                      <h4
-                        style={{
-                          fontWeight: "bold",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {sample.sampleType}
-                      </h4>
+                      <h4>{sample.sampleType}</h4>
                       <p>
                         <strong>Date Collected:</strong>{" "}
                         {sample.collectionDate || "N/A"}
@@ -643,14 +763,7 @@ const NoteBookEntryForm = () => {
                         sm={4}
                       >
                         <Tile style={{ marginBottom: "1rem" }}>
-                          <h4
-                            style={{
-                              fontWeight: "bold",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {sample.sampleType}
-                          </h4>
+                          <h4>{sample.sampleType}</h4>
                           <p>
                             <strong>Date Collected:</strong>{" "}
                             {sample.collectionDate || "N/A"}
@@ -696,7 +809,7 @@ const NoteBookEntryForm = () => {
                 <FileUploaderItem
                   key={index}
                   name={fileObj.file.name}
-                  status={fileObj.status} // "complete" ensures no infinite loader
+                  status={fileObj.status}
                   onDelete={() => handleRemoveFile(index)}
                 />
               ))}
@@ -707,10 +820,10 @@ const NoteBookEntryForm = () => {
                   {noteBookData.files.map((file, index) => (
                     <Column key={index} lg={8} md={8} sm={12}>
                       <Tile style={{ marginBottom: "1rem" }}>
-                        <p>
-                          <strong>File Type:</strong> {file.fileType}
-                        </p>
+                        <p>{file.fileName}</p>
+
                         <Button
+                          size="sm"
                           onClick={() => {
                             var win = window.open();
                             win.document.write(
@@ -849,7 +962,7 @@ const NoteBookEntryForm = () => {
               disabled={isSubmitting}
               onClick={() => handleSubmit()}
             >
-              Submit
+              {getNextStatus(noteBookData.status).value}
             </Button>
           </Grid>
         </Column>

@@ -2,6 +2,7 @@ package org.openelisglobal.notebook.form;
 
 import java.util.Base64;
 import java.util.List;
+import org.openelisglobal.notebook.valueholder.NoteBook.NoteBookStatus;
 import org.openelisglobal.notebook.valueholder.NoteBookFile;
 import org.openelisglobal.notebook.valueholder.NoteBookPage;
 
@@ -16,6 +17,7 @@ public class NoteBookForm {
     private Integer technicianId;
     private Integer patientId;
     private Integer systemUserId;
+    private NoteBookStatus status;
     private List<Integer> sampleIds;
     private List<String> tags;
     private List<NoteBookPage> pages;
@@ -140,6 +142,14 @@ public class NoteBookForm {
 
     public void setAnalyzerIds(List<Integer> analyzerIds) {
         this.analyzerIds = analyzerIds;
+    }
+
+    public NoteBookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NoteBookStatus status) {
+        this.status = status;
     }
 
     public static class NoteBookFileForm extends NoteBookFile {

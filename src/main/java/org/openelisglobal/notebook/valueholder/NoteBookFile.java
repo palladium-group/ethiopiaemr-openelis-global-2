@@ -31,6 +31,9 @@ public class NoteBookFile extends BaseObject<Integer> {
     @Column(name = "file_type")
     private String fileType;
 
+    @Column(name = "file_name")
+    private String fileName;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notebook_id", nullable = false)
     @JsonIgnore
@@ -67,6 +70,14 @@ public class NoteBookFile extends BaseObject<Integer> {
 
     public void setNotebook(NoteBook notebook) {
         this.notebook = notebook;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
 }

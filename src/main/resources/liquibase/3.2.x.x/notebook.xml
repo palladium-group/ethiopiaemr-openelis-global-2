@@ -83,6 +83,7 @@
             </column>
             <column name="file_data" type="bytea"/>
             <column name="file_type" type="VARCHAR(255)"/>
+            <column name="file_name" type="VARCHAR(255)"/>
              <column name="last_updated" type="datetime" valueComputed="${now}" />
             <column name="notebook_id" type="INTEGER">
                 <constraints nullable="false" foreignKeyName="fk_file_notebook"
