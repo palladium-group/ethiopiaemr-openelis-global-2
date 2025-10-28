@@ -46,6 +46,7 @@ import {
 import SearchPatientForm from "../patient/SearchPatientForm";
 import { fil } from "date-fns/locale";
 import { Add } from "@carbon/icons-react";
+import PatientHeader from "../common/PatientHeader";
 
 const NoteBookEntryForm = () => {
   let breadcrumbs = [
@@ -82,6 +83,7 @@ const NoteBookEntryForm = () => {
   const [addedSampleIds, setAddedSampleIds] = useState([]);
   const [activeTab, setActiveTab] = useState(TABS.ACCESSION);
   const [accession, setAccesiion] = useState("");
+  const [initialMount, setInitialMount] = useState(false);
 
   const handleSubmit = () => {
     if (isSubmitting) {
@@ -326,12 +328,16 @@ const NoteBookEntryForm = () => {
 
   const loadInitialData = (data) => {
     if (componentMounted.current) {
-      setNoteBookData(data);
-      setLoading(false);
-      getFromOpenElisServer(
-        "/rest/notebook/samples?patientId=" + data.patientId,
-        setSampleList,
-      );
+      if (data && data.id) {
+        setNoteBookData(data);
+        setLoading(false);
+        getFromOpenElisServer(
+          "/rest/notebook/samples?patientId=" + data.patientId,
+          setSampleList,
+        );
+        setAddedSampleIds(data.samples.map((entry) => entry.id));
+        setInitialMount(true);
+      }
     }
   };
 
@@ -340,7 +346,7 @@ const NoteBookEntryForm = () => {
     { id: "SUBMITTED", value: "Submit for Review" },
     { id: "FINALIZED", value: "Finalize Entry" },
     { id: "LOCKED", value: "Lock Entry" },
-    { id: "ARCHIVED", value: "Archived" },
+    { id: "ARCHIVED", value: "Archive Entry" },
   ];
 
   const statusFlow = {
@@ -375,6 +381,27 @@ const NoteBookEntryForm = () => {
       </Grid>
       {notificationVisible === true ? <AlertDialog /> : ""}
       {loading && <Loading></Loading>}
+      {mode === MODES.EDIT && (
+        <Grid fullWidth={true}>
+          <Column lg={16} md={8} sm={4}>
+            <Section>
+              <Section>
+                <PatientHeader
+                  id={noteBookData.patientId}
+                  lastName={noteBookData.lastName}
+                  firstName={noteBookData.firstName}
+                  gender={noteBookData.gender}
+                  orderDate={noteBookData.dateCreated}
+                  className="patient-header2"
+                  isOrderPage={true}
+                >
+                  {" "}
+                </PatientHeader>
+              </Section>
+            </Section>
+          </Column>
+        </Grid>
+      )}
       <Grid fullWidth={true} className="orderLegendBody">
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
@@ -565,7 +592,7 @@ const NoteBookEntryForm = () => {
           </h5>
         </Column>
         <Column lg={2} md={2} sm={4}>
-          <Button onClick={openPageModal} kind="primary">
+          <Button onClick={openPageModal} size="sm" kind="primary">
             <Add /> <FormattedMessage id="notebook.label.addpage" />
           </Button>
         </Column>
@@ -587,13 +614,21 @@ const NoteBookEntryForm = () => {
               <Column key={index} lg={16} md={8} sm={4}>
                 <Grid fullWidth={true} className="gridBoundary">
                   <Column lg={16} md={8} sm={4}>
-                    <h4>{page.title}</h4>
-                    <p>
-                      <strong>Instructions:</strong> {page.instructions}
-                    </p>
-                    <p>
-                      <strong>Content:</strong> {page.content}
-                    </p>
+                    <h5>{page.title}</h5>
+                  </Column>
+                  <Column lg={2} md={8} sm={4}>
+                    <h6>Instructions:</h6>
+                  </Column>
+                  <Column lg={14} md={8} sm={4}>
+                    {page.instructions}
+                  </Column>
+                  <Column lg={2} md={8} sm={4}>
+                    <h6>Content:</h6>
+                  </Column>
+                  <Column lg={14} md={8} sm={4}>
+                    {page.content}
+                  </Column>
+                  <Column lg={16} md={8} sm={4}>
                     <Button
                       kind="danger--tertiary"
                       size="sm"
@@ -711,12 +746,11 @@ const NoteBookEntryForm = () => {
                     </Column>
                   </>
                 )}
+                <Column lg={16} md={8} sm={4}>
+                  <br></br>
+                </Column>
               </>
             )}
-
-            <Column lg={16} md={8} sm={4}>
-              <br></br>
-            </Column>
             <Column lg={16} md={8} sm={4}>
               <h5>Available Samples</h5>
             </Column>
@@ -728,40 +762,63 @@ const NoteBookEntryForm = () => {
                     <InlineNotification
                       kind="info"
                       title="No samples Avalibale"
-                      subtitle="Search Samples By Patient or Accesiion Number"
+                      subtitle="Search Samples By Patient or Accession Number"
                     />
                   </Column>
                 )}
                 {sampleList?.map((sample) => (
                   <Column key={sample.id} lg={16} md={8} sm={12}>
-                    <Tile style={{ marginBottom: "1rem" }}>
-                      <h4>{sample.sampleType}</h4>
-                      <p>
-                        <strong>Date Collected:</strong>{" "}
+                    <Grid fullWidth={true} className="gridBoundary">
+                      <Column lg={16} md={8} sm={4}>
+                        <h5>{sample.sampleType}</h5>
+                      </Column>
+                      <Column lg={2} md={8} sm={4}>
+                        <h6>Date Collected:</h6>
+                      </Column>
+                      <Column lg={14} md={8} sm={4}>
                         {sample.collectionDate || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Results Recorded:</strong>{" "}
+                      </Column>
+
+                      <Column lg={2} md={8} sm={4}>
+                        <h6>Results Recorded:</h6>
+                      </Column>
+                      <Column lg={14} md={8} sm={4}>
                         {sample.results.length}
-                      </p>
-                      <Button
-                        kind="primary"
-                        disabled={addedSampleIds.includes(sample.id)}
-                        size="sm"
-                        onClick={() => handleAddSample(sample)}
-                      >
-                        {addedSampleIds.includes(sample.id) ? "Added" : "Add"}
-                      </Button>
-                    </Tile>
+                      </Column>
+                      <Column lg={16} md={8} sm={4}>
+                        <Button
+                          kind="primary"
+                          disabled={addedSampleIds.includes(sample.id)}
+                          size="sm"
+                          onClick={() => handleAddSample(sample)}
+                        >
+                          <Add /> Add
+                        </Button>
+                      </Column>
+                    </Grid>
                   </Column>
                 ))}
               </Grid>
             </Column>
 
             <Column lg={16} md={8} sm={4}>
-              {noteBookData.samples.length > 0 && (
+              <h5>Selected Samples</h5>
+            </Column>
+
+            <Column lg={16} md={8} sm={4}>
+              {noteBookData?.samples?.length === 0 && (
+                <Grid className="gridBoundary">
+                  <Column lg={16} md={8} sm={4}>
+                    <InlineNotification
+                      kind="info"
+                      title="No samples Selected"
+                      subtitle="Click to add samples"
+                    />
+                  </Column>
+                </Grid>
+              )}
+              {noteBookData?.samples?.length > 0 && (
                 <>
-                  <h5>Selected Samples</h5>
                   <Grid className="gridBoundary">
                     {noteBookData.samples.map((sample) => (
                       <Column
@@ -770,24 +827,33 @@ const NoteBookEntryForm = () => {
                         md={8}
                         sm={4}
                       >
-                        <Tile style={{ marginBottom: "1rem" }}>
-                          <h4>{sample.sampleType}</h4>
-                          <p>
-                            <strong>Date Collected:</strong>{" "}
-                            {sample.collectionDate || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Results Recorded:</strong>{" "}
+                        <Grid fullWidth={true} className="gridBoundary">
+                          <Column lg={16} md={8} sm={4}>
+                            <h5>{sample.sampleType}</h5>
+                          </Column>
+                          <Column lg={2} md={8} sm={4}>
+                            <h6>Date Collected:</h6>
+                          </Column>
+                          <Column lg={14} md={8} sm={4}>
+                            {sample.collectionDate}
+                          </Column>
+
+                          <Column lg={2} md={8} sm={4}>
+                            <h6>Results Recorded:</h6>
+                          </Column>
+                          <Column lg={14} md={8} sm={4}>
                             {sample.results.length}
-                          </p>
-                          <Button
-                            kind="danger--tertiary"
-                            size="sm"
-                            onClick={() => handleRemoveSample(sample.id)}
-                          >
-                            Remove
-                          </Button>
-                        </Tile>
+                          </Column>
+                          <Column lg={16} md={8} sm={4}>
+                            <Button
+                              kind="danger--tertiary"
+                              size="sm"
+                              onClick={() => handleRemoveSample(sample.id)}
+                            >
+                              Remove
+                            </Button>
+                          </Column>
+                        </Grid>
                       </Column>
                     ))}
                   </Grid>
@@ -807,7 +873,7 @@ const NoteBookEntryForm = () => {
             </Column>
             <Column lg={16} md={8} sm={4}>
               <FileUploaderDropContainer
-                labelText="Drag and drop files here or click to upload"
+                labelText="click to upload files"
                 multiple
                 onAddFiles={handleAddFiles}
                 accept={[".pdf", ".png", ".jpg", ".txt"]}
@@ -872,20 +938,22 @@ const NoteBookEntryForm = () => {
             </Column>
 
             <Column lg={4} md={8} sm={4}>
-              <FilterableMultiSelect
-                id="instruments"
-                titleText={<FormattedMessage id="Instruments" />}
-                items={analyzerList}
-                itemToString={(item) => (item ? item.value : "")}
-                initialSelectedItems={noteBookData.analyzers}
-                onChange={(changes) => {
-                  setNoteBookData({
-                    ...noteBookData,
-                    analyzers: changes.selectedItems,
-                  });
-                }}
-                selectionFeedback="top-after-reopen"
-              />
+              {(initialMount || mode === MODES.CREATE) && (
+                <FilterableMultiSelect
+                  id="instruments"
+                  titleText={<FormattedMessage id="Instruments" />}
+                  items={analyzerList}
+                  itemToString={(item) => (item ? item.value : "")}
+                  initialSelectedItems={noteBookData.analyzers}
+                  onChange={(changes) => {
+                    setNoteBookData({
+                      ...noteBookData,
+                      analyzers: changes.selectedItems,
+                    });
+                  }}
+                  selectionFeedback="top-after-reopen"
+                />
+              )}
             </Column>
             <Column lg={16} md={8} sm={4}>
               {noteBookData.analyzers &&
@@ -907,23 +975,22 @@ const NoteBookEntryForm = () => {
         </Column>
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
-            <Column lg={16} md={8} sm={4}>
+            <Column lg={1} md={8} sm={4}>
               <h5>
                 {" "}
                 <FormattedMessage id="Tags" />
               </h5>
             </Column>
-            <Column lg={16} md={8} sm={4}>
-              <br></br>
-            </Column>
             <Column lg={8} md={8} sm={4}>
-              <Button onClick={openTagModal} kind="primary">
+              <Button onClick={openTagModal} kind="primary" size="sm">
+                <Add />
                 <FormattedMessage id="Add Tag" />
               </Button>
             </Column>
             <Column lg={16} md={8} sm={4}>
               <br></br>
             </Column>
+
             <Column lg={16} md={8} sm={4}>
               {noteBookData.tags.map((tag, index) => (
                 <Tag
@@ -967,7 +1034,11 @@ const NoteBookEntryForm = () => {
           <Grid fullWidth={true} className="gridBoundary">
             <Button
               kind="danger--tertiary"
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting ||
+                noteBookData.status === "ARCHIVED" ||
+                !noteBookData.patientId
+              }
               onClick={() => handleSubmit()}
             >
               {getNextStatus(noteBookData.status).value}
@@ -975,7 +1046,6 @@ const NoteBookEntryForm = () => {
           </Grid>
         </Column>
       </Grid>
-      {/* {JSON.stringify(noteBookData)} */}
     </>
   );
 };
