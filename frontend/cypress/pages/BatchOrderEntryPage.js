@@ -60,8 +60,13 @@ class BatchOrderEntry {
   }
 
   enterSiteName(siteName) {
-    cy.get("#siteName").should("be.visible").type(siteName);
-    cy.contains(".suggestion-active", siteName).click();
+    cy.get("#siteName").should("be.visible").clear().type(siteName, {
+      delay: 0,
+    });
+    cy.get('[data-cy="auto-suggestion"]', { timeout: 15000 })
+      .should("exist")
+      .first()
+      .click({ force: true });
   }
 
   typeLabNumber(labNumber) {
@@ -118,15 +123,15 @@ class BatchOrderEntry {
   }
 
   clickNewPatientButton() {
-    //the #newPatient is not responding
-    cy.contains("button", "New Patient").should("be.visible");
-    cy.contains("button", "New Patient").click();
+    cy.get('[data-cy="newPatientTabButton"]', { timeout: 15000 })
+      .should("be.visible")
+      .click();
   }
 
   clickSearchPatientButton() {
-    //the #searchPatient is not responding
-    cy.contains("button", "Search for Patient").should("be.visible");
-    cy.contains("button", "Search for Patient").click();
+    cy.get('[data-cy="searchPatientTabButton"]', { timeout: 15000 })
+      .should("be.visible")
+      .click();
   }
 
   localSearchButton() {
