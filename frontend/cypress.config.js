@@ -4,7 +4,7 @@ const path = require("path");
 
 module.exports = defineConfig({
   defaultCommandTimeout: 8000,
-  viewportWidth: 1200,
+  viewportWidth: 1440,
   viewportHeight: 900,
   video: false,
   watchForFileChanges: false,
