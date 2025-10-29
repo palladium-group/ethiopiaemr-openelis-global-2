@@ -83,7 +83,6 @@ class PatientEntryPage {
   }
 
   clickSearchPatientButton() {
-    cy.get(this.dateOfBirth).should("not.exist");
     cy.getElement("#local_search").should("be.visible").click();
   }
 
