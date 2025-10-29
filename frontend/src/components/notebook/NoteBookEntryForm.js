@@ -124,13 +124,13 @@ const NoteBookEntryForm = () => {
       addNotification({
         kind: NotificationKinds.success,
         title: intl.formatMessage({ id: "notification.title" }),
-        message: "Succesfuly saved",
+        message: intl.formatMessage({ id: "save.success" }),
       });
     } else {
       addNotification({
         kind: NotificationKinds.error,
         title: intl.formatMessage({ id: "notification.title" }),
-        message: "Duplicate Calculation Name or Error while saving",
+        message: intl.formatMessage({ id: "error.save.msg" }),
       });
     }
     window.location.reload();
@@ -198,7 +198,9 @@ const NoteBookEntryForm = () => {
   // Add new page to noteBookData.pages
   const handleAddPage = () => {
     if (!newPage.title.trim() || !newPage.content.trim()) {
-      setPageError("Title and Content are required.");
+      setPageError(
+        intl.formatMessage({ id: "notebook.page.modal.add.errorRequired" }),
+      );
       return;
     }
     setNoteBookData((prev) => ({
@@ -210,7 +212,9 @@ const NoteBookEntryForm = () => {
 
   const handleAddTag = () => {
     if (!newTag.trim()) {
-      setTagError("Tag is required.");
+      setTagError(
+        intl.formatMessage({ id: "notebook.tags.modal.add.errorRequired" }),
+      );
       return;
     }
     setNoteBookData((prev) => ({
@@ -605,8 +609,12 @@ const NoteBookEntryForm = () => {
               <Column lg={16} md={8} sm={4}>
                 <InlineNotification
                   kind="info"
-                  title="No Pages Added"
-                  subtitle="Click to add Pages"
+                  title={intl.formatMessage({
+                    id: "notebook.pages.none.title",
+                  })}
+                  subtitle={intl.formatMessage({
+                    id: "notebook.pages.none.subtitle",
+                  })}
                 />
               </Column>
             )}
@@ -617,13 +625,17 @@ const NoteBookEntryForm = () => {
                     <h5>{page.title}</h5>
                   </Column>
                   <Column lg={2} md={8} sm={4}>
-                    <h6>Instructions:</h6>
+                    <h6>
+                      {intl.formatMessage({ id: "notebook.page.instructions" })}
+                    </h6>
                   </Column>
                   <Column lg={14} md={8} sm={4}>
                     {page.instructions}
                   </Column>
                   <Column lg={2} md={8} sm={4}>
-                    <h6>Content:</h6>
+                    <h6>
+                      {intl.formatMessage({ id: "notebook.page.content" })}
+                    </h6>
                   </Column>
                   <Column lg={14} md={8} sm={4}>
                     {page.content}
@@ -634,7 +646,7 @@ const NoteBookEntryForm = () => {
                       size="sm"
                       onClick={() => handleRemovePage(index)}
                     >
-                      Remove
+                      <FormattedMessage id="label.button.remove" />
                     </Button>
                   </Column>
                 </Grid>
@@ -644,9 +656,15 @@ const NoteBookEntryForm = () => {
         </Column>
         <Modal
           open={showPageModal}
-          modalHeading="Add New Page"
-          primaryButtonText="Add Page"
-          secondaryButtonText="Cancel"
+          modalHeading={intl.formatMessage({
+            id: "notebook.page.modal.add.title",
+          })}
+          primaryButtonText={intl.formatMessage({
+            id: "notebook.label.addpage",
+          })}
+          secondaryButtonText={intl.formatMessage({
+            id: "label.button.cancel",
+          })}
           onRequestClose={closePageModal}
           onRequestSubmit={handleAddPage}
         >
@@ -660,7 +678,9 @@ const NoteBookEntryForm = () => {
           <TextInput
             id="title"
             name="title"
-            labelText="Title"
+            labelText={intl.formatMessage({
+              id: "notebook.page.modal.title.label",
+            })}
             value={newPage.title}
             onChange={handlePageChange}
             required
@@ -668,14 +688,18 @@ const NoteBookEntryForm = () => {
           <TextArea
             id="instructions"
             name="instructions"
-            labelText="Instructions"
+            labelText={intl.formatMessage({
+              id: "notebook.page.modal.instructions.label",
+            })}
             value={newPage.instructions}
             onChange={handlePageChange}
           />
           <TextArea
             id="content"
             name="content"
-            labelText="Content"
+            labelText={intl.formatMessage({
+              id: "notebook.page.modal.content.label",
+            })}
             value={newPage.content}
             onChange={handlePageChange}
             required
@@ -703,10 +727,14 @@ const NoteBookEntryForm = () => {
                       contained
                     >
                       <Tab onClick={() => setActiveTab(TABS.ACCESSION)}>
-                        Search By Accesion
+                        {intl.formatMessage({
+                          id: "notebook.search.byAccession",
+                        })}
                       </Tab>
                       <Tab onClick={() => setActiveTab(TABS.PATIENT)}>
-                        Search By Patient
+                        {intl.formatMessage({
+                          id: "notebook.search.byPatient",
+                        })}
                       </Tab>
                     </TabList>
                   </Tabs>
@@ -729,9 +757,10 @@ const NoteBookEntryForm = () => {
                       <TextInput
                         id="aceesion"
                         name="acession"
-                        //labelText="Search By Accesion"
                         value={accession}
-                        placeholder="Search By Accession"
+                        placeholder={intl.formatMessage({
+                          id: "notebook.search.byAccession",
+                        })}
                         onChange={handleAccesionChange}
                       />
                     </Column>
@@ -739,9 +768,11 @@ const NoteBookEntryForm = () => {
                       <Button
                         size="md"
                         onClick={handleAccesionSearch}
-                        labelText="Search"
+                        labelText={intl.formatMessage({
+                          id: "label.button.search",
+                        })}
                       >
-                        Search
+                        <FormattedMessage id="label.button.search" />
                       </Button>
                     </Column>
                   </>
@@ -752,7 +783,9 @@ const NoteBookEntryForm = () => {
               </>
             )}
             <Column lg={16} md={8} sm={4}>
-              <h5>Available Samples</h5>
+              <h5>
+                {intl.formatMessage({ id: "notebook.samples.available" })}
+              </h5>
             </Column>
 
             <Column lg={16} md={8} sm={4}>
@@ -761,8 +794,12 @@ const NoteBookEntryForm = () => {
                   <Column lg={16} md={8} sm={4}>
                     <InlineNotification
                       kind="info"
-                      title="No samples Avalibale"
-                      subtitle="Search Samples By Patient or Accession Number"
+                      title={intl.formatMessage({
+                        id: "notebook.samples.none.title",
+                      })}
+                      subtitle={intl.formatMessage({
+                        id: "notebook.samples.none.subtitle",
+                      })}
                     />
                   </Column>
                 )}
@@ -773,14 +810,20 @@ const NoteBookEntryForm = () => {
                         <h5>{sample.sampleType}</h5>
                       </Column>
                       <Column lg={2} md={8} sm={4}>
-                        <h6>Date Collected:</h6>
+                        <h6>
+                          {intl.formatMessage({ id: "sample.collection.date" })}
+                        </h6>
                       </Column>
                       <Column lg={14} md={8} sm={4}>
                         {sample.collectionDate || "N/A"}
                       </Column>
 
                       <Column lg={2} md={8} sm={4}>
-                        <h6>Results Recorded:</h6>
+                        <h6>
+                          {intl.formatMessage({
+                            id: "notebook.samples.resultsRecorded",
+                          })}
+                        </h6>
                       </Column>
                       <Column lg={14} md={8} sm={4}>
                         {sample.results.length}
@@ -792,7 +835,7 @@ const NoteBookEntryForm = () => {
                           size="sm"
                           onClick={() => handleAddSample(sample)}
                         >
-                          <Add /> Add
+                          <Add /> <FormattedMessage id="label.button.add" />
                         </Button>
                       </Column>
                     </Grid>
@@ -802,7 +845,7 @@ const NoteBookEntryForm = () => {
             </Column>
 
             <Column lg={16} md={8} sm={4}>
-              <h5>Selected Samples</h5>
+              <h5>{intl.formatMessage({ id: "notebook.samples.selected" })}</h5>
             </Column>
 
             <Column lg={16} md={8} sm={4}>
@@ -811,8 +854,10 @@ const NoteBookEntryForm = () => {
                   <Column lg={16} md={8} sm={4}>
                     <InlineNotification
                       kind="info"
-                      title="No samples Selected"
-                      subtitle="Click to add samples"
+                      title={intl.formatMessage({
+                        id: "notebook.samples.selected",
+                      })}
+                      subtitle={intl.formatMessage({ id: "label.button.add" })}
                     />
                   </Column>
                 </Grid>
@@ -832,14 +877,22 @@ const NoteBookEntryForm = () => {
                             <h5>{sample.sampleType}</h5>
                           </Column>
                           <Column lg={2} md={8} sm={4}>
-                            <h6>Date Collected:</h6>
+                            <h6>
+                              {intl.formatMessage({
+                                id: "sample.collection.date",
+                              })}
+                            </h6>
                           </Column>
                           <Column lg={14} md={8} sm={4}>
                             {sample.collectionDate}
                           </Column>
 
                           <Column lg={2} md={8} sm={4}>
-                            <h6>Results Recorded:</h6>
+                            <h6>
+                              {intl.formatMessage({
+                                id: "notebook.samples.resultsRecorded",
+                              })}
+                            </h6>
                           </Column>
                           <Column lg={14} md={8} sm={4}>
                             {sample.results.length}
@@ -850,7 +903,7 @@ const NoteBookEntryForm = () => {
                               size="sm"
                               onClick={() => handleRemoveSample(sample.id)}
                             >
-                              Remove
+                              <FormattedMessage id="label.button.remove" />
                             </Button>
                           </Column>
                         </Grid>
@@ -866,14 +919,19 @@ const NoteBookEntryForm = () => {
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
             <Column lg={8} md={8} sm={4}>
-              <h5> Attachments</h5>
+              <h5>
+                {" "}
+                {intl.formatMessage({ id: "notebook.attachments.title" })}
+              </h5>
             </Column>
             <Column lg={16} md={8} sm={4}>
               <br></br>
             </Column>
             <Column lg={16} md={8} sm={4}>
               <FileUploaderDropContainer
-                labelText="click to upload files"
+                labelText={intl.formatMessage({
+                  id: "notebook.attachments.uploadPrompt",
+                })}
                 multiple
                 onAddFiles={handleAddFiles}
                 accept={[".pdf", ".png", ".jpg", ".txt"]}
@@ -918,7 +976,7 @@ const NoteBookEntryForm = () => {
                           size="sm"
                           onClick={() => handleRemoveFile(index)}
                         >
-                          Remove
+                          <FormattedMessage id="label.button.remove" />
                         </Button>
                       </Tile>
                     </Column>
@@ -931,7 +989,10 @@ const NoteBookEntryForm = () => {
         <Column lg={16} md={8} sm={4}>
           <Grid fullWidth={true} className="gridBoundary">
             <Column lg={8} md={8} sm={4}>
-              <h5> Instruments</h5>
+              <h5>
+                {" "}
+                {intl.formatMessage({ id: "notebook.instruments.title" })}
+              </h5>
             </Column>
             <Column lg={16} md={8} sm={4}>
               <br></br>
@@ -941,7 +1002,9 @@ const NoteBookEntryForm = () => {
               {(initialMount || mode === MODES.CREATE) && (
                 <FilterableMultiSelect
                   id="instruments"
-                  titleText={<FormattedMessage id="Instruments" />}
+                  titleText={
+                    <FormattedMessage id="notebook.instruments.title" />
+                  }
                   items={analyzerList}
                   itemToString={(item) => (item ? item.value : "")}
                   initialSelectedItems={noteBookData.analyzers}
@@ -978,13 +1041,13 @@ const NoteBookEntryForm = () => {
             <Column lg={1} md={8} sm={4}>
               <h5>
                 {" "}
-                <FormattedMessage id="Tags" />
+                <FormattedMessage id="notebook.tags.title" />
               </h5>
             </Column>
             <Column lg={8} md={8} sm={4}>
               <Button onClick={openTagModal} kind="primary" size="sm">
                 <Add />
-                <FormattedMessage id="Add Tag" />
+                <FormattedMessage id="notebook.tags.add" />
               </Button>
             </Column>
             <Column lg={16} md={8} sm={4}>
@@ -1007,9 +1070,13 @@ const NoteBookEntryForm = () => {
           </Grid>
           <Modal
             open={showTagModal}
-            modalHeading="Add New Tag"
-            primaryButtonText="Add Tag"
-            secondaryButtonText="Cancel"
+            modalHeading={intl.formatMessage({
+              id: "notebook.tags.modal.add.title",
+            })}
+            primaryButtonText={intl.formatMessage({ id: "notebook.tags.add" })}
+            secondaryButtonText={intl.formatMessage({
+              id: "label.button.cancel",
+            })}
             onRequestClose={closeTagModal}
             onRequestSubmit={handleAddTag}
           >
@@ -1023,7 +1090,9 @@ const NoteBookEntryForm = () => {
             <TextInput
               id="tag"
               name="tag"
-              labelText="Tag"
+              labelText={intl.formatMessage({
+                id: "notebook.tags.modal.add.label",
+              })}
               value={newTag}
               onChange={handleTagChange}
               required
@@ -1041,7 +1110,9 @@ const NoteBookEntryForm = () => {
               }
               onClick={() => handleSubmit()}
             >
-              {getNextStatus(noteBookData.status).value}
+              {intl.formatMessage({
+                id: `notebook.status.${getNextStatus(noteBookData.status).id.toLowerCase()}`,
+              })}
             </Button>
           </Grid>
         </Column>
