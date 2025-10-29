@@ -131,10 +131,11 @@ class BatchOrderEntry {
 
   localSearchButton() {
     cy.get("#local_search").click();
+    cy.get('[data-cy="radioButton"]', { timeout: 10000 }).should("exist");
   }
 
   checkPatientRadio() {
-    cy.get("#2").check({ force: true });
+    cy.get('[data-cy="radioButton"]').first().click({ force: true });
   }
 
   visitBatchOrderEntryPage() {
