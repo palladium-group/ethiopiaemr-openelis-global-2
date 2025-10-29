@@ -768,6 +768,8 @@
   "notebook.samples.available": "Available Samples",
   "notebook.samples.none.subtitle": "Search Samples By Patient or Accession Number",
   "notebook.samples.none.title": "No samples Available",
+  "notebook.samples.none.subtitle.selected": "Click to add samples",
+  "notebook.samples.none.title.selected": "No Samples Selected",
   "notebook.samples.resultsRecorded": "Results Recorded:",
   "notebook.samples.selected": "Selected Samples",
   "notebook.search.byAccession": "Search By Accession",

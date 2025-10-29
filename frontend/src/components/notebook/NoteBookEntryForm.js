@@ -855,9 +855,11 @@ const NoteBookEntryForm = () => {
                     <InlineNotification
                       kind="info"
                       title={intl.formatMessage({
-                        id: "notebook.samples.selected",
+                        id: "notebook.samples.none.title.selected",
                       })}
-                      subtitle={intl.formatMessage({ id: "label.button.add" })}
+                      subtitle={intl.formatMessage({
+                        id: "notebook.samples.none.subtitle.selected",
+                      })}
                     />
                   </Column>
                 </Grid>
