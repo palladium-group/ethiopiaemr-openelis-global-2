@@ -737,7 +737,7 @@ const NoteBookInstanceEntryForm = () => {
           <Section>
             <Section>
               <Heading>
-                <FormattedMessage id="notebook.page.modal.title.label" /> : 
+                <FormattedMessage id="notebook.page.modal.title.label" /> :
                 {noteBookData.title}
               </Heading>
             </Section>
@@ -1493,6 +1493,7 @@ const NoteBookInstanceEntryForm = () => {
                               size="sm"
                               onClick={() => openEditPageModal(index)}
                               style={{ marginRight: "0.5rem" }}
+                              disabled={page.completed}
                             >
                               <FormattedMessage id="label.button.edit" />
                             </Button>
