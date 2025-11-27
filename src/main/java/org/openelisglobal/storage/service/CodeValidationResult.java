@@ -1,20 +1,20 @@
 package org.openelisglobal.storage.service;
 
 /**
- * Validation result for short code validation Contains validation status,
- * normalized code, and error message
+ * Validation result for code validation Contains validation status, normalized
+ * code, and error message
  */
-public class ShortCodeValidationResult {
+public class CodeValidationResult {
 
     private boolean valid;
     private String normalizedCode;
     private String errorMessage;
 
-    public ShortCodeValidationResult() {
+    public CodeValidationResult() {
         this.valid = false;
     }
 
-    public ShortCodeValidationResult(boolean valid, String normalizedCode, String errorMessage) {
+    public CodeValidationResult(boolean valid, String normalizedCode, String errorMessage) {
         this.valid = valid;
         this.normalizedCode = normalizedCode;
         this.errorMessage = errorMessage;
@@ -47,14 +47,14 @@ public class ShortCodeValidationResult {
     /**
      * Create a valid result
      */
-    public static ShortCodeValidationResult valid(String normalizedCode) {
-        return new ShortCodeValidationResult(true, normalizedCode, null);
+    public static CodeValidationResult valid(String normalizedCode) {
+        return new CodeValidationResult(true, normalizedCode, null);
     }
 
     /**
      * Create an invalid result with error message
      */
-    public static ShortCodeValidationResult invalid(String errorMessage) {
-        return new ShortCodeValidationResult(false, null, errorMessage);
+    public static CodeValidationResult invalid(String errorMessage) {
+        return new CodeValidationResult(false, null, errorMessage);
     }
 }
