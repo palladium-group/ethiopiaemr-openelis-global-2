@@ -89,7 +89,7 @@ function TemperatureThresholds({ intl }) {
         if (deviceThresholds) {
           await updateDevice(device.id, {
             ...device,
-            locationId: device.location?.id,
+            roomId: device.storageDevice?.parentRoom?.id,
             targetTemperature: deviceThresholds.targetTemperature,
             warningThreshold: deviceThresholds.warningThreshold,
             criticalThreshold: deviceThresholds.criticalThreshold,

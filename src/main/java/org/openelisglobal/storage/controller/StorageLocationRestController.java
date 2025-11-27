@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.openelisglobal.coldstorage.service.FreezerService;
+import org.openelisglobal.coldstorage.valueholder.Freezer;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.login.dao.UserModuleService;
 import org.openelisglobal.storage.dao.*;
@@ -54,11 +56,14 @@ public class StorageLocationRestController extends BaseRestController {
     @Autowired
     private UserModuleService userModuleService;
 
+    @Autowired(required = false)
+    private FreezerService freezerService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Helper method to check admin status with graceful error handling
-     * 
+     *
      * @param request HTTP request containing session information
      * @return true if user is admin, false otherwise (defaults to false if session
      *         unavailable)
@@ -273,7 +278,8 @@ public class StorageLocationRestController extends BaseRestController {
     // ========== Device Endpoints ==========
 
     @PostMapping("/devices")
-    public ResponseEntity<Map<String, Object>> createDevice(@Valid @RequestBody StorageDeviceForm form) {
+    public ResponseEntity<Map<String, Object>> createDevice(@Valid @RequestBody StorageDeviceForm form,
+            jakarta.servlet.http.HttpServletRequest request) {
         try {
             // Set parent room first (needed for code generation)
             Integer parentRoomId = form.getParentRoomId() != null ? Integer.parseInt(form.getParentRoomId()) : null;
@@ -302,6 +308,15 @@ public class StorageLocationRestController extends BaseRestController {
 
             Integer id = storageLocationService.insert(device);
             device.setId(id);
+
+            if (shouldEnableMonitoring(device)) {
+                try {
+                    createFreezerMonitoringStub(device, getSysUserId(request));
+                } catch (Exception e) {
+                    logger.warn("Failed to auto-create freezer monitoring stub for device {}: {}", device.getName(),
+                            e.getMessage());
+                }
+            }
 
             Map<String, Object> response = entityToMap(device);
             response.put("parentRoomId", parentRoomId);
@@ -392,6 +407,12 @@ public class StorageLocationRestController extends BaseRestController {
 
             storageLocationService.update(deviceToUpdate);
             StorageDevice updatedDevice = (StorageDevice) storageLocationService.get(idInt, StorageDevice.class);
+
+            // Sync device name to Freezer monitoring if linked
+            if (shouldEnableMonitoring(updatedDevice)) {
+                syncDeviceNameToFreezer(updatedDevice);
+            }
+
             return ResponseEntity.ok(entityToMap(updatedDevice));
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
             logger.error("Error updating device: " + e.getMessage(), e);
@@ -1067,19 +1088,75 @@ public class StorageLocationRestController extends BaseRestController {
         return code;
     }
 
+    private boolean shouldEnableMonitoring(StorageDevice device) {
+        if (freezerService == null) {
+            return false;
+        }
+        StorageDevice.DeviceType type = device.getTypeEnum();
+        return type == StorageDevice.DeviceType.FREEZER || type == StorageDevice.DeviceType.REFRIGERATOR;
+    }
+
+    private void createFreezerMonitoringStub(StorageDevice device, String sysUserId) {
+        Freezer freezer = new Freezer();
+        freezer.setName(device.getName());
+        freezer.setStorageDevice(device);
+        freezer.setProtocol(Freezer.Protocol.TCP);
+        freezer.setHost("");
+        freezer.setPort(502);
+        freezer.setSlaveId(1);
+        freezer.setTemperatureRegister(0);
+        freezer.setTemperatureScale(java.math.BigDecimal.ONE);
+        freezer.setTemperatureOffset(java.math.BigDecimal.ZERO);
+        freezer.setHumidityScale(java.math.BigDecimal.ONE);
+        freezer.setHumidityOffset(java.math.BigDecimal.ZERO);
+        freezer.setPollingIntervalSeconds(60);
+        freezer.setActive(false);
+
+        if (device.getTemperatureSetting() != null) {
+            freezer.setTargetTemperature(device.getTemperatureSetting());
+        }
+
+        freezerService.createFreezer(freezer, device.getParentRoom().getId().longValue(), sysUserId);
+        logger.info("Auto-created Freezer monitoring stub for StorageDevice: {} (ID: {})", device.getName(),
+                device.getId());
+    }
+
+    private void syncDeviceNameToFreezer(StorageDevice device) {
+        if (freezerService == null) {
+            return;
+        }
+
+        try {
+            List<Freezer> allFreezers = freezerService.getAllFreezers("");
+            java.util.Optional<Freezer> linkedFreezer = allFreezers.stream()
+                    .filter(f -> f.getStorageDevice() != null && f.getStorageDevice().getId().equals(device.getId()))
+                    .findFirst();
+
+            if (linkedFreezer.isPresent()) {
+                Freezer freezer = linkedFreezer.get();
+                if (!freezer.getName().equals(device.getName())) {
+                    freezer.setName(device.getName()); // Sync name
+                    freezerService.updateFreezer(freezer.getId(), freezer, device.getParentRoom().getId().longValue(),
+                            device.getSysUserId());
+                    logger.info("Synced device name to Freezer: {} (ID: {})", device.getName(), device.getId());
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to sync device name to freezer for device {}: {}", device.getId(), e.getMessage());
+        }
+    }
+
     private Map<String, Object> entityToMap(Object entity) {
         Map<String, Object> map = new HashMap<>();
 
-        if (entity instanceof StorageRoom) {
-            StorageRoom room = (StorageRoom) entity;
+        if (entity instanceof StorageRoom room) {
             map.put("id", room.getId());
             map.put("name", room.getName());
             map.put("code", room.getCode());
             map.put("description", room.getDescription());
             map.put("active", room.getActive());
             map.put("fhirUuid", room.getFhirUuidAsString());
-        } else if (entity instanceof StorageDevice) {
-            StorageDevice device = (StorageDevice) entity;
+        } else if (entity instanceof StorageDevice device) {
             map.put("id", device.getId());
             map.put("name", device.getName());
             map.put("code", device.getCode());

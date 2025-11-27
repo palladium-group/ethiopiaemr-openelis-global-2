@@ -178,9 +178,14 @@ function DeviceHistoryExpansion({ device }) {
     }
   }, [activeTab, device, loadTemperatureReadings]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    const date = new Date(dateString);
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "—";
+    // Handle timestamps in seconds (multiply by 1000 for milliseconds)
+    const date =
+      typeof dateValue === "number"
+        ? new Date(dateValue * 1000)
+        : new Date(dateValue);
+    if (isNaN(date.getTime())) return "—";
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -188,9 +193,14 @@ function DeviceHistoryExpansion({ device }) {
     });
   };
 
-  const formatTime = (dateString) => {
-    if (!dateString) return "—";
-    const date = new Date(dateString);
+  const formatTime = (dateValue) => {
+    if (!dateValue) return "—";
+    // Handle timestamps in seconds (multiply by 1000 for milliseconds)
+    const date =
+      typeof dateValue === "number"
+        ? new Date(dateValue * 1000)
+        : new Date(dateValue);
+    if (isNaN(date.getTime())) return "—";
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -230,18 +240,23 @@ function DeviceHistoryExpansion({ device }) {
         id: `CA-${String(action.id).padStart(3, "0")}`,
         type: "corrective-action",
         eventId: `CA-${String(action.id).padStart(3, "0")}`,
-        summary: action.summary || "No summary provided",
+        summary: action.description || "No description provided",
         severity: null,
-        date: action.performedAt,
-        time: action.performedAt,
-        acknowledgedBy: action.performedBy || "—",
+        status: action.status || "PENDING",
+        isEdited: action.isEdited || false,
+        date: action.createdAt,
+        time: action.createdAt,
+        acknowledgedBy: action.createdByName || "—",
         rawData: action,
       });
     });
 
     return events.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+      // Handle timestamps in seconds (multiply by 1000 for milliseconds)
+      const dateA =
+        typeof a.date === "number" ? new Date(a.date * 1000) : new Date(a.date);
+      const dateB =
+        typeof b.date === "number" ? new Date(b.date * 1000) : new Date(b.date);
       return dateB - dateA;
     });
   }, [alerts, correctiveActions]);
@@ -393,53 +408,55 @@ function DeviceHistoryExpansion({ device }) {
     }
   };
 
+  const statusTag = (status, isEdited = false) => {
+    const tag = (() => {
+      switch (status) {
+        case "PENDING":
+          return <Tag type="red">Pending</Tag>;
+        case "IN_PROGRESS":
+          return <Tag type="blue">In Progress</Tag>;
+        case "COMPLETED":
+          return <Tag type="green">Completed</Tag>;
+        case "CANCELLED":
+          return <Tag type="gray">Cancelled</Tag>;
+        case "RETRACTED":
+          return <Tag type="magenta">Retracted</Tag>;
+        default:
+          return <Tag>{status}</Tag>;
+      }
+    })();
+
+    return (
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        {tag}
+        {isEdited && (
+          <Tag type="purple" size="sm">
+            Edited
+          </Tag>
+        )}
+      </div>
+    );
+  };
+
   const eventColumns = [
-    { key: "eventType", header: "Event Type" },
     { key: "eventId", header: "Event ID" },
-    { key: "summary", header: "Summary / Title" },
-    { key: "severity", header: "Severity" },
-    { key: "date", header: "Date" },
-    { key: "time", header: "Time" },
-    { key: "acknowledgedBy", header: "Acknowledged / Performed By" },
+    { key: "status", header: "Status" },
+    { key: "summary", header: "Summary" },
+    { key: "performedBy", header: "Performed By" },
+    { key: "created", header: "Created" },
   ];
 
   const eventRows = paginatedEvents.map((event) => {
     return {
       id: event.id,
-      eventType: (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          {event.type === "alert" ? (
-            <Warning
-              size={16}
-              style={{ color: "var(--cds-support-warning)" }}
-            />
-          ) : (
-            <Document size={16} style={{ color: "var(--cds-text-primary)" }} />
-          )}
-          <span>{event.type === "alert" ? "Alert" : "Corrective Action"}</span>
-        </div>
-      ),
       eventId: event.eventId,
+      status:
+        event.type === "alert"
+          ? severityTag(event.severity)
+          : statusTag(event.status, event.isEdited),
       summary: event.summary,
-      severity: severityTag(event.severity),
-      date: (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Calendar size={16} style={{ color: "var(--cds-text-secondary)" }} />
-          <span>{formatDate(event.date)}</span>
-        </div>
-      ),
-      time: (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Time size={16} style={{ color: "var(--cds-text-secondary)" }} />
-          <span>{formatTime(event.time)}</span>
-        </div>
-      ),
-      acknowledgedBy: (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <User size={16} style={{ color: "var(--cds-text-secondary)" }} />
-          <span>{event.acknowledgedBy}</span>
-        </div>
-      ),
+      performedBy: event.acknowledgedBy,
+      created: `${formatDate(event.date)} ${formatTime(event.time)}`,
     };
   });
 
@@ -572,7 +589,6 @@ function DeviceHistoryExpansion({ device }) {
                   </Column>
                 </Grid>
 
-                {/* Event History Table */}
                 <DataTable rows={eventRows} headers={eventColumns}>
                   {({
                     rows,
@@ -597,32 +613,43 @@ function DeviceHistoryExpansion({ device }) {
                                 {header.header}
                               </TableHeader>
                             ))}
+                            <TableHeader>Actions</TableHeader>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {rows.length === 0 && (
                             <TableRow>
-                              <TableCell
-                                colSpan={eventColumns.length}
-                                style={{
-                                  textAlign: "center",
-                                  padding: "2rem 0",
-                                  color: "var(--cds-text-secondary)",
-                                }}
-                              >
+                              <TableCell colSpan={eventColumns.length + 1}>
                                 No events found.
                               </TableCell>
                             </TableRow>
                           )}
-                          {rows.map((row) => (
-                            <TableRow key={row.id} {...getRowProps({ row })}>
-                              {row.cells.map((cell) => (
-                                <TableCell key={cell.id}>
-                                  {cell.value}
+                          {rows.map((row) => {
+                            const event = paginatedEvents.find(
+                              (e) => e.id === row.id,
+                            );
+                            return (
+                              <TableRow key={row.id} {...getRowProps({ row })}>
+                                {row.cells.map((cell) => (
+                                  <TableCell key={cell.id}>
+                                    {cell.value}
+                                  </TableCell>
+                                ))}
+                                <TableCell>
+                                  <Button
+                                    kind="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Handle view action based on event type
+                                      console.log("View event:", event);
+                                    }}
+                                  >
+                                    View
+                                  </Button>
                                 </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                       <Pagination

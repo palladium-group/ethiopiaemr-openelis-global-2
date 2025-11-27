@@ -114,11 +114,15 @@ export const fetchCorrectiveActions = async (filters = {}) => {
     params.append("endDate", filters.endDate);
   }
   const queryString = params.toString() ? `?${params.toString()}` : "";
-  return getFromOpenElisServerV2(`/rest/corrective-actions${queryString}`);
+  return getFromOpenElisServerV2(
+    `/rest/coldstorage/corrective-actions${queryString}`,
+  );
 };
 
 export const fetchCorrectiveActionById = async (actionId) => {
-  return getFromOpenElisServerV2(`/rest/corrective-actions/${actionId}`);
+  return getFromOpenElisServerV2(
+    `/rest/coldstorage/corrective-actions/${actionId}`,
+  );
 };
 
 export const createCorrectiveAction = async (
@@ -127,7 +131,7 @@ export const createCorrectiveAction = async (
   description,
   createdByUserId,
 ) => {
-  return postColdStorageJson("/rest/corrective-actions", {
+  return postColdStorageJson("/rest/coldstorage/corrective-actions", {
     freezerId,
     actionType,
     description,
@@ -143,7 +147,7 @@ export const updateCorrectiveAction = async (
 ) => {
   return new Promise((resolve, reject) => {
     putToOpenElisServer(
-      `/rest/corrective-actions/${actionId}`,
+      `/rest/coldstorage/corrective-actions/${actionId}`,
       JSON.stringify({ description, status, updatedByUserId }),
       (response) => {
         try {
@@ -164,7 +168,7 @@ export const completeCorrectiveAction = async (
 ) => {
   return new Promise((resolve, reject) => {
     putToOpenElisServer(
-      `/rest/corrective-actions/${actionId}/complete`,
+      `/rest/coldstorage/corrective-actions/${actionId}/complete`,
       JSON.stringify({ updatedByUserId, completionNotes }),
       (response) => {
         try {
@@ -185,7 +189,7 @@ export const retractCorrectiveAction = async (
 ) => {
   return new Promise((resolve, reject) => {
     putToOpenElisServer(
-      `/rest/corrective-actions/${actionId}/retract`,
+      `/rest/coldstorage/corrective-actions/${actionId}/retract`,
       JSON.stringify({ updatedByUserId, retractionReason }),
       (response) => {
         try {
@@ -294,10 +298,14 @@ export const createDevice = async (deviceData) => {
 
 export const updateDevice = async (id, deviceData) => {
   const { roomId, ...freezer } = deviceData;
-  const params = new URLSearchParams({ roomId });
+  const params = new URLSearchParams();
+  if (roomId) {
+    params.append("roomId", roomId);
+  }
+  const queryString = params.toString() ? `?${params.toString()}` : "";
   return new Promise((resolve, reject) => {
     putToOpenElisServer(
-      `/rest/coldstorage/devices/${id}?${params.toString()}`,
+      `/rest/coldstorage/devices/${id}${queryString}`,
       JSON.stringify(freezer),
       (status) => {
         if (status === 200) {

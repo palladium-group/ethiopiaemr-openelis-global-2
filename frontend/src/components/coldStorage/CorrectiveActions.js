@@ -199,7 +199,6 @@ export default function CorrectiveActions() {
     performedBy: "",
     actionType: null,
     summary: "",
-    notes: "",
   });
 
   const [editStatus, setEditStatus] = useState(null);
@@ -346,11 +345,35 @@ export default function CorrectiveActions() {
   };
 
   const normalizeAction = (action) => {
-    const createdDate = action.createdAt
-      ? new Date(action.createdAt)
-      : new Date();
+    const parseDate = (dateValue) => {
+      if (!dateValue) return new Date();
+
+      // If it's already a Date object
+      if (dateValue instanceof Date) return dateValue;
+
+      // If it's a number (timestamp in seconds with nanosecond precision)
+      // Backend sends timestamps like 1764266612.581084000 (seconds since epoch)
+      // JavaScript Date expects milliseconds, so multiply by 1000
+      if (typeof dateValue === "number") {
+        return new Date(dateValue * 1000);
+      }
+
+      // If it's a string, try to parse it
+      if (typeof dateValue === "string") {
+        const parsed = new Date(dateValue);
+        // Check if the date is valid
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Fallback to current date
+      return new Date();
+    };
+
+    const createdDate = parseDate(action.createdAt);
     const updatedDate = action.updatedAt
-      ? new Date(action.updatedAt)
+      ? parseDate(action.updatedAt)
       : createdDate;
 
     const formatDate = (date) => {
@@ -422,7 +445,6 @@ export default function CorrectiveActions() {
       performedBy: currentUserDisplayName || "",
       actionType: null,
       summary: "",
-      notes: "",
     });
   };
 
@@ -651,14 +673,10 @@ export default function CorrectiveActions() {
         throw new Error("Please select an action type");
       }
 
-      const description = form.notes
-        ? `${form.summary}\n\nNotes: ${form.notes}`
-        : form.summary;
-
       await createCorrectiveAction(
         parseInt(freezerId),
         form.actionType.id,
-        description,
+        form.summary,
         userSessionDetails?.userId || 1,
       );
 
@@ -778,38 +796,42 @@ export default function CorrectiveActions() {
                     </TableRow>
                   )}
 
-                  {rows.map((row) => (
-                    <TableRow key={row.id} {...getRowProps({ row })}>
-                      {row.cells.map((cell) => (
-                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                      ))}
-                      <TableCell>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            onClick={() => handleViewAction(row._action)}
-                          >
-                            View
-                          </Button>
-                          {row._action.status !== "COMPLETED" &&
-                            row._action.status !== "RETRACTED" &&
-                            row._action.status !== "CANCELLED" && (
-                              <Button
-                                kind="danger--ghost"
-                                size="sm"
-                                renderIcon={WarningAlt}
-                                onClick={() =>
-                                  handleOpenRetractModal(row._action)
-                                }
-                              >
-                                Retract
-                              </Button>
-                            )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {rows.map((row) => {
+                    const action = paginatedActions.find(
+                      (a) => a.id === row.id,
+                    );
+                    return (
+                      <TableRow key={row.id} {...getRowProps({ row })}>
+                        {row.cells.map((cell) => (
+                          <TableCell key={cell.id}>{cell.value}</TableCell>
+                        ))}
+                        <TableCell>
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <Button
+                              kind="ghost"
+                              size="sm"
+                              onClick={() => handleViewAction(action)}
+                            >
+                              View
+                            </Button>
+                            {action &&
+                              action.status !== "COMPLETED" &&
+                              action.status !== "RETRACTED" &&
+                              action.status !== "CANCELLED" && (
+                                <Button
+                                  kind="danger--ghost"
+                                  size="sm"
+                                  renderIcon={WarningAlt}
+                                  onClick={() => handleOpenRetractModal(action)}
+                                >
+                                  Retract
+                                </Button>
+                              )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               <Pagination
@@ -905,26 +927,16 @@ export default function CorrectiveActions() {
               }
             />
 
-            <TextInput
+            <TextArea
               id="action-summary"
-              labelText="Action Summary *"
-              placeholder="Brief description of the corrective action"
+              labelText="Description *"
+              placeholder="Describe the corrective action taken, findings, and results..."
+              rows={4}
               value={form.summary}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, summary: e.target.value }))
               }
               required
-            />
-
-            <TextArea
-              id="action-notes"
-              labelText="Detailed Notes"
-              placeholder="Detailed description of the action taken, findings, and results..."
-              rows={4}
-              value={form.notes}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, notes: e.target.value }))
-              }
             />
           </Stack>
         </Form>

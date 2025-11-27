@@ -1456,4 +1456,92 @@ public class StorageLocationRestControllerTest extends BaseWebContextSensitiveTe
                 put("/rest/storage/devices/" + deviceId).contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.code").value("TEST-UC01"));
     }
+
+    @Test
+    public void testCreateFreezerDevice_AutoCreatesFreezerMonitoringStub() throws Exception {
+        String roomId = createRoomAndGetId("Freezer Auto-Create Room", "FREEZER-AUTO-ROOM");
+        StorageDeviceForm deviceForm = new StorageDeviceForm();
+        deviceForm.setName("Auto-Monitored Freezer");
+        long timestamp = System.currentTimeMillis() % 100;
+        deviceForm.setCode("AUTOFRZ" + String.format("%02d", timestamp));
+        deviceForm.setType("freezer");
+        deviceForm.setTemperatureSetting(-80.0);
+        deviceForm.setParentRoomId(roomId);
+        deviceForm.setActive(true);
+
+        String requestBody = objectMapper.writeValueAsString(deviceForm);
+
+        String response = mockMvc
+                .perform(post("/rest/storage/devices").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.type").value("freezer")).andReturn().getResponse().getContentAsString();
+
+        String deviceId = objectMapper.readTree(response).get("id").asText();
+        Integer freezerCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM freezer WHERE storage_device_id = ?",
+                Integer.class, Integer.parseInt(deviceId));
+
+        assertEquals("Freezer monitoring stub should be auto-created for FREEZER type device", Integer.valueOf(1),
+                freezerCount);
+
+        Map<String, Object> freezerData = jdbcTemplate.queryForMap(
+                "SELECT name, protocol, port, active FROM freezer WHERE storage_device_id = ?",
+                Integer.parseInt(deviceId));
+
+        assertEquals("Freezer name should match StorageDevice name", "Auto-Monitored Freezer", freezerData.get("name"));
+        assertEquals("Freezer should have default protocol TCP", "TCP", freezerData.get("protocol"));
+        assertEquals("Freezer should have default Modbus port 502", Integer.valueOf(502), freezerData.get("port"));
+        assertEquals("Freezer should be inactive until configured", false, freezerData.get("active"));
+    }
+
+    @Test
+    public void testCreateRefrigeratorDevice_AutoCreatesFreezerMonitoringStub() throws Exception {
+        String roomId = createRoomAndGetId("Refrigerator Auto-Create Room", "REFRIG-AUTO-ROOM");
+        StorageDeviceForm deviceForm = new StorageDeviceForm();
+        deviceForm.setName("Auto-Monitored Refrigerator");
+        long timestamp = System.currentTimeMillis() % 100;
+        deviceForm.setCode("AUTOREF" + String.format("%02d", timestamp));
+        deviceForm.setType("refrigerator");
+        deviceForm.setTemperatureSetting(4.0);
+        deviceForm.setParentRoomId(roomId);
+        deviceForm.setActive(true);
+
+        String requestBody = objectMapper.writeValueAsString(deviceForm);
+
+        String response = mockMvc
+                .perform(post("/rest/storage/devices").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+
+        String deviceId = objectMapper.readTree(response).get("id").asText();
+
+        Integer freezerCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM freezer WHERE storage_device_id = ?",
+                Integer.class, Integer.parseInt(deviceId));
+
+        assertEquals("Freezer monitoring stub should be auto-created for REFRIGERATOR type device", Integer.valueOf(1),
+                freezerCount);
+    }
+
+    @Test
+    public void testCreateCabinetDevice_DoesNotCreateFreezerMonitoringStub() throws Exception {
+        String roomId = createRoomAndGetId("Cabinet Room", "CABINET-ROOM");
+        StorageDeviceForm deviceForm = new StorageDeviceForm();
+        deviceForm.setName("Cabinet Device");
+        long timestamp = System.currentTimeMillis() % 100;
+        deviceForm.setCode("CABINET" + String.format("%02d", timestamp));
+        deviceForm.setType("cabinet");
+        deviceForm.setParentRoomId(roomId);
+        deviceForm.setActive(true);
+
+        String requestBody = objectMapper.writeValueAsString(deviceForm);
+
+        String response = mockMvc
+                .perform(post("/rest/storage/devices").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+
+        String deviceId = objectMapper.readTree(response).get("id").asText();
+        Integer freezerCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM freezer WHERE storage_device_id = ?",
+                Integer.class, Integer.parseInt(deviceId));
+
+        assertEquals("Freezer monitoring stub should NOT be created for CABINET type device", Integer.valueOf(0),
+                freezerCount);
+    }
 }
