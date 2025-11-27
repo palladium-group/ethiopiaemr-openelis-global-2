@@ -65,9 +65,6 @@ public class NoteBook extends BaseObject<Integer> {
     @JoinColumn(name = "type", referencedColumnName = "id")
     private Dictionary type;
 
-    @Column(name = "project")
-    private String project;
-
     @Column(name = "objective")
     private String objective;
 
@@ -142,14 +139,6 @@ public class NoteBook extends BaseObject<Integer> {
 
     public void setType(Dictionary type) {
         this.type = type;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
     }
 
     public String getObjective() {
