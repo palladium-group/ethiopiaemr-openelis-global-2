@@ -12,6 +12,7 @@ import org.jasypt.util.text.TextEncryptor;
 import org.mockito.Mockito;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.barcode.controller.PrintBarcodeController;
+import org.openelisglobal.coldstorage.service.SystemConfigService;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.services.RequesterService;
@@ -26,6 +27,7 @@ import org.openelisglobal.externalconnections.service.ExternalConnectionService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.notification.service.AnalysisNotificationConfigService;
 import org.openelisglobal.notification.service.TestNotificationConfigService;
+import org.openelisglobal.notification.service.TestNotificationServiceImpl;
 import org.openelisglobal.odoo.client.OdooClient;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.config.TestProductMapping;
@@ -232,6 +234,18 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("test")
     public Versioning versioning() {
         return mock(Versioning.class);
+    }
+
+    @Bean()
+    @Profile("test")
+    public SystemConfigService systemConfigService() {
+        return mock(SystemConfigService.class);
+    }
+
+    @Bean()
+    @Profile("test")
+    public TestNotificationServiceImpl testNotificationServiceImpl() {
+        return mock(TestNotificationServiceImpl.class);
     }
 
     @Bean
