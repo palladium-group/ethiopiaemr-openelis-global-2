@@ -25,7 +25,7 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
             Date fromDate, Date toDate) {
 
         StringBuilder hql = new StringBuilder("select distinct nb from NoteBook nb ");
-        hql.append("left join nb.tags t where nb.isTemplate = false");
+        hql.append("left join nb.tags t where nb.isTemplate = true");
 
         if (statuses != null && !statuses.isEmpty()) {
             hql.append("and nb.status in (:statuses) ");
