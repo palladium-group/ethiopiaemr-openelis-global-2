@@ -494,7 +494,7 @@ const NoteBookInstanceEntryForm = () => {
         data.id = null;
         data.isTemplate = false;
         data.dateCreated = null;
-        data.status = "NEW";
+        data.status = "DRAFT";
         setNoteBookData(data);
         setLoading(false);
       }
@@ -717,6 +717,28 @@ const NoteBookInstanceEntryForm = () => {
               <Column lg={16} md={8} sm={4}>
                 <br />
               </Column>
+              {noteBookData.protocol && (
+                <>
+                  <Column lg={8} md={8} sm={4}>
+                    <p style={{ margin: 0 }}>
+                      <strong>
+                        {intl.formatMessage({
+                          id: "notebook.label.protocol",
+                        })}
+                        :{" "}
+                      </strong>
+                      {noteBookData.protocol ||
+                        intl.formatMessage({ id: "not.available" })}
+                    </p>
+                  </Column>
+                  <Column lg={16} md={8} sm={4}>
+                    <br />
+                  </Column>
+                </>
+              )}
+              <Column lg={16} md={8} sm={4}>
+                <br />
+              </Column>
               <Column lg={16} md={8} sm={4}>
                 <p style={{ margin: 0 }}>
                   <strong>
@@ -865,6 +887,32 @@ const NoteBookInstanceEntryForm = () => {
               <Column lg={16} md={8} sm={4}>
                 <br />
               </Column>
+              {noteBookData.protocol && (
+                <>
+                  <Column lg={16} md={8} sm={4}>
+                    <h5>
+                      {intl.formatMessage({ id: "notebook.label.protocol" })}
+                    </h5>
+                  </Column>
+                  <Column lg={16} md={8} sm={4}>
+                    <Tile style={{ padding: "1.5rem" }}>
+                      <p
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          margin: 0,
+                          lineHeight: "1.5",
+                        }}
+                      >
+                        {noteBookData.protocol ||
+                          intl.formatMessage({ id: "not.available" })}
+                      </p>
+                    </Tile>
+                  </Column>
+                  <Column lg={16} md={8} sm={4}>
+                    <br />
+                  </Column>
+                </>
+              )}
               <Column lg={16} md={8} sm={4}>
                 <h5>
                   <FormattedMessage id="notebook.instruments.title" />
@@ -1564,7 +1612,10 @@ const NoteBookInstanceEntryForm = () => {
                     >
                       <p>{comment.text}</p>
                       <p style={{ fontSize: "0.875rem", color: "#525252" }}>
-                        {comment.author || "Unknown"} -{" "}
+                        {comment.author ||
+                          userSessionDetails.firstName +
+                            " " +
+                            userSessionDetails.lastName}
                         {comment.dateCreated
                           ? new Date(comment.dateCreated).toLocaleString()
                           : "Just now"}

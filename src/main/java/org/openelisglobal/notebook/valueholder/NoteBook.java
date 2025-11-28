@@ -88,7 +88,7 @@ public class NoteBook extends BaseObject<Integer> {
     private SystemUser technician;
 
     @OneToMany
-    @JoinTable(name = "notebook_samples", joinColumns = @JoinColumn(name = "notebook_id"), inverseJoinColumns = @JoinColumn(name = "sample_item_id"))
+    @JoinTable(name = "notebook_samples_list", joinColumns = @JoinColumn(name = "notebook_id"), inverseJoinColumns = @JoinColumn(name = "sample_item_id"))
     private List<SampleItem> samples;
 
     @OneToMany

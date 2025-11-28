@@ -815,6 +815,28 @@ const NoteBookEntryForm = () => {
                 </Select>
               </Column>
               <Column lg={8} md={8} sm={4}>
+                <TextInput
+                  id="protocol"
+                  labelText={intl.formatMessage({
+                    id: "notebook.label.protocol",
+                  })}
+                  placeholder={intl.formatMessage({
+                    id: "notebook.label.protocol",
+                  })}
+                  value={noteBookData.protocol || ""}
+                  type="text"
+                  onChange={(e) => {
+                    setNoteBookData({
+                      ...noteBookData,
+                      protocol: e.target.value,
+                    });
+                  }}
+                />
+              </Column>
+              <Column lg={16} md={8} sm={4}>
+                <br />
+              </Column>
+              <Column lg={8} md={8} sm={4}>
                 <Select
                   id="questionnaire"
                   name="questionnaire"
@@ -1269,7 +1291,10 @@ const NoteBookEntryForm = () => {
                     >
                       <p>{comment.text}</p>
                       <p style={{ fontSize: "0.875rem", color: "#525252" }}>
-                        {comment.author || "Unknown"} -{" "}
+                        {comment.author ||
+                          userSessionDetails.firstName +
+                            " " +
+                            userSessionDetails.lastName}
                         {comment.dateCreated
                           ? new Date(comment.dateCreated).toLocaleString()
                           : "Just now"}
