@@ -200,4 +200,44 @@ public class FreezerServiceTest extends BaseWebContextSensitiveTest {
         assertNotNull("Freezer should still exist (soft delete)", deletedFreezer);
         assertFalse("Freezer should be inactive after deletion", deletedFreezer.getActive());
     }
+
+    @Test
+    public void updateThresholds_shouldUpdateFreezerThresholds() {
+        Long freezerId = 100L;
+        BigDecimal targetTemp = new BigDecimal("-80.0");
+        BigDecimal warningThreshold = new BigDecimal("-75.0");
+        BigDecimal criticalThreshold = new BigDecimal("-70.0");
+        Integer pollingInterval = 120;
+
+        Freezer updated = freezerService.updateThresholds(freezerId, targetTemp, warningThreshold, criticalThreshold,
+                pollingInterval, "1");
+
+        assertNotNull("Updated freezer should not be null", updated);
+        assertEquals("Target temperature should match", targetTemp, updated.getTargetTemperature());
+        assertEquals("Warning threshold should match", warningThreshold, updated.getWarningThreshold());
+        assertEquals("Critical threshold should match", criticalThreshold, updated.getCriticalThreshold());
+        assertEquals("Polling interval should match", pollingInterval, updated.getPollingIntervalSeconds());
+    }
+
+    @Test
+    public void updateThresholds_shouldUpdateOnlyProvidedThresholds() {
+        Long freezerId = 100L;
+        BigDecimal targetTemp = new BigDecimal("-85.0");
+
+        Freezer updated = freezerService.updateThresholds(freezerId, targetTemp, null, null, null, "1");
+
+        assertNotNull("Updated freezer should not be null", updated);
+        assertEquals("Target temperature should be updated", targetTemp, updated.getTargetTemperature());
+    }
+
+    @Test
+    public void updateThresholds_shouldUpdatePollingIntervalOnly() {
+        Long freezerId = 100L;
+        Integer pollingInterval = 300;
+
+        Freezer updated = freezerService.updateThresholds(freezerId, null, null, null, pollingInterval, "1");
+
+        assertNotNull("Updated freezer should not be null", updated);
+        assertEquals("Polling interval should be updated", pollingInterval, updated.getPollingIntervalSeconds());
+    }
 }

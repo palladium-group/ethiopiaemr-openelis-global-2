@@ -318,6 +318,39 @@ export const updateDevice = async (id, deviceData) => {
   });
 };
 
+export const updateDeviceThresholds = async (
+  id,
+  targetTemperature,
+  warningThreshold,
+  criticalThreshold,
+  pollingIntervalSeconds,
+) => {
+  return new Promise((resolve, reject) => {
+    putToOpenElisServer(
+      `/rest/coldstorage/devices/${id}/thresholds`,
+      JSON.stringify({
+        targetTemperature,
+        warningThreshold,
+        criticalThreshold,
+        pollingIntervalSeconds,
+      }),
+      (status) => {
+        if (status >= 200 && status < 300) {
+          resolve({ success: true });
+        } else {
+          reject(
+            new Error(
+              `Failed to update thresholds: HTTP ${status}${
+                status === 404 ? " - Endpoint not found" : ""
+              }`,
+            ),
+          );
+        }
+      },
+    );
+  });
+};
+
 export const toggleDeviceStatus = async (id, active) => {
   return postColdStorageJson(`/rest/coldstorage/devices/${id}/toggle-status`, {
     active,
