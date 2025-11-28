@@ -607,6 +607,7 @@ export default function CorrectiveActions() {
       setForm((prev) => ({ ...prev, device: newDevice }));
 
       setIsDeviceModalOpen(false);
+      setIsAddModalOpen(true); // Reopen the Add Corrective Action modal
 
       notify({
         kind: NotificationKinds.success,
@@ -892,7 +893,10 @@ export default function CorrectiveActions() {
               />
               <div style={{ marginTop: "0.5rem" }}>
                 <Link
-                  onClick={() => setIsDeviceModalOpen(true)}
+                  onClick={() => {
+                    setIsAddModalOpen(false); // Close Add Corrective Action modal
+                    setIsDeviceModalOpen(true); // Open Add Device modal
+                  }}
                   style={{ cursor: "pointer", fontSize: "0.875rem" }}
                 >
                   {devices.length === 0
@@ -988,7 +992,10 @@ export default function CorrectiveActions() {
       {/* Add Device Modal */}
       <AddDeviceModal
         isOpen={isDeviceModalOpen}
-        onClose={() => setIsDeviceModalOpen(false)}
+        onClose={() => {
+          setIsDeviceModalOpen(false);
+          setIsAddModalOpen(true); // Reopen Add Corrective Action modal when canceling
+        }}
         onSubmit={handleCreateDevice}
         locations={locations}
         onAddRoom={handleAddRoom}

@@ -648,6 +648,7 @@ function FreezerMonitoringDashboard({ intl }) {
                                             colSpan={headers.length + 1}
                                           >
                                             <DeviceHistoryExpansion
+                                              key={unit.id || unit.freezerId}
                                               device={unit}
                                             />
                                           </TableExpandedRow>
