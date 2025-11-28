@@ -12,7 +12,6 @@ import org.jasypt.util.text.TextEncryptor;
 import org.mockito.Mockito;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.barcode.controller.PrintBarcodeController;
-import org.openelisglobal.coldstorage.service.SystemConfigService;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.services.RequesterService;
@@ -27,7 +26,6 @@ import org.openelisglobal.externalconnections.service.ExternalConnectionService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.notification.service.AnalysisNotificationConfigService;
 import org.openelisglobal.notification.service.TestNotificationConfigService;
-import org.openelisglobal.notification.service.TestNotificationServiceImpl;
 import org.openelisglobal.odoo.client.OdooClient;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.config.TestProductMapping;
@@ -36,7 +34,6 @@ import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
 import org.openelisglobal.result.controller.AnalyzerResultsController;
-import org.ozeki.sms.service.OzekiMessageOutService;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +47,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -91,8 +87,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "org.openelisglobal.projectorganization", "org.openelisglobal.sourceofsample",
         "org.openelisglobal.testconfiguration", "org.openelisglobal.usertestsection",
         "org.openelisglobal.testcalculated", "org.openelisglobal.odoo", "org.openelisglobal.ocl",
-        "org.openelisglobal.storage", "org.openelisglobal.coldstorage", "org.openelisglobal.alert",
-        "org.openelisglobal.notification" }, excludeFilters = {
+        "org.openelisglobal.storage" }, excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.patient.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.organization.controller.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.sample.controller.*"),
@@ -104,7 +99,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.fhir.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.*.fhir.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.odoo.config.OdooConnectionConfig"),
-                @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.coldstorage.controller.*"),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PrintBarcodeController.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WHONetReportServiceImpl.class) })
 @EnableWebMvc
@@ -236,18 +230,6 @@ public class AppTestConfig implements WebMvcConfigurer {
         return mock(Versioning.class);
     }
 
-    @Bean()
-    @Profile("test")
-    public SystemConfigService systemConfigService() {
-        return mock(SystemConfigService.class);
-    }
-
-    @Bean()
-    @Profile("test")
-    public TestNotificationServiceImpl testNotificationServiceImpl() {
-        return mock(TestNotificationServiceImpl.class);
-    }
-
     @Bean
     @Profile("test")
     public PasswordEncoder passwordEncoder() {
@@ -321,18 +303,6 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Bean()
     public AnalyzerResultsController analyzerResultsController() {
         return mock(AnalyzerResultsController.class);
-    }
-
-    @Bean()
-    @Profile("test")
-    public JavaMailSender javaMailSender() {
-        return mock(JavaMailSender.class);
-    }
-
-    @Bean()
-    @Profile("test")
-    public OzekiMessageOutService ozekiMessageOutService() {
-        return mock(OzekiMessageOutService.class);
     }
 
 }
