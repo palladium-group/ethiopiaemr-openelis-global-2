@@ -2,7 +2,6 @@ package org.openelisglobal.alert.service;
 
 import static org.junit.Assert.*;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.alert.valueholder.Alert;
@@ -18,11 +17,6 @@ public class AlertNotificationServiceTest extends BaseWebContextSensitiveTest {
 
     @Autowired
     private AlertService alertService;
-
-    @Before
-    public void setUp() throws Exception {
-        executeDataSetWithStateManagement("testdata/alert_notification.xml");
-    }
 
     @Test
     public void testHandleAlertCreated_WithFreezerTemperatureAlert_ProcessesSuccessfully() {

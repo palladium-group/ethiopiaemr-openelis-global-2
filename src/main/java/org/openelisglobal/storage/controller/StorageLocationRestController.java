@@ -311,7 +311,11 @@ public class StorageLocationRestController extends BaseRestController {
 
             if (shouldEnableMonitoring(device)) {
                 try {
-                    createFreezerMonitoringStub(device, getSysUserId(request));
+                    String sysUserId = getSysUserId(request);
+                    if (sysUserId == null) {
+                        sysUserId = "1"; // Default system user for tests/REST API without session
+                    }
+                    createFreezerMonitoringStub(device, sysUserId);
                 } catch (Exception e) {
                     logger.warn("Failed to auto-create freezer monitoring stub for device {}: {}", device.getName(),
                             e.getMessage());

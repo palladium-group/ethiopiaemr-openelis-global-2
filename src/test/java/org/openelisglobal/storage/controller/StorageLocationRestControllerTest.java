@@ -76,6 +76,8 @@ public class StorageLocationRestControllerTest extends BaseWebContextSensitiveTe
             jdbcTemplate.execute("DELETE FROM storage_position WHERE id::integer >= 1000 OR coordinate LIKE 'TEST-%'");
             jdbcTemplate.execute("DELETE FROM storage_rack WHERE id::integer >= 1000 OR label LIKE 'TEST-%'");
             jdbcTemplate.execute("DELETE FROM storage_shelf WHERE id::integer >= 1000 OR label LIKE 'TEST-%'");
+            // Clean up freezer monitoring stubs before devices (foreign key constraint)
+            jdbcTemplate.execute("DELETE FROM freezer WHERE id >= 1000 OR name LIKE 'Auto-Monitored%'");
             jdbcTemplate.execute("DELETE FROM storage_device WHERE id::integer >= 1000 OR code LIKE 'TEST-%'");
             jdbcTemplate.execute("DELETE FROM storage_room WHERE id::integer >= 1000 OR code LIKE 'TEST-%'");
         } catch (Exception e) {
