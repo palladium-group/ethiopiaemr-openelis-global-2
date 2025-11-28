@@ -103,7 +103,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.*.fhir.*"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.odoo.config.OdooConnectionConfig"),
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.coldstorage.controller.*"),
-                @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.openelisglobal.coldstorage.service.impl.FreezerAlertServiceImpl"),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PrintBarcodeController.class),
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WHONetReportServiceImpl.class) })
 @EnableWebMvc
