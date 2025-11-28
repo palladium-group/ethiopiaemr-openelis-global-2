@@ -276,6 +276,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setTechnicianId(Integer.valueOf(noteBook.getTechnician().getId()));
             fullDisplayBean.setIsTemplate(noteBook.getIsTemplate());
             fullDisplayBean.setEntriesCount(noteBook.getEntries().size());
+            fullDisplayBean.setQuestionnaireFhirUuid(noteBook.getQuestionnaireFhirUuid());
 
             List<SampleDisplayBean> sampleDisplayBeans = new ArrayList<>();
 
@@ -338,6 +339,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         if (form.getStatus() != null) {
             noteBook.setStatus(form.getStatus());
         }
+
         if (form.getQuestionnaireFhirUuid() != null) {
             noteBook.setQuestionnaireFhirUuid(form.getQuestionnaireFhirUuid());
         }

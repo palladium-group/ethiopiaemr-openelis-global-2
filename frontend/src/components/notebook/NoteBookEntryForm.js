@@ -177,6 +177,12 @@ const NoteBookEntryForm = () => {
       Number(entry.id),
     );
     noteBookForm.tags = noteBookData.tags;
+    // Convert empty string to null for questionnaireFhirUuid (Jackson expects null or valid UUID string)
+    noteBookForm.questionnaireFhirUuid =
+      noteBookData.questionnaireFhirUuid &&
+      noteBookData.questionnaireFhirUuid.trim() !== ""
+        ? noteBookData.questionnaireFhirUuid
+        : null;
     // Send only new comments (those without id) with just text
     noteBookForm.comments = comments
       .filter((c) => c.id === null)

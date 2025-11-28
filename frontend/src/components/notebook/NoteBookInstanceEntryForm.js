@@ -117,6 +117,7 @@ const NoteBookInstanceEntryForm = () => {
   const [results, setResults] = useState({ testResult: [] });
   const [resultsLoading, setResultsLoading] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
+  const [questionnaires, setQuestionnaires] = useState([]);
 
   const handleSubmit = () => {
     if (isSubmitting) {
@@ -458,6 +459,7 @@ const NoteBookInstanceEntryForm = () => {
     getFromOpenElisServer("/rest/users", setTechnicianUsers);
     getFromOpenElisServer("/rest/panels", setAllPanels);
     getFromOpenElisServer("/rest/user-sample-types", setSampleTypes);
+    getFromOpenElisServer("/rest/notebook/questionnaires", setQuestionnaires);
     return () => {
       componentMounted.current = false;
     };
@@ -729,6 +731,31 @@ const NoteBookInstanceEntryForm = () => {
                       </strong>
                       {noteBookData.protocol ||
                         intl.formatMessage({ id: "not.available" })}
+                    </p>
+                  </Column>
+                  <Column lg={16} md={8} sm={4}>
+                    <br />
+                  </Column>
+                </>
+              )}
+              {noteBookData.questionnaireFhirUuid && (
+                <>
+                  <Column lg={8} md={8} sm={4}>
+                    <p style={{ margin: 0 }}>
+                      <strong>
+                        {intl.formatMessage({
+                          id: "notebook.label.questionnaire",
+                        })}
+                        :{" "}
+                      </strong>
+                      {(() => {
+                        const questionnaire = questionnaires.find(
+                          (q) => q.id === noteBookData.questionnaireFhirUuid,
+                        );
+                        return questionnaire
+                          ? questionnaire.value
+                          : noteBookData.questionnaireFhirUuid;
+                      })()}
                     </p>
                   </Column>
                   <Column lg={16} md={8} sm={4}>
