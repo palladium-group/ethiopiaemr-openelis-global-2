@@ -101,7 +101,7 @@ public class StorageLocationRestController extends BaseRestController {
             Map<String, Object> response = entityToMap(createdRoom);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error creating room: " + e.getMessage(), e);
+            logger.warn("Validation error creating room: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -169,7 +169,7 @@ public class StorageLocationRestController extends BaseRestController {
             }
             return ResponseEntity.ok(entityToMap(updatedRoom));
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error updating room: " + e.getMessage(), e);
+            logger.warn("Validation error updating room: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -264,7 +264,8 @@ public class StorageLocationRestController extends BaseRestController {
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error deleting room: " + e.getMessage(), e);
+            logger.warn("Constraint violation deleting room: {}", e.getMessage());
+            // Conflict if room has constraints (checked in service layer)
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Cannot delete room");
             error.put("message", e.getMessage());
@@ -331,7 +332,7 @@ public class StorageLocationRestController extends BaseRestController {
             error.put("error", "Database constraint violation: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error creating device: " + e.getMessage(), e);
+            logger.warn("Validation error creating device: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -419,7 +420,7 @@ public class StorageLocationRestController extends BaseRestController {
 
             return ResponseEntity.ok(entityToMap(updatedDevice));
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error updating device: " + e.getMessage(), e);
+            logger.warn("Validation error updating device: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -511,7 +512,7 @@ public class StorageLocationRestController extends BaseRestController {
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error deleting device: " + e.getMessage(), e);
+            logger.warn("Constraint violation deleting device: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Cannot delete device");
             error.put("message", e.getMessage());
@@ -620,7 +621,7 @@ public class StorageLocationRestController extends BaseRestController {
             StorageShelf updatedShelf = (StorageShelf) storageLocationService.get(idInt, StorageShelf.class);
             return ResponseEntity.ok(entityToMap(updatedShelf));
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error updating shelf: " + e.getMessage(), e);
+            logger.warn("Validation error updating shelf: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -712,7 +713,7 @@ public class StorageLocationRestController extends BaseRestController {
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error deleting shelf: " + e.getMessage(), e);
+            logger.warn("Constraint violation deleting shelf: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Cannot delete shelf");
             error.put("message", e.getMessage());
@@ -825,7 +826,7 @@ public class StorageLocationRestController extends BaseRestController {
             StorageRack updatedRack = (StorageRack) storageLocationService.get(idInt, StorageRack.class);
             return ResponseEntity.ok(entityToMap(updatedRack));
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error updating rack: " + e.getMessage(), e);
+            logger.warn("Validation error updating rack: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -918,7 +919,7 @@ public class StorageLocationRestController extends BaseRestController {
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } catch (org.openelisglobal.common.exception.LIMSRuntimeException e) {
-            logger.error("Error deleting rack: " + e.getMessage(), e);
+            logger.warn("Constraint violation deleting rack: {}", e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Cannot delete rack");
             error.put("message", e.getMessage());
