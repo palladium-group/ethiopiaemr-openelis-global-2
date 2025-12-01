@@ -23,6 +23,8 @@ public class ThresholdProfileServiceTest extends BaseWebContextSensitiveTest {
 
     @Before
     public void setup() throws Exception {
+        // Load user data first (required for created_by foreign key)
+        executeDataSetWithStateManagement("testdata/user-role.xml");
         executeDataSetWithStateManagement("testdata/threshold_profile.xml");
     }
 
@@ -88,7 +90,7 @@ public class ThresholdProfileServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void assignProfile_shouldAssignProfileToFreezer() {
         Long freezerId = 100L;
-        Long profileId = 101L; // Standard Freezer Profile
+        Long profileId = 101L;
         OffsetDateTime effectiveStart = OffsetDateTime.now();
         OffsetDateTime effectiveEnd = null;
         boolean isDefault = true;
@@ -106,7 +108,7 @@ public class ThresholdProfileServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void assignProfile_shouldAssignProfileWithEffectiveDates() {
         Long freezerId = 101L;
-        Long profileId = 100L; // Ultra-Low Freezer Profile
+        Long profileId = 100L;
         OffsetDateTime effectiveStart = OffsetDateTime.now();
         OffsetDateTime effectiveEnd = OffsetDateTime.now().plusMonths(6);
         boolean isDefault = false;

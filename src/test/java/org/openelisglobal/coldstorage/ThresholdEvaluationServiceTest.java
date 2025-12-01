@@ -25,6 +25,8 @@ public class ThresholdEvaluationServiceTest extends BaseWebContextSensitiveTest 
 
     @Before
     public void setup() throws Exception {
+        // Load user data first (required for created_by foreign key)
+        executeDataSetWithStateManagement("testdata/user-role.xml");
         executeDataSetWithStateManagement("testdata/threshold_evaluation.xml");
     }
 
