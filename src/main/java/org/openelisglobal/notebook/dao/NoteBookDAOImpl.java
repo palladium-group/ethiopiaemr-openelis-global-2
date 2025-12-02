@@ -25,7 +25,7 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
             Date fromDate, Date toDate) {
 
         StringBuilder hql = new StringBuilder("select distinct nb from NoteBook nb ");
-        hql.append("left join nb.tags t where 1=1 ");
+        hql.append("left join nb.tags t where nb.isTemplate = true ");
 
         if (statuses != null && !statuses.isEmpty()) {
             hql.append("and nb.status in (:statuses) ");
@@ -161,5 +161,14 @@ public class NoteBookDAOImpl extends BaseDAOImpl<NoteBook, Integer> implements N
     @Override
     public String getTableName() {
         return "notebook";
+    }
+
+    @Override
+    public NoteBook findParentTemplate(Integer entryId) {
+        String hql = "select nb from NoteBook nb join nb.entries e where e.id = :entryId and nb.isTemplate = true";
+        Query<NoteBook> query = entityManager.unwrap(Session.class).createQuery(hql, NoteBook.class);
+        query.setParameter("entryId", entryId);
+        List<NoteBook> results = query.list();
+        return results.isEmpty() ? null : results.get(0);
     }
 }

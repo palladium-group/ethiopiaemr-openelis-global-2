@@ -185,6 +185,14 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         Hibernate.initialize(noteBook.getSamples());
         Hibernate.initialize(noteBook.getAnalysers());
         Hibernate.initialize(noteBook.getPages());
+        // Initialize panels and tests for each page (panels is LAZY to avoid
+        // MultipleBagFetchException)
+        if (noteBook.getPages() != null) {
+            for (NoteBookPage page : noteBook.getPages()) {
+                Hibernate.initialize(page.getPanels());
+                Hibernate.initialize(page.getTests());
+            }
+        }
         Hibernate.initialize(noteBook.getFiles());
         Hibernate.initialize(noteBook.getComments());
         Hibernate.initialize(noteBook.getEntries());
@@ -205,7 +213,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             displayBean.setId(noteBook.getId());
             displayBean.setTitle(noteBook.getTitle());
             displayBean.setTags(noteBook.getTags());
-
+            displayBean.setTechnicianId(Integer.valueOf(noteBook.getTechnician().getId()));
             // Handle type - it's now a Dictionary entity
             if (noteBook.getType() != null) {
                 displayBean.setType(Integer.valueOf(noteBook.getType().getId()));
@@ -230,6 +238,14 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             Hibernate.initialize(noteBook.getAnalysers());
             Hibernate.initialize(noteBook.getSamples());
             Hibernate.initialize(noteBook.getPages());
+            // Initialize panels and tests for each page (panels is LAZY to avoid
+            // MultipleBagFetchException)
+            if (noteBook.getPages() != null) {
+                for (NoteBookPage page : noteBook.getPages()) {
+                    Hibernate.initialize(page.getPanels());
+                    Hibernate.initialize(page.getTests());
+                }
+            }
             Hibernate.initialize(noteBook.getFiles());
             Hibernate.initialize(noteBook.getComments());
             Hibernate.initialize(noteBook.getTags());
@@ -246,7 +262,6 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             fullDisplayBean.setContent(noteBook.getContent());
             fullDisplayBean.setObjective(noteBook.getObjective());
             fullDisplayBean.setProtocol(noteBook.getProtocol());
-            fullDisplayBean.setProject(noteBook.getProject());
             List<IdValuePair> analyzers = noteBook.getAnalysers().stream()
                     .map(analyzer -> new IdValuePair(analyzer.getId(), analyzer.getName())).toList();
             fullDisplayBean.setAnalyzers(analyzers);
@@ -258,9 +273,20 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             }
             fullDisplayBean.setComments(noteBook.getComments());
             fullDisplayBean.setTechnicianName(noteBook.getTechnician().getDisplayName());
+            fullDisplayBean.setCreatorName(noteBook.getCreator().getDisplayName());
             fullDisplayBean.setTechnicianId(Integer.valueOf(noteBook.getTechnician().getId()));
             fullDisplayBean.setIsTemplate(noteBook.getIsTemplate());
             fullDisplayBean.setEntriesCount(noteBook.getEntries().size());
+            fullDisplayBean.setQuestionnaireFhirUuid(noteBook.getQuestionnaireFhirUuid());
+
+            // If this is an instance (isTemplate=false), find and set the parent template
+            // ID
+            if (noteBook.getIsTemplate() != null && !noteBook.getIsTemplate()) {
+                NoteBook parentTemplate = baseObjectDAO.findParentTemplate(noteBook.getId());
+                if (parentTemplate != null) {
+                    fullDisplayBean.setTemplateId(parentTemplate.getId());
+                }
+            }
 
             List<SampleDisplayBean> sampleDisplayBeans = new ArrayList<>();
 
@@ -274,15 +300,25 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         return fullDisplayBean;
     }
 
-    private SampleDisplayBean convertSampleToDisplayBean(SampleItem sampleItem) {
+    @Override
+    public SampleDisplayBean convertSampleToDisplayBean(SampleItem sampleItem) {
         SampleDisplayBean sampleDisplayBean = new SampleDisplayBean();
         sampleDisplayBean.setId(Integer.valueOf(sampleItem.getId()));
+        sampleDisplayBean.setSampleItemId(sampleItem.getId()); // Store SampleItem ID
         sampleDisplayBean
                 .setSampleType(typeOfSampleService.getNameForTypeOfSampleId(sampleItem.getTypeOfSample().getId()));
         sampleDisplayBean.setCollectionDate(DateUtil.convertTimestampToStringDate(sampleItem.getLastupdated()));
         sampleDisplayBean.setVoided(sampleItem.isVoided());
         sampleDisplayBean.setVoidReason(sampleItem.getVoidReason());
         sampleDisplayBean.setExternalId(sampleItem.getExternalId());
+
+        // Get accession number from parent Sample
+        if (sampleItem.getSample() != null) {
+            Sample sample = (Sample) sampleItem.getSample();
+            sampleDisplayBean.setAccessionNumber(sample.getAccessionNumber());
+            sampleDisplayBean.setSampleStatus(sample.getStatus());
+        }
+
         List<Analysis> analyses = analysisService.getAnalysesBySampleItem(sampleItem);
         List<ResultDisplayBean> resultsDisplayBeans = new ArrayList<>();
         for (Analysis analysis : analyses) {
@@ -290,7 +326,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             for (Result result : results) {
                 ResultDisplayBean resultDisplayBean = new ResultDisplayBean();
                 resultDisplayBean.setResult(resultService.getResultValue(result, true));
-                resultDisplayBean.setTest(result.getTestResult().getTest().getLocalizedName());
+                resultDisplayBean.setTest(analysis.getTest().getLocalizedName());
                 resultDisplayBean.setDateCreated(DateUtil.convertTimestampToStringDate(result.getLastupdated()));
                 resultsDisplayBeans.add(resultDisplayBean);
             }
@@ -319,23 +355,33 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
         if (!GenericValidator.isBlankOrNull(form.getProtocol())) {
             noteBook.setProtocol(form.getProtocol());
         }
-        if (!GenericValidator.isBlankOrNull(form.getProject())) {
-            noteBook.setProject(form.getProject());
-        }
         noteBook.setIsTemplate(form.getIsTemplate());
         if (form.getStatus() != null) {
             noteBook.setStatus(form.getStatus());
         }
+
+        if (form.getQuestionnaireFhirUuid() != null) {
+            noteBook.setQuestionnaireFhirUuid(form.getQuestionnaireFhirUuid());
+        }
         // Set sysUserId for audit trail tracking
         if (form.getSystemUserId() != null) {
             noteBook.setSysUserId(form.getSystemUserId().toString());
+            noteBook.setCreator(systemUserService.get(form.getSystemUserId().toString()));
         }
         if (noteBook.getId() == null) {
             noteBook.setDateCreated(new Date());
-            noteBook.setTechnician(systemUserService.get(form.getSystemUserId().toString()));
+            // Only set technician from systemUserId if technicianId is not provided in form
+            if (form.getTechnicianId() != null) {
+                noteBook.setTechnician(systemUserService.get(form.getTechnicianId().toString()));
+            } else if (form.getSystemUserId() != null) {
+                noteBook.setTechnician(systemUserService.get(form.getSystemUserId().toString()));
+            }
         } else {
             noteBook.setDateCreated(noteBook.getDateCreated());
-            noteBook.setTechnician(systemUserService.get(form.getTechnicianId().toString()));
+            // Only update technician if provided in form, otherwise keep existing
+            if (form.getTechnicianId() != null) {
+                noteBook.setTechnician(systemUserService.get(form.getTechnicianId().toString()));
+            }
         }
 
         noteBook.getAnalysers().clear();
