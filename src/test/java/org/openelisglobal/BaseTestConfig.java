@@ -67,6 +67,7 @@ public class BaseTestConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         if (emf == null) {
             emf = new LocalContainerEntityManagerFactoryBean();
+            emf.setDataSource(dataSource);
             emf.setPersistenceXmlLocation("classpath:persistence/test-persistence.xml");
         }
         return emf;
