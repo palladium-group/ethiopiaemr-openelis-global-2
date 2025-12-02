@@ -871,6 +871,7 @@
   "notebook.label.projectFiles": "Project Files",
   "notebook.label.entryFiles": "Entry Files",
   "notebook.label.technician": "Technician",
+  "notebook.error.notAssigned": "You are not assigned to this project",
   "notebook.validation.title.required": "Title is required.",
   "notebook.validation.type.required": "Experiment Type is required.",
   "notebook.validation.project.required": "Project is required.",

@@ -213,7 +213,7 @@ public class NoteBookServiceImpl extends AuditableBaseObjectServiceImpl<NoteBook
             displayBean.setId(noteBook.getId());
             displayBean.setTitle(noteBook.getTitle());
             displayBean.setTags(noteBook.getTags());
-
+            displayBean.setTechnicianId(Integer.valueOf(noteBook.getTechnician().getId()));
             // Handle type - it's now a Dictionary entity
             if (noteBook.getType() != null) {
                 displayBean.setType(Integer.valueOf(noteBook.getType().getId()));

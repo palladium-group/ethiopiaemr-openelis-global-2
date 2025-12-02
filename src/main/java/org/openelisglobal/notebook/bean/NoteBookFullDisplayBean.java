@@ -16,7 +16,6 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
     private List<NoteBookFile> files;
     private List<NoteBookComment> comments;
     private List<SampleDisplayBean> samples;
-    private Integer technicianId;
     private String technicianName;
     private String creatorName;
     private Integer templateId; // Parent template ID (for instances only)
@@ -59,14 +58,6 @@ public class NoteBookFullDisplayBean extends NoteBookDisplayBean {
 
     public void setFiles(List<NoteBookFile> files) {
         this.files = files;
-    }
-
-    public Integer getTechnicianId() {
-        return technicianId;
-    }
-
-    public void setTechnicianId(Integer technicianId) {
-        this.technicianId = technicianId;
     }
 
     public List<SampleDisplayBean> getSamples() {

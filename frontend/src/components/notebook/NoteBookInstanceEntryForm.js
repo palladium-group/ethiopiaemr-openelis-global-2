@@ -78,6 +78,7 @@ const NoteBookInstanceEntryForm = () => {
   const MODES = Object.freeze({
     CREATE: "CREATE",
     EDIT: "EDIT",
+    VIEW: "VIEW",
   });
 
   const TABS = Object.freeze({
@@ -93,6 +94,11 @@ const NoteBookInstanceEntryForm = () => {
   const [mode, setMode] = useState(MODES.CREATE);
   const { notebookid } = useParams();
   const { notebookentryid } = useParams();
+
+  // Get mode from query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewModeParam = urlParams.get("mode"); // 'view' or 'edit'
+  const isViewMode = mode === MODES.VIEW; // Helper for read-only checks
 
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
@@ -499,14 +505,19 @@ const NoteBookInstanceEntryForm = () => {
     if (!notebookentryid) {
       setMode(MODES.CREATE);
     } else {
-      setMode(MODES.EDIT);
+      // Set mode based on query parameter
+      if (viewModeParam === "view") {
+        setMode(MODES.VIEW);
+      } else {
+        setMode(MODES.EDIT);
+      }
       setLoading(true);
       getFromOpenElisServer(
         "/rest/notebook/view/" + notebookentryid,
         loadInitialData,
       );
     }
-  }, [notebookentryid]);
+  }, [notebookentryid, viewModeParam]);
 
   useEffect(() => {
     if (notebookid) {
@@ -539,9 +550,36 @@ const NoteBookInstanceEntryForm = () => {
     }
   }, [noteBookData?.samples]);
 
+  // Check if user is authorized to access this notebook
+  const checkAuthorization = (technicianId) => {
+    if (technicianId && userSessionDetails.userId != technicianId) {
+      addNotification({
+        kind: NotificationKinds.error,
+        title: intl.formatMessage({ id: "notification.title" }),
+        message: intl.formatMessage({
+          id: "notebook.error.notAssigned",
+          defaultMessage: "You are not assigned to this project",
+        }),
+      });
+      setNotificationVisible(true);
+      // Redirect back to dashboard
+      setTimeout(() => {
+        window.location.href = "/NoteBookDashboard";
+      }, 100);
+      return false;
+    }
+    return true;
+  };
+
   const loadInitialProjectData = (data) => {
     if (componentMounted.current) {
       if (data && data.id) {
+        // Check authorization
+        if (!checkAuthorization(data.technicianId)) {
+          setLoading(false);
+          return;
+        }
+
         // Store project (template) tags and files separately for display only
         setProjectTags(data.tags || []);
         setProjectFiles(data.files || []);
@@ -569,6 +607,12 @@ const NoteBookInstanceEntryForm = () => {
   const loadInitialData = (data) => {
     if (componentMounted.current) {
       if (data && data.id) {
+        // Check authorization
+        if (!checkAuthorization(data.technicianId)) {
+          setLoading(false);
+          return;
+        }
+
         // If this is an instance (isTemplate=false) and we have templateId from backend,
         // fetch the latest parent template properties to ensure we always display the most up-to-date template data
         if (data.isTemplate === false && data.templateId) {
@@ -1252,7 +1296,12 @@ const NoteBookInstanceEntryForm = () => {
                 </h5>
               </Column>
               <Column lg={8} md={8} sm={4}>
-                <Button onClick={openTagModal} kind="primary" size="sm">
+                <Button
+                  onClick={openTagModal}
+                  kind="primary"
+                  size="sm"
+                  disabled={isViewMode}
+                >
                   <Add />
                   <FormattedMessage id="notebook.tags.add" />
                 </Button>
@@ -1409,7 +1458,7 @@ const NoteBookInstanceEntryForm = () => {
                         <Column lg={16} md={8} sm={4}>
                           <Button
                             kind="primary"
-                            disabled={isSampleAdded(sample)}
+                            disabled={isViewMode || isSampleAdded(sample)}
                             size="sm"
                             onClick={() => handleAddSample(sample)}
                           >
@@ -1676,14 +1725,16 @@ const NoteBookInstanceEntryForm = () => {
                 </h5>
               </Column>
               <Column lg={16} md={8} sm={4}>
-                <FileUploaderDropContainer
-                  labelText={intl.formatMessage({
-                    id: "notebook.attachments.uploadPrompt",
-                  })}
-                  multiple
-                  onAddFiles={handleAddFiles}
-                  accept={[".pdf", ".png", ".jpg", ".txt"]}
-                />
+                {!isViewMode && (
+                  <FileUploaderDropContainer
+                    labelText={intl.formatMessage({
+                      id: "notebook.attachments.uploadPrompt",
+                    })}
+                    multiple
+                    onAddFiles={handleAddFiles}
+                    accept={[".pdf", ".png", ".jpg", ".txt"]}
+                  />
+                )}
                 {uploadedFiles.map((fileObj, index) => (
                   <FileUploaderItem
                     key={index}
@@ -1934,6 +1985,7 @@ const NoteBookInstanceEntryForm = () => {
                                 iconDescription={intl.formatMessage({
                                   id: "notebook.page.markComplete",
                                 })}
+                                disabled={isViewMode}
                               />
                             ) : (
                               <Tag
@@ -1986,6 +2038,7 @@ const NoteBookInstanceEntryForm = () => {
                   iconDescription={intl.formatMessage({
                     id: "notebook.comments.add.button",
                   })}
+                  disabled={isViewMode}
                 />
               </Column>
               <Column lg={16} md={8} sm={4}>
@@ -2241,7 +2294,7 @@ const NoteBookInstanceEntryForm = () => {
                     status: event.target.value,
                   });
                 }}
-                disabled={noteBookData.status === "ARCHIVED"}
+                disabled={isViewMode}
               >
                 <SelectItem />
                 {statuses.map((status, index) => {
@@ -2277,7 +2330,7 @@ const NoteBookInstanceEntryForm = () => {
             <Column lg={8} md={8} sm={4}>
               <Button
                 kind="primary"
-                disabled={isSubmitting || noteBookData.status === "ARCHIVED"}
+                disabled={isSubmitting || isViewMode}
                 onClick={() => handleSubmit()}
               >
                 <FormattedMessage id="label.button.save" />

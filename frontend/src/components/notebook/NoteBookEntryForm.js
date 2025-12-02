@@ -1836,9 +1836,7 @@ const NoteBookEntryForm = () => {
               <Button
                 kind="primary"
                 disabled={
-                  isSubmitting ||
-                  noteBookData.status === "ARCHIVED" ||
-                  (mode === MODES.CREATE && !isFormValid())
+                  isSubmitting || (mode === MODES.CREATE && !isFormValid())
                 }
                 onClick={() => handleSubmit()}
               >
