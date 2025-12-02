@@ -666,137 +666,127 @@ function FreezerMonitoringDashboard({ intl }) {
                       <Column lg={16} md={8} sm={4}>
                         <Section style={{ marginTop: "2rem" }}>
                           <Heading style={{ marginBottom: "1rem" }}>
-                            Active Alerts
+                            Active Alerts ({activeAlerts.length})
                           </Heading>
 
                           {activeAlerts.length > 0 ? (
-                            <Grid
-                              condensed
-                              className="oe-coldStorage-alerts-grid"
-                            >
-                              {activeAlerts.map((alert) => (
-                                <Column lg={8} md={8} sm={4} key={alert.id}>
-                                  <Tile
-                                    className="oe-coldStorage-alertCard"
-                                    style={{
-                                      padding: "1.5rem",
-                                      marginBottom: "1rem",
-                                      cursor: "pointer",
-                                      borderLeft:
-                                        alert.severity === "CRITICAL"
-                                          ? "4px solid #da1e28"
-                                          : "4px solid #f1c21b",
-                                    }}
-                                    onClick={() =>
-                                      handleAlertRowClick(alert.id)
+                            <DataTable
+                              rows={activeAlerts.map((alert) => ({
+                                id: alert.id.toString(),
+                                severity: (
+                                  <Tag
+                                    type={
+                                      alert.severity === "CRITICAL"
+                                        ? "red"
+                                        : "warm-gray"
                                     }
                                   >
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        marginBottom: "1rem",
-                                      }}
-                                    >
-                                      <Tag
-                                        type={
-                                          alert.severity === "CRITICAL"
-                                            ? "red"
-                                            : "warm-gray"
-                                        }
-                                      >
-                                        {alert.severity}
-                                      </Tag>
-                                      <span
-                                        style={{
-                                          fontSize: "0.875rem",
-                                          color: "#525252",
-                                        }}
-                                      >
-                                        {formatDateTime(alert.startedAt)}
-                                      </span>
-                                    </div>
-
-                                    <p
-                                      style={{
-                                        fontSize: "1rem",
-                                        fontWeight: "600",
-                                        marginBottom: "0.5rem",
-                                      }}
-                                    >
-                                      {alert.unitName}
-                                    </p>
-
-                                    <p
-                                      style={{
-                                        fontSize: "0.875rem",
-                                        color: "#525252",
-                                        marginBottom: "0.5rem",
-                                      }}
-                                    >
-                                      {alert.location}
-                                    </p>
-
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        marginTop: "1rem",
-                                      }}
-                                    >
-                                      <div>
-                                        <span
-                                          style={{
-                                            fontSize: "1.25rem",
-                                            fontWeight: "600",
-                                            color:
-                                              alert.severity === "CRITICAL"
-                                                ? "#da1e28"
-                                                : "#f1c21b",
-                                          }}
-                                        >
-                                          {formatTemperatureDisplay(
-                                            alert.currentTemp,
-                                          )}
-                                        </span>
-                                        {alert.durationMinutes && (
-                                          <span
-                                            style={{
-                                              fontSize: "0.875rem",
-                                              color: "#525252",
-                                              marginLeft: "1rem",
-                                            }}
+                                    {alert.severity}
+                                  </Tag>
+                                ),
+                                device: alert.unitName,
+                                location: alert.location,
+                                temperature: formatTemperatureDisplay(
+                                  alert.currentTemp,
+                                ),
+                                duration: alert.durationMinutes
+                                  ? `${alert.durationMinutes} min`
+                                  : "—",
+                                startedAt: formatDateTime(alert.startedAt),
+                                status: alert.status,
+                                _alert: alert,
+                              }))}
+                              headers={[
+                                { key: "severity", header: "Severity" },
+                                { key: "device", header: "Device" },
+                                { key: "location", header: "Location" },
+                                { key: "temperature", header: "Temperature" },
+                                { key: "duration", header: "Duration" },
+                                { key: "startedAt", header: "Started" },
+                              ]}
+                              size="sm"
+                            >
+                              {({
+                                rows,
+                                headers,
+                                getHeaderProps,
+                                getRowProps,
+                                getTableProps,
+                                getTableContainerProps,
+                              }) => (
+                                <TableContainer
+                                  {...getTableContainerProps()}
+                                  style={{ maxHeight: "400px" }}
+                                >
+                                  <Table
+                                    {...getTableProps()}
+                                    size="sm"
+                                    useZebraStyles
+                                  >
+                                    <TableHead>
+                                      <TableRow>
+                                        {headers.map((header) => (
+                                          <TableHeader
+                                            key={header.key}
+                                            {...getHeaderProps({ header })}
                                           >
-                                            Duration: {alert.durationMinutes}{" "}
-                                            min
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      {alert.status === "OPEN" && (
-                                        <Button
-                                          kind="ghost"
-                                          size="sm"
-                                          disabled={actionInFlight === alert.id}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAcknowledgeAlert(alert.id);
-                                          }}
-                                        >
-                                          Acknowledge
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </Tile>
-                                </Column>
-                              ))}
-                            </Grid>
+                                            {header.header}
+                                          </TableHeader>
+                                        ))}
+                                        <TableHeader>Actions</TableHeader>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {rows.map((row) => {
+                                        const alert = activeAlerts.find(
+                                          (a) => a.id.toString() === row.id,
+                                        );
+                                        return (
+                                          <TableRow
+                                            key={row.id}
+                                            {...getRowProps({ row })}
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() =>
+                                              handleAlertRowClick(alert.id)
+                                            }
+                                          >
+                                            {row.cells.map((cell) => (
+                                              <TableCell key={cell.id}>
+                                                {cell.value}
+                                              </TableCell>
+                                            ))}
+                                            <TableCell>
+                                              {alert.status === "OPEN" && (
+                                                <Button
+                                                  kind="ghost"
+                                                  size="sm"
+                                                  disabled={
+                                                    actionInFlight === alert.id
+                                                  }
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAcknowledgeAlert(
+                                                      alert.id,
+                                                    );
+                                                  }}
+                                                >
+                                                  Acknowledge
+                                                </Button>
+                                              )}
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              )}
+                            </DataTable>
                           ) : (
                             <Tile
-                              style={{ padding: "2rem", textAlign: "center" }}
+                              style={{ padding: "1rem", textAlign: "center" }}
                             >
-                              <p>No active alerts</p>
+                              <p style={{ margin: 0 }}>No active alerts</p>
                             </Tile>
                           )}
                         </Section>

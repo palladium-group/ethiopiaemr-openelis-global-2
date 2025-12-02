@@ -179,7 +179,7 @@ export default function CorrectiveActions() {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [timeFilter, setTimeFilter] = useState(TIME_FILTERS[0]); // Default: Last 24 Hours
+  const [timeFilter, setTimeFilter] = useState(TIME_FILTERS[4]); // Default: All
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
