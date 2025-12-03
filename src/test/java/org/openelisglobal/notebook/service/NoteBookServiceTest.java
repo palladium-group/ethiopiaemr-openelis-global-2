@@ -409,10 +409,14 @@ public class NoteBookServiceTest extends BaseWebContextSensitiveTest {
 
         NoteBookForm form = new NoteBookForm();
         form.setTitle("Updated Notebook Title");
+        form.setTechnicianId(1);
         form.setType(101);
-        form.setProject("Updated Project");
         form.setObjective("Updated Objective");
         form.setProtocol("Updated Protocol");
 
+        noteBookService.updateWithFormValues(2, form);
+        NoteBook updated = noteBookService.get(2);
+        assertEquals("Updated Notebook Title", updated.getTitle());
+        assertEquals("Updated Objective", updated.getObjective());
     }
 }
