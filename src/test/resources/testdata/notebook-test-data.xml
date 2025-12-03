@@ -36,49 +36,42 @@
     <!-- Notebook Test Fixtures -->
     <!-- Notebook 1: Template notebook -->
     <notebook id="1" title="Test Template Notebook" type="100"
-        project="Test Project" objective="Test Objective"
         protocol="Test Protocol" content="Template content" status="DRAFT"
         is_template="true" technician_id="1"
         date_created="2025-01-01 10:00:00" last_updated="2025-01-01 10:00:00" />
 
     <!-- Notebook 2: Active entry notebook (linked to template 1) -->
     <notebook id="2" title="Test Entry Notebook 1" type="100"
-        project="Test Project Entry" objective="Entry Objective 1"
         protocol="Entry Protocol 1" content="Entry content 1" status="DRAFT"
         is_template="false" technician_id="1"
         date_created="2025-01-02 10:00:00" last_updated="2025-01-02 10:00:00" />
 
     <!-- Notebook 3: Submitted entry notebook (linked to template 1) -->
     <notebook id="3" title="Test Entry Notebook 2" type="101"
-        project="Test Project Entry 2" objective="Entry Objective 2"
         protocol="Entry Protocol 2" content="Entry content 2"
         status="SUBMITTED" is_template="false" technician_id="2"
         date_created="2025-01-03 10:00:00" last_updated="2025-01-03 10:00:00" />
 
     <!-- Notebook 4: Finalized notebook -->
     <notebook id="4" title="Test Finalized Notebook" type="102"
-        project="Finalized Project" objective="Finalized Objective"
         protocol="Finalized Protocol" content="Finalized content"
         status="FINALIZED" is_template="false" technician_id="1"
         date_created="2025-01-04 10:00:00" last_updated="2025-01-04 10:00:00" />
 
     <!-- Notebook 5: Locked notebook -->
     <notebook id="5" title="Test Locked Notebook" type="100"
-        project="Locked Project" objective="Locked Objective"
         protocol="Locked Protocol" content="Locked content" status="LOCKED"
         is_template="false" technician_id="2"
         date_created="2025-01-05 10:00:00" last_updated="2025-01-05 10:00:00" />
 
     <!-- Notebook 6: Archived notebook -->
     <notebook id="6" title="Test Archived Notebook" type="101"
-        project="Archived Project" objective="Archived Objective"
         protocol="Archived Protocol" content="Archived content"
         status="ARCHIVED" is_template="false" technician_id="1"
         date_created="2025-01-06 10:00:00" last_updated="2025-01-06 10:00:00" />
 
     <!-- Notebook 7: Another template notebook -->
     <notebook id="7" title="Test Template Notebook 2" type="102"
-        project="Template Project 2" objective="Template Objective 2"
         protocol="Template Protocol 2" content="Template content 2"
         status="DRAFT" is_template="true" technician_id="1"
         date_created="2025-01-07 10:00:00" last_updated="2025-01-07 10:00:00" />
