@@ -10,7 +10,14 @@ description: "Task list template for feature implementation"
 
 **Tests**: Tests are MANDATORY for all user stories (per Constitution V and
 Testing Roadmap). Test tasks MUST appear BEFORE implementation tasks to enforce
-TDD workflow.
+TDD workflow (Red-Green-Refactor cycle).
+
+**TDD Enforcement**:
+
+- Write test FIRST → Verify it FAILS (Red)
+- Write minimal code to pass → Verify it PASSES (Green)
+- Refactor while keeping tests green
+- Reference: [Testing Roadmap](.specify/guides/testing-roadmap.md)
 
 **Organization**: Tasks are grouped by **Milestone** (per Constitution Principle
 IX). Each Milestone = 1 PR. Milestones marked `[P]` can be developed in
@@ -81,32 +88,45 @@ portions)
 
 ### Tests for Milestone 1 (MANDATORY - TDD Enforcement)
 
-> **CRITICAL: Write these tests FIRST, ensure they FAIL before implementation**
+> **CRITICAL: Write these tests FIRST, run them, and verify they FAIL (Red
+> phase)**
+>
+> - Tests MUST fail before implementation code exists
+> - After implementation, tests MUST pass (Green phase)
+> - PR will NOT be approved if tests were written after implementation
 >
 > Reference: [OpenELIS Testing Roadmap](.specify/guides/testing-roadmap.md)
 > Templates: `.specify/templates/testing/`
 
-- [ ] T005 [P] [M1] Unit test for [ServiceName] in
+- [ ] T005 [P] [M1] **[RED]** Unit test for [ServiceName] in
       src/test/java/org/openelisglobal/{module}/service/[ServiceName]Test.java
-      (Template: `.specify/templates/testing/JUnit4ServiceTest.java.template`)
-- [ ] T006 [P] [M1] ORM validation test in
+      (Template: `.specify/templates/testing/JUnit4ServiceTest.java.template`) →
+      Run test, verify FAILS before T008
+- [ ] T006 [P] [M1] **[RED]** ORM validation test in
       src/test/java/org/openelisglobal/{module}/HibernateMappingValidationTest.java
-- [ ] T007 [P] [M1] DAO test for [DAO] in
-      src/test/java/org/openelisglobal/{module}/dao/[DAO]Test.java
+      → Run test, verify FAILS before T008
+- [ ] T007 [P] [M1] **[RED]** DAO test for [DAO] in
+      src/test/java/org/openelisglobal/{module}/dao/[DAO]Test.java → Run test,
+      verify FAILS before T010
 
 ### Implementation for Milestone 1
 
-> **CRITICAL: Implementation tasks depend on test tasks. Tests must pass before
-> creating the milestone PR.**
+> **CRITICAL: Implementation tasks depend on test tasks. After each
+> implementation task, run related tests and verify they now PASS (Green
+> phase).**
 
-- [ ] T008 [P] [M1] Create [Entity1] valueholder in
-      src/main/java/org/openelisglobal/{module}/valueholder/
-- [ ] T009 [P] [M1] Create [Entity2] valueholder in
-      src/main/java/org/openelisglobal/{module}/valueholder/
-- [ ] T010 [M1] Implement [DAO] in
-      src/main/java/org/openelisglobal/{module}/dao/
-- [ ] T011 [M1] Implement [Service] in
-      src/main/java/org/openelisglobal/{module}/service/
+- [ ] T008 [P] [M1] **[GREEN]** Create [Entity1] valueholder in
+      src/main/java/org/openelisglobal/{module}/valueholder/ → Run T005, T006 -
+      verify they PASS
+- [ ] T009 [P] [M1] **[GREEN]** Create [Entity2] valueholder in
+      src/main/java/org/openelisglobal/{module}/valueholder/ → Run T006 - verify
+      it PASSES
+- [ ] T010 [M1] **[GREEN]** Implement [DAO] in
+      src/main/java/org/openelisglobal/{module}/dao/ → Run T007 - verify it
+      PASSES
+- [ ] T011 [M1] **[GREEN]** Implement [Service] in
+      src/main/java/org/openelisglobal/{module}/service/ → Run T005 - verify it
+      PASSES
 - [ ] T012 [M1] Create Liquibase changesets in
       src/main/resources/liquibase/{module}/
 
@@ -133,17 +153,25 @@ strings **User Stories**: P1, P2 (frontend portions)
 
 ### Tests for Milestone 2 (MANDATORY - TDD Enforcement)
 
-> **CRITICAL: Write these tests FIRST, ensure they FAIL before implementation**
+> **CRITICAL: Write these tests FIRST, run them, and verify they FAIL (Red
+> phase)**
+>
+> Reference: [Jest Best Practices](.specify/guides/jest-best-practices.md)
+> Template: `.specify/templates/testing/JestComponent.test.jsx.template`
 
-- [ ] T021 [P] [M2] Jest test for [ComponentName] in
-      frontend/src/components/{feature}/[ComponentName].test.jsx
-- [ ] T022 [P] [M2] Jest test for [ComponentName2] in
-      frontend/src/components/{feature}/[ComponentName2].test.jsx
+- [ ] T021 [P] [M2] **[RED]** Jest test for [ComponentName] in
+      frontend/src/components/{feature}/[ComponentName].test.jsx → Run
+      `npm test`, verify FAILS before T023
+- [ ] T022 [P] [M2] **[RED]** Jest test for [ComponentName2] in
+      frontend/src/components/{feature}/[ComponentName2].test.jsx → Run
+      `npm test`, verify FAILS before T024
 
 ### Implementation for Milestone 2
 
-- [ ] T023 [P] [M2] Create [Component1] in frontend/src/components/{feature}/
-- [ ] T024 [P] [M2] Create [Component2] in frontend/src/components/{feature}/
+- [ ] T023 [P] [M2] **[GREEN]** Create [Component1] in
+      frontend/src/components/{feature}/ → Run T021 - verify it PASSES
+- [ ] T024 [P] [M2] **[GREEN]** Create [Component2] in
+      frontend/src/components/{feature}/ → Run T022 - verify it PASSES
 - [ ] T025 [M2] Add internationalization strings to
       frontend/src/languages/\*.json
 - [ ] T026 [M2] Add CSS/SCSS using Carbon tokens only
@@ -172,15 +200,28 @@ stories integrated
 
 ### Tests for Milestone 3 (MANDATORY - TDD Enforcement)
 
-- [ ] T032 [P] [M3] Controller test for REST endpoint in
-      src/test/java/org/openelisglobal/{module}/controller/
-- [ ] T033 [P] [M3] Cypress E2E test in frontend/cypress/e2e/[feature].cy.js
+> **CRITICAL: Write these tests FIRST, run them, and verify they FAIL (Red
+> phase)**
+>
+> References:
+>
+> - [Backend Testing Best Practices](.specify/guides/backend-testing-best-practices.md)
+> - [Cypress Best Practices](.specify/guides/cypress-best-practices.md)
+
+- [ ] T032 [P] [M3] **[RED]** Controller test for REST endpoint in
+      src/test/java/org/openelisglobal/{module}/controller/ → Run test, verify
+      FAILS before T034
+- [ ] T033 [P] [M3] **[RED]** Cypress E2E test in
+      frontend/cypress/e2e/[feature].cy.js → Run
+      `npm run cy:run -- --spec "..."`, verify FAILS before T035
 
 ### Implementation for Milestone 3
 
-- [ ] T034 [M3] Implement [Controller] in
-      src/main/java/org/openelisglobal/{module}/controller/
-- [ ] T035 [M3] Connect frontend to backend API
+- [ ] T034 [M3] **[GREEN]** Implement [Controller] in
+      src/main/java/org/openelisglobal/{module}/controller/ → Run T032 - verify
+      it PASSES
+- [ ] T035 [M3] **[GREEN]** Connect frontend to backend API → Run T033 - verify
+      it PASSES
 - [ ] T036 [M3] Add error handling and validation
 
 ### Milestone 3 Completion

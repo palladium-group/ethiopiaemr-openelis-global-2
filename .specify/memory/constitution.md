@@ -980,17 +980,18 @@ sequential, enabling flexible team coordination.
 
 **Branch Naming Convention**:
 
-| Branch Type         | Pattern                              | Example                                   |
-| ------------------- | ------------------------------------ | ----------------------------------------- |
-| Spec Branch         | `spec/{issue-id}-{name}`             | `spec/OG-009-sidenav`, `spec/009-sidenav` |
-| Feature Integration | `feat/{issue-id}-{name}`             | `feat/OG-009-sidenav`                     |
-| Milestone Branch    | `feat/{issue-id}-{name}/m{N}-{desc}` | `feat/OG-009-sidenav/m1-backend`          |
-| Hotfix              | `hotfix/{issue-id}-{desc}`           | `hotfix/OG-123-fix-login`                 |
-| Bugfix              | `fix/{issue-id}-{desc}`              | `fix/OG-456-null-check`                   |
+| Branch Type         | Pattern                                  | Example                                    |
+| ------------------- | ---------------------------------------- | ------------------------------------------ |
+| Spec Branch         | `spec/{issue-id}-{name}`                 | `spec/OGC-009-sidenav`, `spec/009-sidenav` |
+| Spec Clarification  | `spec/{issue-id}-{name}/clarify-{topic}` | `spec/OGC-009-sidenav/clarify-responsive`  |
+| Feature Integration | `feat/{issue-id}-{name}`                 | `feat/OGC-009-sidenav`                     |
+| Milestone Branch    | `feat/{issue-id}-{name}/m{N}-{desc}`     | `feat/OGC-009-sidenav/m1-backend`          |
+| Hotfix              | `hotfix/{issue-id}-{desc}`               | `hotfix/OGC-123-fix-login`                 |
+| Bugfix              | `fix/{issue-id}-{desc}`                  | `fix/OGC-456-null-check`                   |
 
 **Issue ID Formats** (Jira Integration):
 
-- Jira tickets: `OG-{###}` (e.g., `OG-009`, `OG-123`)
+- Jira tickets: `OGC-{###}` (e.g., `OGC-009`, `OGC-123`)
 - GitHub issues: `{###}` (e.g., `009`, `123`)
 - Internal tracking: `{###}` with optional prefix
 
@@ -1006,14 +1007,30 @@ sequential, enabling flexible team coordination.
 
 **Workflow**:
 
-1. Create spec branch and specification PR (targets `develop`)
-2. Define Milestone Plan in `plan.md`
-3. For each milestone:
-   - Create milestone branch from feature branch or `develop`
-   - Implement tasks for that milestone
-   - Create PR with verification criteria
-   - Merge after review and tests pass
-4. Final integration PR (if using feature branch) merges to `develop`
+1. **Specification Phase** (on `spec/{issue-id}-{name}` branch):
+
+   - Create spec branch from `develop`
+   - Complete `spec.md` (user stories, requirements)
+   - Complete `plan.md` (architecture, milestone plan)
+   - Complete `tasks.md` (task breakdown by milestone)
+   - Use `spec/{issue-id}-{name}/clarify-{topic}` branches for spec iterations
+   - Create Spec PR targeting `develop` for review
+
+2. **Implementation Phase** (after spec PR approved or ready):
+   - Create feature branch `feat/{issue-id}-{name}` from `develop`
+   - For each milestone:
+     - Create milestone branch from **feature branch** (not develop)
+     - Implement tasks for that milestone
+     - Create PR targeting **feature branch**
+     - Merge after review and tests pass
+   - After all milestones merged to feature branch:
+     - Final PR merges `feat/{issue-id}-{name}` → `develop`
+
+**Key Rules**:
+
+- Milestone branches always target the feature branch until feature is complete
+- Spec clarification branches merge back to spec branch
+- Only the final feature branch PR targets `develop`
 
 **Rationale**: Large features implemented as single PRs create review
 bottlenecks, increase merge conflict risk, and delay feedback. Milestone-based
