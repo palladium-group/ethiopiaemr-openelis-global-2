@@ -592,6 +592,7 @@ const generateMenuItems = (menuItem, index, level, path) => {
         key={path}
         href={menuItem.menu.actionURL}
         target={menuItem.menu.openInNewWindow ? "_blank" : ""}
+        rel={menuItem.menu.openInNewWindow ? "noopener noreferrer" : undefined}
       >
         {intl.formatMessage({ id: menuItem.menu.displayKey })}
       </SideNavMenuItem>
