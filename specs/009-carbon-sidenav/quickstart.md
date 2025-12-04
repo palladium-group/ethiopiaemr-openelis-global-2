@@ -6,7 +6,10 @@
 
 ## Overview
 
-This guide helps developers implement the two-mode sidenav feature following Carbon Design System best practices. The sidenav can be toggled between expanded (256px) and collapsed (48px) modes, with user preference persisted to localStorage.
+This guide helps developers implement the two-mode sidenav feature following
+Carbon Design System best practices. The sidenav can be toggled between expanded
+(256px) and collapsed (48px) modes, with user preference persisted to
+localStorage.
 
 ## Prerequisites
 
@@ -48,44 +51,47 @@ npm start
 Create `frontend/src/components/layout/useSideNavPreference.js`:
 
 ```jsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
-export function useSideNavPreference({ 
-  defaultExpanded = false, 
-  storageKeyPrefix = 'default' 
+export function useSideNavPreference({
+  defaultExpanded = false,
+  storageKeyPrefix = "default",
 } = {}) {
   const storageKey = `${storageKeyPrefix}SideNavExpanded`;
-  
+
   const [isExpanded, setIsExpanded] = useState(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved !== null ? saved === 'true' : defaultExpanded;
+      return saved !== null ? saved === "true" : defaultExpanded;
     } catch (e) {
-      console.warn('localStorage unavailable');
+      console.warn("localStorage unavailable");
       return defaultExpanded;
     }
   });
 
   const toggle = useCallback(() => {
-    setIsExpanded(prev => {
+    setIsExpanded((prev) => {
       const newValue = !prev;
       try {
         localStorage.setItem(storageKey, String(newValue));
       } catch (e) {
-        console.warn('Could not persist preference');
+        console.warn("Could not persist preference");
       }
       return newValue;
     });
   }, [storageKey]);
 
-  const setExpanded = useCallback((value) => {
-    setIsExpanded(value);
-    try {
-      localStorage.setItem(storageKey, String(value));
-    } catch (e) {
-      console.warn('Could not persist preference');
-    }
-  }, [storageKey]);
+  const setExpanded = useCallback(
+    (value) => {
+      setIsExpanded(value);
+      try {
+        localStorage.setItem(storageKey, String(value));
+      } catch (e) {
+        console.warn("Could not persist preference");
+      }
+    },
+    [storageKey]
+  );
 
   return { isExpanded, toggle, setExpanded };
 }
@@ -96,6 +102,7 @@ export function useSideNavPreference({
 See `research.md` Appendix A1 for the complete component structure.
 
 Key points:
+
 - Use `isFixedNav={true}` and `isChildOfHeader={true}` on SideNav
 - Content wrapper must be a sibling to Header (not nested)
 - Apply dynamic margin classes based on `isExpanded` state
@@ -105,6 +112,7 @@ Key points:
 See `research.md` Appendix A2 for the complete CSS.
 
 Key points:
+
 - Use 16rem margin for expanded, 3rem for collapsed
 - Use Carbon's transition timing (0.11s cubic-bezier)
 - Add media query for mobile responsiveness at 1056px
@@ -150,12 +158,12 @@ npm run cy:run -- --spec "cypress/e2e/sidenavNavigation.cy.js"
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `frontend/src/components/layout/TwoModeLayout.js` | Main layout component |
-| `frontend/src/components/layout/TwoModeLayout.css` | Layout styles |
+| File                                                     | Purpose                           |
+| -------------------------------------------------------- | --------------------------------- |
+| `frontend/src/components/layout/TwoModeLayout.js`        | Main layout component             |
+| `frontend/src/components/layout/TwoModeLayout.css`       | Layout styles                     |
 | `frontend/src/components/layout/useSideNavPreference.js` | Custom hook for state/persistence |
-| `frontend/cypress/e2e/sidenavNavigation.cy.js` | E2E tests |
+| `frontend/cypress/e2e/sidenavNavigation.cy.js`           | E2E tests                         |
 
 ## Reference Documentation
 
@@ -179,6 +187,7 @@ git checkout analyzer-layout-poc
 ### Content not pushing when sidenav expands
 
 Ensure:
+
 1. `isFixedNav={true}` is set on SideNav
 2. Content wrapper is a sibling to Header, not nested
 3. CSS classes are applied correctly
@@ -186,6 +195,7 @@ Ensure:
 ### localStorage preference not persisting
 
 Check:
+
 1. Browser is not in private/incognito mode
 2. No JavaScript errors in console
 3. `storageKeyPrefix` is consistent
@@ -193,6 +203,7 @@ Check:
 ### Menu items not auto-expanding
 
 Verify:
+
 1. `useEffect` is triggered on `location.pathname` change
 2. `markActiveExpanded` function is called after menu data loads
 3. Route URLs match menu item `actionURL` values
@@ -202,4 +213,3 @@ Verify:
 - Check [spec.md](spec.md) for detailed requirements
 - Check [research.md](research.md) for design rationale
 - Post questions in GitHub Discussions
-

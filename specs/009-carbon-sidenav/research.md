@@ -8,13 +8,15 @@
 
 ### R1: Carbon UI Shell SideNav Patterns
 
-**Question**: What is the correct Carbon pattern for a two-mode sidenav that pushes content?
+**Question**: What is the correct Carbon pattern for a two-mode sidenav that
+pushes content?
 
 **Findings**:
 
 Carbon Design System provides two main SideNav patterns:
 
 1. **Overlay Pattern** (`isPersistent={false}`)
+
    - SideNav overlays content when expanded
    - Content does not shift
    - Best for mobile/tablet or when sidebar is rarely used
@@ -26,15 +28,21 @@ Carbon Design System provides two main SideNav patterns:
    - Best for desktop when sidebar is primary navigation
    - POC `AnalyzerLayout.js` uses this pattern
 
-**Decision**: Use Fixed/Persistent pattern with `isFixedNav={true}` and `isChildOfHeader={true}`.
+**Decision**: Use Fixed/Persistent pattern with `isFixedNav={true}` and
+`isChildOfHeader={true}`.
 
-**Rationale**: Desktop users in laboratory settings need persistent navigation. The POC validated this pattern works correctly with content pushing.
+**Rationale**: Desktop users in laboratory settings need persistent navigation.
+The POC validated this pattern works correctly with content pushing.
 
 **Alternatives Considered**:
-- Overlay pattern - Rejected because it obscures content and requires explicit close action
-- `isPersistent={true}` without `isFixedNav` - Rejected because it doesn't push content properly
+
+- Overlay pattern - Rejected because it obscures content and requires explicit
+  close action
+- `isPersistent={true}` without `isFixedNav` - Rejected because it doesn't push
+  content properly
 
 **References**:
+
 - [Carbon UI Shell Left Panel Usage](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/)
 - [Carbon UI Shell Left Panel Code](https://carbondesignsystem.com/components/UI-shell-left-panel/code/)
 
@@ -42,11 +50,13 @@ Carbon Design System provides two main SideNav patterns:
 
 ### R2: HeaderContainer vs Direct State Control
 
-**Question**: Should we use Carbon's `HeaderContainer` render prop or control sidenav state directly?
+**Question**: Should we use Carbon's `HeaderContainer` render prop or control
+sidenav state directly?
 
 **Findings**:
 
 `HeaderContainer` provides a render prop pattern:
+
 ```jsx
 <HeaderContainer
   render={({ isSideNavExpanded, onClickSideNavExpand }) => (
@@ -58,35 +68,41 @@ Carbon Design System provides two main SideNav patterns:
 ```
 
 **Limitations**:
+
 - State is managed internally by Carbon
 - Cannot persist state to localStorage
 - Cannot programmatically control expand/collapse
 - Cannot set different defaults per page
 
 **Direct State Control** bypasses `HeaderContainer`:
+
 ```jsx
 const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
-  const saved = localStorage.getItem('sideNavExpanded');
-  return saved !== null ? saved === 'true' : defaultExpanded;
+  const saved = localStorage.getItem("sideNavExpanded");
+  return saved !== null ? saved === "true" : defaultExpanded;
 });
 
 <Header>
   <HeaderMenuButton onClick={() => setIsSideNavExpanded(!isSideNavExpanded)} />
   <SideNav expanded={isSideNavExpanded} isFixedNav={true} />
-</Header>
+</Header>;
 ```
 
 **Decision**: Use direct state control, bypassing `HeaderContainer`.
 
-**Rationale**: 
+**Rationale**:
+
 - Enables localStorage persistence
 - Enables page-level default configuration
 - Provides full control over expand/collapse behavior
 - POC validated this approach works correctly
 
 **Alternatives Considered**:
-- `HeaderContainer` with external state sync - Rejected because it's complex and fights the component design
-- Context-based state management (Redux/Zustand) - Rejected because localStorage is sufficient for this use case
+
+- `HeaderContainer` with external state sync - Rejected because it's complex and
+  fights the component design
+- Context-based state management (Redux/Zustand) - Rejected because localStorage
+  is sufficient for this use case
 
 ---
 
@@ -97,6 +113,7 @@ const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
 **Findings**:
 
 **Current Header.js Structure** (incorrect for fixed nav):
+
 ```jsx
 <HeaderContainer
   render={() => (
@@ -109,6 +126,7 @@ const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
 ```
 
 **POC AnalyzerLayout.js Structure** (correct):
+
 ```jsx
 <Header>
   <SideNav isFixedNav={true} isChildOfHeader={true} />
@@ -119,22 +137,25 @@ const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
 ```
 
 **Key CSS for content pushing**:
+
 ```css
 .content-expanded {
-  margin-left: 16rem;  /* 256px - SideNav expanded width */
+  margin-left: 16rem; /* 256px - SideNav expanded width */
   width: calc(100% - 16rem);
   transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 .content-collapsed {
-  margin-left: 3rem;   /* 48px - SideNav rail width */
+  margin-left: 3rem; /* 48px - SideNav rail width */
   width: calc(100% - 3rem);
 }
 ```
 
-**Decision**: Content wrapper as sibling to Header, with dynamic classes for margin adjustment.
+**Decision**: Content wrapper as sibling to Header, with dynamic classes for
+margin adjustment.
 
-**Rationale**: Carbon's `isFixedNav` requires content to be a sibling, not nested within `HeaderContainer` render prop.
+**Rationale**: Carbon's `isFixedNav` requires content to be a sibling, not
+nested within `HeaderContainer` render prop.
 
 ---
 
@@ -145,34 +166,37 @@ const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
 **Findings**:
 
 **Key Structure**:
+
 - Key: `{layoutName}SideNavExpanded` (e.g., `analyzerSideNavExpanded`)
 - Value: `"true"` or `"false"` (string)
 
 **Initialization Pattern**:
+
 ```jsx
 const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
   try {
-    const saved = localStorage.getItem('sideNavExpanded');
+    const saved = localStorage.getItem("sideNavExpanded");
     if (saved !== null) {
-      return saved === 'true';
+      return saved === "true";
     }
-    return defaultExpanded;  // Page-level default prop
+    return defaultExpanded; // Page-level default prop
   } catch (e) {
-    console.warn('localStorage unavailable, using default');
+    console.warn("localStorage unavailable, using default");
     return defaultExpanded;
   }
 });
 ```
 
 **Update Pattern**:
+
 ```jsx
 const handleSideNavToggle = () => {
   const newExpanded = !isSideNavExpanded;
   setIsSideNavExpanded(newExpanded);
   try {
-    localStorage.setItem('sideNavExpanded', String(newExpanded));
+    localStorage.setItem("sideNavExpanded", String(newExpanded));
   } catch (e) {
-    console.warn('Could not persist sidenav preference');
+    console.warn("Could not persist sidenav preference");
   }
 };
 ```
@@ -180,6 +204,7 @@ const handleSideNavToggle = () => {
 **Decision**: Use layout-specific localStorage keys with graceful fallback.
 
 **Rationale**:
+
 - Layout-specific keys allow different defaults per section
 - Graceful fallback handles private browsing mode
 - String values (not JSON) for simplicity
@@ -193,6 +218,7 @@ const handleSideNavToggle = () => {
 **Findings**:
 
 **Algorithm** (from POC):
+
 ```javascript
 const markActiveExpanded = (items) => {
   let isActiveBranch = false;
@@ -207,7 +233,7 @@ const markActiveExpanded = (items) => {
     // Check if this item matches current route
     if (
       item.menu.actionURL === location.pathname ||
-      location.pathname.startsWith(item.menu.actionURL + '/')
+      location.pathname.startsWith(item.menu.actionURL + "/")
     ) {
       isActiveBranch = true;
     }
@@ -216,14 +242,18 @@ const markActiveExpanded = (items) => {
 };
 ```
 
-**Trigger**: Run on route change via `useEffect` with `location.pathname` dependency.
+**Trigger**: Run on route change via `useEffect` with `location.pathname`
+dependency.
 
-**Decision**: Use recursive depth-first marking algorithm triggered on route change.
+**Decision**: Use recursive depth-first marking algorithm triggered on route
+change.
 
 **Rationale**:
+
 - Depth-first ensures children are processed before parents
 - Parent expansion happens automatically when any child is active
-- Path prefix matching handles nested routes (e.g., `/analyzers/qc/alerts` matches `/analyzers/qc`)
+- Path prefix matching handles nested routes (e.g., `/analyzers/qc/alerts`
+  matches `/analyzers/qc`)
 
 ---
 
@@ -234,14 +264,16 @@ const markActiveExpanded = (items) => {
 **Findings**:
 
 **Carbon Breakpoints**:
+
 - `lg` (1056px): Above this, fixed nav pushes content
 - Below `lg`: Sidenav should overlay content
 
 **CSS Media Query** (from POC):
+
 ```css
 @media (max-width: 1056px) {
   .content-expanded {
-    margin-left: 0;  /* Don't push content on mobile */
+    margin-left: 0; /* Don't push content on mobile */
   }
   .content-collapsed {
     margin-left: 0;
@@ -251,7 +283,8 @@ const markActiveExpanded = (items) => {
 
 **Decision**: Use CSS media queries to switch from push to overlay below 1056px.
 
-**Rationale**: 
+**Rationale**:
+
 - On smaller screens, pushing content would make the main area too narrow
 - Overlay behavior allows full-width content when sidenav is collapsed
 - Aligns with Carbon's responsive design patterns
@@ -260,35 +293,38 @@ const markActiveExpanded = (items) => {
 
 ## Summary of Decisions
 
-| Topic | Decision | Key Configuration |
-|-------|----------|-------------------|
-| SideNav Pattern | Fixed/Persistent | `isFixedNav={true}`, `isChildOfHeader={true}` |
-| State Control | Direct React state | `useState` with localStorage init |
-| Content Structure | Wrapper sibling to Header | Dynamic margin classes |
-| Persistence | Layout-specific localStorage | `{layoutName}SideNavExpanded` |
-| Auto-Expansion | Recursive depth-first | Triggered on route change |
-| Responsive | CSS media queries | Push >1056px, overlay ≤1056px |
+| Topic             | Decision                     | Key Configuration                             |
+| ----------------- | ---------------------------- | --------------------------------------------- |
+| SideNav Pattern   | Fixed/Persistent             | `isFixedNav={true}`, `isChildOfHeader={true}` |
+| State Control     | Direct React state           | `useState` with localStorage init             |
+| Content Structure | Wrapper sibling to Header    | Dynamic margin classes                        |
+| Persistence       | Layout-specific localStorage | `{layoutName}SideNavExpanded`                 |
+| Auto-Expansion    | Recursive depth-first        | Triggered on route change                     |
+| Responsive        | CSS media queries            | Push >1056px, overlay ≤1056px                 |
 
 ## Implementation References
 
-- **POC Branch**: `analyzer-layout-poc` (also backed up at `backup-009-carbon-sidenav-with-poc`)
+- **POC Branch**: `analyzer-layout-poc` (also backed up at
+  `backup-009-carbon-sidenav-with-poc`)
 - **POC Source**: `frontend/src/components/layout/AnalyzerLayout.js`
 - **POC Styles**: `frontend/src/components/layout/AnalyzerLayout.css`
 - **Current Header**: `frontend/src/components/layout/Header.js`
-- **Carbon Docs**: [UI Shell Left Panel](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/)
+- **Carbon Docs**:
+  [UI Shell Left Panel](https://carbondesignsystem.com/components/UI-shell-left-panel/usage/)
 
 ---
 
 ## Appendix: POC Code Reference
 
-The following code snippets are from the validated POC in the `analyzer-layout-poc` branch. These serve as reference implementation patterns.
+The following code snippets are from the validated POC in the
+`analyzer-layout-poc` branch. These serve as reference implementation patterns.
 
 ### A1: Complete Layout Component Structure
 
 ```jsx
 /**
  * TwoModeLayout Component (based on AnalyzerLayout POC)
- * 
+ *
  * Key architectural decisions:
  * - Direct sidenav state control (bypasses HeaderContainer)
  * - SideNav uses isFixedNav for proper content pushing
@@ -314,10 +350,15 @@ import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useIntl } from "react-intl";
 
-const TwoModeLayout = ({ children, onChangeLanguage, defaultExpanded = false, storageKeyPrefix = 'default' }) => {
+const TwoModeLayout = ({
+  children,
+  onChangeLanguage,
+  defaultExpanded = false,
+  storageKeyPrefix = "default",
+}) => {
   const location = useLocation();
   const intl = useIntl();
-  
+
   // Layout State - Controlled directly (bypassing HeaderContainer)
   const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
     const key = `${storageKeyPrefix}SideNavExpanded`;
@@ -325,7 +366,7 @@ const TwoModeLayout = ({ children, onChangeLanguage, defaultExpanded = false, st
       const saved = localStorage.getItem(key);
       return saved !== null ? saved === "true" : defaultExpanded;
     } catch (e) {
-      console.warn('localStorage unavailable, using default');
+      console.warn("localStorage unavailable, using default");
       return defaultExpanded;
     }
   });
@@ -340,7 +381,7 @@ const TwoModeLayout = ({ children, onChangeLanguage, defaultExpanded = false, st
     try {
       localStorage.setItem(key, String(newExpanded));
     } catch (e) {
-      console.warn('Could not persist sidenav preference');
+      console.warn("Could not persist sidenav preference");
     }
   };
 
@@ -388,10 +429,8 @@ const TwoModeLayout = ({ children, onChangeLanguage, defaultExpanded = false, st
             <HeaderName href="/" prefix="">
               {/* Logo and banner */}
             </HeaderName>
-            <HeaderGlobalBar>
-              {/* Global actions */}
-            </HeaderGlobalBar>
-            
+            <HeaderGlobalBar>{/* Global actions */}</HeaderGlobalBar>
+
             {/* SideNav with isFixedNav for content pushing */}
             <SideNav
               aria-label="Side navigation"
@@ -412,17 +451,20 @@ const TwoModeLayout = ({ children, onChangeLanguage, defaultExpanded = false, st
 
           {/* Content Sibling - Properly Pushed by Fixed SideNav */}
           <div
-            className={isSideNavExpanded ? "content-expanded" : "content-collapsed"}
+            className={
+              isSideNavExpanded ? "content-expanded" : "content-collapsed"
+            }
             style={{
               marginLeft: isSideNavExpanded ? "16rem" : "3rem",
-              width: isSideNavExpanded ? "calc(100% - 16rem)" : "calc(100% - 3rem)",
-              transition: "margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s cubic-bezier(0.2, 0, 1, 0.9)",
+              width: isSideNavExpanded
+                ? "calc(100% - 16rem)"
+                : "calc(100% - 3rem)",
+              transition:
+                "margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s cubic-bezier(0.2, 0, 1, 0.9)",
             }}
           >
             <Theme theme="white">
-              <Content style={{ marginLeft: 0 }}>
-                {children}
-              </Content>
+              <Content style={{ marginLeft: 0 }}>{children}</Content>
             </Theme>
           </div>
         </div>
@@ -445,15 +487,15 @@ export default TwoModeLayout;
 .content-expanded {
   margin-left: 16rem !important; /* Width of expanded SideNav (256px) */
   width: calc(100% - 16rem) !important;
-  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9),
-              width 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s
+      cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 .content-collapsed {
   margin-left: 3rem !important; /* Width of collapsed SideNav rail (48px) */
   width: calc(100% - 3rem) !important;
-  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9),
-              width 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s
+      cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 /* Override Carbon Content's default margin when inside our wrapper */
@@ -485,8 +527,8 @@ import TwoModeLayout from "./components/layout/TwoModeLayout";
 
 // Analyzer routes - use expanded sidenav by default
 <Route path="/analyzers">
-  <TwoModeLayout 
-    defaultExpanded={true} 
+  <TwoModeLayout
+    defaultExpanded={true}
     storageKeyPrefix="analyzer"
     onChangeLanguage={onChangeLanguage}
   >
@@ -500,8 +542,8 @@ import TwoModeLayout from "./components/layout/TwoModeLayout";
 
 // Default routes - use collapsed sidenav by default
 <Route path="/">
-  <TwoModeLayout 
-    defaultExpanded={false} 
+  <TwoModeLayout
+    defaultExpanded={false}
     storageKeyPrefix="default"
     onChangeLanguage={onChangeLanguage}
   >
@@ -571,5 +613,6 @@ const generateMenuItems = (menuItem, index, level, path) => {
 
 ---
 
-**Note**: The complete POC implementation can be found in the `analyzer-layout-poc` branch. The code above is extracted for reference during implementation of this feature on a clean branch.
-
+**Note**: The complete POC implementation can be found in the
+`analyzer-layout-poc` branch. The code above is extracted for reference during
+implementation of this feature on a clean branch.

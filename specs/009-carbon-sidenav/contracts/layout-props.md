@@ -5,24 +5,27 @@
 
 ## Overview
 
-`TwoModeLayout` is a reusable layout component that provides a Carbon Design System UI Shell with a two-mode sidenav (expanded/collapsed) and preference persistence.
+`TwoModeLayout` is a reusable layout component that provides a Carbon Design
+System UI Shell with a two-mode sidenav (expanded/collapsed) and preference
+persistence.
 
 ## Component Interface
 
 ### Props
 
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| `children` | `React.ReactNode` | Yes | - | Content to render in the main content area |
-| `onChangeLanguage` | `(locale: string) => void` | No | - | Callback when user changes language |
-| `defaultExpanded` | `boolean` | No | `false` | Default sidenav state before user preference is loaded |
-| `storageKeyPrefix` | `string` | No | `'default'` | Prefix for localStorage key |
+| Prop               | Type                       | Required | Default     | Description                                            |
+| ------------------ | -------------------------- | -------- | ----------- | ------------------------------------------------------ |
+| `children`         | `React.ReactNode`          | Yes      | -           | Content to render in the main content area             |
+| `onChangeLanguage` | `(locale: string) => void` | No       | -           | Callback when user changes language                    |
+| `defaultExpanded`  | `boolean`                  | No       | `false`     | Default sidenav state before user preference is loaded |
+| `storageKeyPrefix` | `string`                   | No       | `'default'` | Prefix for localStorage key                            |
 
 ### Usage Examples
 
 **Basic Usage (collapsed by default)**:
+
 ```jsx
-import TwoModeLayout from './components/layout/TwoModeLayout';
+import TwoModeLayout from "./components/layout/TwoModeLayout";
 
 function App() {
   return (
@@ -34,6 +37,7 @@ function App() {
 ```
 
 **Expanded by Default (for analyzer pages)**:
+
 ```jsx
 <TwoModeLayout
   defaultExpanded={true}
@@ -45,6 +49,7 @@ function App() {
 ```
 
 **Per-Section Configuration**:
+
 ```jsx
 // In App.js routing
 <Route path="/analyzers">
@@ -69,46 +74,41 @@ function App() {
 ### Signature
 
 ```typescript
-function useSideNavPreference(options?: UseSideNavPreferenceOptions): UseSideNavPreferenceReturn;
+function useSideNavPreference(
+  options?: UseSideNavPreferenceOptions
+): UseSideNavPreferenceReturn;
 ```
 
 ### Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `defaultExpanded` | `boolean` | `false` | Default state when no preference stored |
-| `storageKeyPrefix` | `string` | `'default'` | Prefix for localStorage key |
+| Option             | Type      | Default     | Description                             |
+| ------------------ | --------- | ----------- | --------------------------------------- |
+| `defaultExpanded`  | `boolean` | `false`     | Default state when no preference stored |
+| `storageKeyPrefix` | `string`  | `'default'` | Prefix for localStorage key             |
 
 ### Return Value
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `isExpanded` | `boolean` | Current sidenav expansion state |
-| `toggle` | `() => void` | Toggle and persist state |
-| `setExpanded` | `(expanded: boolean) => void` | Set and persist state |
+| Property      | Type                          | Description                     |
+| ------------- | ----------------------------- | ------------------------------- |
+| `isExpanded`  | `boolean`                     | Current sidenav expansion state |
+| `toggle`      | `() => void`                  | Toggle and persist state        |
+| `setExpanded` | `(expanded: boolean) => void` | Set and persist state           |
 
 ### Usage Example
 
 ```jsx
-import { useSideNavPreference } from './hooks/useSideNavPreference';
+import { useSideNavPreference } from "./hooks/useSideNavPreference";
 
 function CustomLayout() {
   const { isExpanded, toggle } = useSideNavPreference({
     defaultExpanded: true,
-    storageKeyPrefix: 'custom'
+    storageKeyPrefix: "custom",
   });
 
   return (
     <Header>
-      <HeaderMenuButton 
-        isActive={isExpanded}
-        onClick={toggle}
-      />
-      <SideNav 
-        expanded={isExpanded}
-        isFixedNav={true}
-        isChildOfHeader={true}
-      />
+      <HeaderMenuButton isActive={isExpanded} onClick={toggle} />
+      <SideNav expanded={isExpanded} isFixedNav={true} isChildOfHeader={true} />
     </Header>
   );
 }
@@ -120,7 +120,8 @@ function CustomLayout() {
 
 1. **On Toggle**: State is immediately persisted to localStorage
 2. **On Mount**: State is restored from localStorage if available
-3. **Fallback**: If localStorage unavailable (e.g., private browsing), use `defaultExpanded`
+3. **Fallback**: If localStorage unavailable (e.g., private browsing), use
+   `defaultExpanded`
 
 ### localStorage Key Format
 
@@ -129,6 +130,7 @@ function CustomLayout() {
 ```
 
 **Examples**:
+
 - `defaultSideNavExpanded` (default)
 - `analyzerSideNavExpanded` (analyzer pages)
 - `adminSideNavExpanded` (admin pages)
@@ -141,44 +143,46 @@ function CustomLayout() {
 
 ### Responsive Behavior
 
-| Viewport Width | Sidenav Behavior |
-|----------------|------------------|
-| > 1056px | Fixed nav, pushes content |
-| ≤ 1056px | Overlay nav, content full width |
+| Viewport Width | Sidenav Behavior                |
+| -------------- | ------------------------------- |
+| > 1056px       | Fixed nav, pushes content       |
+| ≤ 1056px       | Overlay nav, content full width |
 
 ## CSS Classes (for custom styling)
 
-| Class | Applied When | Purpose |
-|-------|--------------|---------|
-| `.content-expanded` | `isExpanded === true` | Sets left margin to 16rem |
-| `.content-collapsed` | `isExpanded === false` | Sets left margin to 3rem |
+| Class                | Applied When           | Purpose                   |
+| -------------------- | ---------------------- | ------------------------- |
+| `.content-expanded`  | `isExpanded === true`  | Sets left margin to 16rem |
+| `.content-collapsed` | `isExpanded === false` | Sets left margin to 3rem  |
 
 ## Accessibility
 
-- `HeaderMenuButton` provides `aria-label` based on state ("Open menu" / "Close menu")
+- `HeaderMenuButton` provides `aria-label` based on state ("Open menu" / "Close
+  menu")
 - SideNav items use `aria-label` from internationalized menu labels
 - Focus management follows Carbon defaults
 - Keyboard navigation: Tab through items, Enter/Space to select
 
 ## Error Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| localStorage unavailable | Log warning, use `defaultExpanded` |
-| Menu API failure | Display empty sidenav, existing error handling applies |
-| Invalid localStorage value | Reset to `defaultExpanded`, persist corrected value |
+| Scenario                   | Behavior                                               |
+| -------------------------- | ------------------------------------------------------ |
+| localStorage unavailable   | Log warning, use `defaultExpanded`                     |
+| Menu API failure           | Display empty sidenav, existing error handling applies |
+| Invalid localStorage value | Reset to `defaultExpanded`, persist corrected value    |
 
 ## Migration from Header.js
 
 To migrate an existing route from `Header.js` to `TwoModeLayout`:
 
 1. **Replace Layout wrapper**:
+
    ```jsx
    // Before
    <Layout>
      <MyPage />
    </Layout>
-   
+
    // After
    <TwoModeLayout storageKeyPrefix="mySection">
      <MyPage />
@@ -186,15 +190,17 @@ To migrate an existing route from `Header.js` to `TwoModeLayout`:
    ```
 
 2. **Configure default state** (optional):
+
    ```jsx
    <TwoModeLayout defaultExpanded={true}>
    ```
 
-3. **No other changes required** - menu data, notifications, and authentication all work the same.
+3. **No other changes required** - menu data, notifications, and authentication
+   all work the same.
 
 ## Dependencies
 
-- `@carbon/react`: Header, SideNav, SideNavItems, SideNavMenu, SideNavMenuItem, Content, Theme
+- `@carbon/react`: Header, SideNav, SideNavItems, SideNavMenu, SideNavMenuItem,
+  Content, Theme
 - `react-router-dom`: useLocation for route change detection
 - `react-intl`: useIntl for internationalized labels
-

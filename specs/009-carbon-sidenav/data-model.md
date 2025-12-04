@@ -5,7 +5,9 @@
 
 ## Overview
 
-This feature is frontend-only and does not require database changes. The data model describes React component state, props interfaces, and the structure of data consumed from existing APIs.
+This feature is frontend-only and does not require database changes. The data
+model describes React component state, props interfaces, and the structure of
+data consumed from existing APIs.
 
 ## Component State Model
 
@@ -15,16 +17,16 @@ This feature is frontend-only and does not require database changes. The data mo
 interface TwoModeLayoutState {
   // Sidenav expansion state
   isSideNavExpanded: boolean;
-  
+
   // Panel states (for header actions)
-  switchCollapsed: boolean;       // User panel expanded/collapsed
-  searchBar: boolean;             // Search bar visible
-  notificationsOpen: boolean;     // Notifications panel open
-  helpOpen: boolean;              // Help panel open
-  
+  switchCollapsed: boolean; // User panel expanded/collapsed
+  searchBar: boolean; // Search bar visible
+  notificationsOpen: boolean; // Notifications panel open
+  helpOpen: boolean; // Help panel open
+
   // Menu data (from API)
   menus: MenuState;
-  
+
   // Notifications (from API)
   notifications: Notification[];
   unReadNotifications: Notification[];
@@ -34,8 +36,8 @@ interface TwoModeLayoutState {
 }
 
 interface MenuState {
-  menu: MenuItem[];               // Main navigation menu
-  menu_billing: MenuItem[];       // Billing submenu (optional)
+  menu: MenuItem[]; // Main navigation menu
+  menu_billing: MenuItem[]; // Billing submenu (optional)
   menu_nonconformity: MenuItem[]; // Non-conformity submenu (optional)
 }
 ```
@@ -46,14 +48,14 @@ interface MenuState {
 interface MenuItem {
   menu: MenuMetadata;
   childMenus: MenuItem[];
-  expanded?: boolean;  // Client-side state for submenu expansion
+  expanded?: boolean; // Client-side state for submenu expansion
 }
 
 interface MenuMetadata {
-  elementId: string;        // DOM element ID
-  displayKey: string;       // i18n key for label
+  elementId: string; // DOM element ID
+  displayKey: string; // i18n key for label
   actionURL: string | null; // Navigation URL (null for parent-only items)
-  isActive: boolean;        // Whether item is visible/enabled
+  isActive: boolean; // Whether item is visible/enabled
   openInNewWindow: boolean; // Open in new tab
 }
 ```
@@ -66,7 +68,7 @@ interface Notification {
   title: string;
   message: string;
   createdAt: string;
-  readAt: string | null;  // null = unread
+  readAt: string | null; // null = unread
 }
 ```
 
@@ -80,18 +82,18 @@ interface TwoModeLayoutProps {
    * Child content to render in the main content area
    */
   children: React.ReactNode;
-  
+
   /**
    * Callback when user changes language
    */
   onChangeLanguage?: (locale: string) => void;
-  
+
   /**
    * Default sidenav state for this layout (before user preference is loaded)
    * @default false (collapsed)
    */
   defaultExpanded?: boolean;
-  
+
   /**
    * Unique identifier for localStorage key
    * Full key will be: `${storageKeyPrefix}SideNavExpanded`
@@ -110,7 +112,7 @@ interface UseSideNavPreferenceOptions {
    * @default false
    */
   defaultExpanded?: boolean;
-  
+
   /**
    * Prefix for localStorage key
    * @default 'default'
@@ -123,12 +125,12 @@ interface UseSideNavPreferenceReturn {
    * Current sidenav expansion state
    */
   isExpanded: boolean;
-  
+
   /**
    * Toggle function (also persists to localStorage)
    */
   toggle: () => void;
-  
+
   /**
    * Programmatically set state (also persists to localStorage)
    */
@@ -138,7 +140,7 @@ interface UseSideNavPreferenceReturn {
 // Usage
 const { isExpanded, toggle, setExpanded } = useSideNavPreference({
   defaultExpanded: true,
-  storageKeyPrefix: 'analyzer'
+  storageKeyPrefix: "analyzer",
 });
 ```
 
@@ -152,11 +154,11 @@ const { isExpanded, toggle, setExpanded } = useSideNavPreference({
 
 ### Examples
 
-| Context | Key | Value |
-|---------|-----|-------|
+| Context        | Key                       | Value                 |
+| -------------- | ------------------------- | --------------------- |
 | Analyzer pages | `analyzerSideNavExpanded` | `"true"` or `"false"` |
-| Default layout | `defaultSideNavExpanded` | `"true"` or `"false"` |
-| Admin pages | `adminSideNavExpanded` | `"true"` or `"false"` |
+| Default layout | `defaultSideNavExpanded`  | `"true"` or `"false"` |
+| Admin pages    | `adminSideNavExpanded`    | `"true"` or `"false"` |
 
 ### Value Type
 
@@ -170,17 +172,17 @@ const { isExpanded, toggle, setExpanded } = useSideNavPreference({
 ```css
 /* Applied to content wrapper div */
 .content-expanded {
-  margin-left: 16rem;  /* 256px - Carbon SideNav expanded width */
+  margin-left: 16rem; /* 256px - Carbon SideNav expanded width */
   width: calc(100% - 16rem);
-  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9),
-              width 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s
+      cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 .content-collapsed {
-  margin-left: 3rem;   /* 48px - Carbon SideNav rail width */
+  margin-left: 3rem; /* 48px - Carbon SideNav rail width */
   width: calc(100% - 3rem);
-  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9),
-              width 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9), width 0.11s
+      cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 /* Responsive override - below Carbon lg breakpoint */
@@ -243,15 +245,15 @@ Initial render with correct state
 ## No Database Changes
 
 This feature does not require any database schema changes. All data is:
+
 - **Consumed from existing APIs**: `/rest/menu`, `/rest/notifications`
 - **Stored client-side**: localStorage for user preference
 
 ## Related APIs (No Changes Required)
 
-| API | Method | Purpose | Data Structure |
-|-----|--------|---------|----------------|
-| `/rest/menu` | GET | Fetch navigation menu | `MenuItem[]` |
-| `/rest/notifications` | GET | Fetch notifications | `Notification[]` |
-| `/rest/notification/markasread/{id}` | PUT | Mark notification read | N/A |
-| `/rest/notification/markasread/all` | PUT | Mark all read | N/A |
-
+| API                                  | Method | Purpose                | Data Structure   |
+| ------------------------------------ | ------ | ---------------------- | ---------------- |
+| `/rest/menu`                         | GET    | Fetch navigation menu  | `MenuItem[]`     |
+| `/rest/notifications`                | GET    | Fetch notifications    | `Notification[]` |
+| `/rest/notification/markasread/{id}` | PUT    | Mark notification read | N/A              |
+| `/rest/notification/markasread/all`  | PUT    | Mark all read          | N/A              |
