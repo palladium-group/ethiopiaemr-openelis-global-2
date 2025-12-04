@@ -1,5 +1,7 @@
 package org.openelisglobal.alert.service.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.openelisglobal.alert.dao.AlertDAO;
@@ -36,6 +38,9 @@ public class AlertServiceImpl extends BaseObjectServiceImpl<Alert, Long> impleme
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final int DEDUPLICATION_WINDOW_MINUTES = 30;
 
@@ -81,37 +86,41 @@ public class AlertServiceImpl extends BaseObjectServiceImpl<Alert, Long> impleme
     @Override
     @Transactional
     public Alert acknowledgeAlert(Long alertId, Integer userId) {
-        Alert alert = alertDAO.get(alertId).orElse(null);
-        if (alert == null) {
-            throw new IllegalArgumentException("Alert not found: " + alertId);
-        }
-
         SystemUser user = systemUserService.get(userId.toString());
         if (user == null) {
             throw new IllegalArgumentException("User not found: " + userId);
         }
+
+        // Clear persistence context to ensure we fetch fresh data from DB
+        entityManager.clear();
+
+        // Fetch fresh alert from database
+        Alert alert = alertDAO.get(alertId)
+                .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
 
         alert.setStatus(AlertStatus.ACKNOWLEDGED);
         alert.setAcknowledgedAt(OffsetDateTime.now());
         alert.setAcknowledgedBy(user);
 
-        alertDAO.update(alert);
-        eventPublisher.publishEvent(new AlertAcknowledgedEvent(this, alert, userId.longValue()));
-        return alert;
+        Alert updatedAlert = alertDAO.update(alert);
+        eventPublisher.publishEvent(new AlertAcknowledgedEvent(this, updatedAlert, userId.longValue()));
+        return updatedAlert;
     }
 
     @Override
     @Transactional
     public Alert resolveAlert(Long alertId, Integer userId, String resolutionNotes) {
-        Alert alert = alertDAO.get(alertId).orElse(null);
-        if (alert == null) {
-            throw new IllegalArgumentException("Alert not found: " + alertId);
-        }
-
         SystemUser user = systemUserService.get(userId.toString());
         if (user == null) {
             throw new IllegalArgumentException("User not found: " + userId);
         }
+
+        // Clear persistence context to ensure we fetch fresh data from DB
+        entityManager.clear();
+
+        // Fetch fresh alert from database
+        Alert alert = alertDAO.get(alertId)
+                .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
 
         alert.setStatus(AlertStatus.RESOLVED);
         alert.setResolvedAt(OffsetDateTime.now());
@@ -119,9 +128,9 @@ public class AlertServiceImpl extends BaseObjectServiceImpl<Alert, Long> impleme
         alert.setResolutionNotes(resolutionNotes);
         alert.setEndTime(OffsetDateTime.now());
 
-        alertDAO.update(alert);
-        eventPublisher.publishEvent(new AlertResolvedEvent(this, alert, userId.longValue(), resolutionNotes));
-        return alert;
+        Alert updatedAlert = alertDAO.update(alert);
+        eventPublisher.publishEvent(new AlertResolvedEvent(this, updatedAlert, userId.longValue(), resolutionNotes));
+        return updatedAlert;
     }
 
     @Override

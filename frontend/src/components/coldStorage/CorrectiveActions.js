@@ -176,24 +176,18 @@ export default function CorrectiveActions() {
   const [devices, setDevices] = useState([]);
   const [users, setUsers] = useState([]);
   const [locations, setLocations] = useState([]);
-
-  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [timeFilter, setTimeFilter] = useState(TIME_FILTERS[4]); // Default: All
+  const [timeFilter, setTimeFilter] = useState(TIME_FILTERS[4]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  // Modal states
+  const [pageSize, setPageSize] = useState(5);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRetractModalOpen, setIsRetractModalOpen] = useState(false);
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
-
   const [selectedAction, setSelectedAction] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form states
   const [form, setForm] = useState({
     device: null,
     performedBy: "",
@@ -218,7 +212,6 @@ export default function CorrectiveActions() {
     return userSessionDetails?.loginName || "";
   }, [userSessionDetails]);
 
-  // Calculate date range for filters
   const getDateRange = useCallback((filter) => {
     const end = new Date();
     let start = new Date();
@@ -228,7 +221,6 @@ export default function CorrectiveActions() {
     } else if (filter.hours) {
       start = new Date(end.getTime() - filter.hours * 60 * 60 * 1000);
     } else {
-      // "All" filter - no date restriction
       return { startDate: null, endDate: null };
     }
 
@@ -348,26 +340,18 @@ export default function CorrectiveActions() {
     const parseDate = (dateValue) => {
       if (!dateValue) return new Date();
 
-      // If it's already a Date object
       if (dateValue instanceof Date) return dateValue;
-
-      // If it's a number (timestamp in seconds with nanosecond precision)
-      // Backend sends timestamps like 1764266612.581084000 (seconds since epoch)
-      // JavaScript Date expects milliseconds, so multiply by 1000
       if (typeof dateValue === "number") {
         return new Date(dateValue * 1000);
       }
 
-      // If it's a string, try to parse it
       if (typeof dateValue === "string") {
         const parsed = new Date(dateValue);
-        // Check if the date is valid
         if (!isNaN(parsed.getTime())) {
           return parsed;
         }
       }
 
-      // Fallback to current date
       return new Date();
     };
 
@@ -385,7 +369,6 @@ export default function CorrectiveActions() {
       return `${dateStr} ${timeStr}`;
     };
 
-    // Format "Last updated by" with user and timestamp
     const updatedByText = action.updatedByName
       ? `${action.updatedByName} at ${formatDate(updatedDate)}`
       : formatDate(updatedDate);
@@ -607,7 +590,7 @@ export default function CorrectiveActions() {
       setForm((prev) => ({ ...prev, device: newDevice }));
 
       setIsDeviceModalOpen(false);
-      setIsAddModalOpen(true); // Reopen the Add Corrective Action modal
+      setIsAddModalOpen(true);
 
       notify({
         kind: NotificationKinds.success,
@@ -841,7 +824,7 @@ export default function CorrectiveActions() {
                 itemsPerPageText="Items per page:"
                 page={currentPage}
                 pageSize={pageSize}
-                pageSizes={[10, 20, 30, 40, 50]}
+                pageSizes={[5, 10, 20, 30, 40, 50]}
                 totalItems={filteredActions.length}
                 onChange={({ page, pageSize }) => {
                   setCurrentPage(page);
@@ -853,7 +836,6 @@ export default function CorrectiveActions() {
         </DataTable>
       )}
 
-      {/* Add Action Modal */}
       <Modal
         open={isAddModalOpen}
         onRequestClose={handleCloseAddModal}
@@ -894,8 +876,8 @@ export default function CorrectiveActions() {
               <div style={{ marginTop: "0.5rem" }}>
                 <Link
                   onClick={() => {
-                    setIsAddModalOpen(false); // Close Add Corrective Action modal
-                    setIsDeviceModalOpen(true); // Open Add Device modal
+                    setIsAddModalOpen(false);
+                    setIsDeviceModalOpen(true);
                   }}
                   style={{ cursor: "pointer", fontSize: "0.875rem" }}
                 >
@@ -946,7 +928,6 @@ export default function CorrectiveActions() {
         </Form>
       </Modal>
 
-      {/* Add Room Modal */}
       <Modal
         open={isAddRoomModalOpen}
         onRequestClose={() => {
@@ -989,12 +970,11 @@ export default function CorrectiveActions() {
         </Stack>
       </Modal>
 
-      {/* Add Device Modal */}
       <AddDeviceModal
         isOpen={isDeviceModalOpen}
         onClose={() => {
           setIsDeviceModalOpen(false);
-          setIsAddModalOpen(true); // Reopen Add Corrective Action modal when canceling
+          setIsAddModalOpen(true);
         }}
         onSubmit={handleCreateDevice}
         locations={locations}
@@ -1002,7 +982,6 @@ export default function CorrectiveActions() {
         editingDevice={null}
       />
 
-      {/* View/Edit Action Modal */}
       <Modal
         open={isViewModalOpen}
         onRequestClose={handleCloseViewModal}
@@ -1094,7 +1073,6 @@ export default function CorrectiveActions() {
         )}
       </Modal>
 
-      {/* Retract Action Modal */}
       <Modal
         open={isRetractModalOpen}
         onRequestClose={handleCloseRetractModal}

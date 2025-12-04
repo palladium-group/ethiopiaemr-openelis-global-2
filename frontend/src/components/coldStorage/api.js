@@ -2,6 +2,7 @@ import {
   getFromOpenElisServerV2,
   postToOpenElisServerJsonResponse,
   postToOpenElisServerForBlob,
+  postToOpenElisServerForPDF,
   putToOpenElisServer,
 } from "../utils/Utils";
 import config from "../../config.json";
@@ -25,7 +26,10 @@ export const fetchAlerts = async (entityType, entityId) => {
 
 export const fetchOpenAlerts = async () => {
   try {
-    const response = await getFromOpenElisServerV2("/rest/alerts");
+    const params = new URLSearchParams({ entityType: "Freezer" });
+    const response = await getFromOpenElisServerV2(
+      `/rest/alerts?${params.toString()}`,
+    );
     return Array.isArray(response) ? response : [];
   } catch (error) {
     console.error("Error fetching open alerts:", error);
@@ -57,35 +61,71 @@ const postColdStorageJson = (path, payload) =>
 
 export const acknowledgeAlert = async (alertId, userId, notes = "") => {
   return new Promise((resolve, reject) => {
-    putToOpenElisServer(
-      `/rest/alerts/${alertId}/acknowledge`,
-      JSON.stringify({ userId, notes }),
-      (response) => {
-        try {
-          const json = JSON.parse(response);
-          resolve(json);
-        } catch (e) {
-          resolve({ success: true });
-        }
+    fetch(`${config.serverBaseUrl}/rest/alerts/${alertId}/acknowledge`, {
+      credentials: "include",
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": localStorage.getItem("CSRF"),
       },
-    );
+      body: JSON.stringify({ userId, notes }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          // For error responses, try to parse JSON error message
+          return response
+            .json()
+            .then((errorJson) => {
+              throw new Error(
+                errorJson.message ||
+                  `Failed to acknowledge alert: HTTP ${response.status}`,
+              );
+            })
+            .catch(() => {
+              throw new Error(
+                `Failed to acknowledge alert: HTTP ${response.status}`,
+              );
+            });
+        }
+        return response.json();
+      })
+      .then((json) => resolve(json))
+      .catch((error) => reject(error));
   });
 };
 
 export const resolveAlert = async (alertId, userId, resolutionNotes) => {
   return new Promise((resolve, reject) => {
-    putToOpenElisServer(
-      `/rest/alerts/${alertId}/resolve`,
-      JSON.stringify({ userId, resolutionNotes }),
-      (response) => {
-        try {
-          const json = JSON.parse(response);
-          resolve(json);
-        } catch (e) {
-          resolve({ success: true });
-        }
+    fetch(`${config.serverBaseUrl}/rest/alerts/${alertId}/resolve`, {
+      credentials: "include",
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": localStorage.getItem("CSRF"),
       },
-    );
+      body: JSON.stringify({ userId, resolutionNotes }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          // For error responses, try to parse JSON error message
+          return response
+            .json()
+            .then((errorJson) => {
+              throw new Error(
+                errorJson.message ||
+                  `Failed to resolve alert: HTTP ${response.status}`,
+              );
+            })
+            .catch(() => {
+              throw new Error(
+                `Failed to resolve alert: HTTP ${response.status}`,
+              );
+            });
+        }
+        return response.json();
+      })
+      .then((json) => resolve(json))
+      .catch((error) => reject(error));
   });
 };
 
@@ -213,13 +253,14 @@ export const fetchReportExcursions = async ({ freezerId, start, end }) => {
   );
 };
 
-export const fetchAuditTrail = async ({ freezerId, start, end }) => {
-  const params = new URLSearchParams({ start, end });
+export const fetchAuditTrail = async ({ freezerId }) => {
+  const params = new URLSearchParams();
   if (freezerId) {
     params.append("freezerId", freezerId);
   }
+  // Fetch all audit trail data without date filtering (client-side filtering instead)
   return getFromOpenElisServerV2(
-    `/rest/coldstorage/reports/audit-trail?${params.toString()}`,
+    `/rest/coldstorage/audit-trail${params.toString() ? `?${params.toString()}` : ""}`,
   );
 };
 
@@ -241,26 +282,22 @@ export const downloadReportDirect = ({
   freezerId,
 }) => {
   return new Promise((resolve, reject) => {
-    const endpoint = `/rest/ReportPrint`;
+    const endpoint = `/rest/coldstorage/reports/generate`;
     const payload = JSON.stringify({
-      report: reportName,
-      lowerDateRange: startDate,
-      upperDateRange: endDate,
-      // Use projectCode field per OpenELIS pattern for entity ID
-      projectCode:
-        freezerId && freezerId !== "All Freezers" ? String(freezerId) : "",
+      reportType: reportName,
+      freezerId:
+        freezerId && freezerId !== "All Freezers" ? String(freezerId) : null,
+      startDate: startDate,
+      endDate: endDate,
     });
 
-    postToOpenElisServerForBlob(
-      endpoint,
-      payload,
-      (blob, response) => {
+    postToOpenElisServerForPDF(endpoint, payload, (success, blob) => {
+      if (success) {
         resolve(blob);
-      },
-      (error) => {
-        reject(error);
-      },
-    );
+      } else {
+        reject(new Error("Failed to generate report"));
+      }
+    });
   });
 };
 
