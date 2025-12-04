@@ -4,6 +4,7 @@ import { IntlProvider } from "react-intl";
 import { confirmAlert } from "react-confirm-alert";
 import Layout from "./components/layout/Layout";
 import Home from "./components/Home";
+import StorageDashboard from "./components/storage/StorageDashboard";
 import Login from "./components/Login";
 import LandingPage from "./components/home/LandingPage";
 import { Admin } from "./components";
@@ -18,6 +19,7 @@ import "./index.scss";
 import RedirectOldUI from "./RedirectOldUI";
 import PatientManagement from "./components/patient/PatientManagement";
 import PatientHistory from "./components/patient/PatientHistory";
+import Aliquot from "./components/sample/Aliquot";
 import Workplan from "./components/workplan/Workplan";
 import AddOrder from "./components/addOrder/Index";
 import FindOrder from "./components/modifyOrder/Index";
@@ -28,6 +30,8 @@ import StudyValidation from "./components/validation/Index";
 import AnalyserResultIndex from "./components/analyserResults/Index";
 import PathologyDashboard from "./components/pathology/PathologyDashboard";
 import CytologyDashboard from "./components/cytology/CytologyDashBoard";
+import NoteBookDashBoard from "./components/notebook/NoteBookDashBoard";
+import NoteBookEntryForm from "./components/notebook/NoteBookEntryForm";
 import CytologyCaseView from "./components/cytology/CytologyCaseView";
 import PathologyCaseView from "./components/pathology/PathologyCaseView";
 import ImmunohistochemistryDashboard from "./components/immunohistochemistry/ImmunohistochemistryDashboard";
@@ -44,6 +48,8 @@ import AuditTrailReportIndex from "./components/reports/auditTrailReport/Index.j
 import ReferredOutTests from "./components/resultPage/resultsReferredOut/ReferredOutTests.js";
 import ChangePassword from "./components/ChangePassword.js";
 import { Roles } from "./components/utils/Utils";
+import NoteBookInstanceEntryForm from "./components/notebook/NoteBookInstanceEntryForm.js";
+import FreezerMonitoringDashboard from "./components/coldStorage/FreezerMonitoringDashboard";
 
 export default function App() {
   let i18nConfig = {
@@ -245,6 +251,36 @@ export default function App() {
                   role=""
                 />
                 <SecureRoute
+                  path="/GenericSample/Order"
+                  exact
+                  component={() => {
+                    const GenericSampleOrder =
+                      require("./components/genericSample/GenericSampleOrder").default;
+                    return <GenericSampleOrder />;
+                  }}
+                  role=""
+                />
+                <SecureRoute
+                  path="/GenericSample/Edit"
+                  exact
+                  component={() => {
+                    const GenericSampleOrderEdit =
+                      require("./components/genericSample/GenericSampleOrderEdit").default;
+                    return <GenericSampleOrderEdit />;
+                  }}
+                  role=""
+                />
+                <SecureRoute
+                  path="/GenericSample/Import"
+                  exact
+                  component={() => {
+                    const GenericSampleOrderImport =
+                      require("./components/genericSample/GenericSampleOrderImport").default;
+                    return <GenericSampleOrderImport />;
+                  }}
+                  role=""
+                />
+                <SecureRoute
                   path="/Dashboard"
                   exact
                   component={() => <Home />}
@@ -296,6 +332,42 @@ export default function App() {
                   component={() => <CytologyDashboard />}
                   role=""
                   labUnitRole={{ Cytology: [Roles.RESULTS] }}
+                />
+                <SecureRoute
+                  path="/FreezerMonitoring"
+                  exact
+                  component={() => <FreezerMonitoringDashboard />}
+                  role={Roles.RECEPTION}
+                />
+                <SecureRoute
+                  path="/NoteBookDashboard"
+                  exact
+                  component={() => <NoteBookDashBoard />}
+                  role={[Roles.RECEPTION, Roles.RESULTS, Roles.VALIDATION]}
+                />
+                <SecureRoute
+                  path="/NoteBookEntryForm/:notebookid"
+                  exact
+                  component={() => <NoteBookEntryForm />}
+                  role={Roles.GLOBAL_ADMIN}
+                />
+                <SecureRoute
+                  path="/NoteBookEntryForm"
+                  exact
+                  component={() => <NoteBookEntryForm />}
+                  role={Roles.GLOBAL_ADMIN}
+                />
+                <SecureRoute
+                  path="/NoteBookInstanceEntryForm/:notebookid"
+                  exact
+                  component={() => <NoteBookInstanceEntryForm />}
+                  role={Roles.RESULTS}
+                />
+                <SecureRoute
+                  path="/NoteBookInstanceEditForm/:notebookentryid"
+                  exact
+                  component={() => <NoteBookInstanceEntryForm />}
+                  role={Roles.RESULTS}
                 />
                 <SecureRoute
                   path="/CytologyCaseView/:cytologySampleId"
@@ -374,11 +446,29 @@ export default function App() {
                   role={Roles.RECEPTION}
                 />
                 <SecureRoute
+                  path="/Storage"
+                  exact
+                  component={() => <StorageDashboard />}
+                  role={[Roles.RECEPTION, Roles.RESULTS, Roles.GLOBAL_ADMIN]}
+                />
+                <SecureRoute
+                  path="/Storage/:tab"
+                  component={() => <StorageDashboard />}
+                  role={[Roles.RECEPTION, Roles.RESULTS, Roles.GLOBAL_ADMIN]}
+                />
+                <SecureRoute
                   path="/PatientHistory"
                   exact
                   component={() => <PatientHistory />}
                   role={Roles.RECEPTION}
                 />
+                <SecureRoute
+                  path="/Aliquot"
+                  exact
+                  component={() => <Aliquot />}
+                  role={Roles.RECEPTION}
+                />
+
                 <SecureRoute
                   path="/PatientResults/:patientId"
                   exact
