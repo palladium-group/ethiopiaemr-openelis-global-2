@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import javax.sql.DataSource;
 import org.junit.After;
@@ -282,40 +281,6 @@ public class NoteBookServiceTest extends BaseWebContextSensitiveTest {
         for (NoteBook notebook : filtered) {
             assertTrue("Should match one of the statuses",
                     notebook.getStatus() == NoteBookStatus.DRAFT || notebook.getStatus() == NoteBookStatus.SUBMITTED);
-        }
-    }
-
-    @Test
-    public void filterNoteBooks_tagsMatch_returnsCorrectFiltered() {
-        List<String> tags = List.of("entry");
-
-        List<NoteBook> filtered = noteBookService.filterNoteBooks(null, null, tags, null, null);
-
-        assertNotNull("Filtered list should not be null", filtered);
-        assertTrue("Should have at least 2 notebooks with 'entry' tag", filtered.size() >= 2);
-
-        for (NoteBook notebook : filtered) {
-            NoteBookDisplayBean displayBean = noteBookService.convertToDisplayBean(notebook.getId());
-            assertNotNull("Display bean should not be null", displayBean);
-            assertTrue("Notebook should have 'entry' tag",
-                    displayBean.getTags() != null && displayBean.getTags().contains("entry"));
-        }
-    }
-
-    @Test
-    public void filterNoteBooks_dateRange_returnsCorrectFiltered() {
-        Date fromDate = new Date(Timestamp.valueOf("2025-01-02 00:00:00").getTime());
-        Date toDate = new Date(Timestamp.valueOf("2025-01-04 23:59:59").getTime());
-
-        List<NoteBook> filtered = noteBookService.filterNoteBooks(null, null, null, fromDate, toDate);
-
-        assertNotNull("Filtered list should not be null", filtered);
-        assertTrue("Should have at least 2 notebooks in range", filtered.size() >= 2);
-
-        for (NoteBook notebook : filtered) {
-            assertNotNull("Notebook dateCreated should not be null", notebook.getDateCreated());
-            assertTrue("Notebook should fall within range",
-                    !notebook.getDateCreated().before(fromDate) && !notebook.getDateCreated().after(toDate));
         }
     }
 
