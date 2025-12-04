@@ -1,7 +1,7 @@
 # Quickstart Guide: Carbon Design System Sidenav
 
 **Feature**: 009-carbon-sidenav  
-**Branch**: `009-carbon-sidenav`  
+**Feature Branch**: `feat/OG-009-sidenav`  
 **Date**: December 4, 2025
 
 ## Overview
@@ -11,6 +11,23 @@ Carbon Design System best practices. The sidenav can be toggled between expanded
 (256px) and collapsed (48px) modes, with user preference persisted to
 localStorage.
 
+## Milestone-Based Development (Principle IX)
+
+This feature is broken into 3 milestones per Constitution Principle IX:
+
+| Milestone | Branch                          | Scope                            | Can Start        |
+| --------- | ------------------------------- | -------------------------------- | ---------------- |
+| M1        | `feat/OG-009-sidenav/m1-core`   | Core layout, toggle, persistence | Immediately      |
+| M2 [P]    | `feat/OG-009-sidenav/m2-nav`    | Hierarchical nav, auto-expand    | Parallel with M1 |
+| M3        | `feat/OG-009-sidenav/m3-polish` | Icons, responsive, E2E tests     | After M1 + M2    |
+
+**Workflow**:
+
+1. Work on M1 and M2 in parallel (or sequentially)
+2. Create PR for each milestone when complete
+3. After M1 + M2 merged, start M3
+4. Final PR completes the feature
+
 ## Prerequisites
 
 - OpenELIS Global 2 development environment set up
@@ -19,12 +36,19 @@ localStorage.
 
 ## Quick Start
 
-### 1. Checkout the Feature Branch
+### 1. Create Milestone Branch
 
 ```bash
 cd OpenELIS-Global-2
 git fetch origin
-git checkout 009-carbon-sidenav
+git checkout develop
+git pull
+
+# For Milestone 1:
+git checkout -b feat/OG-009-sidenav/m1-core
+
+# For Milestone 2 (can be parallel):
+git checkout -b feat/OG-009-sidenav/m2-nav
 ```
 
 ### 2. Install Dependencies (if needed)

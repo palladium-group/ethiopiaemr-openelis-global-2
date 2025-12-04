@@ -63,6 +63,44 @@ Verify compliance with
 
 - None identified - this feature aligns with all constitution principles
 
+## Milestone Plan
+
+_GATE: Features >3 days MUST define milestones per Constitution Principle IX.
+Each milestone = 1 PR. Use `[P]` prefix for parallel milestones._
+
+### Milestone Table
+
+| ID     | Branch Suffix | Scope                                          | User Stories | Verification                     | Depends On |
+| ------ | ------------- | ---------------------------------------------- | ------------ | -------------------------------- | ---------- |
+| M1     | m1-core       | TwoModeLayout component, toggle, localStorage  | P1 (both)    | Jest unit tests pass             | -          |
+| [P] M2 | m2-nav        | Hierarchical menus, auto-expand, page config   | P2 (both)    | Jest tests + manual verification | -          |
+| M3     | m3-polish     | Icons/tooltips, responsive behavior, E2E tests | P3 (both)    | E2E tests pass                   | M1, M2     |
+
+**Legend**:
+
+- **[P]**: Parallel milestone - M2 can be developed alongside M1
+- **Sequential**: M3 depends on M1 and M2 completion
+- **Branch**: Full path is `feat/OG-009-sidenav/{suffix}`
+
+### Milestone Dependency Graph
+
+```mermaid
+graph LR
+    M1[M1: Core Layout] --> M3[M3: Polish & E2E]
+    M2[M2: Navigation] --> M3
+```
+
+### PR Strategy
+
+- **Spec PR**: `spec/OG-009-sidenav` → `develop` (this specification - already
+  created)
+- **M1 PR**: `feat/OG-009-sidenav/m1-core` → `develop`
+- **M2 PR**: `feat/OG-009-sidenav/m2-nav` → `develop` (can be parallel with M1)
+- **M3 PR**: `feat/OG-009-sidenav/m3-polish` → `develop` (after M1 + M2 merged)
+
+**Estimated Effort**: ~4-5 days total (justifies milestone breakdown per
+Principle IX)
+
 ## Testing Strategy
 
 **Reference**:
