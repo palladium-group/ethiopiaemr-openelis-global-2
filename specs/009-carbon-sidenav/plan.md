@@ -80,7 +80,7 @@ Each milestone = 1 PR. Use `[P]` prefix for parallel milestones._
 
 - **[P]**: Parallel milestone - M2 can be developed alongside M1
 - **Sequential**: M3 depends on M1 and M2 completion
-- **Branch**: Full path is `feat/OG-009-sidenav/{suffix}`
+- **Branch**: Full path is `feat/OGC-009-sidenav/{suffix}`
 
 ### Milestone Dependency Graph
 
@@ -92,11 +92,11 @@ graph LR
 
 ### PR Strategy
 
-- **Spec PR**: `spec/OG-009-sidenav` → `develop` (this specification - already
+- **Spec PR**: `spec/OGC-009-sidenav` → `develop` (this specification - already
   created)
-- **M1 PR**: `feat/OG-009-sidenav/m1-core` → `develop`
-- **M2 PR**: `feat/OG-009-sidenav/m2-nav` → `develop` (can be parallel with M1)
-- **M3 PR**: `feat/OG-009-sidenav/m3-polish` → `develop` (after M1 + M2 merged)
+- **M1 PR**: `feat/OGC-009-sidenav/m1-core` → `develop`
+- **M2 PR**: `feat/OGC-009-sidenav/m2-nav` → `develop` (can be parallel with M1)
+- **M3 PR**: `feat/OGC-009-sidenav/m3-polish` → `develop` (after M1 + M2 merged)
 
 **Estimated Effort**: ~4-5 days total (justifies milestone breakdown per
 Principle IX)

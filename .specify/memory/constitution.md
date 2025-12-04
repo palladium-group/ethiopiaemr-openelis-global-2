@@ -13,14 +13,14 @@ Added Sections:
     * NEW: Each Milestone = 1 Pull Request
     * NEW: Parallel [P] and Sequential milestone types
     * NEW: Branch naming convention (spec/, feat/, milestone/, hotfix/, fix/)
-    * NEW: Jira integration via OG-{###} issue ID format
+    * NEW: Jira integration via OGC-{###} issue ID format
     * NEW: Milestone Plan table structure for plan.md
 
 Modified Sections:
   - Development Workflow > Branch Strategy
     * CHANGED: Updated to reference Principle IX for complete naming conventions
     * ADDED: Spec branches, Feature branches, Milestone branches
-    * ADDED: Issue ID format guidance (Jira OG-{###} or GitHub {###})
+    * ADDED: Issue ID format guidance (Jira OGC-{###} or GitHub {###})
 
   - Development Workflow > Pull Request Requirements
     * CHANGED: Branch naming checklist updated for new conventions
@@ -58,7 +58,7 @@ Commit Message:
   - Add Principle IX: Spec-Driven Iteration for milestone-based PR workflow
   - Define branch naming: spec/, feat/, feat/.../m{N}-, hotfix/, fix/
   - Support parallel [P] and sequential milestones
-  - Enable Jira integration via OG-{###} issue IDs
+  - Enable Jira integration via OGC-{###} issue IDs
   - Update Branch Strategy and PR Requirements sections
   - Based on GitHub SpecKit SDD approach
 
@@ -989,11 +989,12 @@ sequential, enabling flexible team coordination.
 | Hotfix              | `hotfix/{issue-id}-{desc}`               | `hotfix/OGC-123-fix-login`                 |
 | Bugfix              | `fix/{issue-id}-{desc}`                  | `fix/OGC-456-null-check`                   |
 
-**Issue ID Formats** (Jira Integration):
+**Issue ID Formats**:
 
-- Jira tickets: `OGC-{###}` (e.g., `OGC-009`, `OGC-123`)
-- GitHub issues: `{###}` (e.g., `009`, `123`)
-- Internal tracking: `{###}` with optional prefix
+- **Jira (Primary)**: `OGC-{###}` (e.g., `OGC-009`, `OGC-123`) - OpenELIS Global
+  Confluence project
+- **GitHub Issues**: `{###}` (e.g., `009`, `123`) - for GitHub-only tracking
+- **Other Trackers**: `{PREFIX}-{###}` - flexible for external integrations
 
 **Milestone Plan Structure** (in `plan.md`):
 
@@ -1155,7 +1156,7 @@ naming conventions and milestone workflow.
 - **Hotfix branches**: `hotfix/{issue-id}-{desc}` (merged to develop + main)
 - **Bugfix branches**: `fix/{issue-id}-{desc}` (merged to develop)
 
-**Issue ID Format**: Use Jira ticket (`OG-{###}`) or GitHub issue number
+**Issue ID Format**: Jira ticket (`OGC-{###}`) preferred, or GitHub issue number
 (`{###}`)
 
 ### Pull Request Requirements

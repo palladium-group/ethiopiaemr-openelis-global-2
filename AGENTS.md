@@ -453,13 +453,13 @@ delay feedback. Milestone-based delivery enables manageable code reviews.
 
 **Branch Naming Convention:**
 
-| Branch Type      | Pattern                              | Example                          |
-| ---------------- | ------------------------------------ | -------------------------------- |
-| Spec Branch      | `spec/{issue-id}-{name}`             | `spec/OG-009-sidenav`            |
-| Feature Branch   | `feat/{issue-id}-{name}`             | `feat/OG-009-sidenav`            |
-| Milestone Branch | `feat/{issue-id}-{name}/m{N}-{desc}` | `feat/OG-009-sidenav/m1-backend` |
-| Hotfix           | `hotfix/{issue-id}-{desc}`           | `hotfix/OG-123-fix-login`        |
-| Bugfix           | `fix/{issue-id}-{desc}`              | `fix/OG-456-null-check`          |
+| Branch Type      | Pattern                              | Example                           |
+| ---------------- | ------------------------------------ | --------------------------------- |
+| Spec Branch      | `spec/{issue-id}-{name}`             | `spec/OGC-009-sidenav`            |
+| Feature Branch   | `feat/{issue-id}-{name}`             | `feat/OGC-009-sidenav`            |
+| Milestone Branch | `feat/{issue-id}-{name}/m{N}-{desc}` | `feat/OGC-009-sidenav/m1-backend` |
+| Hotfix           | `hotfix/{issue-id}-{desc}`           | `hotfix/OGC-123-fix-login`        |
+| Bugfix           | `fix/{issue-id}-{desc}`              | `fix/OGC-456-null-check`          |
 
 **Reference:**
 [GitHub SpecKit SDD Approach](https://github.com/github/spec-kit/blob/main/spec-driven.md)
@@ -642,7 +642,7 @@ docker compose -f dev.docker-compose.yml logs -f oe.openelis.org
 - **Hotfix branches:** `hotfix/{issue-id}-{desc}` (merged to develop + main)
 - **Bugfix branches:** `fix/{issue-id}-{desc}` (merged to develop)
 
-**Issue ID Format:** Use Jira ticket (`OG-{###}`) or GitHub issue number
+**Issue ID Format:** Jira ticket (`OGC-{###}`) preferred, or GitHub issue number
 (`{###}`)
 
 **Creating Feature Branch (SDD Workflow):**
@@ -651,13 +651,13 @@ docker compose -f dev.docker-compose.yml logs -f oe.openelis.org
 # 1. Start with spec branch
 git checkout develop
 git pull --rebase upstream develop
-git checkout -b spec/OG-009-sidenav
+git checkout -b spec/OGC-009-sidenav
 
 # 2. After spec PR approved, create feature branch
-git checkout -b feat/OG-009-sidenav
+git checkout -b feat/OGC-009-sidenav
 
 # 3. For each milestone, create milestone branch
-git checkout -b feat/OG-009-sidenav/m1-backend
+git checkout -b feat/OGC-009-sidenav/m1-backend
 ```
 
 ### Pre-Commit Checklist

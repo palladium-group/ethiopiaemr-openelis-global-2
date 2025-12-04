@@ -355,19 +355,19 @@ develop
 
 ```bash
 # Developer A works on M1 (Backend):
-git checkout -b feat/OG-009-sidenav/m1-backend
+git checkout -b feat/OGC-009-sidenav/m1-backend
 # ... complete M1 tasks ...
-# Create PR: m1-backend → feat/OG-009-sidenav
+# Create PR: m1-backend → feat/OGC-009-sidenav
 
 # Developer B works on M2 (Frontend) IN PARALLEL:
-git checkout -b feat/OG-009-sidenav/m2-frontend
+git checkout -b feat/OGC-009-sidenav/m2-frontend
 # ... complete M2 tasks ...
-# Create PR: m2-frontend → feat/OG-009-sidenav
+# Create PR: m2-frontend → feat/OGC-009-sidenav
 
 # After M1 and M2 PRs merged, Developer A or B works on M3:
-git checkout feat/OG-009-sidenav
+git checkout feat/OGC-009-sidenav
 git pull  # Get merged M1 + M2
-git checkout -b feat/OG-009-sidenav/m3-integration
+git checkout -b feat/OGC-009-sidenav/m3-integration
 # ... complete M3 tasks ...
 ```
 
