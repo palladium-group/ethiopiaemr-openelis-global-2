@@ -666,6 +666,7 @@
   "login.timeout": "Délai d'inactivité de l'utilisateur (minutes)",
   "login.timeout.placeholder": "Entrer en minutes",
   "login.title": "Identifiant",
+  "login.redirecting.sso": "Redirecting to Single Sign-On...",
   "manage.testing.algorithms.add.reflex.tests": "Gérer les algorithmes de test et les tests réflexes",
   "master.lists.page": "Page des listes principales",
   "master.lists.page.analyzer": "Page de l'analyseur",
