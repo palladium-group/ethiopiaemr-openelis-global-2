@@ -18,7 +18,7 @@
 
     <!-- STORAGE RACK -->
     <storage_rack id="1003" label="RACK01" code="RACK01"
-        rows="1" columns="1" parent_shelf_id="1002" active="true"
-        sys_user_id="1" fhir_uuid="44444444-4444-4444-4444-444444444444" />
+        parent_shelf_id="1002" active="true" sys_user_id="1"
+        fhir_uuid="44444444-4444-4444-4444-444444444444" />
 
 </dataset>
