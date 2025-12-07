@@ -42,6 +42,12 @@ public class SampleStorageServiceFlexibleAssignmentTest {
     @Mock
     private StorageLocationService storageLocationService;
 
+    @Mock
+    private org.openelisglobal.sample.service.SampleService sampleService;
+
+    @Mock
+    private org.openelisglobal.sampleitem.service.SampleItemService sampleItemService;
+
     @InjectMocks
     private SampleStorageServiceImpl sampleStorageService;
 
@@ -77,8 +83,7 @@ public class SampleStorageServiceFlexibleAssignmentTest {
         testRack = new StorageRack();
         testRack.setId(30);
         testRack.setLabel("Rack R1");
-        testRack.setRows(8);
-        testRack.setColumns(12);
+        testRack.setShortCode("RACKR1");
         testRack.setParentShelf(testShelf);
         testRack.setActive(true);
 
