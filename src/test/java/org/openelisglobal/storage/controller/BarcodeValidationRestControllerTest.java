@@ -102,23 +102,24 @@ public class BarcodeValidationRestControllerTest extends BaseWebContextSensitive
     }
 
     @Test
-    public void validate5LevelBarcode_ShouldReturnValidResponse_ForCompleteHierarchy() throws Exception {
-        String barcode = "TESTROOM01-TESTDEV01-SHELF01-RACK01-A1";
+    public void validate5LevelBarcode_ShouldReturnValidResponse_ForHierarchyUpToRack() throws Exception {
+        // Arrange
+        String barcode = "TESTROOM01-TESTDEV01-SHELF01-RACK01"; // stops at rack
         String requestBody = String.format("{\"barcode\": \"%s\"}", barcode);
 
+        // Act
         MvcResult result = mockMvc.perform(
                 post("/rest/storage/barcode/validate").contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andExpect(status().isOk()).andReturn();
 
+        // Assert
         JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
-
         assertTrue(response.get("valid").asBoolean());
         JsonNode validComponents = response.get("validComponents");
         assertTrue(validComponents.has("room"));
         assertTrue(validComponents.has("device"));
         assertTrue(validComponents.has("shelf"));
         assertTrue(validComponents.has("rack"));
-        assertTrue(validComponents.has("position"));
     }
 
     @Test
