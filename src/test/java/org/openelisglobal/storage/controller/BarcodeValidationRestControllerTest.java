@@ -120,12 +120,11 @@ public class BarcodeValidationRestControllerTest extends BaseWebContextSensitive
 
         // Assert
         JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertTrue(response.get("valid").asBoolean());
+        assertFalse("Validation should fail for inactive device", response.get("valid").asBoolean());
         JsonNode validComponents = response.get("validComponents");
-        assertTrue(validComponents.has("room"));
-        assertTrue(validComponents.has("device"));
-        assertTrue(validComponents.has("shelf"));
-        assertTrue(validComponents.has("rack"));
+        assertEquals("Failed step should be ACTIVITY_CHECK", "ACTIVITY_CHECK", response.get("failedStep").asText());
+        assertTrue("Error message should mention 'inactive'",
+                response.get("errorMessage").asText().toLowerCase().contains("inactive"));
     }
 
     @Test
