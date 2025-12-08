@@ -40,8 +40,7 @@ public class InventoryManagementServiceIT extends BaseWebContextSensitiveTest {
 
     @Test
     public void consumeInventoryFEFO_shouldConsumeFromEarliestExpiringLot() {
-        List<ConsumptionRecord> records = inventoryManagementService.consumeInventoryFEFO(1L, 25.0, 1L,
-                1L, "1");
+        List<ConsumptionRecord> records = inventoryManagementService.consumeInventoryFEFO(1L, 25.0, 1L, 1L, "1");
 
         assertNotNull("Consumption records should not be null", records);
         assertEquals("Should have 1 consumption record", 1, records.size());
@@ -56,8 +55,7 @@ public class InventoryManagementServiceIT extends BaseWebContextSensitiveTest {
 
     @Test
     public void consumeInventoryFEFO_shouldConsumeFromMultipleLotsWhenNeeded() {
-        List<ConsumptionRecord> records = inventoryManagementService.consumeInventoryFEFO(1L, 120.0, 2L,
-                2L, "1");
+        List<ConsumptionRecord> records = inventoryManagementService.consumeInventoryFEFO(1L, 120.0, 2L, 2L, "1");
 
         assertNotNull("Consumption records should not be null", records);
         assertEquals("Should have 2 consumption records", 2, records.size());
