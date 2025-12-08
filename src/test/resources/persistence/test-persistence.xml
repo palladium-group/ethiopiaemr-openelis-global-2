@@ -96,6 +96,11 @@
             <property
                 name="hibernate.search.backend.analysis.configurer"
                 value="class:org.openelisglobal.hibernate.search.analysis.CustomLuceneAnalysisConfigurer" />
+            <property name="hibernate.hbm2ddl.auto" value="update" />
+            <property
+                name="jakarta.persistence.schema-generation.database.action"
+                value="update" />
+
         </properties>
 
     </persistence-unit>
