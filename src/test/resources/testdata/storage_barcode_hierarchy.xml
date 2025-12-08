@@ -13,7 +13,7 @@
 
     <!-- STORAGE SHELF -->
     <storage_shelf id="1002" label="SHELF01" code="SHELF01"
-        parent_device_id="1001" active="true" sys_user_id="1"
+        parent_device_id="1001" active="false" sys_user_id="1"
         fhir_uuid="33333333-3333-3333-3333-333333333333" />
 
     <!-- STORAGE RACK -->
