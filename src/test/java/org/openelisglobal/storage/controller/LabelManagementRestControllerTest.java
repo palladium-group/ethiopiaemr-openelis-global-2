@@ -59,11 +59,10 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @After
     public void tearDown() throws Exception {
-        // No cleanup needed
     }
 
     @Test
-    public void testPostPrintLabelEndpoint_GeneratesPdf_Returns200() throws Exception {
+    public void postPrintLabelEndpoint_ShouldGeneratePdf_ForDeviceWithCode() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice suitableDevice = null;
 
@@ -90,7 +89,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testPrintValidationChecksCodeExists_MissingCode_Returns400() throws Exception {
+    public void printValidation_ShouldReturnBadRequest_WhenCodeIsMissing() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice deviceWithEmptyCode = null;
 
@@ -116,7 +115,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testPostPrintLabelEndpoint_CodeLeq10Chars_GeneratesPdf_Returns200() throws Exception {
+    public void postPrintLabelEndpoint_ShouldGeneratePdf_WhenCodeIsLessThanOrEqualTo10Chars() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice deviceWithShortCode = null;
 
@@ -143,7 +142,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testErrorResponseIfCodeMissing_ReturnsJsonError() throws Exception {
+    public void ErrorResponseIfCodeMissing_ReturnsJsonError() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice deviceWithEmptyCode = null;
 
@@ -169,7 +168,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testPrintHistoryTracking_AfterLabelGeneration_Recorded() throws Exception {
+    public void printHistory_ShouldBeRecorded_AfterLabelGeneration() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice suitableDevice = null;
 
@@ -201,7 +200,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testGetPrintHistory_ReturnsHistory_Returns200() throws Exception {
+    public void postPrintLabelEndpoint_ShouldReturnBadRequest_ForInvalidType() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice suitableDevice = null;
 
@@ -223,7 +222,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     }
 
     @Test
-    public void testPdfGenerationWithCode_FromEntity() throws Exception {
+    public void pdfGeneration_ShouldUseCode_FromEntity() throws Exception {
         List<StorageDevice> allDevices = storageDeviceDAO.getAll();
         StorageDevice deviceWithCode = null;
 
