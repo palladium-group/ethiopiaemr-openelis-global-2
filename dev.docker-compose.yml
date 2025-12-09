@@ -74,6 +74,7 @@ services:
             - ./volume/analyzer/analyzer-test-map.csv:/var/lib/openelis-global/analyzer/analyzer-test-map.csv
             - ./volume/ocl:/var/lib/openelis-global/ocl
             - ./volume/configuration:/var/lib/openelis-global/configuration
+            - ./volume/menu/menu_config.json:/var/lib/openelis-global/menu/menu_config.json
         secrets:
             - source: datasource.password
             - source: common.properties
