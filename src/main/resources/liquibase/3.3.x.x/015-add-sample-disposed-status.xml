@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-     <changeSet author="ogc-73" id="add-sample-disposed-statu">
+    <changeSet id="add-sample-disposed-status" author="ogc-73">
         <preConditions onFail="MARK_RAN">
             <sqlCheck  expectedResult="0">SELECT count(*) FROM clinlims.status_of_sample WHERE status_type = 'SAMPLE' AND name = 'SampleDisposed'</sqlCheck>
         </preConditions>
