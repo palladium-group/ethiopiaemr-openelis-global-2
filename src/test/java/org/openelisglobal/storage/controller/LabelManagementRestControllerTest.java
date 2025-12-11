@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,11 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
+    private static final int TEST_STORAGE_ROOM_ID = 1000;
+    private static final int TEST_STORAGE_DEVICE_ID = 1001;
+    private static final int TEST_STORAGE_DEVICE_EMPTY_CODE_ID = 1002;
+    private static final int TEST_STORAGE_DEVICE_SHORT_CODE_ID = 1003;
+
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -63,23 +67,12 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void postPrintLabelEndpoint_ShouldGeneratePdf_ForDeviceWithCode() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice suitableDevice = null;
-
-        for (StorageDevice device : allDevices) {
-            if (device.getCode() != null && !device.getCode().isEmpty() && device.getParentRoom() != null
-                    && device.getActive()) {
-                suitableDevice = device;
-                break;
-            }
-        }
-
-        assertNotNull("Should find a suitable device for testing", suitableDevice);
-        String deviceId = String.valueOf(suitableDevice.getId());
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_ID);
 
         StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
         assertNotNull("Device should exist", device);
         assertNotNull("Device should have code", device.getCode());
+        assertTrue("Device code should start with FRZ01", device.getCode().startsWith("FRZ01"));
         assertNotNull("Device should have parentRoom", device.getParentRoom());
         assertNotNull("ParentRoom should have code", device.getParentRoom().getCode());
 
@@ -90,21 +83,11 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void printValidation_ShouldReturnBadRequest_WhenCodeIsMissing() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice deviceWithEmptyCode = null;
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_EMPTY_CODE_ID);
 
-        for (StorageDevice device : allDevices) {
-            if ((device.getCode() == null || device.getCode().isEmpty()) && device.getActive()) {
-                deviceWithEmptyCode = device;
-                break;
-            }
-        }
-
-        if (deviceWithEmptyCode == null) {
-            return;
-        }
-
-        String deviceId = String.valueOf(deviceWithEmptyCode.getId());
+        StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
+        assertNotNull("Device should exist", device);
+        assertTrue("Device should have empty code", device.getCode() == null || device.getCode().isEmpty());
 
         MvcResult result = mockMvc.perform(post("/rest/storage/device/" + deviceId + "/print-label"))
                 .andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -116,19 +99,7 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void postPrintLabelEndpoint_ShouldGeneratePdf_WhenCodeIsLessThanOrEqualTo10Chars() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice deviceWithShortCode = null;
-
-        for (StorageDevice device : allDevices) {
-            if (device.getCode() != null && device.getCode().length() <= 10 && device.getParentRoom() != null
-                    && device.getActive()) {
-                deviceWithShortCode = device;
-                break;
-            }
-        }
-
-        assertNotNull("Should find a device with code ≤ 10 chars", deviceWithShortCode);
-        String deviceId = String.valueOf(deviceWithShortCode.getId());
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_SHORT_CODE_ID);
 
         StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
         assertNotNull("Device should exist", device);
@@ -143,21 +114,11 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void ErrorResponseIfCodeMissing_ReturnsJsonError() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice deviceWithEmptyCode = null;
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_EMPTY_CODE_ID);
 
-        for (StorageDevice device : allDevices) {
-            if ((device.getCode() == null || device.getCode().isEmpty()) && device.getActive()) {
-                deviceWithEmptyCode = device;
-                break;
-            }
-        }
-
-        if (deviceWithEmptyCode == null) {
-            return;
-        }
-
-        String deviceId = String.valueOf(deviceWithEmptyCode.getId());
+        StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
+        assertNotNull("Device should exist", device);
+        assertTrue("Device should have empty code", device.getCode() == null || device.getCode().isEmpty());
 
         MvcResult result = mockMvc.perform(post("/rest/storage/device/" + deviceId + "/print-label"))
                 .andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -169,19 +130,12 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void printHistory_ShouldBeRecorded_AfterLabelGeneration() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice suitableDevice = null;
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_ID);
 
-        for (StorageDevice device : allDevices) {
-            if (device.getCode() != null && !device.getCode().isEmpty() && device.getParentRoom() != null
-                    && device.getActive()) {
-                suitableDevice = device;
-                break;
-            }
-        }
-
-        assertNotNull("Should find a suitable device for testing", suitableDevice);
-        String deviceId = String.valueOf(suitableDevice.getId());
+        StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
+        assertNotNull("Device should exist", device);
+        assertNotNull("Device should have code", device.getCode());
+        assertTrue("Device code should start with FRZ01", device.getCode().startsWith("FRZ01"));
 
         mockMvc.perform(post("/rest/storage/device/" + deviceId + "/print-label")).andExpect(status().isOk());
 
@@ -192,28 +146,18 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void testPostPrintLabelEndpoint_InvalidType_Returns400() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        assertTrue("Should have at least one device", !allDevices.isEmpty());
-        String deviceId = String.valueOf(allDevices.get(0).getId());
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_ID);
 
         mockMvc.perform(post("/rest/storage/room/" + deviceId + "/print-label")).andExpect(status().isBadRequest());
     }
 
     @Test
     public void postPrintLabelEndpoint_ShouldReturnBadRequest_ForInvalidType() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice suitableDevice = null;
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_ID);
 
-        for (StorageDevice device : allDevices) {
-            if (device.getCode() != null && !device.getCode().isEmpty() && device.getParentRoom() != null
-                    && device.getActive()) {
-                suitableDevice = device;
-                break;
-            }
-        }
-
-        assertNotNull("Should find a suitable device for testing", suitableDevice);
-        String deviceId = String.valueOf(suitableDevice.getId());
+        StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
+        assertNotNull("Device should exist", device);
+        assertTrue("Device code should start with FRZ01", device.getCode().startsWith("FRZ01"));
 
         mockMvc.perform(post("/rest/storage/device/" + deviceId + "/print-label")).andExpect(status().isOk());
 
@@ -223,23 +167,12 @@ public class LabelManagementRestControllerTest extends BaseWebContextSensitiveTe
 
     @Test
     public void pdfGeneration_ShouldUseCode_FromEntity() throws Exception {
-        List<StorageDevice> allDevices = storageDeviceDAO.getAll();
-        StorageDevice deviceWithCode = null;
-
-        for (StorageDevice device : allDevices) {
-            if (device.getCode() != null && !device.getCode().isEmpty() && device.getParentRoom() != null
-                    && device.getActive()) {
-                deviceWithCode = device;
-                break;
-            }
-        }
-
-        assertNotNull("Should find a device with code", deviceWithCode);
-        String deviceId = String.valueOf(deviceWithCode.getId());
+        String deviceId = String.valueOf(TEST_STORAGE_DEVICE_ID);
 
         StorageDevice device = storageDeviceDAO.get(Integer.parseInt(deviceId)).orElse(null);
         assertNotNull("Device should exist", device);
         assertNotNull("Device should have code", device.getCode());
+        assertTrue("Device code should start with FRZ01", device.getCode().startsWith("FRZ01"));
 
         mockMvc.perform(post("/rest/storage/device/" + deviceId + "/print-label")).andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/pdf"));
