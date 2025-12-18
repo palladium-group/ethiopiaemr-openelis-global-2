@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.hibernate.HibernateException;
 import org.json.simple.JSONArray;
@@ -133,15 +134,17 @@ public class TestModifyEntryRestController extends BaseController {
         form.setAgeRangeList(SpringContext.getBean(ResultLimitService.class).getPredefinedAgeRanges());
         form.setDictionaryList(DisplayListService.getInstance().getList(ListType.DICTIONARY_TEST_RESULTS));
         form.setGroupedDictionaryList(createGroupedDictionaryList());
-        form.setTestList(DisplayListService.getInstance().getFreshList(DisplayListService.ListType.ALL_TESTS));
+        // form.setTestList(DisplayListService.getInstance().getFreshList(DisplayListService.ListType.ALL_TESTS));
 
         // Only include testCatBeanList when a filter is applied to avoid returning the
         // full catalogue on initial page load
-        if ((sampleTypeParam != null && !sampleTypeParam.trim().isEmpty())
-                || (testSectionParam != null && !testSectionParam.trim().isEmpty())) {
-            List<TestCatalogBean> testCatBeanList = createTestCatBeanList(sampleTypeParam, testSectionParam);
-            form.setTestCatBeanList(testCatBeanList);
+        List<TestCatalogBean> testCatBeanList = new ArrayList<>();
+        if (StringUtils.isBlank(sampleTypeParam) && StringUtils.isBlank(testSectionParam)) {
+            testCatBeanList = new ArrayList<>();
+        } else {
+            testCatBeanList = createTestCatBeanList(sampleTypeParam, testSectionParam);
         }
+        form.setTestCatBeanList(testCatBeanList);
     }
 
     private List<TestCatalogBean> createTestCatBeanList(String sampleTypeParam, String testSectionParam) {
@@ -150,11 +153,9 @@ public class TestModifyEntryRestController extends BaseController {
         List<Test> testList = testService.getAllTests(false);
 
         // Apply server-side filtering if parameters are provided
-        if (sampleTypeParam != null && !sampleTypeParam.trim().isEmpty()) {
+        if (StringUtils.isNotBlank(sampleTypeParam)) {
             testList = filterTestsBySampleType(testList, sampleTypeParam);
-        }
-
-        if (testSectionParam != null && !testSectionParam.trim().isEmpty()) {
+        } else if (StringUtils.isNotBlank(testSectionParam)) {
             testList = filterTestsByTestSection(testList, testSectionParam);
         }
 
