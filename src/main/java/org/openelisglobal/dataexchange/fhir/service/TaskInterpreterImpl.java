@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.ServiceRequest.ServiceRequestPriority;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
+import org.hl7.fhir.r4.model.Coding;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.ITestIdentityService;
 import org.openelisglobal.common.services.TestIdentityService;
@@ -146,57 +147,81 @@ public class TaskInterpreterImpl implements TaskInterpreter {
     private Test createTestFromFHIR(ServiceRequest serviceRequest) throws HL7Exception {
         LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR", "start");
 
-        String loincCode = "";
-        String system = "";
-        Integer i = 0;
-        List<Test> tests = null;
-        while (i < serviceRequest.getCode().getCoding().size()) {
-            system = serviceRequest.getCode().getCoding().get(i).getSystemElement().toString();
-            if (system.equalsIgnoreCase("UriType[http://loinc.org]")) {
-                loincCode = serviceRequest.getCode().getCoding().get(i).getCodeElement().toString();
-                if (!GenericValidator.isBlankOrNull(loincCode)) {
-                    tests = testService.getTestsByLoincCode(loincCode);
-                    if (tests.size() != 0) {
-                        return tests.get(0);
-                    }
-                } else {
+        // Check if the serviceRequest or the code itself is null to prevent early crashes
+        if (serviceRequest == null || !serviceRequest.hasCode() || !serviceRequest.getCode().hasCoding()) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "createTestFromFHIR",
+                    "ServiceRequest is missing code/coding: " + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
+            return null;
+        }
 
-                    LogEvent.logWarn(this.getClass().getSimpleName(), "createTestFromFHIR",
-                            "loinc code is missing a value in SR: " + serviceRequest.getIdElement().getIdPart());
+        for (Coding coding : serviceRequest.getCode().getCoding()) {
+
+            // Robustly check if the coding has a system and if it is LOINC
+            if (coding.hasSystem() && "http://loinc.org".equalsIgnoreCase(coding.getSystem())) {
+
+                if (coding.hasCode()) {
+                    String loincCode = coding.getCode();
+
+                    if (!GenericValidator.isBlankOrNull(loincCode)) {
+                        List<Test> tests = testService.getTestsByLoincCode(loincCode);
+
+                        if (tests != null && !tests.isEmpty()) {
+                            LogEvent.logInfo(this.getClass().getSimpleName(), "createTestFromFHIR",
+                                    "Found test for LOINC: " + loincCode);
+                            return tests.get(0);
+                        }
+                    } else {
+                        LogEvent.logWarn(this.getClass().getSimpleName(), "createTestFromFHIR",
+                                "LOINC coding found but code value is empty in SR: " + serviceRequest.getIdPart());
+                    }
                 }
+            } else {
+                LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR",
+                        "Skipping non-LOINC coding: " + (coding.hasSystem() ? coding.getSystem() : "no-system"));
             }
-            i++;
         }
 
         LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR",
-                "no test found for SR: " + serviceRequest.getIdElement().getIdPart());
+                "no test found for SR: " + serviceRequest.getIdPart());
         return null;
     }
 
     private Panel createPanelFromFHIR(ServiceRequest serviceRequest) throws HL7Exception {
-        LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR", "start");
+        LogEvent.logDebug(this.getClass().getSimpleName(), "createPanelFromFHIR", "start");
 
-        String loincCode = "";
-        String system = "";
-        Integer i = 0;
-        Panel panel = null;
-        while (i < serviceRequest.getCode().getCoding().size()) {
-            system = serviceRequest.getCode().getCoding().get(i).getSystemElement().toString();
-            if (system.equalsIgnoreCase("UriType[http://loinc.org]")) {
-                loincCode = serviceRequest.getCode().getCoding().get(i).getCodeElement().toString();
-                if (!GenericValidator.isBlankOrNull(loincCode)) {
-                    panel = panelService.getPanelByLoincCode(loincCode);
-                    return panel;
-                } else {
-                    LogEvent.logWarn(this.getClass().getSimpleName(), "createTestFromFHIR",
-                            "loinc code is missing a value in SR: " + serviceRequest.getIdElement().getIdPart());
-                }
-            }
-            i++;
+        // Null-safe check for the ServiceRequest structure
+        if (serviceRequest == null || !serviceRequest.hasCode() || !serviceRequest.getCode().hasCoding()) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "createPanelFromFHIR",
+                    "ServiceRequest is missing code/coding: " + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
+            return null;
         }
 
-        LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR",
-                "no panel found for SR: " + serviceRequest.getIdElement().getIdPart());
+        for (org.hl7.fhir.r4.model.Coding coding : serviceRequest.getCode().getCoding()) {
+
+            if (coding.hasSystem() && "http://loinc.org".equalsIgnoreCase(coding.getSystem())) {
+
+                if (coding.hasCode()) {
+                    String loincCode = coding.getCode();
+
+                    if (!GenericValidator.isBlankOrNull(loincCode)) {
+                        Panel panel = panelService.getPanelByLoincCode(loincCode);
+
+                        // If a panel is found, return it immediately
+                        if (panel != null) {
+                            LogEvent.logDebug(this.getClass().getSimpleName(), "createPanelFromFHIR",
+                                    "Found panel for LOINC: " + loincCode);
+                            return panel;
+                        }
+                    } else {
+                        LogEvent.logWarn(this.getClass().getSimpleName(), "createPanelFromFHIR",
+                                "LOINC coding found but code value is empty in SR: " + serviceRequest.getIdPart());
+                    }
+                }
+            }
+        }
+
+        LogEvent.logDebug(this.getClass().getSimpleName(), "createPanelFromFHIR",
+                "no panel found for SR: " + serviceRequest.getIdPart());
         return null;
     }
 
