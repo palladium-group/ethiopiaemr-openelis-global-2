@@ -479,8 +479,22 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             if (remoteStoreUpdateStatus.isPresent() && remoteStoreUpdateStatus.get()) {
                 LogEvent.logTrace(this.getClass().getSimpleName(), "beginTaskPath",
                         "updating remote status to " + taskStatus);
-                remoteTask.setStatus(taskStatus);
-                sourceFhirClient.update().resource(remoteTask).execute();
+
+                // Don't rely on localObjects.task (it is stale).
+                // Fetch the current version directly from the server.
+                Task latestRemoteTask = sourceFhirClient.read()
+                        .resource(Task.class)
+                        .withId(remoteTask.getIdElement().getIdPart())
+                        .execute();
+
+                // Set the status on the FRESH object
+                latestRemoteTask.setStatus(taskStatus);
+
+                LogEvent.logInfo(this.getClass().getSimpleName(), "beginTaskPath",
+                        "Updating task using refreshed version: " + latestRemoteTask.getMeta().getVersionId());
+
+                // Perform the update using the fresh version (Version 2 -> Version 3)
+                sourceFhirClient.update().resource(latestRemoteTask).execute();
             }
             IGenericClient localFhirClient = fhirUtil.getFhirClient(localFhirStorePath);
             localFhirClient.update().resource(localObjects.task).execute();
