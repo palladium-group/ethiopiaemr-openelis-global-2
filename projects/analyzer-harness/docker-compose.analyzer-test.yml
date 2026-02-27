@@ -27,7 +27,7 @@ services:
     build:
       context: ../../tools/openelis-analyzer-bridge
       dockerfile: Dockerfile
-    image: itechuw/openelis-analyzer-bridge:latest
+    image: meronmen/openelis-analyzer-bridge:latest
     ports:
       - "8442:8443" # HTTPS API port
       - "12000:12001" # ASTM listen port
