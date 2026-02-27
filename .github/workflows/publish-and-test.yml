@@ -218,7 +218,7 @@ jobs:
   #         tail: "100"
   frontend-qa:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    uses: palladium-group/ethiopiaemr-openelis-global-2/.github/workflows/frontend-qa.yml@develop
+    uses: palladium-group/ethiopiaemr-openelis-global-2/.github/workflows/frontend-qa.yml@main
 
   build-and-push-image-backend:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
