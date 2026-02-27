@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.validator.GenericValidator;
 import org.hl7.fhir.r4.model.Address;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
@@ -16,7 +17,6 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.ServiceRequest.ServiceRequestPriority;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
-import org.hl7.fhir.r4.model.Coding;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.ITestIdentityService;
 import org.openelisglobal.common.services.TestIdentityService;
@@ -147,10 +147,12 @@ public class TaskInterpreterImpl implements TaskInterpreter {
     private Test createTestFromFHIR(ServiceRequest serviceRequest) throws HL7Exception {
         LogEvent.logDebug(this.getClass().getSimpleName(), "createTestFromFHIR", "start");
 
-        // Check if the serviceRequest or the code itself is null to prevent early crashes
+        // Check if the serviceRequest or the code itself is null to prevent early
+        // crashes
         if (serviceRequest == null || !serviceRequest.hasCode() || !serviceRequest.getCode().hasCoding()) {
             LogEvent.logWarn(this.getClass().getSimpleName(), "createTestFromFHIR",
-                    "ServiceRequest is missing code/coding: " + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
+                    "ServiceRequest is missing code/coding: "
+                            + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
             return null;
         }
 
@@ -192,7 +194,8 @@ public class TaskInterpreterImpl implements TaskInterpreter {
         // Null-safe check for the ServiceRequest structure
         if (serviceRequest == null || !serviceRequest.hasCode() || !serviceRequest.getCode().hasCoding()) {
             LogEvent.logWarn(this.getClass().getSimpleName(), "createPanelFromFHIR",
-                    "ServiceRequest is missing code/coding: " + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
+                    "ServiceRequest is missing code/coding: "
+                            + (serviceRequest != null ? serviceRequest.getIdPart() : "null"));
             return null;
         }
 

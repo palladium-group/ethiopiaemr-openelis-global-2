@@ -482,10 +482,8 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
 
                 // Don't rely on localObjects.task (it is stale).
                 // Fetch the current version directly from the server.
-                Task latestRemoteTask = sourceFhirClient.read()
-                        .resource(Task.class)
-                        .withId(remoteTask.getIdElement().getIdPart())
-                        .execute();
+                Task latestRemoteTask = sourceFhirClient.read().resource(Task.class)
+                        .withId(remoteTask.getIdElement().getIdPart()).execute();
 
                 // Set the status on the FRESH object
                 latestRemoteTask.setStatus(taskStatus);
