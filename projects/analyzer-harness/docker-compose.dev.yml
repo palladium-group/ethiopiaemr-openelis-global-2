@@ -1,6 +1,6 @@
 services:
   certs:
-    image: itechuw/certgen:main
+    image: meronmen/certgen:main
     platform: linux/amd64
     restart: "no"
     environment:
@@ -28,7 +28,7 @@ services:
       retries: 10
 
   oe:
-    image: itechuw/openelis-global-2-dev:develop
+    image: meronmen/openelis-global-2-dev:main
     depends_on:
       - db
       - certs
@@ -85,7 +85,7 @@ services:
       - source: hapi_application.yaml
 
   frontend:
-    image: itechuw/openelis-global-2-frontend-dev:develop
+    image: meronmen/openelis-global-2-frontend-dev:main
     environment:
       - CHOKIDAR_USEPOLLING=true
     tty: true
