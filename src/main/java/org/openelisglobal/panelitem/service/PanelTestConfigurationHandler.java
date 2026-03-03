@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.configuration.service.DomainConfigurationHandler;
 import org.openelisglobal.panel.service.PanelService;
@@ -18,19 +17,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Handler for loading panel-test mapping configuration files. Supports CSV format for
- * defining which tests belong to which panels.
+ * Handler for loading panel-test mapping configuration files. Supports CSV
+ * format for defining which tests belong to which panels.
  *
- * Expected CSV format:
- * panelName,testName,sortOrder
- * Complete Blood Count,Nucleated Red Blood Cell Count,1
- * Complete Blood Count,Hemoglobin,2
+ * Expected CSV format: panelName,testName,sortOrder Complete Blood
+ * Count,Nucleated Red Blood Cell Count,1 Complete Blood Count,Hemoglobin,2
  * Chemistry Panel,Glucose,1
  *
- * Notes: - First line is the header (required)
- * - panelName and testName are required fields
- * - sortOrder is optional (auto-assigned if not provided)
- * - Existing mappings will be updated
+ * Notes: - First line is the header (required) - panelName and testName are
+ * required fields - sortOrder is optional (auto-assigned if not provided) -
+ * Existing mappings will be updated
  */
 @Component
 public class PanelTestConfigurationHandler implements DomainConfigurationHandler {
@@ -91,8 +87,8 @@ public class PanelTestConfigurationHandler implements DomainConfigurationHandler
 
             try {
                 String[] values = parseCsvLine(line);
-                PanelItem panelItem = processCsvLine(values, panelNameIndex, testNameIndex, sortOrderIndex,
-                        lineNumber, fileName, nextSortOrder);
+                PanelItem panelItem = processCsvLine(values, panelNameIndex, testNameIndex, sortOrderIndex, lineNumber,
+                        fileName, nextSortOrder);
                 if (panelItem != null) {
                     processedMappings.add(panelItem);
                     nextSortOrder++;
@@ -161,8 +157,8 @@ public class PanelTestConfigurationHandler implements DomainConfigurationHandler
         return -1;
     }
 
-    private PanelItem processCsvLine(String[] values, int panelNameIndex, int testNameIndex,
-            int sortOrderIndex, int lineNumber, String fileName, int defaultSortOrder) {
+    private PanelItem processCsvLine(String[] values, int panelNameIndex, int testNameIndex, int sortOrderIndex,
+            int lineNumber, String fileName, int defaultSortOrder) {
 
         String panelName = getValueOrEmpty(values, panelNameIndex);
         String testName = getValueOrEmpty(values, testNameIndex);
@@ -182,16 +178,16 @@ public class PanelTestConfigurationHandler implements DomainConfigurationHandler
         // Find panel
         Panel panel = panelService.getPanelByName(panelName);
         if (panel == null) {
-            LogEvent.logWarn(this.getClass().getSimpleName(), "processCsvLine", "Panel '" + panelName
-                    + "' not found in line " + lineNumber + " of " + fileName + ". Skipping.");
+            LogEvent.logWarn(this.getClass().getSimpleName(), "processCsvLine",
+                    "Panel '" + panelName + "' not found in line " + lineNumber + " of " + fileName + ". Skipping.");
             return null;
         }
 
         // Find test
         Test test = testService.getTestByDescription(testName);
         if (test == null) {
-            LogEvent.logWarn(this.getClass().getSimpleName(), "processCsvLine", "Test '" + testName
-                    + "' not found in line " + lineNumber + " of " + fileName + ". Skipping.");
+            LogEvent.logWarn(this.getClass().getSimpleName(), "processCsvLine",
+                    "Test '" + testName + "' not found in line " + lineNumber + " of " + fileName + ". Skipping.");
             return null;
         }
 

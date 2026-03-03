@@ -31,6 +31,8 @@ import org.openelisglobal.common.exception.LIMSRuntimeException;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.sample.service.SampleService;
+import org.openelisglobal.sample.valueholder.Sample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +45,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST endpoint for receiving native JSON analyzer results from device interfaces.
- * POST /rest/analyzer/results
+ * REST endpoint for receiving native JSON analyzer results from device
+ * interfaces. POST /rest/analyzer/results
  */
 @RestController
 @RequestMapping("/rest/analyzer")
@@ -58,12 +60,16 @@ public class AnalyzerResultsRestController extends BaseRestController {
     @Autowired
     private AnalyzerResultsService analyzerResultsService;
 
+    @Autowired
+    private SampleService sampleService;
+
     /**
-     * Accept native JSON analyzer results.
-     * Requires analyzer to exist and test mappings (analyzer test code → OpenELIS test) to be configured.
+     * Accept native JSON analyzer results. Requires analyzer to exist and test
+     * mappings (analyzer test code → OpenELIS test) to be configured.
      *
      * @param request HTTP request (for optional session user)
-     * @param form    JSON body: analyzerId, results[ { accessionNumber, testCode, result, units?, completeDate?, control? } ]
+     * @param form    JSON body: analyzerId, results[ { accessionNumber, testCode,
+     *                result, units?, completeDate?, control? } ]
      * @return 200 with count of imported results, or 4xx with error message
      */
     @PostMapping(value = "/results", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -72,21 +78,18 @@ public class AnalyzerResultsRestController extends BaseRestController {
         Map<String, Object> body = new HashMap<>();
 
         String sysUserId = getSysUserId(request);
-        if (sysUserId == null) {
-            sysUserId = "1";
-        }
 
         Analyzer analyzer;
         try {
-            analyzer = analyzerService.get(form.getAnalyzerId());
+            analyzer = analyzerService.getAnalyzerByName(form.getAnalyzerName());
         } catch (Exception e) {
-            logger.warn("Analyzer not found: {}", form.getAnalyzerId());
-            body.put("error", "Analyzer not found: " + form.getAnalyzerId());
+            logger.warn("Analyzer not found: {}", form.getAnalyzerName());
+            body.put("error", "Analyzer not found: " + form.getAnalyzerName());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
         }
 
         if (analyzer == null) {
-            body.put("error", "Analyzer not found: " + form.getAnalyzerId());
+            body.put("error", "Analyzer not found: " + form.getAnalyzerName());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
         }
 
@@ -95,6 +98,13 @@ public class AnalyzerResultsRestController extends BaseRestController {
         List<String> errors = new ArrayList<>();
 
         for (ResultRow row : form.getResults()) {
+            // Validate accession number exists in the system
+            Sample sample = sampleService.getSampleByAccessionNumber(row.getAccessionNumber());
+            if (sample == null) {
+                errors.add("Accession number not found: " + row.getAccessionNumber());
+                continue;
+            }
+
             MappedTestName mapped = cache.getMappedTest(analyzer.getName(), row.getTestCode());
             if (mapped == null || mapped.getTestId() == null || "-1".equals(mapped.getTestId())) {
                 errors.add("No mapping for testCode: " + row.getTestCode());
@@ -114,17 +124,14 @@ public class AnalyzerResultsRestController extends BaseRestController {
             if (row.getCompleteDate() != null && !row.getCompleteDate().isBlank()) {
                 Timestamp ts = null;
                 try {
+                    // Only accept yyyy-MM-dd'T'HH:mm:ss format
                     ts = DateUtil.convertStringDateToTimestampWithPatternNoLocale(row.getCompleteDate(),
                             "yyyy-MM-dd'T'HH:mm:ss");
-                } catch (Exception ignored) {
-                    // try default pattern
-                }
-                if (ts == null) {
-                    try {
-                        ts = DateUtil.convertStringDateToTimestamp(row.getCompleteDate());
-                    } catch (Exception ignored) {
-                        // use now
-                    }
+                } catch (Exception e) {
+                    // Log warning and set to default (current time)
+                    logger.warn(
+                            "Invalid date format for accessionNumber '{}': '{}'. Expected format: yyyy-MM-dd'T'HH:mm:ss. Using current time instead.",
+                            row.getAccessionNumber(), row.getCompleteDate());
                 }
                 ar.setCompleteDate(ts != null ? ts : new Timestamp(System.currentTimeMillis()));
             } else {

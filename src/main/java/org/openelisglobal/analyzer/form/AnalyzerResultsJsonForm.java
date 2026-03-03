@@ -19,26 +19,27 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * Request body for POST /rest/analyzer/results (native JSON analyzer result ingestion).
- * Device interfaces send this payload to push results into OpenELIS.
+ * Request body for POST /rest/analyzer/results (native JSON analyzer result
+ * ingestion). Device interfaces send this payload to push results into
+ * OpenELIS.
  */
 public class AnalyzerResultsJsonForm {
 
-    /** OpenELIS analyzer ID (from analyzer table). Required. */
-    @NotBlank(message = "analyzerId is required")
-    private String analyzerId;
+    /** OpenELIS analyzer name (from analyzer table). Required. */
+    @NotBlank(message = "analyzerName is required")
+    private String analyzerName;
 
     /** One or more result rows. */
     @NotEmpty(message = "results must not be empty")
     @Valid
     private List<ResultRow> results;
 
-    public String getAnalyzerId() {
-        return analyzerId;
+    public String getAnalyzerName() {
+        return analyzerName;
     }
 
-    public void setAnalyzerId(String analyzerId) {
-        this.analyzerId = analyzerId;
+    public void setAnalyzerName(String analyzerName) {
+        this.analyzerName = analyzerName;
     }
 
     public List<ResultRow> getResults() {
@@ -56,7 +57,9 @@ public class AnalyzerResultsJsonForm {
         @NotBlank(message = "accessionNumber is required")
         private String accessionNumber;
 
-        /** Analyzer test code (must be mapped to an OpenELIS test for this analyzer). */
+        /**
+         * Analyzer test code (must be mapped to an OpenELIS test for this analyzer).
+         */
         @NotBlank(message = "testCode is required")
         private String testCode;
 
