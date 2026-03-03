@@ -1,0 +1,65 @@
+version,testName,testSection,sampleType,loinc,isActive,isOrderable,sortOrder,unitOfMeasure,englishName,frenchName
+# ============================================================================
+# CBC Parameters - Initial Version
+# ============================================================================
+1,White Blood Cell Count,Hematology,Whole Blood,6690-2,Y,Y,1,10^3/uL,White Blood Cell Count,Numération des Globules Blancs
+1,White Blood Cells Count (WBC),Hematology,Whole Blood,,N,Y,2,10^3/uL,White Blood Cells Count (WBC),Numération des Globules Blancs (WBC)
+1,Neutrophil Count,Hematology,Whole Blood,751-8,Y,Y,3,10^3/uL,Neutrophil Count,Polynucléaires Neutrophiles (Abs)
+1,Neutrophil Percentage,Hematology,Whole Blood,770-8,Y,Y,4,%,Neutrophil Percentage,Polynucléaires Neutrophiles (%)
+1,Neut %,Hematology,Whole Blood,,N,Y,110,%,Neut %,Neut %
+1,Neutrophiles (%),Hematology,Whole Blood,,N,Y,210,%,Neutrophiles (%),Polynucléaires Neutrophiles (%)
+1,Neutrophiles,Hematology,Whole Blood,,N,Y,220,10^3/uL,Neutrophiles,Polynucléaires Neutrophiles (Abs)
+1,Lymphocyte Count,Hematology,Whole Blood,731-0,Y,Y,5,10^3/uL,Lymphocyte Count,Lymphocytes (Abs)
+1,Lymphocyte Percentage,Hematology,Whole Blood,736-9,Y,Y,6,%,Lymphocyte Percentage,Lymphocytes (%)
+1,Lymph %,Hematology,Whole Blood,,N,Y,120,%,Lymph %,Lymph %
+1,Lymphocytes (%),Hematology,Whole Blood,,N,Y,270,%,Lymphocytes (%),Lymphocytes (%)
+1,Lymphocytes (Abs),Hematology,Whole Blood,,N,Y,280,10^3/uL,Lymphocytes (Abs),Lymphocytes (Abs)
+1,Monocyte Count,Hematology,Whole Blood,742-7,Y,Y,7,10^3/uL,Monocyte Count,Monocytes (Abs)
+1,Monocyte Percentage,Hematology,Whole Blood,5905-5,Y,Y,8,%,Monocyte Percentage,Monocytes (%)
+1,Mono %,Hematology,Whole Blood,,N,Y,130,%,Mono %,Mono %
+1,Monocytes (%),Hematology,Whole Blood,,N,Y,290,%,Monocytes (%),Monocytes (%)
+1,Monocytes (Abs),Hematology,Whole Blood,,N,Y,300,10^3/uL,Monocytes (Abs),Monocytes (Abs)
+1,Eosinophil Count,Hematology,Whole Blood,711-2,Y,Y,9,10^3/uL,Eosinophil Count,Polynucléaires Eosinophiles (Abs)
+1,Eosinophil Percentage,Hematology,Whole Blood,713-8,Y,Y,10,%,Eosinophil Percentage,Polynucléaires Eosinophiles (%)
+1,Eosinophiles (%),Hematology,Whole Blood,,N,Y,230,%,Eosinophiles (%),Polynucléaires Eosinophiles (%)
+1,Eosinophiles,Hematology,Whole Blood,,N,Y,240,10^3/uL,Eosinophiles,Polynucléaires Eosinophiles (Abs)
+1,Basophil Count,Hematology,Whole Blood,704-7,Y,Y,11,10^3/uL,Basophil Count,Polynucléaires Basophiles (Abs)
+1,Basophil Percentage,Hematology,Whole Blood,706-2,Y,Y,12,%,Basophil Percentage,Polynucléaires Basophiles (%)
+1,Baso %,Hematology,Whole Blood,,N,Y,150,%,Baso %,Baso %
+1,Basophiles (%),Hematology,Whole Blood,,N,Y,250,%,Basophiles (%),Polynucléaires Basophiles (%)
+1,Basophiles,Hematology,Whole Blood,,N,Y,260,10^3/uL,Basophiles,Polynucléaires Basophiles (Abs)
+1,Immature Granulocyte Count,Hematology,Whole Blood,30376-1,Y,Y,13,10^3/uL,Immature Granulocyte Count,Granulocytes Immatures (Abs)
+1,Immature Granulocyte Percentage,Hematology,Whole Blood,30292-1,Y,Y,14,%,Immature Granulocyte Percentage,Granulocytes Immatures (%)
+1,Granulocyte Count,Hematology,Whole Blood,35067-6,Y,Y,15,10^3/uL,Granulocyte Count (3-part diff),Granulocytes (Abs)
+1,Granulocyte Percentage,Hematology,Whole Blood,35068-4,Y,Y,16,%,Granulocyte Percentage (3-part diff),Granulocytes (%)
+1,Mid-cell Fraction Count,Hematology,Whole Blood,35069-2,Y,Y,17,10^3/uL,Mid-cell Fraction Count,Fraction Intermédiaire (Abs)
+1,Mid-cell Fraction Percentage,Hematology,Whole Blood,35070-0,Y,Y,18,%,Mid-cell Fraction Percentage,Fraction Intermédiaire (%)
+1,Red Blood Cell Count,Hematology,Whole Blood,789-8,Y,Y,19,10^6/uL,Red Blood Cell Count,Numération des Globules Rouges
+1,Red Blood Cells Count (RBC),Hematology,Whole Blood,,N,Y,140,10^6/uL,Red Blood Cells Count (RBC),Numération des Globules Rouges (RBC)
+1,Hemoglobin,Hematology,Whole Blood,718-7,Y,Y,20,g/dL,Hemoglobin,Hémoglobine
+1,Hemoglobin,Hematology,Whole Blood,,N,Y,150,g/dL,Hemoglobin,Hémoglobine
+1,Hematocrit,Hematology,Whole Blood,20570-8,Y,Y,21,%,Hematocrit,Hématocrite
+1,Hematocrit,Hematology,Whole Blood,,N,Y,160,%,Hematocrit,Hématocrite
+1,HCT,Hematology,Whole Blood,,N,Y,180,%,HCT,HCT
+1,Mean Corpuscular Volume,Hematology,Whole Blood,787-0,Y,Y,22,fL,Mean Corpuscular Volume,Volume Globulaire Moyen
+1,Mean Corpuscular Hemoglobin,Hematology,Whole Blood,785-6,Y,Y,23,pg,Mean Corpuscular Hemoglobin,Teneur Corpusculaire Moyenne en Hémoglobine
+1,TMCH,Hematology,Whole Blood,,N,Y,180,pg,TMCH,TCMH
+1,Mean Corpuscular Hemoglobin Concentration,Hematology,Whole Blood,786-4,Y,Y,24,g/dL,Mean Corpuscular Hemoglobin Concentration,Concentration Corpusculaire Moyenne en Hémoglobine
+1,CMCH,Hematology,Whole Blood,,N,Y,190,g/dL,CMCH,CCMH
+1,Red Cell Distribution Width (CV),Hematology,Whole Blood,788-0,Y,Y,25,%,Red Cell Distribution Width (CV),Distribution des Globules Rouges (CV)
+1,Red Cell Distribution Width (SD),Hematology,Whole Blood,21000-5,Y,Y,26,fL,Red Cell Distribution Width (SD),Distribution des Globules Rouges (SD)
+1,Platelet Count,Hematology,Whole Blood,777-3,Y,Y,27,10^3/uL,Platelet Count,Plaquettes
+1,Platelets,Hematology,Whole Blood,,N,Y,200,10^3/uL,Platelets,Plaquettes
+1,Mean Platelet Volume,Hematology,Whole Blood,32623-1,Y,Y,28,fL,Mean Platelet Volume,Volume Plaquettaire Moyen
+1,Platelet Distribution Width,Hematology,Whole Blood,32207-3,Y,Y,29,fL,Platelet Distribution Width,Distribution Plaquettaire
+1,Plateletcrit,Hematology,Whole Blood,13056-7,Y,Y,30,%,Plateletcrit,Plaquettocrite
+1,Platelet Large Cell Ratio,Hematology,Whole Blood,75613-2,Y,Y,31,%,Platelet Large Cell Ratio,Taux de Grandes Plaquettes
+1,Platelet Large Cell Count,Hematology,Whole Blood,13050-0,Y,Y,32,10^3/uL,Platelet Large Cell Count,Numération des Grandes Plaquettes
+1,Immature Platelet Fraction,Hematology,Whole Blood,34964-7,Y,Y,33,%,Immature Platelet Fraction,Fraction de Plaquettes Immatures
+1,Reticulocyte Count,Hematology,Whole Blood,14196-0,Y,Y,34,10^6/uL,Reticulocyte Count,Numération des Réticulocytes
+1,Reticulocyte Percentage,Hematology,Whole Blood,17849-1,Y,Y,35,%,Reticulocyte Percentage,Pourcentage de Réticulocytes
+1,Immature Reticulocyte Fraction,Hematology,Whole Blood,34971-2,Y,Y,36,%,Immature Reticulocyte Fraction,Fraction de Réticulocytes Immatures
+1,Nucleated Red Blood Cell Count,Hematology,Whole Blood,55770-7,Y,Y,37,10^3/uL,Nucleated Red Blood Cell Count,Numération des Globules Rouges Nucléés
+1,Nucleated Red Blood Cell Percentage,Hematology,Whole Blood,55771-5,Y,Y,38,/100WBC,Nucleated Red Blood Cell Percentage,Pourcentage de Globules Rouges Nucléés
+1,Mean Reticulocyte Volume,Hematology,Whole Blood,28542-8,Y,Y,39,fL,Mean Reticulocyte Volume,Volume Réticulaire Moyen
+1,Reticulocyte Hemoglobin Equivalent,Hematology,Whole Blood,34970-4,Y,Y,40,pg,Reticulocyte Hemoglobin Equivalent,Hémoglobine Réticulaire Équivalente

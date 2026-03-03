@@ -1,0 +1,40 @@
+version,panelName,testName,sortOrder
+1,Complete Blood Count,White Blood Cell Count,1
+1,Complete Blood Count,Neutrophil Count,2
+1,Complete Blood Count,Neutrophil Percentage,3
+1,Complete Blood Count,Lymphocyte Count,4
+1,Complete Blood Count,Lymphocyte Percentage,5
+1,Complete Blood Count,Monocyte Count,6
+1,Complete Blood Count,Monocyte Percentage,7
+1,Complete Blood Count,Eosinophil Count,8
+1,Complete Blood Count,Eosinophil Percentage,9
+1,Complete Blood Count,Basophil Count,10
+1,Complete Blood Count,Basophil Percentage,11
+1,Complete Blood Count,Immature Granulocyte Count,12
+1,Complete Blood Count,Immature Granulocyte Percentage,13
+1,Complete Blood Count,Granulocyte Count,14
+1,Complete Blood Count,Granulocyte Percentage,15
+1,Complete Blood Count,Mid-cell Fraction Count,16
+1,Complete Blood Count,Mid-cell Fraction Percentage,17
+1,Complete Blood Count,Red Blood Cell Count,18
+1,Complete Blood Count,Hemoglobin,19
+1,Complete Blood Count,Hematocrit,20
+1,Complete Blood Count,Mean Corpuscular Volume,21
+1,Complete Blood Count,Mean Corpuscular Hemoglobin,22
+1,Complete Blood Count,Mean Corpuscular Hemoglobin Concentration,23
+1,Complete Blood Count,Red Cell Distribution Width (CV),24
+1,Complete Blood Count,Red Cell Distribution Width (SD),25
+1,Complete Blood Count,Platelet Count,26
+1,Complete Blood Count,Mean Platelet Volume,27
+1,Complete Blood Count,Platelet Distribution Width,28
+1,Complete Blood Count,Plateletcrit,29
+1,Complete Blood Count,Platelet Large Cell Ratio,30
+1,Complete Blood Count,Platelet Large Cell Count,31
+1,Complete Blood Count,Immature Platelet Fraction,32
+1,Complete Blood Count,Reticulocyte Count,33
+1,Complete Blood Count,Reticulocyte Percentage,34
+1,Complete Blood Count,Immature Reticulocyte Fraction,35
+1,Complete Blood Count,Nucleated Red Blood Cell Count,36
+1,Complete Blood Count,Nucleated Red Blood Cell Percentage,37
+1,Complete Blood Count,Mean Reticulocyte Volume,38
+1,Complete Blood Count,Reticulocyte Hemoglobin Equivalent,39
