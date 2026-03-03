@@ -82,7 +82,7 @@ services:
   # Bridges HTTP requests from OpenELIS to ASTM protocol for analyzers
   # ============================================================================
   openelis-analyzer-bridge:
-    image: itechuw/openelis-analyzer-bridge:latest
+    image: meronmen/openelis-analyzer-bridge:latest
     container_name: openelis-analyzer-bridge
     ports:
       - "8442:8443"   # HTTPS API port
