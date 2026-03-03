@@ -29,9 +29,10 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 /**
- * Registers a "From Analyzer" submenu entry for each analyzer that does not already have one
- * (e.g. plugin-registered). Each entry links to the Analyzer Results page with that analyzer's type,
- * so users can see results sent to that analyzer.
+ * Registers a "From Analyzer" submenu entry for each analyzer that does not
+ * already have one (e.g. plugin-registered). Each entry links to the Analyzer
+ * Results page with that analyzer's type, so users can see results sent to that
+ * analyzer.
  */
 @Service
 @DependsOn("pluginLoader")
@@ -97,8 +98,7 @@ public class AnalyzerMenuRegistrationService {
             return null;
         }
         try {
-            return ANALYZER_RESULTS_ACTION_PREFIX
-                    + URLEncoder.encode(analyzerName, StandardCharsets.UTF_8.name());
+            return ANALYZER_RESULTS_ACTION_PREFIX + URLEncoder.encode(analyzerName, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
             LogEvent.logError(e);
             return ANALYZER_RESULTS_ACTION_PREFIX + analyzerName.replace(" ", "%20");

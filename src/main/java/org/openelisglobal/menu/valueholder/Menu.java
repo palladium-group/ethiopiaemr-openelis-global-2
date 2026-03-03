@@ -39,7 +39,10 @@ public class Menu extends BaseObject<String> {
 
     private String displayKey;
 
-    /** Optional label for REST menu; when set, frontend shows this instead of resolving displayKey. */
+    /**
+     * Optional label for REST menu; when set, frontend shows this instead of
+     * resolving displayKey.
+     */
     private String displayLabel;
 
     private String toolTipKey;
