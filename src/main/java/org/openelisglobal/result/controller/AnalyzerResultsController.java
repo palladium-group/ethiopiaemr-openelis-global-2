@@ -682,12 +682,12 @@ public class AnalyzerResultsController extends BaseController {
     }
 
     protected String getAnalyzerNameFromRequest() {
-        String analyzer = null;
         String requestType = request.getParameter("type");
-        if (!GenericValidator.isBlankOrNull(requestType)) {
-            analyzer = AnalyzerTestNameCache.getInstance().getDBNameForActionName(requestType);
+        if (GenericValidator.isBlankOrNull(requestType)) {
+            return null;
         }
-        return analyzer;
+        String analyzer = AnalyzerTestNameCache.getInstance().getDBNameForActionName(requestType);
+        return analyzer != null ? analyzer : requestType;
     }
 
     private boolean getQaEventByTestSection(Analysis analysis) {

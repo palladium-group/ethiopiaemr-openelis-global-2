@@ -39,6 +39,9 @@ public class Menu extends BaseObject<String> {
 
     private String displayKey;
 
+    /** Optional label for REST menu; when set, frontend shows this instead of resolving displayKey. */
+    private String displayLabel;
+
     private String toolTipKey;
 
     private boolean openInNewWindow;
@@ -93,6 +96,14 @@ public class Menu extends BaseObject<String> {
 
     public void setDisplayKey(String displayKey) {
         this.displayKey = displayKey;
+    }
+
+    public String getDisplayLabel() {
+        return displayLabel;
+    }
+
+    public void setDisplayLabel(String displayLabel) {
+        this.displayLabel = displayLabel;
     }
 
     public String getToolTipKey() {

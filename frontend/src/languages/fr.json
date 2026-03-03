@@ -513,6 +513,7 @@
   "banner.menu.results.SysmexXPanalyzer": "Analyseur Sysmex XP",
   "banner.menu.results.accession": "Par Ordonnance",
   "banner.menu.results.analyzer": "Automate",
+  "banner.menu.results.fromAnalyzer": "Depuis l'automate",
   "banner.menu.results.cobasc111analyzer": "Biochimie: Cobas C111",
   "banner.menu.results.genexpertanalyzer": "GeneXpert",
   "banner.menu.results.logbook": "Par Unité",
