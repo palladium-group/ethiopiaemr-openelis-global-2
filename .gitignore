@@ -79,7 +79,6 @@ projects/*/volume/
 **/playwright-report/
 **/playwright/.cache/
 **/playwright/.auth/
-**/test-results/
 # Note: frontend/playwright/ test sources are tracked (not ignored)
 # Catalyst dev files
 projects/catalyst/.env

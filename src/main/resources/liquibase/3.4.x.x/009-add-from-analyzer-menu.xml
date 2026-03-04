@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Add "From Analyzer" parent menu under Results. Visible even when no analyzer plugin is loaded.
+         Plugin analyzers use PluginMenuService.getKnownMenu(ANALYZER, "menu_results") and attach
+         their child menus here. AnalyzerMenuRegistrationService adds entries for non-plugin analyzers.
+         To reset and re-test: rollback this changeSet (or DELETE FROM clinlims.menu WHERE element_id = 'menu_results_analyzer'), then run Liquibase again. -->
+    <changeSet author="analyzer-results-menu" id="009-add-from-analyzer-menu">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.menu WHERE element_id = 'menu_results_analyzer'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add From Analyzer parent menu under Results</comment>
+        <insert tableName="menu" schemaName="clinlims">
+            <column name="id" valueSequenceNext="menu_seq"/>
+            <column name="parent_id" valueComputed="(SELECT id FROM clinlims.menu WHERE element_id = 'menu_results')"/>
+            <column name="presentation_order" value="4"/>
+            <column name="element_id" value="menu_results_analyzer"/>
+            <column name="action_url" value=""/>
+            <column name="display_key" value="banner.menu.results.fromAnalyzer"/>
+            <column name="tool_tip_key" value="banner.menu.results.fromAnalyzer"/>
+            <column name="new_window" valueBoolean="false"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="hide_in_old_ui" valueBoolean="true"/>
+        </insert>
+        <rollback>
+            <delete tableName="menu" schemaName="clinlims">
+                <where>element_id = 'menu_results_analyzer'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

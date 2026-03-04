@@ -96,6 +96,7 @@ services:
             - "8444:8443"
         networks:
             - default
+            -  emr_network    # Connection to the EMR "building"
         restart: always
         environment:
           SPRING_CONFIG_LOCATION: file:///run/secrets/hapi_application.yaml
@@ -136,8 +137,8 @@ services:
         container_name: openelisglobal-proxy
        # platform: linux/amd64
         ports:
-            - 80:80
-            - 443:443
+            - 9080:80
+            - 8483:443
         volumes:
             - certs-vol:/etc/nginx/certs/
             - keys-vol:/etc/nginx/keys/
@@ -163,7 +164,10 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.1.0/24  
+        - subnet: 172.20.1.0/24
+  emr_network:
+      external: true
+      name: ethiopiaemr-distro-referenceapplication_default
         
 volumes:
   db-data:
