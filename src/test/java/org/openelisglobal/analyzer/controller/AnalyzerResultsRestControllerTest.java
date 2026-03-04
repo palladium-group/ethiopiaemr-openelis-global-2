@@ -62,8 +62,7 @@ public class AnalyzerResultsRestControllerTest extends BaseWebContextSensitiveTe
         String json = objectMapper.writeValueAsString(body);
 
         mockMvc.perform(post("/rest/analyzer/results").contentType(MediaType.APPLICATION_JSON).content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imported").value(1));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.imported").value(1));
     }
 
     @Test
@@ -83,8 +82,7 @@ public class AnalyzerResultsRestControllerTest extends BaseWebContextSensitiveTe
         String json = objectMapper.writeValueAsString(body);
 
         mockMvc.perform(post("/rest/analyzer/results").contentType(MediaType.APPLICATION_JSON).content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imported").value(1));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.imported").value(1));
     }
 
     @Test
@@ -162,7 +160,6 @@ public class AnalyzerResultsRestControllerTest extends BaseWebContextSensitiveTe
         String json = objectMapper.writeValueAsString(body);
 
         mockMvc.perform(post("/rest/analyzer/results").contentType(MediaType.APPLICATION_JSON).content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imported").value(0));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.imported").value(0));
     }
 }

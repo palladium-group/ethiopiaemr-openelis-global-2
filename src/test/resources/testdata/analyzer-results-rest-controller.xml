@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Test data for AnalyzerResultsRestController happy path tests.
-     Load testdata/test.xml first so test id=1 (CBC) exists.
-     Contents: analyzer "JSON Sample Analyzer", analyzer_test_map (CBC -> test 1),
-               sample accession JSON-TEST-001. -->
+<!-- Test data for AnalyzerResultsRestController happy path tests. Load testdata/test.xml
+    first so test id=1 (CBC) exists. Contents: analyzer "JSON Sample Analyzer",
+    analyzer_test_map (CBC -> test 1), sample accession JSON-TEST-001. -->
 <dataset>
-    <analyzer id="9000" name="JSON Sample Analyzer" analyzer_type="CHEMISTRY"
-        description="JSON API test analyzer" is_active="true"
-        last_updated="2025-01-01 12:00:00" />
+    <analyzer id="9000" name="JSON Sample Analyzer"
+        analyzer_type="CHEMISTRY" description="JSON API test analyzer"
+        is_active="true" last_updated="2025-01-01 12:00:00" />
 
-    <analyzer_test_map analyzer_id="9000" analyzer_test_name="CBC" test_id="1"
+    <analyzer_test_map analyzer_id="9000"
+        analyzer_test_name="CBC" test_id="1"
         last_updated="2025-01-01 12:00:00" />
 
     <sample id="9000" accession_number="JSON-TEST-001"
-        received_date="2025-01-15 00:00:00.0" entered_date="2025-01-15 00:00:00.0"
-        collection_date="2025-01-15 00:00:00.0" lastupdated="2025-01-15 12:00:00" />
+        received_date="2025-01-15 00:00:00.0"
+        entered_date="2025-01-15 00:00:00.0"
+        collection_date="2025-01-15 00:00:00.0"
+        lastupdated="2025-01-15 12:00:00" />
 </dataset>

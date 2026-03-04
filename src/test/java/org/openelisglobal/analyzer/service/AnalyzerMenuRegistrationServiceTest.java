@@ -53,7 +53,8 @@ public class AnalyzerMenuRegistrationServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        originalPluginMenuService = (PluginMenuService) ReflectionTestUtils.getField(PluginMenuService.class, "INSTANCE");
+        originalPluginMenuService = (PluginMenuService) ReflectionTestUtils.getField(PluginMenuService.class,
+                "INSTANCE");
         mockPluginMenuService = mock(PluginMenuService.class);
         ReflectionTestUtils.setField(PluginMenuService.class, "INSTANCE", mockPluginMenuService);
     }
