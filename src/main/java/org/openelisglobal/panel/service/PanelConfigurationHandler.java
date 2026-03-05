@@ -24,14 +24,14 @@ import org.springframework.stereotype.Component;
  *
  * Expected CSV format:
  * panelName,sampleType,description,loinc,englishName,frenchName,isActive,sortOrder
- * Complete Blood Count,Whole Blood,CBC panel with all parameters,58410-2,Complete Blood
- * Count,Formule Sanguine Complète,Y,1
+ * Complete Blood Count,Whole Blood,CBC panel with all
+ * parameters,58410-2,Complete Blood Count,Formule Sanguine Complète,Y,1
  *
  * Notes: - First line is the header (required) - panelName is required field -
  * sampleType is optional but recommended (Can specify multiple separated by |)
- * - description, loinc, englishName, frenchName are optional - isActive defaults to
- * "Y" if not specified - sortOrder is optional (auto-assigned if not provided)
- * - Existing panels with matching name will be updated
+ * - description, loinc, englishName, frenchName are optional - isActive
+ * defaults to "Y" if not specified - sortOrder is optional (auto-assigned if
+ * not provided) - Existing panels with matching name will be updated
  */
 @Component
 public class PanelConfigurationHandler implements DomainConfigurationHandler {
@@ -99,8 +99,8 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
 
             try {
                 String[] values = parseCsvLine(line);
-                Panel panel = processCsvLine(values, panelNameIndex, sampleTypeIndex, descriptionIndex,
-                        loincIndex, englishNameIndex, frenchNameIndex, isActiveIndex, sortOrderIndex, lineNumber, fileName,
+                Panel panel = processCsvLine(values, panelNameIndex, sampleTypeIndex, descriptionIndex, loincIndex,
+                        englishNameIndex, frenchNameIndex, isActiveIndex, sortOrderIndex, lineNumber, fileName,
                         nextSortOrder);
                 if (panel != null) {
                     processedPanels.add(panel);
@@ -163,8 +163,8 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel processCsvLine(String[] values, int panelNameIndex, int sampleTypeIndex, int descriptionIndex,
-            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int lineNumber,
-            String fileName, int defaultSortOrder) {
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex,
+            int lineNumber, String fileName, int defaultSortOrder) {
 
         String panelName = getValueOrEmpty(values, panelNameIndex);
 
@@ -206,7 +206,8 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel updatePanel(Panel panel, String[] values, String panelName, int sampleTypeIndex, int descriptionIndex,
-            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex,
+            int defaultSortOrder) {
 
         panel.setPanelName(panelName);
 
@@ -243,7 +244,8 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel createPanel(String[] values, String panelName, int sampleTypeIndex, int descriptionIndex,
-            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex,
+            int defaultSortOrder) {
 
         Panel panel = new Panel();
         panel.setPanelName(panelName);
