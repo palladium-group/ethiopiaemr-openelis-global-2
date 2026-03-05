@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
+import org.openelisglobal.analyzer.valueholder.Analyzer.AnalyzerStatus;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.PluginMenuService;
 import org.openelisglobal.common.services.PluginMenuService.KnownMenu;
@@ -67,6 +68,9 @@ public class AnalyzerMenuRegistrationService {
         List<Analyzer> analyzers = analyzerService.getAll();
         int added = 0;
         for (Analyzer analyzer : analyzers) {
+            if (analyzer.getStatus() == AnalyzerStatus.INACTIVE) {
+                continue;
+            }
             String actionURL = buildActionURL(analyzer.getName());
             if (actionURL == null) {
                 continue;

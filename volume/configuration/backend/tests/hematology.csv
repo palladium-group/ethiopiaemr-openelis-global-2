@@ -2,7 +2,7 @@ version,testName,testSection,sampleType,loinc,isActive,isOrderable,sortOrder,uni
 # ============================================================================
 # CBC Parameters - Initial Version
 # ============================================================================
-1,White Blood Cell Count,Hematology,Whole Blood,6690-2,Y,Y,1,10^3/uL,White Blood Cell Count,Numération des Globules Blancs
+1,White Blood Cell Count,Hematology,Whole Blood,26464-8,Y,Y,1,10^3/uL,White Blood Cell Count,Numération des Globules Blancs
 1,White Blood Cells Count (WBC),Hematology,Whole Blood,,N,Y,2,10^3/uL,White Blood Cells Count (WBC),Numération des Globules Blancs (WBC)
 1,Neutrophil Count,Hematology,Whole Blood,751-8,Y,Y,3,10^3/uL,Neutrophil Count,Polynucléaires Neutrophiles (Abs)
 1,Neutrophil Percentage,Hematology,Whole Blood,770-8,Y,Y,4,%,Neutrophil Percentage,Polynucléaires Neutrophiles (%)
