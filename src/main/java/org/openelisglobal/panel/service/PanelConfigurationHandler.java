@@ -23,13 +23,13 @@ import org.springframework.stereotype.Component;
  * defining laboratory panels with their sample types and localization.
  *
  * Expected CSV format:
- * panelName,sampleType,description,englishName,frenchName,isActive,sortOrder
- * Complete Blood Count,Whole Blood,CBC panel with all parameters,Complete Blood
+ * panelName,sampleType,description,loinc,englishName,frenchName,isActive,sortOrder
+ * Complete Blood Count,Whole Blood,CBC panel with all parameters,58410-2,Complete Blood
  * Count,Formule Sanguine Complète,Y,1
  *
  * Notes: - First line is the header (required) - panelName is required field -
  * sampleType is optional but recommended (Can specify multiple separated by |)
- * - description, englishName, frenchName are optional - isActive defaults to
+ * - description, loinc, englishName, frenchName are optional - isActive defaults to
  * "Y" if not specified - sortOrder is optional (auto-assigned if not provided)
  * - Existing panels with matching name will be updated
  */
@@ -80,6 +80,7 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
         int panelNameIndex = findColumnIndex(headers, "panelName");
         int sampleTypeIndex = findColumnIndex(headers, "sampleType");
         int descriptionIndex = findColumnIndex(headers, "description");
+        int loincIndex = findColumnIndex(headers, "loinc");
         int englishNameIndex = findColumnIndex(headers, "englishName");
         int frenchNameIndex = findColumnIndex(headers, "frenchName");
         int isActiveIndex = findColumnIndex(headers, "isActive");
@@ -99,7 +100,7 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
             try {
                 String[] values = parseCsvLine(line);
                 Panel panel = processCsvLine(values, panelNameIndex, sampleTypeIndex, descriptionIndex,
-                        englishNameIndex, frenchNameIndex, isActiveIndex, sortOrderIndex, lineNumber, fileName,
+                        loincIndex, englishNameIndex, frenchNameIndex, isActiveIndex, sortOrderIndex, lineNumber, fileName,
                         nextSortOrder);
                 if (panel != null) {
                     processedPanels.add(panel);
@@ -162,7 +163,7 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel processCsvLine(String[] values, int panelNameIndex, int sampleTypeIndex, int descriptionIndex,
-            int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int lineNumber,
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int lineNumber,
             String fileName, int defaultSortOrder) {
 
         String panelName = getValueOrEmpty(values, panelNameIndex);
@@ -178,12 +179,12 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
 
         Panel panel;
         if (existingPanel != null) {
-            panel = updatePanel(existingPanel, values, panelName, sampleTypeIndex, descriptionIndex, englishNameIndex,
-                    frenchNameIndex, isActiveIndex, sortOrderIndex, defaultSortOrder);
+            panel = updatePanel(existingPanel, values, panelName, sampleTypeIndex, descriptionIndex, loincIndex,
+                    englishNameIndex, frenchNameIndex, isActiveIndex, sortOrderIndex, defaultSortOrder);
             LogEvent.logInfo(this.getClass().getSimpleName(), "processCsvLine", "Updated existing panel: " + panelName);
         } else {
-            panel = createPanel(values, panelName, sampleTypeIndex, descriptionIndex, englishNameIndex, frenchNameIndex,
-                    isActiveIndex, sortOrderIndex, defaultSortOrder);
+            panel = createPanel(values, panelName, sampleTypeIndex, descriptionIndex, loincIndex, englishNameIndex,
+                    frenchNameIndex, isActiveIndex, sortOrderIndex, defaultSortOrder);
             LogEvent.logInfo(this.getClass().getSimpleName(), "processCsvLine", "Created new panel: " + panelName);
         }
 
@@ -205,13 +206,19 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel updatePanel(Panel panel, String[] values, String panelName, int sampleTypeIndex, int descriptionIndex,
-            int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
 
         panel.setPanelName(panelName);
 
         String description = getValueOrEmpty(values, descriptionIndex);
         if (!description.isEmpty()) {
             panel.setDescription(description);
+        }
+
+        // Update LOINC
+        String loinc = getValueOrEmpty(values, loincIndex);
+        if (!loinc.isEmpty()) {
+            panel.setLoinc(loinc);
         }
 
         String isActive = getValueOrEmpty(values, isActiveIndex);
@@ -236,7 +243,7 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
     }
 
     private Panel createPanel(String[] values, String panelName, int sampleTypeIndex, int descriptionIndex,
-            int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
+            int loincIndex, int englishNameIndex, int frenchNameIndex, int isActiveIndex, int sortOrderIndex, int defaultSortOrder) {
 
         Panel panel = new Panel();
         panel.setPanelName(panelName);
@@ -263,6 +270,12 @@ public class PanelConfigurationHandler implements DomainConfigurationHandler {
         String description = getValueOrEmpty(values, descriptionIndex);
         if (!description.isEmpty()) {
             panel.setDescription(description);
+        }
+
+        // Set LOINC
+        String loinc = getValueOrEmpty(values, loincIndex);
+        if (!loinc.isEmpty()) {
+            panel.setLoinc(loinc);
         }
 
         String isActive = getValueOrEmpty(values, isActiveIndex);

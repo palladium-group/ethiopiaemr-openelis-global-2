@@ -15,4 +15,6 @@
   <include relativeToChangelogFile="true" file="007-insert-seed-data.xml"/>
   <include relativeToChangelogFile="true" file="008-normalize-protocol-version-enum.xml"/>
   <include relativeToChangelogFile="true" file="009-add-from-analyzer-menu.xml"/>
+  <include relativeToChangelogFile="true" file="009-analyzer-types.xml"/>
+  <include relativeToChangelogFile="true" file="010-mindray-bc30s-seeding.xml"/>
 </databaseChangeLog>

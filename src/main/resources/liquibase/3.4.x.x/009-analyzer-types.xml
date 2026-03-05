@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Add HEMATOLOGY analyzer type -->
+    <changeSet author="said-murad" id="009-001-add-hematology-analyzer-type">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.analyzer_type WHERE name = 'HEMATOLOGY'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add HEMATOLOGY analyzer type for complete blood count (CBC) testing</comment>
+        <insert tableName="analyzer_type" schemaName="clinlims">
+            <column name="id" valueSequenceNext="analyzer_type_seq"/>
+            <column name="name" value="HEMATOLOGY"/>
+            <column name="description" value="Hematology analyzer type for complete blood count (CBC) testing"/>
+            <column name="protocol" value="ASTM"/>
+            <column name="is_generic_plugin" valueBoolean="false"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="sys_user_id" value="1"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+        <rollback>
+            <delete tableName="analyzer_type" schemaName="clinlims">
+                <where>name = 'HEMATOLOGY'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Add CHEMISTRY analyzer type -->
+    <changeSet author="said-murad" id="009-002-add-chemistry-analyzer-type">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.analyzer_type WHERE name = 'CHEMISTRY'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add CHEMISTRY analyzer type for biochemical testing</comment>
+        <insert tableName="analyzer_type" schemaName="clinlims">
+            <column name="id" valueSequenceNext="analyzer_type_seq"/>
+            <column name="name" value="CHEMISTRY"/>
+            <column name="description" value="Chemistry analyzer type for biochemical testing"/>
+            <column name="protocol" value="ASTM"/>
+            <column name="is_generic_plugin" valueBoolean="false"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="sys_user_id" value="1"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+        <rollback>
+            <delete tableName="analyzer_type" schemaName="clinlims">
+                <where>name = 'CHEMISTRY'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

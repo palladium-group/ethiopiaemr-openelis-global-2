@@ -68,7 +68,7 @@ public class AnalyzerResultsRestController extends BaseRestController {
      * mappings (analyzer test code → OpenELIS test) to be configured.
      *
      * @param request HTTP request (for optional session user)
-     * @param form    JSON body: analyzerId, results[ { accessionNumber, testCode,
+     * @param form    JSON body: analyzerName, results[ { accessionNumber, testCode,
      *                result, units?, completeDate?, control? } ]
      * @return 200 with count of imported results, or 4xx with error message
      */
