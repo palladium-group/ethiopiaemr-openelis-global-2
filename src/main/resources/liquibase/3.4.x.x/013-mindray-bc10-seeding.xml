@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Seed Mindray BC-10 hematology analyzer and test mappings -->
+
+    <!-- Insert Mindray BC-10 analyzer -->
+    <changeSet author="said-murad" id="013-001-insert-mindray-bc10-analyzer">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.analyzer WHERE name = 'Mindray BC-10'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Mindray BC-10 hematology analyzer</comment>
+        <insert tableName="analyzer" schemaName="clinlims">
+            <column name="id" valueSequenceNext="analyzer_seq"/>
+            <column name="name" value="Mindray BC-10"/>
+            <column name="description" value="Mindray BC-10 Hematology Analyzer"/>
+            <column name="analyzer_type_id" valueComputed="(SELECT id FROM clinlims.analyzer_type WHERE name = 'HEMATOLOGY')"/>
+            <column name="status" value="SETUP"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="has_setup_page" valueBoolean="false"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+        <rollback>
+            <delete tableName="analyzer" schemaName="clinlims">
+                <where>name = 'Mindray BC-10'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <!-- Insert test mappings for Mindray BC-10 -->
+    <changeSet author="said-murad" id="013-002-insert-mindray-bc10-test-mappings">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.analyzer_test_map atm
+                JOIN clinlims.analyzer a ON atm.analyzer_id = a.id
+                WHERE a.name = 'Mindray BC-10'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert test mappings for Mindray BC-10 hematology analyzer</comment>
+
+        <!-- WBC - White Blood Cell Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="WBC"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'White Blood Cell Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- LYM% - Lymphocyte Percentage -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="LYM%"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Lymphocyte Percentage' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MID% - Mid Cell Percentage -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MID%"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mid-cell Fraction Percentage' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- GRA% - Granulocyte Percentage -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="GRA%"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Percentage' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- LYM# - Lymphocyte Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="LYM#"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Lymphocyte Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MID# - Mid Cell Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MID#"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mid-cell Fraction Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- GRA# - Granulocyte Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="GRA#"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- RBC - Red Blood Cell Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="RBC"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Red Blood Cell Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- HGB - Hemoglobin -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="HGB"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Hemoglobin' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- HCT - Hematocrit -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="HCT"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Hematocrit' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MCV - Mean Corpuscular Volume -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MCV"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mean Corpuscular Volume' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MCH - Mean Corpuscular Hemoglobin -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MCH"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mean Corpuscular Hemoglobin' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MCHC - Mean Corpuscular Hemoglobin Concentration -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MCHC"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mean Corpuscular Hemoglobin Concentration' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- RDW-CV - Red Cell Distribution Width (CV) -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="RDW-CV"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Red Cell Distribution Width (CV)' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- RDW-SD - Red Cell Distribution Width (SD) -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="RDW-SD"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Red Cell Distribution Width (SD)' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- PLT - Platelet Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="PLT"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Platelet Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- MPV - Mean Platelet Volume -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="MPV"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Mean Platelet Volume' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- PDW - Platelet Distribution Width -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="PDW"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Platelet Distribution Width' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- PCT - Plateletcrit -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="PCT"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Plateletcrit' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- P-LCR - Platelet Large Cell Ratio -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="P-LCR"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Platelet Large Cell Ratio' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <!-- P-LCC - Platelet Large Cell Count -->
+        <insert tableName="analyzer_test_map" schemaName="clinlims">
+            <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')"/>
+            <column name="analyzer_test_name" value="P-LCC"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Platelet Large Cell Count' LIMIT 1)"/>
+            <column name="last_updated" valueComputed="NOW()"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="analyzer_test_map" schemaName="clinlims">
+                <where>analyzer_id = (SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-10')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
