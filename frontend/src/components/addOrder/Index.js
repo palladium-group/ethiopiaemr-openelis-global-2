@@ -631,7 +631,11 @@ const Index = () => {
         setErrors(errors);
         console.error("Validation Errors:", errors.errors);
       });
-  }, [changed, orderFormValues, configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED]);
+  }, [
+    changed,
+    orderFormValues,
+    configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED,
+  ]);
 
   useEffect(() => {
     const labNumber = new URLSearchParams(window.location.search).get(

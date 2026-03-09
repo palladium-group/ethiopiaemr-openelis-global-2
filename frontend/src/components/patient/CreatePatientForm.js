@@ -583,9 +583,8 @@ function CreatePatientForm(props) {
                           {intl.formatMessage({
                             id: "patient.natioanalid",
                           })}
-                          {configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED === "true" && (
-                            <span className="requiredlabel">*</span>
-                          )}
+                          {configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED ===
+                            "true" && <span className="requiredlabel">*</span>}
                         </>
                       }
                       id={field.name}
