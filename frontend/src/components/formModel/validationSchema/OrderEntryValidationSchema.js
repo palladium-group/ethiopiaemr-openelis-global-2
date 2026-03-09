@@ -1,10 +1,14 @@
 import * as Yup from "yup";
 import CreatePatientValidationSchema from "./CreatePatientValidationShema";
 
-const OrderEntryValidationSchema = Yup.object().shape({
-  sampleXML: Yup.string().required("Sample is required"),
-  patientProperties: CreatePatientValidationSchema,
-  sampleOrderItems: Yup.object()
+/**
+ * @param {boolean} [isNationalIdRequired=false] - When true, patient nationalId is required (from PATIENT_NATIONAL_ID_REQUIRED config).
+ */
+const OrderEntryValidationSchema = (isNationalIdRequired = false) =>
+  Yup.object().shape({
+    sampleXML: Yup.string().required("Sample is required"),
+    patientProperties: CreatePatientValidationSchema(isNationalIdRequired),
+    sampleOrderItems: Yup.object()
     .shape({
       labNo: Yup.string().required("Sample Lab Number is required"),
       referringSiteName: Yup.string(),
@@ -21,6 +25,6 @@ const OrderEntryValidationSchema = Yup.object().shape({
       const { referringSiteName, referringSiteId } = value || {};
       return !!referringSiteName || !!referringSiteId;
     }),
-});
+  });
 
 export default OrderEntryValidationSchema;

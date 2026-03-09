@@ -1,7 +1,13 @@
 import * as Yup from "yup";
 
-const CreatePatientValidationSchema = Yup.object().shape({
-  nationalId: Yup.string().required("National ID Required"),
+/**
+ * @param {boolean} [isNationalIdRequired=false] - When true, nationalId is required (from PATIENT_NATIONAL_ID_REQUIRED config).
+ */
+const CreatePatientValidationSchema = (isNationalIdRequired = false) =>
+  Yup.object().shape({
+    nationalId: isNationalIdRequired
+      ? Yup.string().required("National ID Required")
+      : Yup.string(),
   birthDateForDisplay: Yup.string()
     .required("Patient Birth date Required")
     .test("valid-date", "Invalid date format", function (value) {
@@ -24,6 +30,6 @@ const CreatePatientValidationSchema = Yup.object().shape({
     }),
   }),
   gender: Yup.string().required("Gender is Required"),
-});
+  });
 
 export default CreatePatientValidationSchema;

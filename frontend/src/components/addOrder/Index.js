@@ -618,7 +618,11 @@ const Index = () => {
 
   useEffect(() => {
     console.log(changed);
-    OrderEntryValidationSchema.validate(orderFormValues, { abortEarly: false })
+    const schema = OrderEntryValidationSchema(
+      configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED === "true",
+    );
+    schema
+      .validate(orderFormValues, { abortEarly: false })
       .then((validData) => {
         setErrors([]);
         console.debug("Valid Data:", validData);
@@ -627,7 +631,7 @@ const Index = () => {
         setErrors(errors);
         console.error("Validation Errors:", errors.errors);
       });
-  }, [changed, orderFormValues]);
+  }, [changed, orderFormValues, configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED]);
 
   useEffect(() => {
     const labNumber = new URLSearchParams(window.location.search).get(
