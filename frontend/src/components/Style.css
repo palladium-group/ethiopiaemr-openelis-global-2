@@ -8,6 +8,20 @@
   margin: 10px;
 }
 
+.login-logo-with-subtitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.login-logo-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cds-text-secondary, #525252);
+}
+
 #mainHeader {
   z-index: 8001;
 }

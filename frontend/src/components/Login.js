@@ -103,19 +103,24 @@ function Login(props) {
       <>
         <Column lg={6} md={0} sm={0} />
         <Column lg={4} md={8} sm={4}>
-          <picture>
-            <img
-              src={logoSrc}
-              alt="fullsize logo"
-              width="300"
-              height="56"
-              style={{ objectFit: "contain" }}
-              onError={(e) => {
-                // Fallback to default logo if custom logo fails to load
-                e.target.src = `images/openelis_logo_full.png`;
-              }}
-            />
-          </picture>
+          <div className="login-logo-with-subtitle">
+            <picture>
+              <img
+                src={logoSrc}
+                alt="fullsize logo"
+                width="300"
+                height="56"
+                style={{ objectFit: "contain" }}
+                onError={(e) => {
+                  // Fallback to default logo if custom logo fails to load
+                  e.target.src = `images/openelis_logo_full.png`;
+                }}
+              />
+            </picture>
+            <span className="login-logo-subtitle">
+              <FormattedMessage id="header.logo.subtitle" />
+            </span>
+          </div>
         </Column>
         <Column lg={6} md={0} sm={0} />
       </>
