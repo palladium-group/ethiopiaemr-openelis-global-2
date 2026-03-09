@@ -1394,7 +1394,7 @@
   "login.msg.password.missing": "Votre mot de passe requis",
   "login.msg.username": "Nom d'utilisateur",
   "login.msg.username.missing": "Votre nom d'utilisateur requis",
-  "login.notice.message": "Avis : L’accès à ce service est réservé au personnel autorisé. Si vous n’avez pas l’autorisation expresse de l’administrateur, vous devez quitter immédiatement. Cette organisation interdit tout accès non autorisé, divulgation, duplication, modification, détournement, destruction, perte, utilisation abusive ou vol de ses informations.",
+  "login.notice.message": "Powered by ETHIOPIA EMR",
   "login.redirecting.sso": "Redirection vers l'authentification unique...",
   "login.password.expired.date": "Date d'expiration du mot de passe",
   "login.password.expired.date.placeholder": "jj/mm/aaaa",

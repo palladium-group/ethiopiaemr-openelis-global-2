@@ -108,9 +108,9 @@ public class SiteBrandingRestControllerTest extends BaseWebContextSensitiveTest 
         // Act: GET /rest/site-branding/ when no branding exists
         // Then: Expect 200 OK with default values
         mockMvc.perform(get("/rest/site-branding/").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.primaryColor").value("#0f62fe"))
-                .andExpect(jsonPath("$.secondaryColor").value("#393939"))
-                .andExpect(jsonPath("$.headerColor").value("#295785"));
+                .andExpect(jsonPath("$.primaryColor").value("#1d78cb"))
+                .andExpect(jsonPath("$.secondaryColor").value("#1557a0"))
+                .andExpect(jsonPath("$.headerColor").value("#1d78cb"));
     }
 
     /**
@@ -530,9 +530,9 @@ public class SiteBrandingRestControllerTest extends BaseWebContextSensitiveTest 
         mockMvc.perform(post("/rest/site-branding/reset")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.headerLogoUrl").doesNotExist())
                 .andExpect(jsonPath("$.loginLogoUrl").doesNotExist()).andExpect(jsonPath("$.faviconUrl").doesNotExist())
-                .andExpect(jsonPath("$.headerColor").value("#295785")) // Default header color
-                .andExpect(jsonPath("$.primaryColor").value("#0f62fe")) // Default primary color
-                .andExpect(jsonPath("$.secondaryColor").value("#393939")); // Default secondary color
+                .andExpect(jsonPath("$.headerColor").value("#1d78cb")) // Default header color
+                .andExpect(jsonPath("$.primaryColor").value("#1d78cb")) // Default primary color
+                .andExpect(jsonPath("$.secondaryColor").value("#1557a0")); // Default secondary color
 
         // Verify files were deleted
         assertFalse("Header logo file should be deleted", Files.exists(Paths.get(headerPath)));

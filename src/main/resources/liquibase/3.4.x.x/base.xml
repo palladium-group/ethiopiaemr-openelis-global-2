@@ -20,4 +20,6 @@
   <include relativeToChangelogFile="true" file="011-mindray-bc3000-plus-seeding.xml"/>
   <include relativeToChangelogFile="true" file="012-hemax-320-seeding.xml"/>
   <include relativeToChangelogFile="true" file="013-mindray-bc10-seeding.xml"/>
+  <include relativeToChangelogFile="true" file="014-update-site-branding-default-colors.xml"/>
+  <include relativeToChangelogFile="true" file="015-update-banner-localization-to-moh.xml"/>
 </databaseChangeLog>

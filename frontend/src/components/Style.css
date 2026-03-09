@@ -66,6 +66,18 @@ li.clickableUserDetails:hover {
   margin-right: auto;
 }
 
+/* Login page: restore primary color for Login and Change password buttons only */
+.oe-loginPageContent .cds--btn.cds--btn--primary,
+.changePasswordPage .cds--btn.cds--btn--primary {
+  background-color: var(--cds-interactive-01, #1d78cb);
+  color: var(--cds-text-on-color, #ffffff);
+  border: none;
+}
+.oe-loginPageContent .cds--btn.cds--btn--primary:hover:not(:disabled),
+.changePasswordPage .cds--btn.cds--btn--primary:hover:not(:disabled) {
+  background-color: var(--cds-interactive-02, #1557a0);
+}
+
 /* REMOVED: Forcing black text caused dark mode input issues 
    Carbon's <Theme theme="white"> handles this correctly */
 .inputText {

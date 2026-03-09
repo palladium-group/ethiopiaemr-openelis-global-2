@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Update banner text localization from "Test LIMS" to "ETHIOPIA EMR" for existing databases.
+         The banner is shown in the header; value comes from clinlims.localization
+         (row with description 'Site information banner test') via BANNER_TEXT config. -->
+    <changeSet id="015-update-banner-localization-to-moh" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="localization" schemaName="clinlims"/>
+        </preConditions>
+        <comment>Update banner text (Site information banner test) from Test LIMS to ETHIOPIA EMR</comment>
+        <update tableName="localization" schemaName="clinlims">
+            <column name="english" value="ETHIOPIA EMR"/>
+            <column name="french" value="ETHIOPIA EMR"/>
+            <where>description = 'Site information banner test'</where>
+        </update>
+        <rollback>
+            <update tableName="localization" schemaName="clinlims">
+                <column name="english" value="Test LIMS"/>
+                <column name="french" value="Test LIMS"/>
+                <where>description = 'Site information banner test'</where>
+            </update>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

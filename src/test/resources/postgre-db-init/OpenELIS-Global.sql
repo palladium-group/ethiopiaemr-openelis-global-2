@@ -10240,7 +10240,7 @@ SELECT pg_catalog.setval('clinlims.label_seq', 1, false);
 
 COPY clinlims.localization (id, description, english, french, lastupdated) FROM stdin;
 1	Billing reference label	URAP Number	N° URAP	2020-01-22 21:46:11.017212-08
-2	Site information banner test	Test LIMS	Test LIMS	2020-01-22 21:46:11.082808-08
+2	Site information banner test	ETHIOPIA EMR	ETHIOPIA EMR	2020-01-22 21:46:11.082808-08
 3	test name	GPT/ALAT	Transaminases GPT (37°C)	2020-01-22 21:46:11.21754-08
 4	test report name	GPT/ALAT	TGP	2020-01-22 21:46:11.21754-08
 5	test name	GOT/ASAT	Transaminases G0T (37°C)	2020-01-22 21:46:11.21754-08

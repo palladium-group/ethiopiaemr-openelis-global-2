@@ -263,6 +263,7 @@ function ChangePassword() {
                       />
                       <Stack orientation="horizontal">
                         <Button
+                          kind="primary"
                           data-cy="submitNewPassword"
                           type="submit"
                           disabled={!formik.isValid}

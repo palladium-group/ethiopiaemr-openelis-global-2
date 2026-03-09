@@ -63,7 +63,11 @@ const SampleBatchEntry = (props) => {
   }, []);
 
   useEffect(() => {
-    OrderEntryValidationSchema.validate(orderFormValues, { abortEarly: false })
+    const schema = OrderEntryValidationSchema(
+      configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED === "true",
+    );
+    schema
+      .validate(orderFormValues, { abortEarly: false })
       .then((validData) => {
         setErrors([]);
         console.debug("Valid Data:", validData);
@@ -72,7 +76,7 @@ const SampleBatchEntry = (props) => {
         setErrors(errors);
         console.error("Validation Errors:", errors.errors);
       });
-  }, [orderFormValues]);
+  }, [orderFormValues, configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED]);
 
   useEffect(() => {
     getFromOpenElisServer(
