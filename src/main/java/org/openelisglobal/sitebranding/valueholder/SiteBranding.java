@@ -39,20 +39,17 @@ public class SiteBranding extends BaseObject<Integer> {
     @Column(name = "favicon_path", length = 500)
     private String faviconPath;
 
-    /** Header bar background color - defaults to OpenELIS brand color */
+    /** Header bar background color - default MOH primary (align: Liquibase 014-update-site-branding-default-colors) */
     @Column(name = "header_color", length = 50, nullable = false)
-    private String headerColor = "#295785";
+    private String headerColor = "#1d78cb";
 
-    /**
-     * Primary interactive color for buttons, links, focus states - defaults to
-     * Carbon interactive-01
-     */
+    /** Primary interactive color - default MOH primary */
     @Column(name = "primary_color", length = 50, nullable = false)
-    private String primaryColor = "#0f62fe";
+    private String primaryColor = "#1d78cb";
 
-    /** Secondary color for secondary buttons - defaults to Carbon interactive-02 */
+    /** Secondary color - darker shade of primary */
     @Column(name = "secondary_color", length = 50, nullable = false)
-    private String secondaryColor = "#393939";
+    private String secondaryColor = "#1557a0";
 
     @Column(name = "color_mode", length = 10, nullable = false)
     private String colorMode = "light";

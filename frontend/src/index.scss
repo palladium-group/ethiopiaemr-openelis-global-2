@@ -2,14 +2,14 @@
 @use "@carbon/react/scss/theme" with (
   $fallback: themes.$g100,
   $theme: (
-    background: #295785,
+    background: #1d78cb,
     text-primary: #ffffff,
     text-secondary: #ffffff,
     icon-primary: #ffffff,
     icon-secondary: #ffffff,
-    background-hover: #072655,
-    layer-01: #295785,
-    layer-hover-01: #072655,
+    background-hover: #1557a0,
+    layer-01: #1d78cb,
+    layer-hover-01: #1557a0,
   )
 );
 

@@ -1392,7 +1392,7 @@
   "login.msg.password.missing": "Se requiere una contraseña",
   "login.msg.username": "Nombre de usuario",
   "login.msg.username.missing": "Se requiere un nombre de usuario",
-  "login.notice.message": "Aviso: El acceso a este servicio es solo para personal autorizado. Si no tienes la autorización expresa del administrador, debes salir ahora. Esta organización prohíbe el acceso no autorizado, la divulgación, duplicación, modificación, desvío, destrucción, pérdida, mal uso o robo de su información.",
+  "login.notice.message": "Powered by ETHIOPIA EMR",
   "login.redirecting.sso": "Redirecting to single sign-on...",
   "login.password.expired.date": "Fecha de Expiración de Contraseña",
   "login.password.expired.date.placeholder": "(dd/mm/aaaa)",

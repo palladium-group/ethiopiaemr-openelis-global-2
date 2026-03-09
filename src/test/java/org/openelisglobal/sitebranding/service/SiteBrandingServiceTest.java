@@ -78,9 +78,9 @@ public class SiteBrandingServiceTest {
 
         // Assert: Default branding created with default values
         assertNotNull("Result should not be null", result);
-        assertEquals("Primary color should be default", "#0f62fe", result.getPrimaryColor());
-        assertEquals("Secondary color should be default", "#393939", result.getSecondaryColor());
-        assertEquals("Header color should be default", "#295785", result.getHeaderColor());
+        assertEquals("Primary color should be default", "#1d78cb", result.getPrimaryColor());
+        assertEquals("Secondary color should be default", "#1557a0", result.getSecondaryColor());
+        assertEquals("Header color should be default", "#1d78cb", result.getHeaderColor());
         assertEquals("Color mode should be default", "light", result.getColorMode());
         verify(siteBrandingDAO, times(1)).insert(any(SiteBranding.class));
     }

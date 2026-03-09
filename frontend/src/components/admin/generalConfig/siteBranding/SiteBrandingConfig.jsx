@@ -90,9 +90,9 @@ function SiteBrandingConfig() {
       } else {
         // Handle error - use default values
         const defaultBranding = {
-          headerColor: "#295785",
-          primaryColor: "#0f62fe",
-          secondaryColor: "#393939",
+          headerColor: "#1d78cb",
+          primaryColor: "#1d78cb",
+          secondaryColor: "#1557a0",
           colorMode: "light",
           useHeaderLogoForLogin: false,
         };
@@ -274,9 +274,9 @@ function SiteBrandingConfig() {
     // Colors must be provided as database requires NOT NULL
     const dataToSend = {
       id: branding.id,
-      headerColor: branding.headerColor?.trim() || "#295785",
-      primaryColor: branding.primaryColor?.trim() || "#0f62fe",
-      secondaryColor: branding.secondaryColor?.trim() || "#393939",
+      headerColor: branding.headerColor?.trim() || "#1d78cb",
+      primaryColor: branding.primaryColor?.trim() || "#1d78cb",
+      secondaryColor: branding.secondaryColor?.trim() || "#1557a0",
       colorMode: branding.colorMode?.trim() || "light",
       useHeaderLogoForLogin: branding.useHeaderLogoForLogin || false,
       // Do not include headerLogoUrl, loginLogoUrl, or faviconUrl
@@ -390,26 +390,26 @@ function SiteBrandingConfig() {
         // Reload branding after reset
         loadBranding();
 
-        // Reset CSS custom properties to defaults
+        // Reset CSS custom properties to defaults (align with Liquibase 014)
         document.documentElement.style.setProperty(
           "--site-branding-header",
-          "#295785",
+          "#1d78cb",
         );
         document.documentElement.style.setProperty(
           "--cds-interactive-01",
-          "#0f62fe",
+          "#1d78cb",
         );
         document.documentElement.style.setProperty(
           "--cds-interactive-02",
-          "#393939",
+          "#1557a0",
         );
         document.documentElement.style.setProperty(
           "--site-branding-primary",
-          "#0f62fe",
+          "#1d78cb",
         );
         document.documentElement.style.setProperty(
           "--site-branding-secondary",
-          "#393939",
+          "#1557a0",
         );
 
         // Reset favicon
@@ -549,7 +549,7 @@ function SiteBrandingConfig() {
             description={intl.formatMessage({
               id: "site.branding.header.color.description",
             })}
-            value={branding?.headerColor || "#295785"}
+            value={branding?.headerColor || "#1d78cb"}
             onChange={(color) => {
               setBranding((prev) => ({ ...prev, headerColor: color }));
               // Apply color immediately for preview
@@ -569,7 +569,7 @@ function SiteBrandingConfig() {
             description={intl.formatMessage({
               id: "site.branding.primary.color.description",
             })}
-            value={branding?.primaryColor || "#0f62fe"}
+            value={branding?.primaryColor || "#1d78cb"}
             onChange={(color) => {
               setBranding((prev) => ({ ...prev, primaryColor: color }));
               // Apply color immediately for preview
@@ -593,7 +593,7 @@ function SiteBrandingConfig() {
             description={intl.formatMessage({
               id: "site.branding.secondary.color.description",
             })}
-            value={branding?.secondaryColor || "#393939"}
+            value={branding?.secondaryColor || "#1557a0"}
             onChange={(color) => {
               setBranding((prev) => ({ ...prev, secondaryColor: color }));
               // Apply color immediately for preview

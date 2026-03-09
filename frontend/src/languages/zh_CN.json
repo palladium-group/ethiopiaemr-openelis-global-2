@@ -1392,7 +1392,7 @@
   "login.msg.password.missing": "需要密码",
   "login.msg.username": "用户名",
   "login.msg.username.missing": "需要用户名",
-  "login.notice.message": "注意：此服务仅允许授权人员访问。如果您没有管理员的明确授权，您必须立即退出。本组织禁止未经授权访问、披露、复制、修改、转移、销毁、丢失、滥用或盗窃其信息。",
+  "login.notice.message": "Powered by ETHIOPIA EMR",
   "login.redirecting.sso": "正在重定向到单点登录...",
   "login.password.expired.date": "密码过期日期",
   "login.password.expired.date.placeholder": "(日/月/年)",

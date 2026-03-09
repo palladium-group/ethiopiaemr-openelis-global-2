@@ -118,11 +118,6 @@ function Login(props) {
           </picture>
         </Column>
         <Column lg={6} md={0} sm={0} />
-        <Column lg={6} md={0} sm={0} />
-        <Column lg={4} md={8} sm={4}>
-          <FormattedMessage id="login.notice.message" />
-        </Column>
-        <Column lg={6} md={0} sm={0} />
       </>
     );
   };
@@ -301,6 +296,7 @@ function Login(props) {
                               />
                               <Stack orientation="horizontal">
                                 <Button
+                                  kind="primary"
                                   type="submit"
                                   disabled={!isValid}
                                   data-cy="loginButton"
@@ -314,6 +310,7 @@ function Login(props) {
                                 </Button>
 
                                 <Button
+                                  kind="primary"
                                   data-cy="changePassword"
                                   type="button"
                                   onClick={() => {

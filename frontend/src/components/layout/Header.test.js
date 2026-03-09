@@ -71,7 +71,7 @@ const mockUserSessionDetails = {
 
 const mockConfigurationContext = {
   configurationProperties: {
-    BANNER_TEXT: "Test LIMS",
+    BANNER_TEXT: "ETHIOPIA EMR",
     releaseNumber: "3.2.1",
   },
   reloadConfiguration: jest.fn(),
@@ -424,13 +424,15 @@ describe("Header Component - M2b Enhancement Tests", () => {
      * TEST: Component renders with IntlProvider
      * Verifies Header works with standard React Intl, preparing for HOC removal
      */
-    test("renders banner section with intl context", async () => {
+    test("renders header logo without banner text", async () => {
       const { container } = renderHeader();
 
       await waitFor(
         () => {
+          const headerLogo = container.querySelector("#header-logo");
+          expect(headerLogo).toBeTruthy();
           const banner = container.querySelector(".banner");
-          expect(banner).toBeTruthy();
+          expect(banner).toBeFalsy();
         },
         { timeout: 3000 },
       );

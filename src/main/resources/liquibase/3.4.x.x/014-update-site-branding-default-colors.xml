@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Update site_branding default colors to MOH primary. Migrates existing rows
+         so API returns new colors; aligns with Java defaults and frontend fallbacks. -->
+    <changeSet id="014-update-site-branding-default-colors" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="site_branding"/>
+        </preConditions>
+        <comment>Update site_branding colors from OpenELIS defaults to MOH primary (#1d78cb)</comment>
+        <update tableName="site_branding">
+            <column name="header_color" value="#1d78cb"/>
+            <column name="primary_color" value="#1d78cb"/>
+            <column name="secondary_color" value="#1557a0"/>
+            <where>header_color = '#295785'</where>
+        </update>
+        <rollback>
+            <update tableName="site_branding">
+                <column name="header_color" value="#295785"/>
+                <column name="primary_color" value="#0f62fe"/>
+                <column name="secondary_color" value="#393939"/>
+                <where>header_color = '#1d78cb'</where>
+            </update>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
