@@ -39,7 +39,10 @@ public class SiteBranding extends BaseObject<Integer> {
     @Column(name = "favicon_path", length = 500)
     private String faviconPath;
 
-    /** Header bar background color - default MOH primary (align: Liquibase 014-update-site-branding-default-colors) */
+    /**
+     * Header bar background color - default MOH primary (align: Liquibase
+     * 014-update-site-branding-default-colors)
+     */
     @Column(name = "header_color", length = 50, nullable = false)
     private String headerColor = "#1d78cb";
 
