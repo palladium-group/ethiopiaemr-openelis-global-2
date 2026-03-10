@@ -31,6 +31,7 @@ services:
           default:
             aliases:
               - db.openelis.org
+              - postgres-db 
         healthcheck:
             test: [ "CMD", "pg_isready", "-q", "-d", "clinlims", "-U", "clinlims" ]
             timeout: 45s
