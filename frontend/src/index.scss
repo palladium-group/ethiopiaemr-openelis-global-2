@@ -15,6 +15,19 @@
 
 @use "@carbon/react";
 
+/*
+ * Override Carbon white-theme tokens so primary buttons use site primary color
+ * (same value as header). Carbon primary buttons use --cds-button-primary*, not
+ * interactive-01. Placed after @use so it wins over Carbon's defaults.
+ */
+.cds--white {
+  --cds-interactive-01: var(--site-branding-primary, #1d78cb);
+  --cds-interactive-02: var(--site-branding-secondary, #1557a0);
+  --cds-button-primary: var(--site-branding-primary, #1d78cb);
+  --cds-button-primary-hover: var(--site-branding-secondary, #1557a0);
+  --cds-button-primary-active: var(--site-branding-secondary, #1557a0);
+}
+
 .cds--content {
   margin-top: 3rem;
   padding: 0;
