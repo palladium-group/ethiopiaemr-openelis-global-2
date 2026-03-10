@@ -254,7 +254,7 @@ function SiteBrandingConfig() {
     // Add default favicon link
     const link = document.createElement("link");
     link.rel = "icon";
-    link.href = "../images/favicon-16x16.png";
+    link.href = "../images/favicon-32x32.png";
     document.head.appendChild(link);
   };
 
