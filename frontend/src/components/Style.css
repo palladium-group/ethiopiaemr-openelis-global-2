@@ -69,8 +69,14 @@ li.clickableUserDetails:hover {
  * is unauthenticated (no sidenav visible). These wrappers ensure the login form
  * stays horizontally centered regardless of surrounding layout state.
  */
-.oe-loginPageContent {
+.oe-loginPageContent,
+.changePasswordPage {
   width: 100%;
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .oe-loginPageCenter {
@@ -78,6 +84,20 @@ li.clickableUserDetails:hover {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 15rem;
+}
+
+/* Single column for logo + form so they share the same width and horizontal center */
+.oe-login-form-column {
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Gap between logo subtitle and login form heading */
+.oe-login-form-column .oe-login-section {
+  margin-top: 1.5rem;
 }
 
 /* REMOVED: Forcing black text caused dark mode input issues 

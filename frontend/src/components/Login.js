@@ -9,8 +9,6 @@ import {
   Section,
   Heading,
   FormLabel,
-  Grid,
-  Column,
   TextInput,
   Button,
   Stack,
@@ -93,37 +91,29 @@ function Login(props) {
     refresh();
   };
 
-  const loginMessage = () => {
-    // Add cache-busting parameter to prevent stale logo display after upload
+  const loginLogo = () => {
     const logoSrc = loginLogoUrl
       ? `${config.serverBaseUrl}${loginLogoUrl}?v=${logoVersion}`
       : `images/openelis_logo_full.png`;
 
     return (
-      <>
-        <Column lg={6} md={0} sm={0} />
-        <Column lg={4} md={8} sm={4}>
-          <div className="login-logo-with-subtitle">
-            <picture>
-              <img
-                src={logoSrc}
-                alt="fullsize logo"
-                width="300"
-                height="56"
-                style={{ objectFit: "contain" }}
-                onError={(e) => {
-                  // Fallback to default logo if custom logo fails to load
-                  e.target.src = `images/openelis_logo_full.png`;
-                }}
-              />
-            </picture>
-            <span className="login-logo-subtitle">
-              <FormattedMessage id="header.logo.subtitle" />
-            </span>
-          </div>
-        </Column>
-        <Column lg={6} md={0} sm={0} />
-      </>
+      <div className="login-logo-with-subtitle">
+        <picture>
+          <img
+            src={logoSrc}
+            alt="fullsize logo"
+            width="300"
+            height="56"
+            style={{ objectFit: "contain" }}
+            onError={(e) => {
+              e.target.src = `images/openelis_logo_full.png`;
+            }}
+          />
+        </picture>
+        <span className="login-logo-subtitle">
+          <FormattedMessage id="header.logo.subtitle" />
+        </span>
+      </div>
     );
   };
 
@@ -213,15 +203,9 @@ function Login(props) {
       >
         {notificationVisible === true ? <AlertDialog /> : ""}
         <div className="oe-loginPageCenter">
-          <Grid fullWidth={true}>{loginMessage()}</Grid>
-          <Grid fullWidth={false}>
-            <Column lg={16}>
-              <br />
-              <br />
-            </Column>
-            <Column lg={6} md={0} sm={0} />
-            <Column lg={4} md={8} sm={4}>
-              <Section>
+          <div className="oe-login-form-column">
+            {loginLogo()}
+            <Section className="oe-login-section">
                 {samlRedirectInitiated ? (
                   <Stack gap={5}>
                     <FormLabel>
@@ -352,12 +336,7 @@ function Login(props) {
                   </Formik>
                 )}
               </Section>
-            </Column>
-            <Column lg={6} md={0} sm={0} />
-            <Column lg={0} md={0} sm={0}>
-              {loginMessage()}
-            </Column>
-          </Grid>
+          </div>
         </div>
       </div>
     </>
