@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
+import org.openelisglobal.analyzer.service.AnalyzerService;
+import org.openelisglobal.analyzer.valueholder.Analyzer;
+import org.openelisglobal.analyzerimport.service.AnalyzerTestMappingService;
+import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.IResultSaveService;
 import org.openelisglobal.common.services.IStatusService;
@@ -15,12 +19,13 @@ import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.note.valueholder.Note;
 import org.openelisglobal.notification.service.TestNotificationService;
 import org.openelisglobal.notification.valueholder.NotificationConfigOption.NotificationNature;
+import org.openelisglobal.panel.service.PanelService;
 import org.openelisglobal.result.service.ResultService;
 import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.resultvalidation.bean.AnalysisItem;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
-import org.openelisglobal.spring.util.SpringContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,14 +37,27 @@ public class ResultValidationServiceImpl implements ResultValidationService {
     private NoteService noteService;
     private SampleService sampleService;
     private TestNotificationService testNotificationService;
+    private AnalyzerService analyzerService;
+    private AnalyzerTestMappingService analyzerTestMappingService;
+    private PanelService panelService;
+    private IStatusService statusService;
+    private String cbcPanelName;
 
     public ResultValidationServiceImpl(AnalysisService analysisService, ResultService resultService,
-            NoteService noteService, SampleService sampleService, TestNotificationService testNotificationService) {
+            NoteService noteService, SampleService sampleService, TestNotificationService testNotificationService,
+            AnalyzerService analyzerService, AnalyzerTestMappingService analyzerTestMappingService,
+            PanelService panelService, IStatusService statusService,
+            @Value("${org.openelisglobal.cbc.panelname:Complete Blood Count}") String cbcPanelName) {
         this.analysisService = analysisService;
         this.resultService = resultService;
         this.noteService = noteService;
         this.sampleService = sampleService;
         this.testNotificationService = testNotificationService;
+        this.analyzerService = analyzerService;
+        this.analyzerTestMappingService = analyzerTestMappingService;
+        this.panelService = panelService;
+        this.statusService = statusService;
+        this.cbcPanelName = cbcPanelName;
     }
 
     @Override
@@ -75,6 +93,8 @@ public class ResultValidationServiceImpl implements ResultValidationService {
             }
         }
 
+        autoCancelCbcTests(resultItemList, sysUserId);
+
         checkIfSamplesFinished(resultItemList, sampleUpdateList);
 
         // update finished samples
@@ -100,12 +120,112 @@ public class ResultValidationServiceImpl implements ResultValidationService {
         }
     }
 
+    private void autoCancelCbcTests(List<AnalysisItem> resultItemList, String sysUserId) {
+        String cbcPanelId = panelService.getIdForPanelName(cbcPanelName);
+        if (cbcPanelId == null) {
+            return;
+        }
+
+        // Group validated items by accession
+        java.util.Map<String, java.util.Set<String>> validatedTestsByAccession = new java.util.HashMap<>();
+        for (AnalysisItem item : resultItemList) {
+            if (item.getAccessionNumber() == null)
+                continue;
+
+            Analysis analysis = analysisService.getAnalysisById(item.getAnalysisId());
+            if (analysis != null && analysis.getPanel() != null && cbcPanelId.equals(analysis.getPanel().getId())) {
+                validatedTestsByAccession.computeIfAbsent(item.getAccessionNumber(), k -> new java.util.HashSet<>())
+                        .add(item.getTestId());
+            }
+        }
+
+        if (validatedTestsByAccession.isEmpty()) {
+            return;
+        }
+
+        // Cache analyzer test mappings for this request
+        java.util.Map<String, java.util.Set<String>> analyzerSupportedTestsMap = getAnalyzerSupportedTestsMap();
+
+        for (java.util.Map.Entry<String, java.util.Set<String>> entry : validatedTestsByAccession.entrySet()) {
+            String accessionNumber = entry.getKey();
+            java.util.Set<String> validatedTestIds = entry.getValue();
+
+            String matchingAnalyzerId = findMatchingAnalyzerId(validatedTestIds, analyzerSupportedTestsMap);
+
+            if (matchingAnalyzerId != null) {
+                cancelExtraCbcAnalyses(accessionNumber, cbcPanelId, validatedTestIds, sysUserId);
+            }
+        }
+    }
+
+    private java.util.Map<String, java.util.Set<String>> getAnalyzerSupportedTestsMap() {
+        java.util.Map<String, java.util.Set<String>> map = new java.util.HashMap<>();
+        List<Analyzer> activeAnalyzers = analyzerService.getAllWithTypes();
+
+        for (Analyzer analyzer : activeAnalyzers) {
+            Analyzer.AnalyzerStatus status = analyzer.getStatus();
+            if (status == Analyzer.AnalyzerStatus.ACTIVE || status == Analyzer.AnalyzerStatus.SETUP) {
+                List<AnalyzerTestMapping> mappings = analyzerTestMappingService.getAllForAnalyzer(analyzer.getId());
+                java.util.Set<String> testIds = new java.util.HashSet<>();
+                for (AnalyzerTestMapping m : mappings) {
+                    testIds.add(m.getTestId());
+                }
+                map.put(analyzer.getId(), testIds);
+            }
+        }
+        return map;
+    }
+
+    private String findMatchingAnalyzerId(java.util.Set<String> validatedTestIds,
+            java.util.Map<String, java.util.Set<String>> analyzerSupportedTestsMap) {
+        for (java.util.Map.Entry<String, java.util.Set<String>> entry : analyzerSupportedTestsMap.entrySet()) {
+            java.util.Set<String> analyzerTestIds = entry.getValue();
+            // Reversed Subset Matching: Match if ALL tests the analyzer supports were
+            // validated
+            if (!analyzerTestIds.isEmpty() && validatedTestIds.containsAll(analyzerTestIds)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    private void cancelExtraCbcAnalyses(String accessionNumber, String cbcPanelId,
+            java.util.Set<String> validatedTestIds, String sysUserId) {
+        Sample sample = sampleService.getSampleByAccessionNumber(accessionNumber);
+        if (sample == null)
+            return;
+
+        List<Analysis> allAnalyses = analysisService.getAnalysesBySampleId(sample.getId());
+        List<Analysis> toCancel = new java.util.ArrayList<>();
+
+        String notStartedStatus = statusService.getStatusID(AnalysisStatus.NotStarted);
+        String technicalAcceptanceStatus = statusService.getStatusID(AnalysisStatus.TechnicalAcceptance);
+        String canceledStatus = statusService.getStatusID(AnalysisStatus.Canceled);
+
+        for (Analysis analysis : allAnalyses) {
+            if (analysis.getPanel() != null && cbcPanelId.equals(analysis.getPanel().getId())) {
+                // Cancel ANY CBC test that was NOT part of the current validation batch
+                if (!validatedTestIds.contains(analysis.getTest().getId())) {
+                    String statusId = analysis.getStatusId();
+                    // Cancel it if it's in a non-terminal, pre-validation state
+                    if (statusId.equals(notStartedStatus) || statusId.equals(technicalAcceptanceStatus)) {
+                        analysis.setStatusId(canceledStatus);
+                        toCancel.add(analysis);
+                    }
+                }
+            }
+        }
+
+        if (!toCancel.isEmpty()) {
+            analysisService.updateAnalysises(toCancel, new ArrayList<>(), sysUserId);
+        }
+    }
+
     private boolean isResultAnalysisFinalized(Result result, List<Analysis> analysisUpdateList) {
         String analysisId = result.getAnalysis().getId();
         for (Analysis analysis : analysisUpdateList) {
             if (analysis.getId().equals(analysisId)) {
-                return analysis.getStatusId()
-                        .equals(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized));
+                return analysis.getStatusId().equals(statusService.getStatusID(AnalysisStatus.Finalized));
             }
         }
         return false;
@@ -134,7 +254,7 @@ public class ResultValidationServiceImpl implements ResultValidationService {
 
                 if (sampleFinished) {
                     Sample sample = sampleService.get(currentSampleId);
-                    sample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+                    sample.setStatusId(statusService.getStatusID(OrderStatus.Finished));
                     sampleUpdateList.add(sample);
                 }
 
@@ -145,12 +265,9 @@ public class ResultValidationServiceImpl implements ResultValidationService {
 
     private List<Integer> getSampleFinishedStatuses() {
         ArrayList<Integer> sampleFinishedStatus = new ArrayList<>();
-        sampleFinishedStatus.add(
-                Integer.parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized)));
-        sampleFinishedStatus.add(
-                Integer.parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Canceled)));
-        sampleFinishedStatus.add(Integer.parseInt(
-                SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NonConforming_depricated)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.Finalized)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.Canceled)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.NonConforming_depricated)));
         return sampleFinishedStatus;
     }
 }
