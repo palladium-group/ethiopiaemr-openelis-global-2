@@ -48,10 +48,21 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 @DependsOn({ "springContext" })
 public class ResultSaveService {
-    private static ResultService resultService = SpringContext.getBean(ResultService.class);
-    private static TestResultService testResultService = SpringContext.getBean(TestResultService.class);
-    private static ResultSignatureService resultSigService = SpringContext.getBean(ResultSignatureService.class);
-    private static ReferralResultService referralResultService = SpringContext.getBean(ReferralResultService.class);
+    private static ResultService getResultService() {
+        return SpringContext.getBean(ResultService.class);
+    }
+
+    private static TestResultService getTestResultService() {
+        return SpringContext.getBean(TestResultService.class);
+    }
+
+    private static ResultSignatureService getResultSigService() {
+        return SpringContext.getBean(ResultSignatureService.class);
+    }
+
+    private static ReferralResultService getReferralResultService() {
+        return SpringContext.getBean(ReferralResultService.class);
+    }
 
     private Analysis analysis;
     private String currentUserId;
@@ -85,7 +96,7 @@ public class ResultSaveService {
                 try {
                     JSONObject jsonResult = (JSONObject) parser.parse(serviceBean.getMultiSelectResultValues());
 
-                    List<Result> existingResults = resultService.getResultsByAnalysis(analysis);
+                    List<Result> existingResults = getResultService().getResultsByAnalysis(analysis);
                     for (Object key : jsonResult.keySet()) {
                         getResultsForMultiSelect(results, existingResults, serviceBean, (String) key,
                                 (String) jsonResult.get(key), isQualifiedResult);
@@ -104,12 +115,12 @@ public class ResultSaveService {
 
             if (!newResult) {
                 result.setId(serviceBean.getResultId());
-                resultService.getData(result);
+                getResultService().getData(result);
 
                 if (!GenericValidator.isBlankOrNull(serviceBean.getQualifiedResultId())) {
                     qualifiedResult = new Result();
                     qualifiedResult.setId(serviceBean.getQualifiedResultId());
-                    resultService.getData(qualifiedResult);
+                    getResultService().getData(qualifiedResult);
                 } else if (isQualifiedResult) {
                     qualifiedResult = getQuantifiedResult(serviceBean, result);
                 }
@@ -121,7 +132,8 @@ public class ResultSaveService {
                 // qualified
                 // result
             } else {
-                List<TestResult> testResultList = testResultService.getActiveTestResultsByTest(serviceBean.getTestId());
+                List<TestResult> testResultList = getTestResultService()
+                        .getActiveTestResultsByTest(serviceBean.getTestId());
                 // we are assuming there is only one testResult for a numeric
                 // type result
                 if (!testResultList.isEmpty()) {
@@ -240,7 +252,7 @@ public class ResultSaveService {
 
     private TestResult setTestResultsForDictionaryResult(String testId, String dictValue, Result result) {
         TestResult testResult;
-        testResult = testResultService.getTestResultsByTestAndDictonaryResult(testId, dictValue);
+        testResult = getTestResultService().getTestResultsByTestAndDictonaryResult(testId, dictValue);
 
         if (testResult != null) {
             result.setTestResult(testResult);
@@ -277,8 +289,8 @@ public class ResultSaveService {
     }
 
     private String getResultSortOrder(String resultValue) {
-        TestResult testResult = testResultService.getTestResultsByTestAndDictonaryResult(analysis.getTest().getId(),
-                resultValue);
+        TestResult testResult = getTestResultService()
+                .getTestResultsByTestAndDictonaryResult(analysis.getTest().getId(), resultValue);
         return testResult == null ? "0" : testResult.getSortOrder();
     }
 
@@ -297,22 +309,22 @@ public class ResultSaveService {
 
     public static void removeDeletedResultsInTransaction(List<Result> deletableResults, String currentUserId) {
         for (Result result : deletableResults) {
-            List<ResultSignature> signatures = resultSigService.getResultSignaturesByResult(result);
-            List<ReferralResult> referrals = referralResultService.getReferralsByResultId(result.getId());
+            List<ResultSignature> signatures = getResultSigService().getResultSignaturesByResult(result);
+            List<ReferralResult> referrals = getReferralResultService().getReferralsByResultId(result.getId());
 
             for (ResultSignature signature : signatures) {
                 signature.setSysUserId(currentUserId);
             }
 
-            resultSigService.deleteAll(signatures);
+            getResultSigService().deleteAll(signatures);
 
             for (ReferralResult referral : referrals) {
                 referral.setSysUserId(currentUserId);
-                referralResultService.delete(referral);
+                getReferralResultService().delete(referral);
             }
 
             result.setSysUserId(currentUserId);
-            resultService.delete(result);
+            getResultService().delete(result);
         }
     }
 }
