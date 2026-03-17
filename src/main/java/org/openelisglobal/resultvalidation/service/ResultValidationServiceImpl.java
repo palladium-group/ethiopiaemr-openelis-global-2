@@ -25,7 +25,6 @@ import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.resultvalidation.bean.AnalysisItem;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
-import org.openelisglobal.spring.util.SpringContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,12 +40,13 @@ public class ResultValidationServiceImpl implements ResultValidationService {
     private AnalyzerService analyzerService;
     private AnalyzerTestMappingService analyzerTestMappingService;
     private PanelService panelService;
+    private IStatusService statusService;
     private String cbcPanelName;
 
     public ResultValidationServiceImpl(AnalysisService analysisService, ResultService resultService,
             NoteService noteService, SampleService sampleService, TestNotificationService testNotificationService,
             AnalyzerService analyzerService, AnalyzerTestMappingService analyzerTestMappingService,
-            PanelService panelService,
+            PanelService panelService, IStatusService statusService,
             @Value("${org.openelisglobal.cbc.panelname:Complete Blood Count}") String cbcPanelName) {
         this.analysisService = analysisService;
         this.resultService = resultService;
@@ -56,6 +56,7 @@ public class ResultValidationServiceImpl implements ResultValidationService {
         this.analyzerService = analyzerService;
         this.analyzerTestMappingService = analyzerTestMappingService;
         this.panelService = panelService;
+        this.statusService = statusService;
         this.cbcPanelName = cbcPanelName;
     }
 
@@ -197,10 +198,9 @@ public class ResultValidationServiceImpl implements ResultValidationService {
         List<Analysis> allAnalyses = analysisService.getAnalysesBySampleId(sample.getId());
         List<Analysis> toCancel = new java.util.ArrayList<>();
 
-        String notStartedStatus = SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted);
-        String technicalAcceptanceStatus = SpringContext.getBean(IStatusService.class)
-                .getStatusID(AnalysisStatus.TechnicalAcceptance);
-        String canceledStatus = SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Canceled);
+        String notStartedStatus = statusService.getStatusID(AnalysisStatus.NotStarted);
+        String technicalAcceptanceStatus = statusService.getStatusID(AnalysisStatus.TechnicalAcceptance);
+        String canceledStatus = statusService.getStatusID(AnalysisStatus.Canceled);
 
         for (Analysis analysis : allAnalyses) {
             if (analysis.getPanel() != null && cbcPanelId.equals(analysis.getPanel().getId())) {
@@ -225,8 +225,7 @@ public class ResultValidationServiceImpl implements ResultValidationService {
         String analysisId = result.getAnalysis().getId();
         for (Analysis analysis : analysisUpdateList) {
             if (analysis.getId().equals(analysisId)) {
-                return analysis.getStatusId()
-                        .equals(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized));
+                return analysis.getStatusId().equals(statusService.getStatusID(AnalysisStatus.Finalized));
             }
         }
         return false;
@@ -255,7 +254,7 @@ public class ResultValidationServiceImpl implements ResultValidationService {
 
                 if (sampleFinished) {
                     Sample sample = sampleService.get(currentSampleId);
-                    sample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+                    sample.setStatusId(statusService.getStatusID(OrderStatus.Finished));
                     sampleUpdateList.add(sample);
                 }
 
@@ -266,12 +265,9 @@ public class ResultValidationServiceImpl implements ResultValidationService {
 
     private List<Integer> getSampleFinishedStatuses() {
         ArrayList<Integer> sampleFinishedStatus = new ArrayList<>();
-        sampleFinishedStatus.add(
-                Integer.parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized)));
-        sampleFinishedStatus.add(
-                Integer.parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Canceled)));
-        sampleFinishedStatus.add(Integer.parseInt(
-                SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NonConforming_depricated)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.Finalized)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.Canceled)));
+        sampleFinishedStatus.add(Integer.parseInt(statusService.getStatusID(AnalysisStatus.NonConforming_depricated)));
         return sampleFinishedStatus;
     }
 }

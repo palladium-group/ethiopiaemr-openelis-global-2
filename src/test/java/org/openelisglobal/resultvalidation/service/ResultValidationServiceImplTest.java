@@ -1,14 +1,15 @@
 package org.openelisglobal.resultvalidation.service;
 
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,15 +25,20 @@ import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.StatusService.AnalysisStatus;
 import org.openelisglobal.common.services.StatusService.OrderStatus;
+import org.openelisglobal.common.util.ConfigurationProperties.Property;
+import org.openelisglobal.common.util.DefaultConfigurationProperties;
 import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.notification.service.TestNotificationService;
 import org.openelisglobal.panel.service.PanelService;
 import org.openelisglobal.panel.valueholder.Panel;
+import org.openelisglobal.referral.service.ReferralResultService;
 import org.openelisglobal.result.service.ResultService;
+import org.openelisglobal.result.service.ResultSignatureService;
 import org.openelisglobal.resultvalidation.bean.AnalysisItem;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.spring.util.SpringContext;
+import org.openelisglobal.testresult.service.TestResultService;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -59,6 +65,14 @@ public class ResultValidationServiceImplTest {
     @Mock
     private IStatusService statusService;
     @Mock
+    private DefaultConfigurationProperties configurationProperties;
+    @Mock
+    private ResultSignatureService resultSignatureService;
+    @Mock
+    private ReferralResultService referralResultService;
+    @Mock
+    private TestResultService testResultService;
+    @Mock
     private ApplicationContext applicationContext;
     @Mock
     private AutowireCapableBeanFactory autowireCapableBeanFactory;
@@ -70,27 +84,51 @@ public class ResultValidationServiceImplTest {
     private static final String ACCESSION_NUMBER = "12345";
     private static final String SYS_USER_ID = "1";
 
+    private Object oldFactory;
+    private Object oldContext;
+
     @Before
-        public void setUp() {
-                // Mock SpringContext and status ID mapping
-                when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(autowireCapableBeanFactory);
-                new SpringContext().setApplicationContext(applicationContext);
-                lenient().when(autowireCapableBeanFactory.getBean(IStatusService.class)).thenReturn(statusService);
+    public void setUp() {
+        // Save old SpringContext state to prevent pollution
+        oldFactory = ReflectionTestUtils.getField(SpringContext.class, "factory");
+        oldContext = ReflectionTestUtils.getField(SpringContext.class, "context");
 
-                lenient().when(panelService.getIdForPanelName("Complete Blood Count")).thenReturn(CBC_PANEL_ID);
-                lenient().when(statusService.getStatusID(AnalysisStatus.NotStarted)).thenReturn("1");
-                lenient().when(statusService.getStatusID(AnalysisStatus.TechnicalAcceptance)).thenReturn("2");
-                lenient().when(statusService.getStatusID(AnalysisStatus.Finalized)).thenReturn("3");
-                lenient().when(statusService.getStatusID(AnalysisStatus.Canceled)).thenReturn("4");
-                lenient().when(statusService.getStatusID(AnalysisStatus.NonConforming_depricated)).thenReturn("5");
-                lenient().when(statusService.getStatusID(OrderStatus.Finished)).thenReturn("6");
+        // Mock SpringContext factory to return our mocks
+        ReflectionTestUtils.setField(SpringContext.class, "factory", autowireCapableBeanFactory);
+        ReflectionTestUtils.setField(SpringContext.class, "context", applicationContext);
 
-                ReflectionTestUtils.setField(resultValidationService, "cbcPanelName", "Complete Blood Count");
-        }
+        lenient().when(autowireCapableBeanFactory.getBean(IStatusService.class)).thenReturn(statusService);
+        lenient().when(autowireCapableBeanFactory.getBean(DefaultConfigurationProperties.class))
+                .thenReturn(configurationProperties);
+        lenient().when(autowireCapableBeanFactory.getBean(ResultService.class)).thenReturn(resultService);
+        lenient().when(autowireCapableBeanFactory.getBean(TestResultService.class)).thenReturn(testResultService);
+        lenient().when(autowireCapableBeanFactory.getBean(ResultSignatureService.class))
+                .thenReturn(resultSignatureService);
+        lenient().when(autowireCapableBeanFactory.getBean(ReferralResultService.class))
+                .thenReturn(referralResultService);
+
+        lenient().when(configurationProperties.getPropertyValue(Property.DEFAULT_DATE_LOCALE)).thenReturn("en_US");
+
+        lenient().when(panelService.getIdForPanelName("Complete Blood Count")).thenReturn(CBC_PANEL_ID);
+        lenient().when(statusService.getStatusID(AnalysisStatus.NotStarted)).thenReturn("1");
+        lenient().when(statusService.getStatusID(AnalysisStatus.TechnicalAcceptance)).thenReturn("2");
+        lenient().when(statusService.getStatusID(AnalysisStatus.Finalized)).thenReturn("3");
+        lenient().when(statusService.getStatusID(AnalysisStatus.Canceled)).thenReturn("4");
+        lenient().when(statusService.getStatusID(AnalysisStatus.NonConforming_depricated)).thenReturn("5");
+        lenient().when(statusService.getStatusID(OrderStatus.Finished)).thenReturn("6");
+
+        ReflectionTestUtils.setField(resultValidationService, "cbcPanelName", "Complete Blood Count");
+    }
+
+    @After
+    public void tearDown() {
+        // Restore old SpringContext state
+        ReflectionTestUtils.setField(SpringContext.class, "factory", oldFactory);
+        ReflectionTestUtils.setField(SpringContext.class, "context", oldContext);
+    }
 
     @Test
     public void testAutoCancelCbcTests_SuccessfulCancellation() {
-        // Mock validation for T1 and T2
         AnalysisItem item1 = new AnalysisItem();
         item1.setAccessionNumber(ACCESSION_NUMBER);
         item1.setAnalysisId("A1");
@@ -124,7 +162,6 @@ public class ResultValidationServiceImplTest {
         when(analysisService.getAnalysisById("A1")).thenReturn(analysis1);
         when(analysisService.getAnalysisById("A2")).thenReturn(analysis2);
 
-        // Mock analyzer supporting T1 and T2
         Analyzer analyzer = new Analyzer();
         analyzer.setId("AZ1");
         analyzer.setStatus(Analyzer.AnalyzerStatus.ACTIVE);
@@ -141,14 +178,13 @@ public class ResultValidationServiceImplTest {
         when(sampleService.getSampleByAccessionNumber(ACCESSION_NUMBER)).thenReturn(sample);
         when(sampleService.get("S1")).thenReturn(sample);
 
-        // A3 is an extra CBC test not validated, should be canceled
         Analysis analysis3 = new Analysis();
         analysis3.setId("A3");
         analysis3.setPanel(panel);
         org.openelisglobal.test.valueholder.Test test3 = new org.openelisglobal.test.valueholder.Test();
         test3.setId("T3");
         analysis3.setTest(test3);
-        analysis3.setStatusId("1"); // Not Started
+        analysis3.setStatusId("1");
 
         when(analysisService.getAnalysesBySampleId("S1")).thenReturn(Arrays.asList(analysis1, analysis2, analysis3));
 
@@ -161,7 +197,6 @@ public class ResultValidationServiceImplTest {
 
     @Test
     public void testAutoCancelCbcTests_NoMatchingAnalyzer() {
-        // Validating T1 but analyzer requires both T1 and T2 for a match
         AnalysisItem item1 = new AnalysisItem();
         item1.setAccessionNumber(ACCESSION_NUMBER);
         item1.setAnalysisId("A1");
@@ -200,13 +235,11 @@ public class ResultValidationServiceImplTest {
         resultValidationService.persistdata(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), resultItemList,
                 new ArrayList<>(), new ArrayList<>(), null, new ArrayList<>(), SYS_USER_ID);
 
-        // No cancellation should occur due to lack of a matching analyzer
         verify(analysisService, never()).updateAnalysises(anyList(), anyList(), anyString());
     }
 
     @Test
     public void testAutoCancelCbcTests_IgnoresOtherPanels() {
-        // Logic should skip if the validated test doesn't belong to the CBC panel
         AnalysisItem item1 = new AnalysisItem();
         item1.setAccessionNumber(ACCESSION_NUMBER);
         item1.setAnalysisId("A1");
@@ -269,7 +302,6 @@ public class ResultValidationServiceImplTest {
         resultValidationService.persistdata(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), resultItemList,
                 new ArrayList<>(), new ArrayList<>(), null, new ArrayList<>(), SYS_USER_ID);
 
-        // Inactive analyzers should be ignored
         verify(analyzerTestMappingService, never()).getAllForAnalyzer(anyString());
     }
 
@@ -305,7 +337,6 @@ public class ResultValidationServiceImplTest {
         when(sampleService.getSampleByAccessionNumber(ACCESSION_NUMBER)).thenReturn(sample);
         when(sampleService.get("S1")).thenReturn(sample);
 
-        // A3 is already finalized, should not be canceled
         Analysis analysis3 = new Analysis();
         analysis3.setId("A3");
         analysis3.setPanel(panel);
@@ -390,7 +421,6 @@ public class ResultValidationServiceImplTest {
 
         verify(analysisService).updateAnalysises(argThat(list -> list.contains(analysis3)), anyList(), eq(SYS_USER_ID));
 
-        // Sample should transition to Finished after all tests are accounted for
         boolean sampleMarkedFinished = sampleUpdateList.stream()
                 .anyMatch(s -> s.getId().equals("S1") && "6".equals(s.getStatusId()));
         org.junit.Assert.assertTrue("Sample should be marked as finished", sampleMarkedFinished);
@@ -398,7 +428,6 @@ public class ResultValidationServiceImplTest {
 
     @Test
     public void testAutoCancelCbcTests_SubsetMatch() {
-        // Validated set {T1, T2} includes all tests of Analyzer {T1} -> Match!
         AnalysisItem item1 = new AnalysisItem();
         item1.setAccessionNumber(ACCESSION_NUMBER);
         item1.setAnalysisId("A1");
@@ -462,7 +491,6 @@ public class ResultValidationServiceImplTest {
         resultValidationService.persistdata(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), resultItemList,
                 sampleUpdateList, new ArrayList<>(), null, new ArrayList<>(), SYS_USER_ID);
 
-        // Verified that analysis3 is cancelled as it's an unvalidated CBC test
         verify(analysisService).updateAnalysises(argThat(list -> list.size() == 1 && list.contains(analysis3)),
                 anyList(), eq(SYS_USER_ID));
 
