@@ -71,7 +71,7 @@
         <insert tableName="analyzer_test_map" schemaName="clinlims">
             <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-3000 Plus')"/>
             <column name="analyzer_test_name" value="Gran#"/>
-            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Count' LIMIT 1)"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Count (3-part diff)' LIMIT 1)"/>
             <column name="last_updated" valueComputed="NOW()"/>
         </insert>
 
@@ -95,7 +95,7 @@
         <insert tableName="analyzer_test_map" schemaName="clinlims">
             <column name="analyzer_id" valueComputed="(SELECT id FROM clinlims.analyzer WHERE name = 'Mindray BC-3000 Plus')"/>
             <column name="analyzer_test_name" value="Gran%"/>
-            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Percentage' LIMIT 1)"/>
+            <column name="test_id" valueComputed="(SELECT id FROM clinlims.test WHERE description = 'Granulocyte Percentage (3-part diff)' LIMIT 1)"/>
             <column name="last_updated" valueComputed="NOW()"/>
         </insert>
 
