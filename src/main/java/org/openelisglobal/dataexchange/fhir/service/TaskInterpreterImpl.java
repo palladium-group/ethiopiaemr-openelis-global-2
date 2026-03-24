@@ -261,7 +261,10 @@ public class TaskInterpreterImpl implements TaskInterpreter {
                     ? DateUtil.AMBIGUOUS_DATE_SEGMENT + DateUtil.AMBIGUOUS_DATE_SEGMENT
                     : String.format("%04d", birthDate.getYear());
 
-            messagePatient.setDisplayDOB(day + "/" + month + "/" + year);
+            String format = DateUtil.getDateFormat();
+            String displayDOB = format.replace("yyyy", year).replace("MM", month).replace("dd", day);
+
+            messagePatient.setDisplayDOB(displayDOB);
         }
         if (AdministrativeGender.MALE.equals(patient.getGender())) {
             messagePatient.setGender("M");
