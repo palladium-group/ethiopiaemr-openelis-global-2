@@ -79325,3 +79325,12 @@ ALTER TABLE ONLY clinlims.user_lab_unit_roles
 -- PostgreSQL database dump complete
 --
 
+
+-- Fix permissions for OpenELIS Global 2 app user
+ALTER SCHEMA clinlims OWNER TO clinlims;
+GRANT ALL ON SCHEMA clinlims TO clinlims;
+GRANT ALL ON ALL TABLES IN SCHEMA clinlims TO clinlims;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA clinlims TO clinlims;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA clinlims TO clinlims;
+GRANT ALL ON SCHEMA public TO clinlims;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO clinlims;
