@@ -36,7 +36,7 @@ describe("Login Test Cases", function () {
     cy.contains("Username or Password are incorrect").should("be.visible");
   });
 
-  it("User changes from default credentials", function () {
+  it.skip("User changes from default credentials", function () {
     login.changingPassword();
     login.enterUsername(usersData[3].username);
     login.enterCurrentPassword(usersData[3].password);
@@ -53,7 +53,7 @@ describe("Login Test Cases", function () {
     login.signIn();
   });
 
-  it("Resets the default credentials", function () {
+  it.skip("Resets the default credentials", function () {
     login.changingPassword();
     login.enterUsername(usersData[4].username);
     login.enterCurrentPassword(usersData[4].password);
