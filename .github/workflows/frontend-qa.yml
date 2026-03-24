@@ -59,8 +59,8 @@ jobs:
         run: npx prettier ./ --check
         working-directory: frontend
 
-      - name: Run Frontend Unit Tests (Jest) - SKIPPED
-        run: echo "Skipping Jest tests as requested." # npm test -- --watchAll=false --coverage=false
+      - name: Run Frontend Unit Tests (Jest)
+        run: npm test -- --watchAll=false --coverage=false
         working-directory: frontend
         env:
           CI: true
@@ -196,15 +196,15 @@ jobs:
           echo "Catch-all: $REMAINING_COUNT specs (of $TOTAL total, $ASSIGNED_COUNT assigned to other shards)"
           echo "$REMAINING" | tr ',' '\n' | sed 's/^/  /'
 
-      - name: Run Cypress E2E Tests — ${{ matrix.shard }} - SKIPPED
+      - name: Run Cypress E2E Tests — ${{ matrix.shard }}
         run: |
           if [ "${{ matrix.shard }}" = "independent" ]; then
             SPECS="${{ steps.catchall.outputs.specs }}"
           else
             SPECS="${{ matrix.specs }}"
           fi
-          echo "Skipping Cypress run: $SPECS"
-          # npx cypress run --browser chrome --headless --spec "$SPECS"
+          echo "Running specs: $SPECS"
+          npx cypress run --browser chrome --headless --spec "$SPECS"
         working-directory: frontend
         env:
           E2E_FAIL_FAST: "true"

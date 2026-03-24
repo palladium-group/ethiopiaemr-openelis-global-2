@@ -56,8 +56,8 @@ jobs:
           timeout 60 bash -c 'until curl -k -s -f https://localhost/ > /dev/null; do sleep 2; done' || exit 1
           echo "Application is ready"
 
-      - name: Run Playwright tests - SKIPPED
-        run: echo "Skipping Playwright tests as requested." # npm run pw:test
+      - name: Run Playwright tests
+        run: npm run pw:test
         working-directory: frontend
         env:
           CI: true
