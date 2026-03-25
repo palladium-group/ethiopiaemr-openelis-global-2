@@ -7,7 +7,7 @@ name: Run E2E Tests and Publish Docker Images
 
 on:
   push:
-    branches: [restore-CI-skip-tests]
+    branches: [update-initial-database]
   workflow_dispatch:
       
 
