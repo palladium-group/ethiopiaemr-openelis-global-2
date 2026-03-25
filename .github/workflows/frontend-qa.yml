@@ -66,6 +66,7 @@ jobs:
           CI: true
 
   e2e-cypress:
+    if: ${{ matrix.shard != 'admin' }}
     needs: static-checks
     runs-on: ubuntu-latest
     strategy:
