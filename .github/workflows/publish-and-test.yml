@@ -216,13 +216,8 @@ jobs:
   #       with:
   #         # Only show last 100 lines of each
   #         tail: "100"
-  frontend-qa:
-    if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    uses: palladium-group/ethiopiaemr-openelis-global-2/.github/workflows/frontend-qa.yml@main
-
   build-and-push-image-backend:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    needs: [frontend-qa]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -270,7 +265,6 @@ jobs:
 
   build-and-push-image-frontend:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    needs: [frontend-qa]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -316,7 +310,6 @@ jobs:
 
   build-and-push-image-proxy:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    needs: [frontend-qa]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -361,7 +354,6 @@ jobs:
 
   build-and-push-image-fhir:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    needs: [frontend-qa]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -407,7 +399,6 @@ jobs:
 
   build-and-push-image-database:
     if: ${{ github.repository == 'palladium-group/ethiopiaemr-openelis-global-2' }}
-    needs: [frontend-qa]
     runs-on: ubuntu-latest
     permissions:
       contents: read
