@@ -3,7 +3,7 @@ import PatientEntryPage from "./PatientEntryPage";
 class OrderEntityPage {
   sampleTypeOptionDropDown = "";
 
-  constructor() {}
+  constructor() { }
 
   visit() {
     cy.visit("/AddOrder");
@@ -40,8 +40,11 @@ class OrderEntityPage {
     cy.get("input#order_receivedDate").type(value);
   }
   checkPanelCheckBoxField() {
-    cy.contains("span", "Bilan Biochimique").click();
-    cy.contains("span", "Serologie VIH").click();
+    cy.wait(1000);
+    cy.contains("span", "Liver Function Tests")
+      .should("be.visible")
+      .scrollIntoView()
+      .click();
   }
 
   referTest() {

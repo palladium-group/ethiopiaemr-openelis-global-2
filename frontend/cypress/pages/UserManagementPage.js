@@ -34,20 +34,34 @@ class UserManagementPage {
       enterLoginName: "#loginName",
       enterPassword: "#password",
       allPermissions: "#all-permissions-AllLabUnits",
-      allBioPermissions: "#all-permissions-56",
-      allHemaPermissions: "#all-permissions-36",
-      allSeroPermissions: "#all-permissions-117",
-      allImmunoPermissions: "#all-permissions-59",
-      allMolecularPermissions: "#all-permissions-136",
-      allCytoPermissions: "#all-permissions-165",
-      allSerologyPermissions: "#all-permissions-97",
-      allViroPermissions: "#all-permissions-76",
-      allPathoPermissions: "#all-permissions-163",
-      allImmunoHistoPermissions: "#all-permissions-164",
       loginButton: "[data-cy='loginButton']",
       uncheckActiveUser: "#only-active",
       uncheckAdminUser: "#only-administrator",
     };
+  }
+
+  getLastTestSectionSelect() {
+    return cy.get("select[id^='select-']").last();
+  }
+
+  selectTestSectionByName(testSectionDisplayName) {
+    this.getLastTestSectionSelect().select(testSectionDisplayName);
+    return this;
+  }
+
+  checkAllPermissionsForSelectedTestSection() {
+    this.getLastTestSectionSelect()
+      .invoke("val")
+      .then((selectedId) => {
+        cy.get(`#all-permissions-${selectedId}`).check({ force: true });
+      });
+    return this;
+  }
+
+  selectTestSectionAndCheckAllPermissions(testSectionDisplayName) {
+    this.selectTestSectionByName(testSectionDisplayName);
+    this.checkAllPermissionsForSelectedTestSection();
+    return this;
   }
 
   enterLoginName(value) {
@@ -165,43 +179,43 @@ class UserManagementPage {
   }
 
   allBioPermissions() {
-    cy.get(this.selectors.allBioPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Biochemistry");
   }
 
   allHemaPermissions() {
-    cy.get(this.selectors.allHemaPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Hematology");
   }
 
   allSeroPermissions() {
-    cy.get(this.selectors.allSeroPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Serology-Immunology");
   }
 
   allImmunoPermissions() {
-    cy.get(this.selectors.allImmunoPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Immunology");
   }
 
   allMolecularPermissions() {
-    cy.get(this.selectors.allMolecularPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Molecular Biology");
   }
 
   allCytoPermissions() {
-    cy.get(this.selectors.allCytoPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Cytology");
   }
 
   allSerologyPermissions() {
-    cy.get(this.selectors.allSerologyPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Serology");
   }
 
   allViroPermissions() {
-    cy.get(this.selectors.allViroPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Virology");
   }
 
   allPathoPermissions() {
-    cy.get(this.selectors.allPathoPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Pathology");
   }
 
   allImmunoHistoPermissions() {
-    cy.get(this.selectors.allImmunoHistoPermissions).check({ force: true });
+    this.selectTestSectionAndCheckAllPermissions("Immunohistochemistry");
   }
 
   reception() {
