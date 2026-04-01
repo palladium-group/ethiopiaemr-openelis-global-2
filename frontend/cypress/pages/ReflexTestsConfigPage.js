@@ -162,7 +162,11 @@ class ReflexTestsConfigPage {
   }
 
   selectFourthSample(value) {
+    cy.intercept("GET", "**/rest/test-display-beans?sampleType=*").as(
+      "getTestDisplayBeans",
+    );
     cy.get(this.selectors.fourthSample).select(value);
+    cy.wait("@getTestDisplayBeans");
   }
 
   enterFinalResult(value) {
