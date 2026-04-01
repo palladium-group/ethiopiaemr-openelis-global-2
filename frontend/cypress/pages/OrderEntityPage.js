@@ -40,8 +40,7 @@ class OrderEntityPage {
     cy.get("input#order_receivedDate").type(value);
   }
   checkPanelCheckBoxField() {
-    cy.wait(1000);
-    cy.contains("span", "Liver Function Tests")
+    cy.contains("label", "Serum albumin")
       .should("be.visible")
       .scrollIntoView()
       .click();
@@ -52,11 +51,15 @@ class OrderEntityPage {
   }
 
   selectInstitute() {
-    cy.get("#referredInstituteId_0_1").select("CEDRES");
+    cy.get('select[id^="referredInstituteId_0_"]')
+      .first()
+      .select("CEDRES");
   }
 
   selectReferralReason() {
-    cy.get("#referralReasonId_0_1").select("Test not performed");
+    cy.get('select[id^="referralReasonId_0_"]')
+      .first()
+      .select("Test not performed");
   }
   generateLabOrderNumber() {
     cy.get("[data-cy='generate-labNumber']").click();
