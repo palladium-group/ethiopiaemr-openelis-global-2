@@ -1,6 +1,6 @@
 {
   "testName": "HBs Ag(Serum)",
-  "bilanPanelType": "Bilan Biochimique",
+  "bilanPanelType": "Complete Blood Count",
   "panelType": "Serologie VIH",
   "unitBioType": "Biochemistry",
   "unitType": "Serology-Immunology",
