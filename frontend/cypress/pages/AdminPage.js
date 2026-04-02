@@ -173,7 +173,9 @@ class AdminPage {
     });
     cy.visit("/MasterListsPage/userManagement");
     cy.url({ timeout: 15000 }).should("include", "/userManagement");
-    cy.contains("h2", "User Management", { timeout: 15000 }).should("be.visible");
+    cy.contains("h2", "User Management", { timeout: 15000 }).should(
+      "be.visible",
+    );
     return new UserManagementPage();
   }
 

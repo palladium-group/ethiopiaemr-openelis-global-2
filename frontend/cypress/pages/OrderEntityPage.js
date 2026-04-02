@@ -3,7 +3,7 @@ import PatientEntryPage from "./PatientEntryPage";
 class OrderEntityPage {
   sampleTypeOptionDropDown = "";
 
-  constructor() { }
+  constructor() {}
 
   visit() {
     cy.visit("/AddOrder");

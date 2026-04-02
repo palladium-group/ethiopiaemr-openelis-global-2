@@ -71,7 +71,9 @@ class ReflexTestsConfigPage {
 
   searchTest(value) {
     cy.get(this.selectors.searchTest).type(value);
-    cy.contains(this.selectors.autosuggestion, value, { timeout: 10000 }).click();
+    cy.contains(this.selectors.autosuggestion, value, {
+      timeout: 10000,
+    }).click();
   }
 
   selectRelation(value) {
@@ -126,7 +128,9 @@ class ReflexTestsConfigPage {
 
   searchNumTest(value) {
     cy.get(this.selectors.searchNumTest).type(value);
-    cy.contains(this.selectors.autosuggestion, value, { timeout: 10000 }).click();
+    cy.contains(this.selectors.autosuggestion, value, {
+      timeout: 10000,
+    }).click();
   }
 
   mathFunction(value) {
@@ -171,7 +175,9 @@ class ReflexTestsConfigPage {
 
   enterFinalResult(value) {
     cy.get(this.selectors.finalResult).type(value);
-    cy.contains(this.selectors.autosuggestion, value, { timeout: 10000 }).click();
+    cy.contains(this.selectors.autosuggestion, value, {
+      timeout: 10000,
+    }).click();
   }
 
   addFinalExternatNote(value) {
