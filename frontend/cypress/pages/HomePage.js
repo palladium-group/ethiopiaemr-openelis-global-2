@@ -76,7 +76,12 @@ class HomePage {
   }
 
   openNavigationMenu() {
-    cy.get(this.selectors.menuButton).click();
+    cy.get(this.selectors.menuButton).then(($btn) => {
+      const ariaLabel = $btn.attr("aria-label");
+      if (!ariaLabel || !ariaLabel.toLowerCase().includes("close")) {
+        cy.wrap($btn).click();
+      }
+    });
   }
 
   closeNavigationMenu() {

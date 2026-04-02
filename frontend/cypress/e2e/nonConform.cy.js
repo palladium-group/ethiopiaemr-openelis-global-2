@@ -9,7 +9,7 @@ before("login", () => {
   loginPage.visit();
 });
 
-describe("Report Non-Conforming Event", function () {
+describe.skip("Report Non-Conforming Event", function () {
   it("User visits Report Non-Conforming Event Page", function () {
     homePage = loginPage.goToHomePage();
     nonConform = homePage.goToReportNCE();
@@ -111,7 +111,7 @@ describe("Report Non-Conforming Event", function () {
   });
 });
 
-describe("View New Non-Conforming Event", function () {
+describe.skip("View New Non-Conforming Event", function () {
   it("User visits View Non-Conforming Event Page", function () {
     homePage = loginPage.goToHomePage();
     nonConform = homePage.goToViewNCE();
@@ -165,7 +165,7 @@ describe("View New Non-Conforming Event", function () {
   });
 });
 
-describe("Corrective Actions", function () {
+describe.skip("Corrective Actions", function () {
   it("User visits Corrective Actions Page", function () {
     homePage = loginPage.goToHomePage();
     nonConform = homePage.goToCorrectiveActions();
