@@ -52,11 +52,11 @@ describe("Order Entity", function () {
         orderEntityPage.checkPanelCheckBoxField();
         orderEntityPage.collectionDate(sample.collectionDate);
       });
+      orderEntityPage.referTest();
+      orderEntityPage.selectReferralReason();
+      orderEntityPage.selectInstitute(order.referralInstitute);
+      orderEntityPage.clickNextButton();
     });
-    orderEntityPage.referTest();
-    orderEntityPage.selectReferralReason();
-    orderEntityPage.selectInstitute();
-    orderEntityPage.clickNextButton();
   });
 
   it("Generate Lab Order Number, Request and Received Dates", function () {

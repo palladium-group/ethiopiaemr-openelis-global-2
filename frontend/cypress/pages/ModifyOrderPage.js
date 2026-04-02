@@ -69,6 +69,18 @@ class ModifyOrderPage {
           .click({ force: true });
       });
   }
+
+  clickRespectivePatientByNationalId(nationalId) {
+    cy.get("table").should("be.visible");
+    return cy
+      .contains("tbody tr", nationalId)
+      .should("be.visible")
+      .within(() => {
+        cy.get('input[type="radio"][name="radio-group"]')
+          .should("exist")
+          .click({ force: true });
+      });
+  }
 }
 
 export default ModifyOrderPage;

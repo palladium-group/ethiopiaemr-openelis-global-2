@@ -17,6 +17,6 @@
   "eiaTestMethod": "EIA",
   "invalidTestMethod": "Invalid",
   "testNotPerformed": "Test not performed",
-  "cedres": "CEDRES",
+  "cedres": "TEST-LAB-E2E",
   "sample": "No tests have been run for this sample"
 }

@@ -50,10 +50,10 @@ class OrderEntityPage {
     cy.contains("span", "Refer test to a reference lab").click();
   }
 
-  selectInstitute() {
+  selectInstitute(instituteName) {
     cy.get('select[id^="referredInstituteId_0_"]')
       .first()
-      .select("CEDRES");
+      .select(instituteName);
   }
 
   selectReferralReason() {

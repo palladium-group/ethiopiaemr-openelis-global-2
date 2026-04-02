@@ -9,10 +9,26 @@ let modifyOrderPage = null;
 let adminPage = new AdminPage();
 let orderEntityPage = new OrderEntityPage();
 let patientPage = new PatientEntryPage();
+let runPatient = null;
 
 before("login", () => {
   loginPage = new LoginPage();
   loginPage.visit();
+});
+
+before("prepare unique patient for this run", () => {
+  cy.fixture("Patient").then((patient) => {
+    const suffix = Date.now().toString().slice(-6);
+    runPatient = {
+      ...patient,
+      // Keep names stable to avoid UI max-length truncation in strict enterText assertions.
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      // Use IDs for uniqueness; keep suffix short for field constraints.
+      subjectNumber: `${patient.subjectNumber}${suffix}`,
+      nationalId: `${patient.nationalId}${suffix}`,
+    };
+  });
 });
 
 describe("Add New Patient", function () {
@@ -27,15 +43,13 @@ describe("Add New Patient", function () {
   });
 
   it("Enter patient Information and clear", function () {
-    cy.fixture("Patient").then((patient) => {
-      patientPage.enterPatientInfo(
-        patient.firstName,
-        patient.lastName,
-        patient.subjectNumber,
-        patient.nationalId,
-        patient.DOB,
-      );
-    });
+    patientPage.enterPatientInfo(
+      runPatient.firstName,
+      runPatient.lastName,
+      runPatient.subjectNumber,
+      runPatient.nationalId,
+      runPatient.DOB,
+    );
   });
 
   it("Clear new patient information", function () {
@@ -43,15 +57,13 @@ describe("Add New Patient", function () {
   });
 
   it("Enter patient Information and save", function () {
-    cy.fixture("Patient").then((patient) => {
-      patientPage.enterPatientInfo(
-        patient.firstName,
-        patient.lastName,
-        patient.subjectNumber,
-        patient.nationalId,
-        patient.DOB,
-      );
-    });
+    patientPage.enterPatientInfo(
+      runPatient.firstName,
+      runPatient.lastName,
+      runPatient.subjectNumber,
+      runPatient.nationalId,
+      runPatient.DOB,
+    );
   });
   it("Save new patient information button", function () {
     patientPage.clickSavePatientButton();
@@ -69,22 +81,20 @@ describe("Modify Order search by patient ", function () {
 
   it("Should search Patient By First and LastName", function () {
     cy.wait(1000);
-    cy.fixture("Patient").then((patient) => {
-      patientPage.searchPatientByFirstAndLastName(
-        patient.firstName,
-        patient.lastName,
-      );
-      patientPage.getFirstName().should("have.value", patient.firstName);
-      patientPage.getLastName().should("have.value", patient.lastName);
+    patientPage.searchPatientByFirstAndLastName(
+      runPatient.firstName,
+      runPatient.lastName,
+    );
+    patientPage.getFirstName().should("have.value", runPatient.firstName);
+    patientPage.getLastName().should("have.value", runPatient.lastName);
 
-      patientPage.getLastName().should("not.have.value", patient.inValidName);
+    patientPage.getLastName().should("not.have.value", runPatient.inValidName);
 
-      modifyOrderPage.clickSearchPatientButton();
-      patientPage.validatePatientSearchTable(
-        patient.firstName,
-        patient.inValidName,
-      );
-    });
+    modifyOrderPage.clickSearchPatientButton();
+    patientPage.validatePatientSearchTable(
+      runPatient.firstName,
+      runPatient.inValidName,
+    );
     cy.wait(200).reload();
   });
 
@@ -102,19 +112,19 @@ describe("Modify Order search by patient ", function () {
 
   it("should search patient By PatientId", function () {
     cy.wait(1000);
-    cy.fixture("Patient").then((patient) => {
-      patientPage.searchPatientByPatientId(patient.nationalId);
-      modifyOrderPage.clickSearchPatientButton();
-      patientPage.validatePatientSearchTable(
-        patient.firstName,
-        patient.inValidName,
-      );
-    });
+    patientPage.searchPatientByPatientId(runPatient.nationalId);
+    modifyOrderPage.clickSearchPatientButton();
+    patientPage.validatePatientSearchTable(
+      runPatient.firstName,
+      runPatient.inValidName,
+    );
   });
 
   it("Should be able to search by respective patient ", function () {
     cy.wait(1000);
-    modifyOrderPage.clickRespectivePatient();
+    patientPage.searchPatientByPatientId(runPatient.nationalId);
+    modifyOrderPage.clickSearchPatientButton();
+    modifyOrderPage.clickRespectivePatientByNationalId(runPatient.nationalId);
     cy.wait(1000);
   });
   it("Validate program dropdown button not visible and click next", function () {
