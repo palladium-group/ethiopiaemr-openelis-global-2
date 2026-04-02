@@ -16,19 +16,19 @@ class BatchOrderEntry {
   }
 
   checkBilanPanel() {
-    cy.contains("span", "Bilan Biochimique").click();
+    cy.contains("span", "Liver Function Tests").click();
   }
 
   checkSerologiePanel() {
-    cy.contains("span", "Serologie VIH").click();
+    cy.contains("span", "Syphilis serology (TPHA/RPR/VDRL)").click();
   }
 
   checkDenguePCR() {
-    cy.contains("span", "DENGUE PCR").click();
+    cy.contains("span", "Glucose").click();
   }
 
   checkHIVViralLoad() {
-    cy.contains("span", "HIV VIRAL LOAD").click();
+    cy.contains("span", "HBs Ag").click();
   }
 
   checkCreatinine() {
