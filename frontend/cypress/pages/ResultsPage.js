@@ -79,11 +79,11 @@ class Result {
   enterCollectionDate() {
     cy.get(this.selectors.collectionDate)
       .should("be.visible")
-      .type("30/04/2025");
+      .type("04/01/2026");
   }
 
   enterReceivedDate() {
-    cy.get(this.selectors.receivedDate).should("be.visible").type("01/05/2025");
+    cy.get(this.selectors.receivedDate).should("be.visible").type("04/01/2026");
   }
 
   clickReceivedDate() {
