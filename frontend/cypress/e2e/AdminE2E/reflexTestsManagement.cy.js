@@ -19,12 +19,16 @@ before(() => {
 
 describe("Reflex Tests Management", () => {
   it("Add Reflex Rule Conditions", () => {
+    cy.intercept("GET", "**/rest/test-display-beans?sampleType=*").as(
+      "getTestDisplayBeans",
+    );
     cy.fixture("ReflexTestsConfig").then((test) => {
       reflexTestsConfigPage.verifyPageLoads(test.reflexTets);
       reflexTestsConfigPage.validateToggleStatus(test.toggleOn);
       reflexTestsConfigPage.enterRuleName(test.ruleName);
       reflexTestsConfigPage.selectOverAllOptions(test.overAllOptions);
       reflexTestsConfigPage.selectSample(test.sample);
+      cy.wait("@getTestDisplayBeans");
       reflexTestsConfigPage.searchTest(test.searchTest);
       reflexTestsConfigPage.selectRelation(test.relation);
       reflexTestsConfigPage.enterNumericValue(test.numericValue);

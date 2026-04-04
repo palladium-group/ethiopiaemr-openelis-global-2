@@ -23,7 +23,6 @@ class AdminPage {
       globalMenuManagement: "[data-cy='globalMenuMgmnt']",
       barcodeConfig: "[data-cy='barcodeConfig']",
       programEntry: "[data-cy='programEntry']",
-      userManagement: "[data-cy='userMgmnt']",
       notifyUser: "[data-cy='notifyUser']",
       resultReportingConfig: "[data-cy='resultReportingConfiguration']",
       batchTest: "[data-cy='batchTestReassignment']",
@@ -164,10 +163,19 @@ class AdminPage {
   }
 
   goToUserManagementPage() {
-    cy.get(this.selectors.userManagement)
-      .scrollIntoView()
-      .should("exist")
-      .click({ force: true });
+    // User Management lives under Admin; after edits the app may reload on a nested
+    // route (e.g. userEdit). Relying on the side-nav tile alone is flaky in CI
+    // (rail layout, timing). Prefer a direct SPA visit like other admin flows.
+    cy.location("pathname").then((pathname) => {
+      if (!/^\/(MasterListsPage|admin)(\/|$|#)/.test(pathname)) {
+        cy.visit("/MasterListsPage");
+      }
+    });
+    cy.visit("/MasterListsPage/userManagement");
+    cy.url({ timeout: 15000 }).should("include", "/userManagement");
+    cy.contains("h2", "User Management", { timeout: 15000 }).should(
+      "be.visible",
+    );
     return new UserManagementPage();
   }
 

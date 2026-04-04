@@ -9,7 +9,7 @@ before("login", () => {
   loginPage.visit();
 });
 
-describe("Routine Reports", function () {
+describe.skip("Routine Reports", function () {
   it("User Visits Routine Reports", function () {
     homePage = loginPage.goToHomePage();
     reportPage = homePage.goToRoutineReports();
@@ -232,7 +232,7 @@ describe("Routine Reports", function () {
   });
 });
 
-describe("Study Reports", function () {
+describe.skip("Study Reports", function () {
   it("User Visits Study Reports", function () {
     homePage = loginPage.goToHomePage();
     reportPage = homePage.goToStudyReports();

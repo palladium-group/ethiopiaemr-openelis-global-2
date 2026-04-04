@@ -24,7 +24,10 @@ class BatchTestReassignmentandCancelationPage {
   }
 
   selectTest(testNum) {
-    cy.get(`#selectSampleType${testNum}`).select("Amylase");
+    cy.wait(1000);
+    cy.get(`#selectSampleType${testNum}`)
+      .should("be.visible")
+      .select("Alpha Amylase");
   }
 
   clickOk() {

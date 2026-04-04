@@ -1,6 +1,6 @@
 {
-  "testName": "Western blot HIV(Serum)",
-  "bilanPanelType": "Bilan Biochimique",
+  "testName": "HBs Ag(Serum)",
+  "bilanPanelType": "Complete Blood Count",
   "panelType": "Serologie VIH",
   "unitBioType": "Biochemistry",
   "unitType": "Serology-Immunology",

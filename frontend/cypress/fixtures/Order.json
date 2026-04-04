@@ -2,8 +2,8 @@
   "samples": [
     {
       "sampleType": "Serum",
-      "collectionDate": "30/04/2025",
-      "receivedDate": "01/05/2025"
+      "collectionDate": "04/30/2025",
+      "receivedDate": "05/01/2025"
     }
   ],
   "siteName": "CAMES MAN",
@@ -13,5 +13,6 @@
     "lastName": "Prime"
   },
   "labNo": "",
-  "invalidLabNo": "DEV0124000000000000"
+  "invalidLabNo": "DEV0124000000000000",
+  "referralInstitute": "TEST-LAB-E2E"
 }

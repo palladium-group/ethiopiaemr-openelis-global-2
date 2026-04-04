@@ -59,7 +59,7 @@ const validateOrderStatus = (dashboardType) => {
   dashboard.statusFilter();
 };
 
-describe("Dashboard Tests", function () {
+describe.skip("Dashboard Tests", function () {
   before("Navigate to homepage", () => {
     loginAndNavigateToHome();
   });

@@ -22,15 +22,19 @@ class OrganizationManagementPage {
   }
 
   addOrgName() {
+    cy.wait(1000);
     cy.get(this.selectors.orgName)
       .should("be.visible")
+      .clear()
       .type(TEST_ORG_NAME)
       .should("have.value", TEST_ORG_NAME);
   }
 
   addInstituteName() {
+    cy.wait(1000);
     cy.get(this.selectors.orgName)
       .should("be.visible")
+      .clear()
       .type(TEST_LAB_NAME)
       .should("have.value", TEST_LAB_NAME);
   }
@@ -42,6 +46,7 @@ class OrganizationManagementPage {
   addPrefix() {
     cy.get(this.selectors.orgPrefix)
       .should("be.visible")
+      .clear()
       .type("279")
       .should("have.value", "279");
   }
@@ -63,8 +68,10 @@ class OrganizationManagementPage {
   }
 
   addParentOrg() {
+    cy.wait(1000);
     cy.get(this.selectors.parentOrgName)
       .should("be.visible")
+      .clear()
       .type(TEST_ORG_NAME)
       .should("have.value", TEST_ORG_NAME);
   }

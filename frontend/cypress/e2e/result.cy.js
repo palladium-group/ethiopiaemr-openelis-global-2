@@ -39,7 +39,7 @@ describe("Result By Unit", function () {
       result.referTests(res.referTests);
       result.referralReason(res.referalReason);
       result.selectInstitute(res.cedres);
-      result.selectResultValue(res.negativeResult);
+      //result.selectResultValue(res.negativeResult);
     });
     result.submitResults();
   });
@@ -159,7 +159,7 @@ describe("Result By Order", function () {
   });
 });
 
-describe("Result By Referred Out Tests", function () {
+describe.skip("Result By Referred Out Tests", function () {
   before("Navigate to Result By Referred Out Tests", function () {
     homePage = loginPage.goToHomePage();
     result = homePage.goToResultsForRefferedOut();

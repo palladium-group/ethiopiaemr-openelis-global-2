@@ -13,10 +13,10 @@
   "invalidResult": "Invalid",
   "referralPageTitle": "Referrals",
   "westernBlotHiv": "Western blot HIV",
-  "analysisStatus": "Accepted by technician",
+  "analysisStatus": "Not started",
   "eiaTestMethod": "EIA",
   "invalidTestMethod": "Invalid",
   "testNotPerformed": "Test not performed",
-  "cedres": "CEDRES",
-  "sample": "Some tests have been run on this sample"
+  "cedres": "TEST-LAB-E2E",
+  "sample": "No tests have been run for this sample"
 }

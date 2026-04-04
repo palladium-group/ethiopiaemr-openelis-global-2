@@ -6,7 +6,7 @@
   "ruleName": "Test Rule",
   "overAllOptions": "All",
   "sample": "Serum",
-  "searchTest": "Amylase(Serum)",
+  "searchTest": "Serum albumin(Serum)",
   "relation": "Is greater than",
   "numericValue": "0",
   "internalNote": "Internal Use Only",
