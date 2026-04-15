@@ -135,12 +135,12 @@ public class ElectronicOrderDAOImpl extends BaseDAOImpl<ElectronicOrder, String>
             String patientValue, SortOrder order) {
 
         String hql = "from ElectronicOrder eo join eo.patient patient join patient.person person where"
-                + " lower(eo.externalId) in (:identifierValues) or lower(person.firstName) ="
-                + " lower(:patientValue) or lower(person.lastName) = lower(:patientValue) or patient.id"
-                + " in (SELECT identity.patientId FROM PatientIdentity identity WHERE"
-                + " lower(identity.identityData) = lower(:patientValue)) or lower(patient.nationalId) ="
-                + " lower(:patientValue) or lower(concat(person.firstName, ' ', person.lastName)) ="
-                + " lower(:patientValue) order by ";
+                + " lower(eo.externalId) in (:identifierValues) or lower(person.firstName) like"
+                + " concat('%', lower(:patientValue), '%') or lower(person.lastName) like concat('%',"
+                + " lower(:patientValue), '%') or patient.id in (SELECT identity.patientId FROM"
+                + " PatientIdentity identity WHERE lower(identity.identityData) = lower(:patientValue))"
+                + " or lower(patient.nationalId) = lower(:patientValue) or lower(concat(person.firstName,"
+                + " ' ', person.lastName)) like concat('%', lower(:patientValue), '%') order by ";
 
         switch (order.getValue()) {
         case "statusId":

@@ -10,11 +10,12 @@ import {
   Loading,
 } from "@carbon/react";
 import { React, useEffect, useState, useContext } from "react";
+import { format } from "date-fns";
 import CustomDatePicker from "../common/CustomDatePicker";
 import { Minimize, Maximize, ArrowLeft, ArrowRight } from "@carbon/react/icons";
 import { FormattedMessage, useIntl, injectIntl } from "react-intl";
 import { getFromOpenElisServer } from "../utils/Utils";
-import { NotificationContext } from "../layout/Layout";
+import { ConfigurationContext, NotificationContext } from "../layout/Layout";
 import { NotificationKinds, AlertDialog } from "../common/CustomNotification";
 
 const EOrderSearch = ({
@@ -40,10 +41,33 @@ const EOrderSearch = ({
   const [currentApiPage, setCurrentApiPage] = useState(null);
   const [totalApiPages, setTotalApiPages] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { configurationProperties } = useContext(ConfigurationContext);
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
 
+  const getTodayAsConfiguredDate = () => {
+    const isFrenchLocale =
+      configurationProperties?.DEFAULT_DATE_LOCALE === "fr-FR";
+    return format(new Date(), isFrenchLocale ? "dd/MM/yyyy" : "MM/dd/yyyy");
+  };
+
+  const searchByDateAndStatus = (overrideValues = {}) => {
+    const params = new URLSearchParams({
+      searchType: "DATE_STATUS",
+      startDate: overrideValues.startDate ?? startDate,
+      endDate: overrideValues.endDate ?? endDate,
+      statusId: overrideValues.statusId ?? statusId,
+      useAllInfo: overrideValues.allInfo2 ?? allInfo2,
+    });
+    setLoading(true);
+    getFromOpenElisServer("/rest/ElectronicOrders?" + params.toString(), parseEOrders);
+  };
+
   useEffect(() => {
+    const today = getTodayAsConfiguredDate();
+    setStartDate(today);
+    setEndDate(today);
+    searchByDateAndStatus({ startDate: today, endDate: today, statusId: "" });
     getFromOpenElisServer("/rest/ElectronicOrders", handleElectronicOrders);
     getFromOpenElisServer(
       "/rest/displayList/ELECTRONIC_ORDER_STATUSES",
@@ -67,21 +91,6 @@ const EOrderSearch = ({
       searchType: "IDENTIFIER",
       searchValue: searchValue,
       useAllInfo: allInfo,
-    });
-    setLoading(true);
-    getFromOpenElisServer(
-      "/rest/ElectronicOrders?" + params.toString(),
-      parseEOrders,
-    );
-  }
-
-  function searchByDateAndStatus() {
-    const params = new URLSearchParams({
-      searchType: "DATE_STATUS",
-      startDate: startDate,
-      endDate: endDate,
-      statusId: statusId,
-      useAllInfo: allInfo2,
     });
     setLoading(true);
     getFromOpenElisServer(
