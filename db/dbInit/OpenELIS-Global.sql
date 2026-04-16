@@ -20775,7 +20775,7 @@ COPY clinlims.site_information (id, name, lastupdated, description, value, encry
 108	labDirectorName	2026-03-21 22:21:15.508856+00	image for lab director name	 	f	12	text	siteInfo.instruction.directorname.i	0	\N	\N	\N	siteInfo.instruction.directorname.d	\N
 109	labDirectorTitle	2026-03-21 22:21:15.508856+00	image for lab director title	 	f	12	text	siteInfo.instruction.directortitle.i	0	\N	\N	\N	siteInfo.instruction.directortitle.d	\N
 110	contactTracingEnabled	2026-03-21 22:21:16.389154+00	whether fields for contact tracing should be enabled	false	f	10	boolean	siteInfo.instruction.contactTracing.i	0	\N	\N	\N	siteInfo.instruction.contactTracing.d	\N
-111	National ID required	2026-03-21 22:21:16.640409+00	should national ID be required on the patient entry screen	true	f	15	boolean	siteInfo.instruction.nationalID.req.i	0	\N	\N	\N	siteInfo.instruction.nationalID.req.d	\N
+111	National ID required	2026-03-21 22:21:16.640409+00	should national ID be required on the patient entry screen	false	f	15	boolean	siteInfo.instruction.nationalID.req.i	0	\N	\N	\N	siteInfo.instruction.nationalID.req.d	\N
 112	Allow duplicate national ids	2026-03-21 22:21:16.640409+00	should national ID be allowed duplicate entries	true	f	15	boolean	siteInfo.instruction.nationalID.dup.i	0	\N	\N	\N	siteInfo.instruction.nationalID.dup.d	\N
 113	numDefaultOrderLabels	2026-03-21 22:21:18.89865+00	default number of order labels printed	2	f	\N	text	\N	0	\N	\N	\N	\N	\N
 114	numDefaultSpecimenLabels	2026-03-21 22:21:18.89865+00	default number of specimen labels printed	1	f	\N	text	\N	0	\N	\N	\N	\N	\N
