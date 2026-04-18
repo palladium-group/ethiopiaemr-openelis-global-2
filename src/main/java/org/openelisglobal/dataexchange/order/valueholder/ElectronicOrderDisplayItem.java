@@ -34,6 +34,8 @@ public class ElectronicOrderDisplayItem {
 
     private String patientNationalId;
 
+    private String patientId;
+
     private String requestingFacility;
 
     private String status;
@@ -53,6 +55,16 @@ public class ElectronicOrderDisplayItem {
     private String gender;
 
     private String qaEventId;
+
+    private String encounterId;
+
+    private String sampleType;
+
+    private String statusId;
+
+    private int groupSize = 1;
+
+    private List<String> groupExternalOrderIds;
 
     public String getBirthDate() {
         return birthDate;
@@ -112,6 +124,14 @@ public class ElectronicOrderDisplayItem {
 
     public void setPatientNationalId(String patientNationalId) {
         this.patientNationalId = patientNationalId;
+    }
+
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public String getRequestingFacility() {
@@ -216,5 +236,45 @@ public class ElectronicOrderDisplayItem {
 
     public void setQaEventId(String qaEventId) {
         this.qaEventId = qaEventId;
+    }
+
+    public String getEncounterId() {
+        return encounterId;
+    }
+
+    public void setEncounterId(String encounterId) {
+        this.encounterId = encounterId;
+    }
+
+    public String getSampleType() {
+        return sampleType;
+    }
+
+    public void setSampleType(String sampleType) {
+        this.sampleType = sampleType;
+    }
+
+    public String getStatusId() {
+        return statusId;
+    }
+
+    public void setStatusId(String statusId) {
+        this.statusId = statusId;
+    }
+
+    public int getGroupSize() {
+        return groupSize;
+    }
+
+    public void setGroupSize(int groupSize) {
+        this.groupSize = groupSize;
+    }
+
+    public List<String> getGroupExternalOrderIds() {
+        return groupExternalOrderIds;
+    }
+
+    public void setGroupExternalOrderIds(List<String> groupExternalOrderIds) {
+        this.groupExternalOrderIds = groupExternalOrderIds;
     }
 }

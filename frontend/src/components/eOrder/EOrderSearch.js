@@ -60,7 +60,10 @@ const EOrderSearch = ({
       useAllInfo: overrideValues.allInfo2 ?? allInfo2,
     });
     setLoading(true);
-    getFromOpenElisServer("/rest/ElectronicOrders?" + params.toString(), parseEOrders);
+    getFromOpenElisServer(
+      "/rest/ElectronicOrders?" + params.toString(),
+      parseEOrders,
+    );
   };
 
   useEffect(() => {

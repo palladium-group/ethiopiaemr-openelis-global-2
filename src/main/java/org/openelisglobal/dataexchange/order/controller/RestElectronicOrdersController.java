@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.GenericValidator;
 import org.hl7.fhir.r4.model.Coding;
@@ -29,6 +31,8 @@ import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrderDisplayI
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.organization.service.OrganizationService;
 import org.openelisglobal.organization.valueholder.Organization;
+import org.openelisglobal.panel.service.PanelService;
+import org.openelisglobal.panel.valueholder.Panel;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.sample.service.SampleService;
@@ -36,6 +40,8 @@ import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.statusofsample.service.StatusOfSampleService;
 import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
+import org.openelisglobal.typeofsample.service.TypeOfSampleService;
+import org.openelisglobal.typeofsample.valueholder.TypeOfSample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -47,6 +53,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RestElectronicOrdersController extends BaseController {
+    private static final String SAMPLE_TYPE_INPUT_CODE = "CI0050007AAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    private static final String GROUP_KEY_SEPARATOR = "|";
 
     private static final String[] ALLOWED_FIELDS = new String[] { "searchType", "searchValue", "startDate", "endDate",
             "testIds", "statusId", "useAllInfo" };
@@ -59,6 +67,10 @@ public class RestElectronicOrdersController extends BaseController {
     private PatientService patientService;
     @Autowired
     private TestService testService;
+    @Autowired
+    private PanelService panelService;
+    @Autowired
+    private TypeOfSampleService typeOfSampleService;
     @Autowired
     private OrganizationService organizationService;
     @Autowired
@@ -92,6 +104,7 @@ public class RestElectronicOrdersController extends BaseController {
             if (form.getSearchType() != null) {
                 electronicOrders = electronicOrderService.searchForElectronicOrders(form);
                 eOrderDisplayItems = convertToDisplayItem(electronicOrders, form.getUseAllInfo());
+                eOrderDisplayItems = groupElectronicOrders(eOrderDisplayItems);
                 paging.setDatabaseResults(request, form, eOrderDisplayItems);
             }
         } else {
@@ -114,12 +127,14 @@ public class RestElectronicOrdersController extends BaseController {
         try {
 
             displayItem.setStatus(statusOfSampleService.get(electronicOrder.getStatusId()).getDefaultLocalizedName());
+            displayItem.setStatusId(electronicOrder.getStatusId());
             displayItem.setElectronicOrderId(electronicOrder.getId());
             displayItem.setExternalOrderId(electronicOrder.getExternalId());
             displayItem.setPriority(electronicOrder.getPriority());
 
             Patient patient = electronicOrder.getPatient();
             if (patient != null) {
+                displayItem.setPatientId(patient.getId());
                 displayItem.setSubjectNumber(patientService.getSubjectNumber(patient));
                 displayItem.setPatientLastName(patient.getPerson().getLastName());
                 displayItem.setPatientFirstName(patient.getPerson().getFirstName());
@@ -130,6 +145,7 @@ public class RestElectronicOrdersController extends BaseController {
             }
             Task task = fhirUtil.getFhirParser().parseResource(Task.class, electronicOrder.getData());
             displayItem.setRequestDateDisplay(DateUtil.formatDateAsText(task.getAuthoredOn()));
+            displayItem.setSampleType(getSampleTypeFromTask(task));
 
             Organization organization = organizationService.getOrganizationByFhirId(
                     task.getRestriction().getRecipientFirstRep().getReferenceElement().getIdPart());
@@ -150,11 +166,20 @@ public class RestElectronicOrdersController extends BaseController {
                 displayItem.setLabNumber(sample.getAccessionNumber());
             }
 
+            IGenericClient fhirClient = fhirUtil.getFhirClient(fhirConfig.getLocalFhirStorePath());
+            ServiceRequest serviceRequest = fhirClient.read().resource(ServiceRequest.class)
+                    .withId(electronicOrder.getExternalId()).execute();
+            if (serviceRequest.hasEncounter() && serviceRequest.getEncounter().hasReferenceElement()) {
+                displayItem.setEncounterId(serviceRequest.getEncounter().getReferenceElement().getIdPart());
+            }
+            if (GenericValidator.isBlankOrNull(displayItem.getSampleType())) {
+                String typeIdFromOrder = resolveTypeOfSampleIdFromServiceRequest(serviceRequest);
+                if (!GenericValidator.isBlankOrNull(typeIdFromOrder)) {
+                    displayItem.setSampleType(typeIdFromOrder);
+                }
+            }
             if (useAllInfo) {
-                IGenericClient fhirClient = fhirUtil.getFhirClient(fhirConfig.getLocalFhirStorePath());
 
-                ServiceRequest serviceRequest = fhirClient.read().resource(ServiceRequest.class)
-                        .withId(electronicOrder.getExternalId()).execute();
                 if (serviceRequest.getRequisition() != null) {
                     displayItem.setReferringLabNumber(serviceRequest.getRequisition().getValue());
                 }
@@ -203,6 +228,112 @@ public class RestElectronicOrdersController extends BaseController {
         }
 
         return displayItem;
+    }
+
+    private String getSampleTypeFromTask(Task task) {
+        if (task == null || task.getInput() == null) {
+            return "";
+        }
+        return task.getInput().stream()
+                .filter(input -> input.getType() != null && input.getType().hasCoding()
+                        && SAMPLE_TYPE_INPUT_CODE.equals(input.getType().getCodingFirstRep().getCode())
+                        && input.getValue() != null)
+                .map(input -> input.getValue().primitiveValue()).findFirst().orElse("");
+    }
+
+    /**
+     * When Task.input does not carry the legacy sample-type concept, derive
+     * OpenELIS type-of-sample id from the ordered panel or test (LOINC on
+     * ServiceRequest), matching {@code TaskInterpreterImpl} resolution order.
+     */
+    private String resolveTypeOfSampleIdFromServiceRequest(ServiceRequest serviceRequest) {
+        if (serviceRequest == null || !serviceRequest.hasCode() || !serviceRequest.getCode().hasCoding()) {
+            return "";
+        }
+        for (Coding coding : serviceRequest.getCode().getCoding()) {
+            if (!coding.hasSystem() || !"http://loinc.org".equalsIgnoreCase(coding.getSystem()) || !coding.hasCode()) {
+                continue;
+            }
+            String loinc = coding.getCode();
+            if (GenericValidator.isBlankOrNull(loinc)) {
+                continue;
+            }
+            Panel panel = panelService.getPanelByLoincCode(loinc);
+            if (panel != null) {
+                List<TypeOfSample> types = typeOfSampleService.getTypeOfSampleForPanelId(panel.getId());
+                if (types != null && !types.isEmpty()) {
+                    return types.get(0).getId();
+                }
+            }
+            List<Test> tests = testService.getActiveTestsByLoinc(loinc);
+            if (tests == null || tests.isEmpty()) {
+                tests = testService.getTestsByLoincCode(loinc);
+            }
+            if (tests != null && !tests.isEmpty()) {
+                TypeOfSample typeOfSample = testService.getTypeOfSample(tests.get(0));
+                if (typeOfSample != null) {
+                    return typeOfSample.getId();
+                }
+            }
+        }
+        return "";
+    }
+
+    private List<ElectronicOrderDisplayItem> groupElectronicOrders(
+            List<ElectronicOrderDisplayItem> eOrderDisplayItems) {
+        Map<String, ElectronicOrderDisplayItem> groupedItems = new LinkedHashMap<>();
+
+        for (ElectronicOrderDisplayItem item : eOrderDisplayItems) {
+            if (!isGroupable(item)) {
+                item.setGroupSize(1);
+                item.setGroupExternalOrderIds(new ArrayList<>(List.of(item.getExternalOrderId())));
+                groupedItems.put("single:" + normalize(item.getElectronicOrderId()), item);
+                continue;
+            }
+
+            String groupKey = buildGroupKey(item);
+            if (!groupedItems.containsKey(groupKey)) {
+                item.setGroupSize(1);
+                item.setGroupExternalOrderIds(new ArrayList<>(List.of(item.getExternalOrderId())));
+                groupedItems.put(groupKey, item);
+                continue;
+            }
+
+            ElectronicOrderDisplayItem groupedItem = groupedItems.get(groupKey);
+            groupedItem.setGroupSize(groupedItem.getGroupSize() + 1);
+
+            List<String> groupOrderIds = groupedItem.getGroupExternalOrderIds();
+            if (!groupOrderIds.contains(item.getExternalOrderId())) {
+                groupOrderIds.add(item.getExternalOrderId());
+            }
+
+            if (!GenericValidator.isBlankOrNull(item.getTestName())) {
+                if (GenericValidator.isBlankOrNull(groupedItem.getTestName())) {
+                    groupedItem.setTestName(item.getTestName());
+                } else if (!Arrays.asList(groupedItem.getTestName().split(", ")).contains(item.getTestName())) {
+                    groupedItem.setTestName(groupedItem.getTestName() + ", " + item.getTestName());
+                }
+            }
+        }
+
+        return new ArrayList<>(groupedItems.values());
+    }
+
+    private String buildGroupKey(ElectronicOrderDisplayItem item) {
+        return normalize(item.getPatientId()) + GROUP_KEY_SEPARATOR + normalize(item.getEncounterId())
+                + GROUP_KEY_SEPARATOR + normalize(item.getSampleType()) + GROUP_KEY_SEPARATOR
+                + normalize(item.getStatusId());
+    }
+
+    private boolean isGroupable(ElectronicOrderDisplayItem item) {
+        return item != null && !GenericValidator.isBlankOrNull(item.getPatientId())
+                && !GenericValidator.isBlankOrNull(item.getEncounterId())
+                && !GenericValidator.isBlankOrNull(item.getSampleType())
+                && !GenericValidator.isBlankOrNull(item.getStatusId());
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
     }
 
     @Override

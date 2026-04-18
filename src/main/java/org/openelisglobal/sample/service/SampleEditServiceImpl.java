@@ -390,6 +390,12 @@ public class SampleEditServiceImpl implements SampleEditService {
         }
         analysis.setTestSection(testSection);
         analysis.setPanel(panel);
+        if (sampleTestCollection.testIdToReferringServiceRequestMap != null) {
+            String referringSrId = sampleTestCollection.testIdToReferringServiceRequestMap.get(test.getId());
+            if (!GenericValidator.isBlankOrNull(referringSrId)) {
+                analysis.setReferringServiceRequestId(referringSrId);
+            }
+        }
         return analysis;
     }
 

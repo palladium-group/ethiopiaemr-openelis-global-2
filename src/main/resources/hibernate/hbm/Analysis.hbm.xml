@@ -106,6 +106,10 @@
             type="java.lang.Boolean" />
         <property name="sampleTypeName" column="type_of_sample_name"
             type="java.lang.String" />
+        <property name="referringServiceRequestId"
+            type="java.lang.String">
+            <column name="referring_service_request_id" length="60" />
+        </property>
         <property name="correctedSincePatientReport"
             column="corrected" type="java.lang.Boolean" />
         <property name="fhirUuid" column="fhir_uuid"

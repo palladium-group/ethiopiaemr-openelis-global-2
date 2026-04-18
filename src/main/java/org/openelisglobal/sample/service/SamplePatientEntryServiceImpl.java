@@ -298,7 +298,11 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
 
         sampleHumanService.insert(updateData.getSampleHuman());
 
-        if (updateData.getElectronicOrder() != null) {
+        if (updateData.getElectronicOrders() != null && !updateData.getElectronicOrders().isEmpty()) {
+            for (var order : updateData.getElectronicOrders()) {
+                electronicOrderService.update(order);
+            }
+        } else if (updateData.getElectronicOrder() != null) {
             electronicOrderService.update(updateData.getElectronicOrder());
         }
     }
@@ -468,6 +472,12 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
         analysis.setTestSection(testSection);
         // this will be used as an identifier for the service request as well
         analysis.setFhirUuid(UUID.randomUUID());
+        if (sampleTestCollection.testIdToReferringServiceRequestMap != null) {
+            String referringSrId = sampleTestCollection.testIdToReferringServiceRequestMap.get(test.getId());
+            if (!GenericValidator.isBlankOrNull(referringSrId)) {
+                analysis.setReferringServiceRequestId(referringSrId);
+            }
+        }
         return analysis;
     }
 }

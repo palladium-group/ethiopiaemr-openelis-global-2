@@ -70,27 +70,95 @@ const Index = () => {
   useEffect(() => {
     if (configurationProperties.ACCEPT_EXTERNAL_ORDERS === "true") {
       const urlParams = new URLSearchParams(window.location.search);
+      const externalIds = urlParams.get("IDs");
       const externalId = urlParams.get("ID");
-      checkOrderReferral(externalId);
+      const groupedIds = externalIds
+        ? externalIds
+            .split(",")
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0)
+        : [];
+      if (groupedIds.length > 0) {
+        const primaryOrderId = groupedIds[0];
+        setOrderFormValues((prev) => ({
+          ...prev,
+          sampleOrderItems: {
+            ...prev.sampleOrderItems,
+            externalOrderNumber: primaryOrderId,
+            externalOrderNumbers: groupedIds.join(","),
+          },
+        }));
+        loadGroupedOrders(groupedIds);
+      } else if (externalId) {
+        setOrderFormValues((prev) => ({
+          ...prev,
+          sampleOrderItems: {
+            ...prev.sampleOrderItems,
+            externalOrderNumber: externalId,
+            externalOrderNumbers: externalId,
+          },
+        }));
+        checkOrderReferral(externalId);
+      }
     } else {
       setOrderFormValues({
         ...orderFormValues,
         sampleOrderItems: {
           ...orderFormValues.sampleOrderItems,
           externalOrderNumber: "",
+          externalOrderNumbers: "",
         },
       });
     }
   }, [configurationProperties.ACCEPT_EXTERNAL_ORDERS]);
 
   useEffect(() => {
-    checkOrderReferral(orderFormValues.sampleOrderItems.externalOrderNumber);
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasOrderInUrl = urlParams.get("ID") || urlParams.get("IDs");
+    if (
+      !hasOrderInUrl &&
+      orderFormValues.sampleOrderItems.externalOrderNumber &&
+      !orderFormValues.sampleOrderItems.externalOrderNumbers
+    ) {
+      checkOrderReferral(orderFormValues.sampleOrderItems.externalOrderNumber);
+    }
   }, [orderFormValues.sampleOrderItems.externalOrderNumber]);
 
   const checkOrderReferral = (externalOrderNumber) => {
     if (externalOrderNumber) {
-      getLabOrder(externalOrderNumber, processLabOrderSuccess);
+      getLabOrder(externalOrderNumber, (response) =>
+        processLabOrderSuccess(
+          response,
+          false,
+          {
+            externalOrderNumber,
+            externalOrderNumbers: externalOrderNumber,
+          },
+          true,
+          externalOrderNumber,
+        ),
+      );
     }
+  };
+
+  const loadGroupedOrders = (orderNumbers, index = 0) => {
+    if (!orderNumbers || index >= orderNumbers.length) {
+      return;
+    }
+    const orderNumber = orderNumbers[index];
+    getLabOrder(orderNumber, (response) => {
+      processLabOrderSuccess(
+        response,
+        index > 0,
+        {
+          externalOrderNumber: orderNumbers[0],
+          externalOrderNumbers: orderNumbers.join(","),
+        },
+        index === orderNumbers.length - 1,
+        orderNumber,
+      );
+      loadGroupedOrders(orderNumbers, index + 1);
+    });
   };
 
   const getLabOrder = (orderNumber, success, failure) => {
@@ -134,7 +202,13 @@ const Index = () => {
       });
   };
 
-  const processLabOrderSuccess = (labOrder) => {
+  const processLabOrderSuccess = (
+    labOrder,
+    keepExistingData = false,
+    externalOrderInfo = {},
+    shouldFinalizeState = true,
+    serviceRequestIdForThisOrder = null,
+  ) => {
     // clearOrderData();
     let message = labOrder.fieldmessage.message;
     let formField = labOrder.fieldmessage.formfield;
@@ -142,10 +216,12 @@ const Index = () => {
 
     let newOrderFormValues = { ...orderFormValues };
 
-    SampleTypes = [];
-    CrossPanels = [];
-    CrossTests = [];
-    sampleTypeMap = {};
+    if (!keepExistingData) {
+      SampleTypes = [];
+      CrossPanels = [];
+      CrossTests = [];
+      sampleTypeMap = {};
+    }
 
     //TODO all these actions mimic other areas of the code. Possible rework could centralize these calls into a context
     if (message === "valid") {
@@ -182,23 +258,30 @@ const Index = () => {
             ? order.sampleTypes
             : [{ sampleType: order.sampleTypes.sampleType }],
           SampleTypes,
+          serviceRequestIdForThisOrder,
         );
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const externalId = urlParams.get("ID");
       const labNumber = urlParams.get("labNumber");
+      const externalOrderNumber =
+        externalOrderInfo.externalOrderNumber || urlParams.get("ID") || "";
+      const externalOrderNumbers =
+        externalOrderInfo.externalOrderNumbers || externalOrderNumber;
 
       newOrderFormValues = {
         ...newOrderFormValues,
         sampleOrderItems: {
           ...newOrderFormValues.sampleOrderItems,
-          externalOrderNumber: externalId,
+          externalOrderNumber: externalOrderNumber,
+          externalOrderNumbers: externalOrderNumbers,
           labNo: labNumber,
         },
       };
-      setOrderFormValues(newOrderFormValues);
-      setSamples(SampleTypes);
+      if (shouldFinalizeState) {
+        setOrderFormValues(newOrderFormValues);
+        setSamples(SampleTypes);
+      }
 
       //TODO not translated over for 3.0 Unsure if needed
       // parseCrossPanels(
@@ -297,14 +380,29 @@ const Index = () => {
     );
   };
 
-  const parseSampletypes = (newOrderFormValues, sampletypes, SampleTypes) => {
+  const parseSampletypes = (
+    newOrderFormValues,
+    sampletypes,
+    SampleTypes,
+    serviceRequestIdForThisOrder,
+  ) => {
     let index = 0;
     for (let i = 0; i < sampletypes.length; i++) {
-      index = parseSampletype(index, sampletypes[i].sampleType, SampleTypes);
+      index = parseSampletype(
+        index,
+        sampletypes[i].sampleType,
+        SampleTypes,
+        serviceRequestIdForThisOrder,
+      );
     }
   };
 
-  const parseSampletype = (index, sampleType, SampleTypes) => {
+  const parseSampletype = (
+    index,
+    sampleType,
+    SampleTypes,
+    serviceRequestIdForThisOrder,
+  ) => {
     let sampleTypeName = sampleType.name;
     let sampleTypeId = sampleType.id;
     let panels = sampleType.panels;
@@ -327,8 +425,16 @@ const Index = () => {
     let collectionDate = collection.date;
     let collectionTime = collection.time;
 
-    addPanelsToSampleType(sampleTypeInList, panelnodes);
-    addTestsToSampleType(sampleTypeInList, testnodes);
+    addPanelsToSampleType(
+      sampleTypeInList,
+      panelnodes,
+      serviceRequestIdForThisOrder,
+    );
+    addTestsToSampleType(
+      sampleTypeInList,
+      testnodes,
+      serviceRequestIdForThisOrder,
+    );
     if (collectionDate) {
       sampleTypeInList.sampleXML.collectionDate = collectionDate;
     } else {
@@ -414,17 +520,34 @@ const Index = () => {
   //   }
   // };
 
-  function addPanelsToSampleType(sampleType, panelNodes) {
+  function addPanelsToSampleType(
+    sampleType,
+    panelNodes,
+    serviceRequestIdForThisOrder,
+  ) {
     for (let i = 0; i < panelNodes.length; i++) {
-      sampleType.panels[sampleType.panels.length] = panelNodes[i];
+      const panel = panelNodes[i];
+      sampleType.panels[sampleType.panels.length] = panel;
+      if (serviceRequestIdForThisOrder) {
+        panel.referringServiceRequestId = serviceRequestIdForThisOrder;
+      }
     }
   }
-  function addTestsToSampleType(sampleType, testNodes) {
+  function addTestsToSampleType(
+    sampleType,
+    testNodes,
+    serviceRequestIdForThisOrder,
+  ) {
     for (let i = 0; i < testNodes.length; i++) {
-      sampleType.tests[sampleType.tests.length] = newTest(
-        testNodes[i].id,
-        testNodes[i].name,
-      );
+      const testId = testNodes[i].id;
+      const exists = sampleType.tests.some((test) => test.id === testId);
+      if (!exists) {
+        sampleType.tests[sampleType.tests.length] = newTest(
+          testId,
+          testNodes[i].name,
+          serviceRequestIdForThisOrder,
+        );
+      }
     }
   }
 
@@ -513,8 +636,12 @@ const Index = () => {
       testIds: "",
     };
   };
-  const newTest = (id, name) => {
-    return { id: "" + id, name: name };
+  const newTest = (id, name, referringServiceRequestId) => {
+    const t = { id: "" + id, name: name };
+    if (referringServiceRequestId) {
+      t.referringServiceRequestId = referringServiceRequestId;
+    }
+    return t;
   };
   const newCrossSampleType = (id, name, testId) => {
     return {
@@ -651,6 +778,44 @@ const Index = () => {
     setOrderFormValues(newOrderFormValues);
   }, []);
 
+  const buildTestReferringServiceRequestMapAttr = (sampleItem) => {
+    const pairs = [];
+    const seen = new Set();
+    const pushPair = (testId, srId) => {
+      if (!testId || !srId) {
+        return;
+      }
+      const tid = String(testId).trim();
+      const sid = String(srId).trim();
+      if (!tid || !sid || seen.has(tid)) {
+        return;
+      }
+      seen.add(tid);
+      pairs.push(`${tid}:${sid}`);
+    };
+    if (sampleItem.tests && sampleItem.tests.length > 0) {
+      Object.keys(sampleItem.tests).forEach((i) => {
+        const t = sampleItem.tests[i];
+        if (t.referringServiceRequestId) {
+          pushPair(t.id, t.referringServiceRequestId);
+        }
+      });
+    }
+    if (sampleItem.panels && sampleItem.panels.length > 0) {
+      Object.keys(sampleItem.panels).forEach((i) => {
+        const p = sampleItem.panels[i];
+        if (p.referringServiceRequestId && p.testIds) {
+          String(p.testIds)
+            .split(",")
+            .forEach((tid) => {
+              pushPair(tid, p.referringServiceRequestId);
+            });
+        }
+      });
+    }
+    return pairs.length ? pairs.join(",") : "";
+  };
+
   const attacheSamplesToFormValues = () => {
     let sampleXmlString = "";
     let referralItems = [];
@@ -689,7 +854,14 @@ const Index = () => {
             const gpsCaptureMethod =
               sampleItem.sampleXML?.gpsCaptureMethod || "";
 
-            sampleXmlString += `<sample sampleID='${sampleItem.sampleTypeId}' date='${sampleItem.sampleXML.collectionDate}' time='${sampleItem.sampleXML.collectionTime}' collector='${sampleItem.sampleXML.collector}' quantity='${sampleItem.sampleXML.quantity}' uom='${sampleItem.sampleXML.uom}' tests='${tests}' testSectionMap='' testSampleTypeMap='' panels='${panels}' rejected='${sampleItem.sampleXML.rejected}' rejectReasonId='${sampleItem.sampleXML.rejectionReason}' initialConditionIds='' storageLocationId='${storageLocationId}' storageLocationType='${storageLocationType}' storagePositionCoordinate='${storagePositionCoordinate}' gpsLatitude='${gpsLatitude}' gpsLongitude='${gpsLongitude}' gpsAccuracy='${gpsAccuracy}' gpsCaptureMethod='${gpsCaptureMethod}'/>`;
+            const testReferringServiceRequestMap =
+              buildTestReferringServiceRequestMapAttr(sampleItem);
+            const referringMapAttr =
+              testReferringServiceRequestMap.length > 0
+                ? ` testReferringServiceRequestMap='${testReferringServiceRequestMap}'`
+                : "";
+
+            sampleXmlString += `<sample sampleID='${sampleItem.sampleTypeId}' date='${sampleItem.sampleXML.collectionDate}' time='${sampleItem.sampleXML.collectionTime}' collector='${sampleItem.sampleXML.collector}' quantity='${sampleItem.sampleXML.quantity}' uom='${sampleItem.sampleXML.uom}' tests='${tests}' testSectionMap='' testSampleTypeMap='' panels='${panels}' rejected='${sampleItem.sampleXML.rejected}' rejectReasonId='${sampleItem.sampleXML.rejectionReason}' initialConditionIds='' storageLocationId='${storageLocationId}' storageLocationType='${storageLocationType}' storagePositionCoordinate='${storagePositionCoordinate}' gpsLatitude='${gpsLatitude}' gpsLongitude='${gpsLongitude}' gpsAccuracy='${gpsAccuracy}' gpsCaptureMethod='${gpsCaptureMethod}'${referringMapAttr}/>`;
           }
           if (sampleItem.referralItems.length > 0) {
             const referredInstitutes = Object.keys(sampleItem.referralItems)

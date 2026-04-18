@@ -59,6 +59,10 @@ public class SampleOrderItem implements Serializable {
             SamplePatientEntryBatch.class })
     private String externalOrderNumber;
 
+    @SafeHtml(level = SafeHtml.SafeListLevel.NONE, groups = { SamplePatientEntryForm.SamplePatientEntry.class,
+            SamplePatientEntryBatch.class })
+    private String externalOrderNumbers;
+
     @NotBlank(groups = { SamplePatientEntryForm.SamplePatientEntry.class, SamplePatientEntryBatch.class })
     @ValidAccessionNumber(groups = { SamplePatientEntryForm.SamplePatientEntry.class, SamplePatientEntryBatch.class,
             SampleEditForm.SampleEdit.class })
@@ -275,6 +279,14 @@ public class SampleOrderItem implements Serializable {
 
     public void setExternalOrderNumber(String externalOrderNumber) {
         this.externalOrderNumber = externalOrderNumber;
+    }
+
+    public String getExternalOrderNumbers() {
+        return externalOrderNumbers;
+    }
+
+    public void setExternalOrderNumbers(String externalOrderNumbers) {
+        this.externalOrderNumbers = externalOrderNumbers;
     }
 
     public String getLabNo() {

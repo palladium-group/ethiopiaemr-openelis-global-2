@@ -17,6 +17,7 @@
 package org.openelisglobal.sample.action.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.apache.commons.validator.GenericValidator;
@@ -85,6 +86,7 @@ public class SamplePatientUpdateData {
     private Organization newOrganization;
     private Organization currentOrganization;
     private ElectronicOrder electronicOrder = null;
+    private List<ElectronicOrder> electronicOrders = new ArrayList<>();
 
     private boolean useReceiveDateForCollectionDate = !FormFields.getInstance().useField(Field.CollectionDate);
     private String collectionDateFromReceiveDate = null;
@@ -226,6 +228,10 @@ public class SamplePatientUpdateData {
         return electronicOrder;
     }
 
+    public List<ElectronicOrder> getElectronicOrders() {
+        return electronicOrders;
+    }
+
     public void setCollectionDateFromRecieveDateIfNeeded(String collectionDateFromRecieveDate) {
         if (useReceiveDateForCollectionDate) {
             collectionDateFromReceiveDate = collectionDateFromRecieveDate;
@@ -329,16 +335,32 @@ public class SamplePatientUpdateData {
 
     private void setElectronicOrderIfNeeded(SampleOrderItem sampleOrder) {
         electronicOrder = null;
+        electronicOrders = new ArrayList<>();
         String externalOrderNumber = sampleOrder.getExternalOrderNumber();
-        if (!GenericValidator.isBlankOrNull(externalOrderNumber)) {
-            List<ElectronicOrder> orders = electronicOrderService.getElectronicOrdersByExternalId(externalOrderNumber);
-            if (!orders.isEmpty()) {
-                electronicOrder = orders.get(orders.size() - 1);
-                electronicOrder.setStatusId(
-                        SpringContext.getBean(IStatusService.class).getStatusID(ExternalOrderStatus.Realized));
-                electronicOrder.setSysUserId(currentUserId);
+        String externalOrderNumbers = sampleOrder.getExternalOrderNumbers();
+        if (GenericValidator.isBlankOrNull(externalOrderNumbers)
+                && !GenericValidator.isBlankOrNull(externalOrderNumber)) {
+            externalOrderNumbers = externalOrderNumber;
+        }
 
-                sample.setReferringId(externalOrderNumber);
+        if (!GenericValidator.isBlankOrNull(externalOrderNumbers)) {
+            List<String> groupedOrderNumbers = Arrays.stream(externalOrderNumbers.split(",")).map(String::trim)
+                    .filter(orderNo -> !GenericValidator.isBlankOrNull(orderNo)).distinct().toList();
+
+            for (String orderNumber : groupedOrderNumbers) {
+                List<ElectronicOrder> orders = electronicOrderService.getElectronicOrdersByExternalId(orderNumber);
+                if (!orders.isEmpty()) {
+                    ElectronicOrder orderToUpdate = orders.get(orders.size() - 1);
+                    orderToUpdate.setStatusId(
+                            SpringContext.getBean(IStatusService.class).getStatusID(ExternalOrderStatus.Realized));
+                    orderToUpdate.setSysUserId(currentUserId);
+                    electronicOrders.add(orderToUpdate);
+                }
+            }
+
+            if (!electronicOrders.isEmpty()) {
+                electronicOrder = electronicOrders.get(0);
+                sample.setReferringId(electronicOrder.getExternalId());
                 sample.setClinicalOrderId(electronicOrder.getId());
             }
         }

@@ -67,6 +67,7 @@ export const SampleOrderFormValues = {
     orderTypes: [],
     orderType: "",
     externalOrderNumber: "",
+    externalOrderNumbers: "",
     labNo: "",
     requestDate: "",
     receivedDateForDisplay: "",

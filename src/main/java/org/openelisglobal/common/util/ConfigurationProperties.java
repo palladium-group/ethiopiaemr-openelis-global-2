@@ -139,6 +139,11 @@ public abstract class ConfigurationProperties {
                                                                        // workplan
         RESULTS_ON_WORKPLAN("results on workplan", "text"), // If true a space will be left for results on the workplan
         ACCEPT_EXTERNAL_ORDERS("external orders", "text"), // If true EMR's can make electronic orders to lab
+        /**
+         * When true, FHIR sync ties lab ServiceRequest.basedOn and referring Task
+         * completion to per-analysis OpenMRS ServiceRequest ids.
+         */
+        PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR("per analysis referring service request FHIR", "text"),
         SIGNATURES_ON_NONCONFORMITY_REPORTS("non-conformity signature", "text"), // If true a space should be left for
         // signatures on non-conformity reports
         NONCONFORMITY_RECEPTION_AS_UNIT("Reception as unit", "text"), // If true then reception will be an option for

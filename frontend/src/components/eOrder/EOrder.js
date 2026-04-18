@@ -36,10 +36,16 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
 
   useEffect(() => {}, []);
 
-  function saveEntry(externalOrderId, labNumber) {
+  function saveEntry(externalOrderIds, labNumber) {
+    const groupedIds =
+      externalOrderIds instanceof Array ? externalOrderIds : [externalOrderIds];
+    const params =
+      groupedIds.length > 1
+        ? "IDs=" + encodeURIComponent(groupedIds.join(","))
+        : "ID=" + encodeURIComponent(groupedIds[0] || "");
     window.open(
-      "SamplePatientEntry?ID=" +
-        (externalOrderId || "") +
+      "SamplePatientEntry?" +
+        params +
         "&labNumber=" +
         (labNumber || "") +
         "&attemptAutoSave=true",
@@ -53,12 +59,15 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
     // jQuery("#eOrderRow_" + index).addClass("unsynced-resource");
   }
 
-  function editOrder(externalOrderId, labNumber) {
+  function editOrder(externalOrderIds, labNumber) {
+    const groupedIds =
+      externalOrderIds instanceof Array ? externalOrderIds : [externalOrderIds];
+    const params =
+      groupedIds.length > 1
+        ? "IDs=" + encodeURIComponent(groupedIds.join(","))
+        : "ID=" + encodeURIComponent(groupedIds[0] || "");
     window.open(
-      "SamplePatientEntry?ID=" +
-        externalOrderId +
-        "&labNumber=" +
-        (labNumber || ""),
+      "SamplePatientEntry?" + params + "&labNumber=" + (labNumber || ""),
     );
   }
 
@@ -128,6 +137,9 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
     const hasRealizedStatus = row.cells.some(
       (cell) => cell.info?.header === "status" && cell.value === "Realized",
     );
+    const groupedExternalOrderIds = eOrders[index].groupExternalOrderIds || [
+      electronicOrderUUID,
+    ];
 
     return (
       <>
@@ -175,7 +187,7 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
                 id: "eorder.button.editOrder",
               })}
               onClick={() => {
-                editOrder(electronicOrderUUID, eOrders[index].labNo);
+                editOrder(groupedExternalOrderIds, eOrders[index].labNo);
               }}
             />
             <Button
@@ -189,7 +201,7 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
                 id: "eorder.button.enterOrder",
               })}
               onClick={() => {
-                saveEntry(electronicOrderUUID, eOrders[index].labNo);
+                saveEntry(groupedExternalOrderIds, eOrders[index].labNo);
               }}
             />
           </span>
