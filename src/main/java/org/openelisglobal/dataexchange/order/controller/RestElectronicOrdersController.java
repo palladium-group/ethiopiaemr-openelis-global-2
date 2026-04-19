@@ -20,6 +20,8 @@ import org.openelisglobal.common.controller.BaseController;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.DisplayListService.ListType;
+import org.openelisglobal.common.util.ConfigurationProperties;
+import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
@@ -104,7 +106,19 @@ public class RestElectronicOrdersController extends BaseController {
             if (form.getSearchType() != null) {
                 electronicOrders = electronicOrderService.searchForElectronicOrders(form);
                 eOrderDisplayItems = convertToDisplayItem(electronicOrders, form.getUseAllInfo());
-                eOrderDisplayItems = groupElectronicOrders(eOrderDisplayItems);
+                if (ConfigurationProperties.getInstance()
+                        .isPropertyValueEqual(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR, "true")) {
+                    eOrderDisplayItems = groupElectronicOrders(eOrderDisplayItems);
+                } else {
+                    for (ElectronicOrderDisplayItem item : eOrderDisplayItems) {
+                        item.setGroupSize(1);
+                        List<String> singleExternal = new ArrayList<>();
+                        if (!GenericValidator.isBlankOrNull(item.getExternalOrderId())) {
+                            singleExternal.add(item.getExternalOrderId());
+                        }
+                        item.setGroupExternalOrderIds(singleExternal);
+                    }
+                }
                 paging.setDatabaseResults(request, form, eOrderDisplayItems);
             }
         } else {
