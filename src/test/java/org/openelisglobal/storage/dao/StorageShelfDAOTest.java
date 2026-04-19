@@ -76,14 +76,14 @@ public class StorageShelfDAOTest extends BaseWebContextSensitiveTest {
         jdbcTemplate.update(
                 "INSERT INTO storage_shelf (id, label, code, parent_device_id, active, sys_user_id, last_updated, fhir_uuid) "
                         + "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, gen_random_uuid())",
-                testShelf1Id, "DAO-Test Shelf A", "DAOTEST-SHELF-A", testDeviceId, true, 1);
+                testShelf1Id, "DAO-Test Shelf A", "DAO-SH-A", testDeviceId, true, 1);
         testShelf1 = storageShelfDAO.get(testShelf1Id).orElse(null);
 
         testShelf2Id = 9103;
         jdbcTemplate.update(
                 "INSERT INTO storage_shelf (id, label, code, parent_device_id, active, sys_user_id, last_updated, fhir_uuid) "
                         + "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, gen_random_uuid())",
-                testShelf2Id, "DAO-Test Shelf B", "DAOTEST-SHELF-B", testDeviceId, true, 1);
+                testShelf2Id, "DAO-Test Shelf B", "DAO-SH-B", testDeviceId, true, 1);
         testShelf2 = storageShelfDAO.get(testShelf2Id).orElse(null);
     }
 
@@ -97,7 +97,7 @@ public class StorageShelfDAOTest extends BaseWebContextSensitiveTest {
             // Delete in FK order: shelf -> device -> room
             // Use both code and id to handle leftover records from previous test runs
             jdbcTemplate.execute(
-                    "DELETE FROM storage_shelf WHERE code IN ('DAOTEST-SHELF-A', 'DAOTEST-SHELF-B') OR id IN (9102, 9103)");
+                    "DELETE FROM storage_shelf WHERE code IN ('DAO-SH-A', 'DAO-SH-B') OR id IN (9102, 9103)");
             jdbcTemplate.execute("DELETE FROM storage_device WHERE code = 'TSTDEV-SHF' OR id = 9101");
             jdbcTemplate.execute("DELETE FROM storage_room WHERE code = 'TSTRM-SHF' OR id = 9100");
         } catch (Exception e) {
@@ -118,7 +118,7 @@ public class StorageShelfDAOTest extends BaseWebContextSensitiveTest {
         // Assert
         assertNotNull("Shelf should be found", result);
         assertEquals("Label should match", "DAO-Test Shelf A", result.getLabel());
-        assertEquals("Code should match", "DAOTEST-SHELF-A", result.getCode());
+        assertEquals("Code should match", "DAO-SH-A", result.getCode());
     }
 
     /**
