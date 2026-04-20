@@ -410,6 +410,8 @@ public class DisplayListController extends BaseRestController {
                 ConfigurationProperties.getInstance().getPropertyValue(Property.AUTOFILL_COLLECTION_DATE));
         configs.put(Property.ACCEPT_EXTERNAL_ORDERS.toString(),
                 ConfigurationProperties.getInstance().getPropertyValue(Property.ACCEPT_EXTERNAL_ORDERS));
+        configs.put(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR.toString(), ConfigurationProperties
+                .getInstance().getPropertyValue(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR));
         configs.put("currentDateAsText", DateUtil.getCurrentDateAsText());
         configs.put("currentTimeAsText", DateUtil.getCurrentTimeAsText());
         configs.put(Property.BANNER_TEXT.toString(), localizationService

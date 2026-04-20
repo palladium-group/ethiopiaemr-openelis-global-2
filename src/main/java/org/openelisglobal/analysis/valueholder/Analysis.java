@@ -81,6 +81,11 @@ public class Analysis extends BaseObject<String> implements NoteObject {
     private String assignedSortedTestTreeDisplayValue;
     private boolean referredOut = false;
     private String sampleTypeName;
+    /**
+     * OpenMRS / FHIR ServiceRequest logical id when this analysis originated from a
+     * specific electronic order.
+     */
+    private String referringServiceRequestId;
     private List<Analysis> children;
     private boolean correctedSincePatientReport;
     private ValueHolderInterface method;
@@ -113,6 +118,14 @@ public class Analysis extends BaseObject<String> implements NoteObject {
 
     public void setSampleTypeName(String sampleTypeName) {
         this.sampleTypeName = sampleTypeName;
+    }
+
+    public String getReferringServiceRequestId() {
+        return referringServiceRequestId;
+    }
+
+    public void setReferringServiceRequestId(String referringServiceRequestId) {
+        this.referringServiceRequestId = referringServiceRequestId;
     }
 
     public String getAssignedSortedTestTreeDisplayValue() {

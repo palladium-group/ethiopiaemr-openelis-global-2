@@ -300,12 +300,18 @@ public class FhirTransformServiceImpl implements FhirTransformService {
                 }
                 tasks.put(task.getIdElement().getIdPart(), task);
 
-                Optional<Task> referringTask = getReferringTaskForSample(sample);
-                if (referringTask.isPresent()) {
-                    updateReferringTaskWithTaskInfo(referringTask.get(), task);
-                    if (tasks.containsKey(referringTask.get().getIdElement().getIdPart())) {
-                        LogEvent.logWarn(this.getClass().getSimpleName(), "transformPersistObjectsUnderSamples",
-                                "referring task collision with id: " + referringTask.get().getIdElement().getIdPart());
+                if (isPerAnalysisReferringServiceRequestFhirEnabled()
+                        && hasAnyNonNullReferringServiceRequestId(analysises)) {
+                    mergePerServiceRequestReferringTasksIntoTaskMap(analysises, tasks);
+                } else {
+                    Optional<Task> referringTask = getReferringTaskForSample(sample);
+                    if (referringTask.isPresent()) {
+                        updateReferringTaskWithTaskInfo(referringTask.get(), task);
+                        if (tasks.containsKey(referringTask.get().getIdElement().getIdPart())) {
+                            LogEvent.logWarn(this.getClass().getSimpleName(), "transformPersistObjectsUnderSamples",
+                                    "referring task collision with id: "
+                                            + referringTask.get().getIdElement().getIdPart());
+                        }
                     }
                 }
             }
@@ -464,10 +470,13 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         Task task = transformToTask(updateData.getSample().getId());
         this.addToOperations(fhirOperations, tempIdGenerator, task);
 
-        Optional<Task> referringTask = getReferringTaskForSample(updateData.getSample());
-        if (referringTask.isPresent()) {
-            updateReferringTaskWithTaskInfo(referringTask.get(), task);
-            this.addToOperations(fhirOperations, tempIdGenerator, referringTask.get());
+        if (!(isPerAnalysisReferringServiceRequestFhirEnabled()
+                && hasAnyNonNullReferringServiceRequestId(sampleService.getAnalysis(updateData.getSample())))) {
+            Optional<Task> referringTask = getReferringTaskForSample(updateData.getSample());
+            if (referringTask.isPresent()) {
+                updateReferringTaskWithTaskInfo(referringTask.get(), task);
+                this.addToOperations(fhirOperations, tempIdGenerator, referringTask.get());
+            }
         }
 
         Optional<ServiceRequest> referingServiceRequest = getReferringServiceRequestForSample(updateData.getSample());
@@ -547,13 +556,37 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         }
     }
 
+    private Optional<Task> getReferringTaskForExternalServiceRequestId(String externalServiceRequestId) {
+        if (GenericValidator.isBlankOrNull(externalServiceRequestId)) {
+            return Optional.empty();
+        }
+        String trimmed = externalServiceRequestId.trim();
+        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(trimmed);
+        if (eOrders.size() > 0 && ElectronicOrderType.FHIR.equals(eOrders.get(0).getType())) {
+            return fhirPersistanceService.getTaskBasedOnServiceRequest(trimmed);
+        }
+        return Optional.empty();
+    }
+
     private Optional<Task> getReferringTaskForSample(Sample sample) {
         LogEvent.logTrace(this.getClass().getSimpleName(), "getReferringTaskForSample",
                 "getReferringTaskForSample called");
 
-        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(sample.getReferringId());
+        if (sample == null) {
+            return Optional.empty();
+        }
+        return getReferringTaskForExternalServiceRequestId(sample.getReferringId());
+    }
+
+    private Optional<ServiceRequest> getReferringServiceRequestForExternalServiceRequestId(
+            String externalServiceRequestId) {
+        if (GenericValidator.isBlankOrNull(externalServiceRequestId)) {
+            return Optional.empty();
+        }
+        String trimmed = externalServiceRequestId.trim();
+        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(trimmed);
         if (eOrders.size() > 0 && ElectronicOrderType.FHIR.equals(eOrders.get(0).getType())) {
-            return fhirPersistanceService.getTaskBasedOnServiceRequest(sample.getReferringId());
+            return fhirPersistanceService.getServiceRequestByReferingId(trimmed);
         }
         return Optional.empty();
     }
@@ -562,11 +595,198 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         LogEvent.logTrace(this.getClass().getSimpleName(), "getReferringServiceRequestForSample",
                 "getReferringServiceRequestForSample called");
 
-        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(sample.getReferringId());
-        if (eOrders.size() > 0 && ElectronicOrderType.FHIR.equals(eOrders.get(0).getType())) {
-            return fhirPersistanceService.getServiceRequestByReferingId(sample.getReferringId());
+        if (sample == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return getReferringServiceRequestForExternalServiceRequestId(sample.getReferringId());
+    }
+
+    private boolean isPerAnalysisReferringServiceRequestFhirEnabled() {
+        return ConfigurationProperties.getInstance()
+                .isPropertyValueEqual(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR, "true");
+    }
+
+    private boolean sampleHasAnyNonNullPerAnalysisReferringServiceRequestId(Sample sample) {
+        List<Analysis> analyses = sampleService.getAnalysis(sample);
+        return hasAnyNonNullReferringServiceRequestId(analyses);
+    }
+
+    private boolean hasAnyNonNullReferringServiceRequestId(List<Analysis> analyses) {
+        if (analyses == null) {
+            return false;
+        }
+        for (Analysis analysis : analyses) {
+            if (analysis != null && !GenericValidator.isBlankOrNull(analysis.getReferringServiceRequestId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String resolveReferringExternalServiceRequestIdForAnalysis(Analysis analysis, Sample sample) {
+        if (isPerAnalysisReferringServiceRequestFhirEnabled()) {
+            String perAnalysisId = analysis.getReferringServiceRequestId();
+            if (!GenericValidator.isBlankOrNull(perAnalysisId)) {
+                return perAnalysisId.trim();
+            }
+        }
+        return sample.getReferringId();
+    }
+
+    private Map<String, List<Analysis>> groupAnalysesByDistinctReferringServiceRequestId(List<Analysis> analyses) {
+        Map<String, List<Analysis>> bySr = new HashMap<>();
+        if (analyses == null) {
+            return bySr;
+        }
+        for (Analysis analysis : analyses) {
+            if (analysis == null) {
+                continue;
+            }
+            String srId = analysis.getReferringServiceRequestId();
+            if (GenericValidator.isBlankOrNull(srId)) {
+                continue;
+            }
+            bySr.computeIfAbsent(srId.trim(), k -> new ArrayList<>()).add(analysis);
+        }
+        return bySr;
+    }
+
+    private boolean isAnalysisStatusTerminalForReferringTask(String statusId) {
+        return statusService.matches(statusId, AnalysisStatus.Finalized)
+                || statusService.matches(statusId, AnalysisStatus.Canceled)
+                || statusService.matches(statusId, AnalysisStatus.TechnicalRejected)
+                || statusService.matches(statusId, AnalysisStatus.SampleRejected)
+                || statusService.matches(statusId, AnalysisStatus.BiologistRejected)
+                || statusService.matches(statusId, AnalysisStatus.NonConforming_depricated);
+    }
+
+    private boolean allAnalysesTerminalForServiceRequestGroup(List<Analysis> group) {
+        if (group == null || group.isEmpty()) {
+            return false;
+        }
+        for (Analysis analysis : group) {
+            if (!isAnalysisStatusTerminalForReferringTask(analysis.getStatusId())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void appendFinalizedDiagnosticReportOutputsForAnalyses(Task referringTask, List<Analysis> analyses) {
+        Set<String> existingDiagnosticReportIds = new HashSet<>();
+        for (Task.TaskOutputComponent output : referringTask.getOutput()) {
+            if (output.getValue() instanceof Reference ref) {
+                if (ResourceType.DiagnosticReport.name().equals(ref.getReferenceElement().getResourceType())) {
+                    existingDiagnosticReportIds.add(ref.getReferenceElement().getIdPart());
+                }
+            }
+        }
+        if (analyses == null) {
+            return;
+        }
+        for (Analysis analysis : analyses) {
+            if (analysis == null || !statusService.matches(analysis.getStatusId(), AnalysisStatus.Finalized)) {
+                continue;
+            }
+            String drId = analysis.getFhirUuidAsString();
+            if (GenericValidator.isBlankOrNull(drId) || existingDiagnosticReportIds.contains(drId)) {
+                continue;
+            }
+            referringTask.addOutput().setType(new CodeableConcept().addCoding(new Coding().setCode("reference")))
+                    .setValue(this.createReferenceFor(ResourceType.DiagnosticReport, drId));
+            existingDiagnosticReportIds.add(drId);
+        }
+    }
+
+    private void mergePerServiceRequestReferringTasksForSample(List<Analysis> analyses,
+            Map<String, Task> referingTaskMap, FhirOperations fhirOperations, CountingTempIdGenerator tempIdGenerator) {
+        if (!isPerAnalysisReferringServiceRequestFhirEnabled() || !hasAnyNonNullReferringServiceRequestId(analyses)) {
+            return;
+        }
+        Map<String, List<Analysis>> bySr = groupAnalysesByDistinctReferringServiceRequestId(analyses);
+        for (Map.Entry<String, List<Analysis>> entry : bySr.entrySet()) {
+            if (!allAnalysesTerminalForServiceRequestGroup(entry.getValue())) {
+                continue;
+            }
+            Optional<Task> referringTaskOpt = getReferringTaskForExternalServiceRequestId(entry.getKey());
+            if (referringTaskOpt.isEmpty()) {
+                continue;
+            }
+            Task referringTask = referringTaskOpt.get();
+            String idPart = referringTask.getIdElement().getIdPart();
+            Task taskToUpdate;
+            if (referingTaskMap.containsKey(idPart)) {
+                taskToUpdate = referingTaskMap.get(idPart);
+            } else {
+                referingTaskMap.put(idPart, referringTask);
+                taskToUpdate = referringTask;
+            }
+            taskToUpdate.setStatus(TaskStatus.COMPLETED);
+            appendFinalizedDiagnosticReportOutputsForAnalyses(taskToUpdate, entry.getValue());
+            this.addToOperations(fhirOperations, tempIdGenerator, taskToUpdate);
+        }
+    }
+
+    /**
+     * For each distinct per-analysis referring ServiceRequest id, fetch the
+     * referring ServiceRequest and apply lab accession (requisition) updates.
+     * Per-analysis mode uses analysis-level ids only, not
+     * {@link Sample#getReferringId()}.
+     */
+    private void mergePerServiceRequestReferringServiceRequestsForSample(Sample sample, List<Analysis> analyses,
+            Map<String, ServiceRequest> referingServiceRequestMap, FhirOperations fhirOperations,
+            CountingTempIdGenerator tempIdGenerator) {
+        if (!isPerAnalysisReferringServiceRequestFhirEnabled() || !hasAnyNonNullReferringServiceRequestId(analyses)) {
+            return;
+        }
+        Map<String, List<Analysis>> bySr = groupAnalysesByDistinctReferringServiceRequestId(analyses);
+        for (String referringSrId : bySr.keySet()) {
+            Optional<ServiceRequest> serviceRequestOpt = getReferringServiceRequestForExternalServiceRequestId(
+                    referringSrId);
+            if (serviceRequestOpt.isEmpty()) {
+                continue;
+            }
+            ServiceRequest serviceRequest = serviceRequestOpt.get();
+            String idPart = serviceRequest.getIdElement().getIdPart();
+            ServiceRequest serviceRequestToUpdate;
+            if (referingServiceRequestMap.containsKey(idPart)) {
+                serviceRequestToUpdate = referingServiceRequestMap.get(idPart);
+            } else {
+                referingServiceRequestMap.put(idPart, serviceRequest);
+                serviceRequestToUpdate = serviceRequest;
+            }
+            updateReferringServiceRequestWithSampleInfo(sample, serviceRequestToUpdate);
+            this.addToOperations(fhirOperations, tempIdGenerator, serviceRequestToUpdate);
+        }
+    }
+
+    private void mergePerServiceRequestReferringTasksIntoTaskMap(List<Analysis> analyses, Map<String, Task> tasks) {
+        if (!isPerAnalysisReferringServiceRequestFhirEnabled() || !hasAnyNonNullReferringServiceRequestId(analyses)) {
+            return;
+        }
+        Map<String, List<Analysis>> bySr = groupAnalysesByDistinctReferringServiceRequestId(analyses);
+        for (Map.Entry<String, List<Analysis>> entry : bySr.entrySet()) {
+            if (!allAnalysesTerminalForServiceRequestGroup(entry.getValue())) {
+                continue;
+            }
+            Optional<Task> referringTaskOpt = getReferringTaskForExternalServiceRequestId(entry.getKey());
+            if (referringTaskOpt.isEmpty()) {
+                continue;
+            }
+            Task referringTask = referringTaskOpt.get();
+            String idPart = referringTask.getIdElement().getIdPart();
+            Task taskToUpdate;
+            if (tasks.containsKey(idPart)) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "mergePerServiceRequestReferringTasksIntoTaskMap",
+                        "referring task collision with id: " + idPart);
+                taskToUpdate = tasks.get(idPart);
+            } else {
+                tasks.put(idPart, referringTask);
+                taskToUpdate = referringTask;
+            }
+            taskToUpdate.setStatus(TaskStatus.COMPLETED);
+            appendFinalizedDiagnosticReportOutputsForAnalyses(taskToUpdate, entry.getValue());
+        }
     }
 
     private Practitioner transformProviderToPractitioner(String providerId) {
@@ -956,12 +1176,13 @@ public class FhirTransformServiceImpl implements FhirTransformService {
                     this.createReferenceFor(ResourceType.Location, organizationDepartment.getFhirUuidAsString()));
         }
 
-        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(sample.getReferringId());
+        String referringExternalId = resolveReferringExternalServiceRequestIdForAnalysis(analysis, sample);
+        List<ElectronicOrder> eOrders = electronicOrderService.getElectronicOrdersByExternalId(referringExternalId);
 
         if (eOrders.size() <= 0) {
             serviceRequest.setIntent(ServiceRequestIntent.ORIGINALORDER);
         } else if (ElectronicOrderType.FHIR.equals(eOrders.get(eOrders.size() - 1).getType())) {
-            serviceRequest.addBasedOn(this.createReferenceFor(ResourceType.ServiceRequest, sample.getReferringId()));
+            serviceRequest.addBasedOn(this.createReferenceFor(ResourceType.ServiceRequest, referringExternalId));
             serviceRequest.setIntent(ServiceRequestIntent.ORDER);
         } else if (ElectronicOrderType.HL7_V2.equals(eOrders.get(eOrders.size() - 1).getType())) {
             serviceRequest.setIntent(ServiceRequestIntent.ORDER);
@@ -1263,33 +1484,46 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         Map<String, ServiceRequest> referingServiceRequestMap = new HashMap<>();
         for (Sample sample : sampleUpdateList) {
             Task task = this.transformToTask(sample.getId());
-            Optional<Task> referringTask = getReferringTaskForSample(sample);
-            if (referringTask.isPresent()) {
-                if (referingTaskMap.containsKey(referringTask.get().getIdElement().getIdPart())) {
-                    Task existingReferingTask = referingTaskMap.get(referringTask.get().getIdElement().getIdPart());
-                    updateReferringTaskWithTaskInfo(existingReferingTask, task);
-                    referingTaskMap.put(existingReferingTask.getIdElement().getIdPart(), existingReferingTask);
-                    this.addToOperations(fhirOperations, tempIdGenerator, existingReferingTask);
-                } else {
-                    updateReferringTaskWithTaskInfo(referringTask.get(), task);
-                    referingTaskMap.put(referringTask.get().getIdElement().getIdPart(), referringTask.get());
-                    this.addToOperations(fhirOperations, tempIdGenerator, referringTask.get());
+            if (isPerAnalysisReferringServiceRequestFhirEnabled()
+                    && sampleHasAnyNonNullPerAnalysisReferringServiceRequestId(sample)) {
+                mergePerServiceRequestReferringTasksForSample(sampleService.getAnalysis(sample), referingTaskMap,
+                        fhirOperations, tempIdGenerator);
+            } else {
+                Optional<Task> referringTask = getReferringTaskForSample(sample);
+                if (referringTask.isPresent()) {
+                    if (referingTaskMap.containsKey(referringTask.get().getIdElement().getIdPart())) {
+                        Task existingReferingTask = referingTaskMap.get(referringTask.get().getIdElement().getIdPart());
+                        updateReferringTaskWithTaskInfo(existingReferingTask, task);
+                        referingTaskMap.put(existingReferingTask.getIdElement().getIdPart(), existingReferingTask);
+                        this.addToOperations(fhirOperations, tempIdGenerator, existingReferingTask);
+                    } else {
+                        updateReferringTaskWithTaskInfo(referringTask.get(), task);
+                        referingTaskMap.put(referringTask.get().getIdElement().getIdPart(), referringTask.get());
+                        this.addToOperations(fhirOperations, tempIdGenerator, referringTask.get());
+                    }
                 }
             }
-            Optional<ServiceRequest> referingServiceRequest = getReferringServiceRequestForSample(sample);
-            if (referingServiceRequest.isPresent()) {
-                if (referingServiceRequestMap.containsKey(referingServiceRequest.get().getIdElement().getIdPart())) {
-                    ServiceRequest existingServiceRequest = referingServiceRequestMap
-                            .get(referingServiceRequest.get().getIdElement().getIdPart());
-                    updateReferringServiceRequestWithSampleInfo(sample, existingServiceRequest);
-                    referingServiceRequestMap.put(existingServiceRequest.getIdElement().getIdPart(),
-                            existingServiceRequest);
-                    this.addToOperations(fhirOperations, tempIdGenerator, existingServiceRequest);
-                } else {
-                    updateReferringServiceRequestWithSampleInfo(sample, referingServiceRequest.get());
-                    referingServiceRequestMap.put(referingServiceRequest.get().getIdElement().getIdPart(),
-                            referingServiceRequest.get());
-                    this.addToOperations(fhirOperations, tempIdGenerator, referingServiceRequest.get());
+            if (isPerAnalysisReferringServiceRequestFhirEnabled()
+                    && sampleHasAnyNonNullPerAnalysisReferringServiceRequestId(sample)) {
+                mergePerServiceRequestReferringServiceRequestsForSample(sample, sampleService.getAnalysis(sample),
+                        referingServiceRequestMap, fhirOperations, tempIdGenerator);
+            } else {
+                Optional<ServiceRequest> referingServiceRequest = getReferringServiceRequestForSample(sample);
+                if (referingServiceRequest.isPresent()) {
+                    if (referingServiceRequestMap
+                            .containsKey(referingServiceRequest.get().getIdElement().getIdPart())) {
+                        ServiceRequest existingServiceRequest = referingServiceRequestMap
+                                .get(referingServiceRequest.get().getIdElement().getIdPart());
+                        updateReferringServiceRequestWithSampleInfo(sample, existingServiceRequest);
+                        referingServiceRequestMap.put(existingServiceRequest.getIdElement().getIdPart(),
+                                existingServiceRequest);
+                        this.addToOperations(fhirOperations, tempIdGenerator, existingServiceRequest);
+                    } else {
+                        updateReferringServiceRequestWithSampleInfo(sample, referingServiceRequest.get());
+                        referingServiceRequestMap.put(referingServiceRequest.get().getIdElement().getIdPart(),
+                                referingServiceRequest.get());
+                        this.addToOperations(fhirOperations, tempIdGenerator, referingServiceRequest.get());
+                    }
                 }
             }
             this.addToOperations(fhirOperations, tempIdGenerator, task);

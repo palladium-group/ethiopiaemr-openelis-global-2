@@ -107,8 +107,10 @@ public class SampleAddService {
                 String panelIDs = sampleItem.attributeValue("panels");
                 Map<String, String> testIdToUserSectionMap = getTestIdToSelectionMap(
                         sampleItem.attributeValue("testSectionMap"));
-                Map<String, String> testIdToSampleTypeMap = getTestIdToSelectionMap(
+                Map<String, String> testIdToUserSampleTypeMap = getTestIdToSelectionMap(
                         sampleItem.attributeValue("testSampleTypeMap"));
+                Map<String, String> testIdToReferringServiceRequestMap = getTestIdToSelectionMap(
+                        sampleItem.attributeValue("testReferringServiceRequestMap"));
 
                 String collectionDate = sampleItem.attributeValue("date") == null ? null
                         : sampleItem.attributeValue("date").trim();
@@ -184,13 +186,11 @@ public class SampleAddService {
                 String gpsAccuracy = sampleItem.attributeValue("gpsAccuracy");
                 String gpsCaptureMethod = sampleItem.attributeValue("gpsCaptureMethod");
 
-                sampleItemsTests
-                        .add(new SampleTestCollection(item, tests,
-                                USE_RECEIVE_DATE_FOR_COLLECTION_DATE ? collectionDateFromRecieveDate
-                                        : collectionDateTime,
-                                initialConditionList, testIdToUserSectionMap, testIdToSampleTypeMap, sampleNature,
-                                storageLocationId, storageLocationType, storagePositionCoordinate, gpsLatitude,
-                                gpsLongitude, gpsAccuracy, gpsCaptureMethod));
+                sampleItemsTests.add(new SampleTestCollection(item, tests,
+                        USE_RECEIVE_DATE_FOR_COLLECTION_DATE ? collectionDateFromRecieveDate : collectionDateTime,
+                        initialConditionList, testIdToUserSectionMap, testIdToUserSampleTypeMap,
+                        testIdToReferringServiceRequestMap, sampleNature, storageLocationId, storageLocationType,
+                        storagePositionCoordinate, gpsLatitude, gpsLongitude, gpsAccuracy, gpsCaptureMethod));
             }
         } catch (DocumentException e) {
             LogEvent.logDebug(e);
@@ -222,6 +222,9 @@ public class SampleAddService {
 
     private Map<String, String> getTestIdToSelectionMap(String mapPairs) {
         Map<String, String> sectionMap = new HashMap<>();
+        if (GenericValidator.isBlankOrNull(mapPairs)) {
+            return sectionMap;
+        }
 
         String[] maps = mapPairs.split(",");
         for (String map : maps) {
@@ -294,6 +297,11 @@ public class SampleAddService {
         public List<ObservationHistory> initialSampleConditionIdList;
         public Map<String, String> testIdToUserSectionMap;
         public Map<String, String> testIdToUserSampleTypeMap;
+        /**
+         * OpenMRS ServiceRequest id (electronic order external id) per test id from
+         * order entry XML.
+         */
+        public Map<String, String> testIdToReferringServiceRequestMap;
         public ObservationHistory sampleNature;
 
         // gets added as they are persisted
@@ -311,22 +319,27 @@ public class SampleAddService {
 
         public SampleTestCollection(SampleItem item, List<Test> tests, String collectionDate,
                 List<ObservationHistory> initialConditionList, Map<String, String> testIdToUserSectionMap,
-                Map<String, String> testIdToUserSampleTypeMap, ObservationHistory sampleNature) {
+                Map<String, String> testIdToUserSampleTypeMap, Map<String, String> testIdToReferringServiceRequestMap,
+                ObservationHistory sampleNature) {
             this.item = item;
             this.tests = tests;
             this.collectionDate = collectionDate;
             this.testIdToUserSectionMap = testIdToUserSectionMap;
             this.testIdToUserSampleTypeMap = testIdToUserSampleTypeMap;
+            this.testIdToReferringServiceRequestMap = testIdToReferringServiceRequestMap != null
+                    ? testIdToReferringServiceRequestMap
+                    : new HashMap<>();
             initialSampleConditionIdList = initialConditionList;
             this.sampleNature = sampleNature;
         }
 
         public SampleTestCollection(SampleItem item, List<Test> tests, String collectionDate,
                 List<ObservationHistory> initialConditionList, Map<String, String> testIdToUserSectionMap,
-                Map<String, String> testIdToUserSampleTypeMap, ObservationHistory sampleNature,
-                String storageLocationId, String storageLocationType, String storagePositionCoordinate) {
+                Map<String, String> testIdToUserSampleTypeMap, Map<String, String> testIdToReferringServiceRequestMap,
+                ObservationHistory sampleNature, String storageLocationId, String storageLocationType,
+                String storagePositionCoordinate) {
             this(item, tests, collectionDate, initialConditionList, testIdToUserSectionMap, testIdToUserSampleTypeMap,
-                    sampleNature);
+                    testIdToReferringServiceRequestMap, sampleNature);
             this.storageLocationId = storageLocationId;
             this.storageLocationType = storageLocationType;
             this.storagePositionCoordinate = storagePositionCoordinate;
@@ -334,11 +347,13 @@ public class SampleAddService {
 
         public SampleTestCollection(SampleItem item, List<Test> tests, String collectionDate,
                 List<ObservationHistory> initialConditionList, Map<String, String> testIdToUserSectionMap,
-                Map<String, String> testIdToUserSampleTypeMap, ObservationHistory sampleNature,
-                String storageLocationId, String storageLocationType, String storagePositionCoordinate,
-                String gpsLatitude, String gpsLongitude, String gpsAccuracy, String gpsCaptureMethod) {
+                Map<String, String> testIdToUserSampleTypeMap, Map<String, String> testIdToReferringServiceRequestMap,
+                ObservationHistory sampleNature, String storageLocationId, String storageLocationType,
+                String storagePositionCoordinate, String gpsLatitude, String gpsLongitude, String gpsAccuracy,
+                String gpsCaptureMethod) {
             this(item, tests, collectionDate, initialConditionList, testIdToUserSectionMap, testIdToUserSampleTypeMap,
-                    sampleNature, storageLocationId, storageLocationType, storagePositionCoordinate);
+                    testIdToReferringServiceRequestMap, sampleNature, storageLocationId, storageLocationType,
+                    storagePositionCoordinate);
             this.gpsLatitude = gpsLatitude;
             this.gpsLongitude = gpsLongitude;
             this.gpsAccuracy = gpsAccuracy;

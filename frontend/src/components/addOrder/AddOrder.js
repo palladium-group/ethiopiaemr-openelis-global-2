@@ -464,6 +464,12 @@ const AddOrder = (props) => {
                   id="externalOrderNumber"
                   value={orderFormValues.sampleOrderItems.externalOrderNumber}
                 />
+                <input
+                  type="hidden"
+                  name="externalOrderNumbers"
+                  id="externalOrderNumbers"
+                  value={orderFormValues.sampleOrderItems.externalOrderNumbers}
+                />
               </Column>
             )}
             {isModifyOrder && (

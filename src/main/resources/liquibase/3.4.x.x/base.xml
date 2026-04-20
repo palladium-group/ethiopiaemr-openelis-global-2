@@ -22,4 +22,5 @@
   <include relativeToChangelogFile="true" file="013-mindray-bc10-seeding.xml"/>
   <include relativeToChangelogFile="true" file="014-update-site-branding-default-colors.xml"/>
   <include relativeToChangelogFile="true" file="015-update-banner-localization-to-moh.xml"/>
+  <include relativeToChangelogFile="true" file="016-analysis-referring-service-request-id.xml"/>
 </databaseChangeLog>

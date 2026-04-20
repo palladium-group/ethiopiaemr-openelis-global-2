@@ -135,6 +135,7 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
             "sampleOrderItems.priority",
             //
             "currentDate", "sampleOrderItems.newRequesterName", "sampleOrderItems.externalOrderNumber",
+            "sampleOrderItems.externalOrderNumbers",
             // referral
             "referralItems*.additionalTestsXMLWad", "referralItems*.referralResultId", "referralItems*.referralId",
             "referralItems*.referredResultType", "referralItems*.modified", "referralItems*.inLabResultId",
@@ -175,12 +176,13 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
 
     @RequestMapping(value = "/SamplePatientEntry", method = RequestMethod.GET)
     public ModelAndView showSamplePatientEntry(HttpServletRequest request,
-            @RequestParam(value = ID, required = false) @Pattern(regexp = "[a-zA-Z0-9 -]*") String externalOrderNumber)
+            @RequestParam(value = ID, required = false) @Pattern(regexp = "[a-zA-Z0-9 -]*") String externalOrderNumber,
+            @RequestParam(value = "IDs", required = false) @Pattern(regexp = "[a-zA-Z0-9, -]*") String externalOrderNumbers)
             throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         SamplePatientEntryForm form = new SamplePatientEntryForm();
 
         request.getSession().setAttribute(SAVE_DISABLED, TRUE);
-        setupForm(form, request, externalOrderNumber);
+        setupForm(form, request, externalOrderNumber, externalOrderNumbers);
         Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
         if (inputFlashMap != null) {
             form.getSampleOrderItems().setProviderId((String) inputFlashMap.get("sampleOrderItems.providerId"));
@@ -223,7 +225,7 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
         formValidator.validate(form, result);
         if (result.hasErrors()) {
             saveErrors(result);
-            setupForm(form, request, "");
+            setupForm(form, request, "", "");
             return findForward(FWD_FAIL_INSERT, form);
         }
         SamplePatientUpdateData updateData = new SamplePatientUpdateData(getSysUserId(request));
@@ -266,7 +268,7 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
 
         if (result.hasErrors()) {
             saveErrors(result);
-            setupForm(form, request, "");
+            setupForm(form, request, "", "");
             // setSuccessFlag(request, true);
             return findForward(FWD_FAIL_INSERT, form);
         }
@@ -324,7 +326,7 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
 
             // errors.add(ActionMessages.GLOBAL_MESSAGE, error);
             saveErrors(result);
-            setupForm(form, request, "");
+            setupForm(form, request, "", "");
             request.setAttribute(ALLOW_EDITS_KEY, "false");
             return findForward(FWD_FAIL_INSERT, form);
         }
@@ -361,10 +363,17 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
         return findForward(FWD_SUCCESS_INSERT, form);
     }
 
-    private void setupForm(SamplePatientEntryForm form, HttpServletRequest request, String externalOrderNumber)
+    private void setupForm(SamplePatientEntryForm form, HttpServletRequest request, String externalOrderNumber,
+            String externalOrderNumbers)
             throws LIMSRuntimeException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         SampleOrderService sampleOrderService = new SampleOrderService();
         form.setSampleOrderItems(sampleOrderService.getSampleOrderItem());
+        String resolvedExternalOrderNumbers = externalOrderNumbers;
+        if (StringUtils.isBlank(resolvedExternalOrderNumbers) && StringUtils.isNotBlank(externalOrderNumber)) {
+            resolvedExternalOrderNumbers = externalOrderNumber;
+        }
+        String primaryExternalOrderNumber = StringUtils.isBlank(resolvedExternalOrderNumbers) ? externalOrderNumber
+                : resolvedExternalOrderNumbers.split(",")[0].trim();
         if (requestFhirUuid != null
                 && requestFhirUuid.toUpperCase().startsWith(ResourceType.PRACTITIONER.toString().toUpperCase())) {
             Reference providerReference = new Reference(requestFhirUuid);
@@ -374,9 +383,11 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
                 form.getSampleOrderItems().setProviderPersonId(provider.getPerson().getId());
             }
         }
-        form.getSampleOrderItems().setExternalOrderNumber(externalOrderNumber);
-        if (StringUtils.isNotBlank(externalOrderNumber)) {
-            ElectronicOrder eOrder = electronicOrderService.getElectronicOrdersByExternalId(externalOrderNumber).get(0);
+        form.getSampleOrderItems().setExternalOrderNumbers(resolvedExternalOrderNumbers);
+        form.getSampleOrderItems().setExternalOrderNumber(primaryExternalOrderNumber);
+        if (StringUtils.isNotBlank(primaryExternalOrderNumber)) {
+            ElectronicOrder eOrder = electronicOrderService.getElectronicOrdersByExternalId(primaryExternalOrderNumber)
+                    .get(0);
             if (eOrder != null) {
                 form.getSampleOrderItems().setPriority(eOrder.getPriority());
                 Task task = fhirUtil.getFhirParser().parseResource(Task.class, eOrder.getData());

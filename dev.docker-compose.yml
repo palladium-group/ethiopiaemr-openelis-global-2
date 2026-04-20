@@ -1,7 +1,7 @@
 services:
     certs:
         container_name: oe-certs
-        image: meronmen/certgen:main
+        image: itechuw/certgen:main
         platform: linux/amd64
         restart: "no"
         environment:
@@ -43,7 +43,7 @@ services:
         # build:
         #     context: .
         #     dockerfile: Dockerfile.dev
-        image: meronmen/openelis-global-2-dev:main  
+        image: itechuw/openelis-global-2-dev:develop  
        # platform: linux/amd64
         depends_on:
             - db.openelis.org
@@ -118,7 +118,7 @@ services:
 
          
     frontend.openelis.org:
-        image: meronmen/openelis-global-2-frontend-dev:main
+        image: itechuw/openelis-global-2-frontend-dev:develop
         container_name: openelisglobal-front-end
        # platform: linux/amd64
         networks:
