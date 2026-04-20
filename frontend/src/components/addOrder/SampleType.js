@@ -82,6 +82,18 @@ const SampleType = (props) => {
   );
   const [loading, setLoading] = useState(true);
 
+  const uniqueById = (items = []) => {
+    const seen = new Set();
+    return items.filter((item) => {
+      const id = String(item?.id ?? "");
+      if (!id || seen.has(id)) {
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+  };
+
   const defaultSelect = { id: "", value: "Choose Rejection Reason" };
 
   function handleCollectionDate(date) {
@@ -463,13 +475,33 @@ const SampleType = (props) => {
 
   const repopulateUI = () => {
     if (props.sample !== null) {
-      setSelectedTests(props.sample.tests);
-      setSelectedPanels(props.sample.panels);
+      setSelectedTests(uniqueById(props.sample.tests || []));
+      setSelectedPanels(uniqueById(props.sample.panels || []));
       setSelectedSampleType({
         id: props.sample.sampleTypeId,
       });
     }
   };
+
+  useEffect(() => {
+    if (!props.sample) {
+      return;
+    }
+
+    const incomingSampleTypeId = props.sample.sampleTypeId || "";
+    if (
+      incomingSampleTypeId &&
+      String(selectedSampleType.id || "") !== String(incomingSampleTypeId)
+    ) {
+      setSelectedSampleType((prev) => ({
+        ...prev,
+        id: incomingSampleTypeId,
+      }));
+    }
+
+    setSelectedTests(uniqueById(props.sample.tests || []));
+    setSelectedPanels(uniqueById(props.sample.panels || []));
+  }, [props.sample]);
 
   useEffect(() => {
     componentMounted.current = true;
