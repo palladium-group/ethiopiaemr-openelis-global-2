@@ -1044,6 +1044,7 @@ const Index = () => {
                   setOrderFormValues={setOrderFormValues}
                   error={elementError}
                   setPhoneValidation={setPhoneValidation}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
                 />
                 <OrderEntryAdditionalQuestions
                   orderFormValues={orderFormValues}
@@ -1053,6 +1054,7 @@ const Index = () => {
                   error={elementError}
                   setSamples={setSamples}
                   samples={samples}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
                 />
                 <AddOrder
                   orderFormValues={orderFormValues}
@@ -1062,6 +1064,7 @@ const Index = () => {
                   isModifyOrder={false}
                   changed={changed}
                   setChanged={setChanged}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
                 />
               </>
             )}
@@ -1072,6 +1075,7 @@ const Index = () => {
                 setOrderFormValues={setOrderFormValues}
                 error={elementError}
                 setPhoneValidation={setPhoneValidation}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
             {page === programPageNumber && (
@@ -1085,6 +1089,7 @@ const Index = () => {
                 error={elementError}
                 setSamples={setSamples}
                 samples={samples}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
             {page === orderPageNumber && (
@@ -1096,6 +1101,7 @@ const Index = () => {
                 isModifyOrder={false}
                 changed={changed}
                 setChanged={setChanged}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
 

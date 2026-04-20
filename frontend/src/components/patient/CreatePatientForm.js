@@ -46,6 +46,7 @@ function CreatePatientForm(props) {
   const { configurationProperties } = useContext(ConfigurationContext);
 
   const intl = useIntl();
+  const isIncomingOrderFlow = props.isIncomingOrderFlow === true;
 
   const [patientDetails, setPatientDetails] = useState(CreatePatientFormValues);
   const [healthRegions, setHealthRegions] = useState([]);
@@ -536,13 +537,17 @@ function CreatePatientForm(props) {
                 {" "}
                 <br></br>
               </Column>
-              <Column lg={16} md={8} sm={4}>
-                <PatientImageSelector
-                  value={values.photo}
-                  onChange={(photo) => handlePhotoChange(photo, setFieldValue)}
-                  required={false}
-                />
-              </Column>
+              {!isIncomingOrderFlow && (
+                <Column lg={16} md={8} sm={4}>
+                  <PatientImageSelector
+                    value={values.photo}
+                    onChange={(photo) =>
+                      handlePhotoChange(photo, setFieldValue)
+                    }
+                    required={false}
+                  />
+                </Column>
+              )}
               <Column lg={8} md={4} sm={4}>
                 <Field name="subjectNumber">
                   {({ field }) => (
@@ -572,52 +577,56 @@ function CreatePatientForm(props) {
                   )}
                 </Field>
               </Column>
-              <Column lg={8} md={4} sm={4}>
-                <Field name="nationalId">
-                  {({ field }) => (
-                    <TextInput
-                      value={values.nationalId || ""}
-                      name={field.name}
-                      labelText={
-                        <>
-                          {intl.formatMessage({
-                            id: "patient.natioanalid",
-                          })}
-                          {configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED ===
-                            "true" && <span className="requiredlabel">*</span>}
-                        </>
-                      }
-                      id={field.name}
-                      invalid={
-                        props.error
-                          ? props.error("patientProperties.nationalId")
-                            ? true
+              {!isIncomingOrderFlow && (
+                <Column lg={8} md={4} sm={4}>
+                  <Field name="nationalId">
+                    {({ field }) => (
+                      <TextInput
+                        value={values.nationalId || ""}
+                        name={field.name}
+                        labelText={
+                          <>
+                            {intl.formatMessage({
+                              id: "patient.natioanalid",
+                            })}
+                            {configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED ===
+                              "true" && (
+                              <span className="requiredlabel">*</span>
+                            )}
+                          </>
+                        }
+                        id={field.name}
+                        invalid={
+                          props.error
+                            ? props.error("patientProperties.nationalId")
+                              ? true
+                              : false
                             : false
-                          : false
-                      }
-                      invalidText={
-                        props.error
-                          ? props.error("patientProperties.nationalId")
-                          : ""
-                      }
-                      onMouseOut={() => {
-                        handleSubjectNoValidation(
-                          "nationalId",
-                          "nationalID",
-                          values.nationalId,
-                        );
-                      }}
-                      onChange={handleNationalIdChange}
-                      placeholder={intl.formatMessage({
-                        id: "patient.information.nationalid",
-                      })}
-                    />
-                  )}
-                </Field>
-                <div className="error">
-                  <ErrorMessage name="nationalId"></ErrorMessage>
-                </div>
-              </Column>
+                        }
+                        invalidText={
+                          props.error
+                            ? props.error("patientProperties.nationalId")
+                            : ""
+                        }
+                        onMouseOut={() => {
+                          handleSubjectNoValidation(
+                            "nationalId",
+                            "nationalID",
+                            values.nationalId,
+                          );
+                        }}
+                        onChange={handleNationalIdChange}
+                        placeholder={intl.formatMessage({
+                          id: "patient.information.nationalid",
+                        })}
+                      />
+                    )}
+                  </Field>
+                  <div className="error">
+                    <ErrorMessage name="nationalId"></ErrorMessage>
+                  </div>
+                </Column>
+              )}
               <Column lg={16} md={8} sm={4}>
                 {" "}
                 <br></br>

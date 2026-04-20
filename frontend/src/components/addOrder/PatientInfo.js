@@ -124,6 +124,7 @@ const PatientInfo = (props) => {
                   setOrderFormValues={setOrderFormValues}
                   error={error}
                   setPhoneValidation={setPhoneValidation}
+                  isIncomingOrderFlow={props.isIncomingOrderFlow}
                 />
               )}
             </Column>
