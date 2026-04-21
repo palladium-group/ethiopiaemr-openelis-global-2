@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
+  Accordion,
+  AccordionItem,
   Checkbox,
   Link,
   Select,
@@ -38,6 +40,7 @@ const AddOrder = (props) => {
     changed,
     setChanged,
   } = props;
+  const isIncomingOrderFlow = props.isIncomingOrderFlow === true;
   const [otherSamplingVisible, setOtherSamplingVisible] = useState(false);
   const [providers, setProviders] = useState([]);
   const [paymentOptions, setPaymentOptions] = useState([]);
@@ -595,20 +598,22 @@ const AddOrder = (props) => {
                 }
               />
             </Column>
-            <Column lg={8} md={4} sm={4}>
-              <CustomDatePicker
-                id={"order_nextVisitDate"}
-                labelText={intl.formatMessage({
-                  id: "sample.entry.nextVisit.date",
-                })}
-                value={orderFormValues.sampleOrderItems.nextVisitDate}
-                autofillDate={false}
-                disallowPastDate={true}
-                onChange={(date) =>
-                  handleDatePickerChange("nextVisitDate", date)
-                }
-              />
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <CustomDatePicker
+                  id={"order_nextVisitDate"}
+                  labelText={intl.formatMessage({
+                    id: "sample.entry.nextVisit.date",
+                  })}
+                  value={orderFormValues.sampleOrderItems.nextVisitDate}
+                  autofillDate={false}
+                  disallowPastDate={true}
+                  onChange={(date) =>
+                    handleDatePickerChange("nextVisitDate", date)
+                  }
+                />
+              </Column>
+            )}
             <Column lg={16} md={8} sm={3}>
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
@@ -642,27 +647,31 @@ const AddOrder = (props) => {
               />
               {/* )} */}
             </Column>
-            <Column lg={8} md={4} sm={4}>
-              <Select
-                id="requesterDepartmentId"
-                name="requesterDepartmentId"
-                labelText={intl.formatMessage({ id: "order.department.label" })}
-                onChange={handleRequesterDept}
-                required
-                value={
-                  orderFormValues.sampleOrderItems.referringSiteDepartmentId
-                }
-              >
-                <SelectItem value="" text="" />
-                {departments.map((department, index) => (
-                  <SelectItem
-                    key={index}
-                    text={department.value}
-                    value={department.id}
-                  />
-                ))}
-              </Select>
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <Select
+                  id="requesterDepartmentId"
+                  name="requesterDepartmentId"
+                  labelText={intl.formatMessage({
+                    id: "order.department.label",
+                  })}
+                  onChange={handleRequesterDept}
+                  required
+                  value={
+                    orderFormValues.sampleOrderItems.referringSiteDepartmentId
+                  }
+                >
+                  <SelectItem value="" text="" />
+                  {departments.map((department, index) => (
+                    <SelectItem
+                      key={index}
+                      text={department.value}
+                      value={department.id}
+                    />
+                  ))}
+                </Select>
+              </Column>
+            )}
             <Column lg={16} md={8} sm={3}>
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
@@ -783,70 +792,78 @@ const AddOrder = (props) => {
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
             </Column>
-            <Column lg={8} sm={4}>
-              <TextInput
-                name="providerWorkPhone"
-                placeholder={intl.formatMessage({
-                  id: "input.placeholder.providerWorkPhone",
-                })}
-                disabled={
-                  configurationProperties.restrictFreeTextProviderEntry ===
-                  "true"
-                }
-                onChange={handleRequesterWorkPhone}
-                value={orderFormValues.sampleOrderItems.providerWorkPhone}
-                onMouseLeave={handlePhoneNoValidation}
-                labelText={intl.formatMessage({
-                  id: "order.requester.phone.label",
-                })}
-                id="providerWorkPhoneId"
-              />
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} sm={4}>
+                <TextInput
+                  name="providerWorkPhone"
+                  placeholder={intl.formatMessage({
+                    id: "input.placeholder.providerWorkPhone",
+                  })}
+                  disabled={
+                    configurationProperties.restrictFreeTextProviderEntry ===
+                    "true"
+                  }
+                  onChange={handleRequesterWorkPhone}
+                  value={orderFormValues.sampleOrderItems.providerWorkPhone}
+                  onMouseLeave={handlePhoneNoValidation}
+                  labelText={intl.formatMessage({
+                    id: "order.requester.phone.label",
+                  })}
+                  id="providerWorkPhoneId"
+                />
+              </Column>
+            )}
 
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                name="providerFax"
-                placeholder={intl.formatMessage({
-                  id: "input.placeholder.providerFax",
-                })}
-                labelText={intl.formatMessage({
-                  id: "order.requester.fax.label",
-                })}
-                disabled={
-                  configurationProperties.restrictFreeTextProviderEntry ===
-                  "true"
-                }
-                onChange={handleRequesterFax}
-                value={orderFormValues.sampleOrderItems.providerFax}
-                id="providerFaxId"
-              />
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="providerFax"
+                  placeholder={intl.formatMessage({
+                    id: "input.placeholder.providerFax",
+                  })}
+                  labelText={intl.formatMessage({
+                    id: "order.requester.fax.label",
+                  })}
+                  disabled={
+                    configurationProperties.restrictFreeTextProviderEntry ===
+                    "true"
+                  }
+                  onChange={handleRequesterFax}
+                  value={orderFormValues.sampleOrderItems.providerFax}
+                  id="providerFaxId"
+                />
+              </Column>
+            )}
             <Column lg={16} md={8} sm={3}>
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
             </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                name="providerEmail"
-                placeholder={intl.formatMessage({
-                  id: "input.placeholder.providerEmail",
-                })}
-                labelText={intl.formatMessage({
-                  id: "order.requester.email.label",
-                })}
-                disabled={
-                  configurationProperties.restrictFreeTextProviderEntry ===
-                  "true"
-                }
-                onChange={handleRequesterEmail}
-                value={orderFormValues.sampleOrderItems.providerEmail}
-                id="providerEmailId"
-                invalid={error("sampleOrderItems.providerEmail") ? true : false}
-                invalidText={intl.formatMessage({
-                  id: "error.invalid.email",
-                })}
-              />
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="providerEmail"
+                  placeholder={intl.formatMessage({
+                    id: "input.placeholder.providerEmail",
+                  })}
+                  labelText={intl.formatMessage({
+                    id: "order.requester.email.label",
+                  })}
+                  disabled={
+                    configurationProperties.restrictFreeTextProviderEntry ===
+                    "true"
+                  }
+                  onChange={handleRequesterEmail}
+                  value={orderFormValues.sampleOrderItems.providerEmail}
+                  id="providerEmailId"
+                  invalid={
+                    error("sampleOrderItems.providerEmail") ? true : false
+                  }
+                  invalidText={intl.formatMessage({
+                    id: "error.invalid.email",
+                  })}
+                />
+              </Column>
+            )}
 
             <Column lg={8} md={4} sm={4}>
               <Select
@@ -876,39 +893,43 @@ const AddOrder = (props) => {
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
             </Column>
-            <Column lg={8} md={4} sm={4}>
-              <Select
-                id="testLocationCodeId"
-                name="testLocationCode"
-                value={orderFormValues.sampleOrderItems.testLocationCode}
-                labelText={
-                  <FormattedMessage id="order.sampling.performed.label" />
-                }
-                onChange={(e) => handleSamplingPerformed(e)}
-                required
-              >
-                <SelectItem value="" text="" />
-                {samplingPerformed.map((option) => {
-                  return (
-                    <SelectItem
-                      key={option.id}
-                      value={option.id}
-                      text={option.value}
-                    />
-                  );
-                })}
-              </Select>
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                name="testLocationCodeOther"
-                labelText={intl.formatMessage({ id: "order.if.other.label" })}
-                onChange={handleOtherLocationCode}
-                value={orderFormValues.sampleOrderItems.otherLocationCode}
-                disabled={!otherSamplingVisible}
-                id="testLocationCodeOtherId"
-              />
-            </Column>
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <Select
+                  id="testLocationCodeId"
+                  name="testLocationCode"
+                  value={orderFormValues.sampleOrderItems.testLocationCode}
+                  labelText={
+                    <FormattedMessage id="order.sampling.performed.label" />
+                  }
+                  onChange={(e) => handleSamplingPerformed(e)}
+                  required
+                >
+                  <SelectItem value="" text="" />
+                  {samplingPerformed.map((option) => {
+                    return (
+                      <SelectItem
+                        key={option.id}
+                        value={option.id}
+                        text={option.value}
+                      />
+                    );
+                  })}
+                </Select>
+              </Column>
+            )}
+            {!isIncomingOrderFlow && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="testLocationCodeOther"
+                  labelText={intl.formatMessage({ id: "order.if.other.label" })}
+                  onChange={handleOtherLocationCode}
+                  value={orderFormValues.sampleOrderItems.otherLocationCode}
+                  disabled={!otherSamplingVisible}
+                  id="testLocationCodeOtherId"
+                />
+              </Column>
+            )}
             <Column lg={16} md={8} sm={3}>
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
@@ -925,25 +946,29 @@ const AddOrder = (props) => {
           </Grid>
         </div>
         <div className="orderLegendBody">
-          <h3>
-            <FormattedMessage id="order.result.reporting.heading" />
-          </h3>
-          {samples.map((sample, index) => {
-            if (sample.tests.length > 0) {
-              return (
-                <div key={index}>
-                  <h4>
-                    {" "}
-                    <FormattedMessage id="label.button.sample" /> {index + 1}
-                  </h4>
-                  <OrderResultReporting
-                    selectedTests={sample.tests}
-                    reportingNotifications={reportingNotifications}
-                  />
-                </div>
-              );
-            }
-          })}
+          <Accordion>
+            <AccordionItem
+              title={<FormattedMessage id="order.result.reporting.heading" />}
+            >
+              {samples.map((sample, index) => {
+                if (sample.tests.length > 0) {
+                  return (
+                    <div key={index}>
+                      <h4>
+                        {" "}
+                        <FormattedMessage id="label.button.sample" />{" "}
+                        {index + 1}
+                      </h4>
+                      <OrderResultReporting
+                        selectedTests={sample.tests}
+                        reportingNotifications={reportingNotifications}
+                      />
+                    </div>
+                  );
+                }
+              })}
+            </AccordionItem>
+          </Accordion>
         </div>
       </Stack>
     </>

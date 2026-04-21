@@ -66,6 +66,14 @@ const Index = () => {
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
   const { configurationProperties } = useContext(ConfigurationContext);
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasIncomingOrderInUrl = Boolean(
+    urlParams.get("ID") || urlParams.get("IDs"),
+  );
+  const isIncomingOrderFlow =
+    configurationProperties.ACCEPT_EXTERNAL_ORDERS === "true" &&
+    (hasIncomingOrderInUrl ||
+      Boolean(orderFormValues.sampleOrderItems.externalOrderNumber));
 
   useEffect(() => {
     if (configurationProperties.ACCEPT_EXTERNAL_ORDERS === "true") {
@@ -262,6 +270,21 @@ const Index = () => {
         );
       }
 
+      // One-page incoming flow does not force step-by-step completion,
+      // so ensure required order timing fields are populated like the
+      // previous tabbed workflow.
+      const firstSample = SampleTypes.length > 0 ? SampleTypes[0] : null;
+      const inferredDate =
+        firstSample?.sampleXML?.collectionDate ||
+        newOrderFormValues.sampleOrderItems.receivedDateForDisplay ||
+        configurationProperties?.currentDateAsText ||
+        "";
+      const inferredTime =
+        firstSample?.sampleXML?.collectionTime ||
+        newOrderFormValues.sampleOrderItems.receivedTime ||
+        configurationProperties?.currentTimeAsText ||
+        "";
+
       const urlParams = new URLSearchParams(window.location.search);
       const labNumber = urlParams.get("labNumber");
       const externalOrderNumber =
@@ -276,10 +299,29 @@ const Index = () => {
           externalOrderNumber: externalOrderNumber,
           externalOrderNumbers: externalOrderNumbers,
           labNo: labNumber,
+          requestDate:
+            newOrderFormValues.sampleOrderItems.requestDate || inferredDate,
+          receivedDateForDisplay:
+            newOrderFormValues.sampleOrderItems.receivedDateForDisplay ||
+            inferredDate,
+          receivedTime:
+            newOrderFormValues.sampleOrderItems.receivedTime || inferredTime,
+          nextVisitDate:
+            newOrderFormValues.sampleOrderItems.nextVisitDate || inferredDate,
         },
       };
       if (shouldFinalizeState) {
-        setOrderFormValues(newOrderFormValues);
+        setOrderFormValues((prev) => ({
+          ...prev,
+          ...newOrderFormValues,
+          sampleOrderItems: {
+            ...prev.sampleOrderItems,
+            ...newOrderFormValues.sampleOrderItems,
+          },
+          sampleXML: prev.sampleXML,
+          referralItems: prev.referralItems,
+          useReferral: prev.useReferral,
+        }));
         setSamples(SampleTypes);
       }
 
@@ -327,10 +369,13 @@ const Index = () => {
       getFromOpenElisServer(
         "/rest/practitioner?providerId=" + providerId,
         (data) => {
-          setOrderFormValues({
-            ...orderFormValues,
+          if (!data?.person) {
+            return;
+          }
+          setOrderFormValues((prev) => ({
+            ...prev,
             sampleOrderItems: {
-              ...orderFormValues.sampleOrderItems,
+              ...prev.sampleOrderItems,
               providerId: data.id,
               providerPersonId: data.person.id,
               providerFirstName: data.person.firstName,
@@ -339,7 +384,7 @@ const Index = () => {
               providerEmail: data.person.email,
               providerFax: data.person.fax,
             },
-          });
+          }));
         },
       );
     } else {
@@ -527,6 +572,12 @@ const Index = () => {
   ) {
     for (let i = 0; i < panelNodes.length; i++) {
       const panel = panelNodes[i];
+      const panelExists = sampleType.panels.some(
+        (existingPanel) => existingPanel.id === panel.id,
+      );
+      if (panelExists) {
+        continue;
+      }
       sampleType.panels[sampleType.panels.length] = panel;
       if (serviceRequestIdForThisOrder) {
         panel.referringServiceRequestId = serviceRequestIdForThisOrder;
@@ -569,11 +620,20 @@ const Index = () => {
       if (tag == "panel") {
         objList[j] = newPanel(id, name);
         let testNodes = nodes[j].panelTests;
+        if (!testNodes) {
+          continue;
+        }
         if (testNodes.length === undefined) {
           testNodes = [testNodes];
         }
         for (let x = 0; x < testNodes.length; x++) {
           let ptNodes = testNodes[x].test;
+          if (!ptNodes) {
+            continue;
+          }
+          if (ptNodes.length === undefined) {
+            ptNodes = [ptNodes];
+          }
           for (let y = 0; y < ptNodes.length; y++) {
             let pName = ptNodes[y].name;
             let pId = ptNodes[y].id;
@@ -682,7 +742,7 @@ const Index = () => {
         <FormattedMessage id="save.order.success.msg" />,
         NotificationKinds.success,
       );
-      setPage(page + 1);
+      setPage(successMsgPageNumber);
     } else {
       showAlertMessage(
         <FormattedMessage id="server.error.msg" />,
@@ -744,6 +804,12 @@ const Index = () => {
   }, [page]);
 
   useEffect(() => {
+    if (isIncomingOrderFlow) {
+      attacheSamplesToFormValues();
+    }
+  }, [isIncomingOrderFlow, samples]);
+
+  useEffect(() => {
     console.log(changed);
     const schema = OrderEntryValidationSchema(
       configurationProperties?.PATIENT_NATIONAL_ID_REQUIRED === "true",
@@ -768,14 +834,13 @@ const Index = () => {
     const labNumber = new URLSearchParams(window.location.search).get(
       "labNumber",
     );
-    const newOrderFormValues = {
-      ...orderFormValues,
+    setOrderFormValues((prev) => ({
+      ...prev,
       sampleOrderItems: {
-        ...orderFormValues.sampleOrderItems,
+        ...prev.sampleOrderItems,
         labNo: labNumber ? labNumber : "",
       },
-    };
-    setOrderFormValues(newOrderFormValues);
+    }));
   }, []);
 
   const buildTestReferringServiceRequestMapAttr = (sampleItem) => {
@@ -820,91 +885,106 @@ const Index = () => {
     let sampleXmlString = "";
     let referralItems = [];
     if (samples.length > 0) {
-      if (samples[0].tests.length > 0) {
-        sampleXmlString = '<?xml version="1.0" encoding="utf-8"?>';
-        sampleXmlString += "<samples>";
-        let tests = null;
-        let panels = "";
-        samples.map((sampleItem) => {
-          if (sampleItem.tests.length > 0) {
-            tests = Object.keys(sampleItem.tests)
-              .map(function (i) {
-                return sampleItem.tests[i].id;
-              })
-              .join(",");
-
-            if (sampleItem?.panels.length > 0) {
-              panels = Object.keys(sampleItem.panels)
-                .map(function (i) {
-                  return sampleItem.panels[i].id;
-                })
-                .join(",");
+      sampleXmlString = '<?xml version="1.0" encoding="utf-8"?>';
+      sampleXmlString += "<samples>";
+      let tests = "";
+      let panels = "";
+      samples.map((sampleItem) => {
+        const testIds = new Set();
+        if (sampleItem.tests.length > 0) {
+          Object.keys(sampleItem.tests).forEach((i) => {
+            const testId = sampleItem.tests[i].id;
+            if (testId) {
+              testIds.add(String(testId));
             }
-            // Extract storage location data if present
-            const storageLocation = sampleItem.sampleXML?.storageLocation;
-            const storageLocationId = storageLocation?.id || "";
-            const storageLocationType = storageLocation?.type || "";
-            const storagePositionCoordinate =
-              storageLocation?.positionCoordinate || "";
+          });
+        }
+        if (sampleItem?.panels.length > 0) {
+          Object.keys(sampleItem.panels).forEach((i) => {
+            const panelTestIds = sampleItem.panels[i].testIds;
+            if (panelTestIds) {
+              String(panelTestIds)
+                .split(",")
+                .map((id) => id.trim())
+                .filter((id) => id.length > 0)
+                .forEach((id) => testIds.add(id));
+            }
+          });
+        }
 
-            // Extract GPS coordinates data if present
-            const gpsLatitude = sampleItem.sampleXML?.gpsLatitude || "";
-            const gpsLongitude = sampleItem.sampleXML?.gpsLongitude || "";
-            const gpsAccuracy = sampleItem.sampleXML?.gpsAccuracy || "";
-            const gpsCaptureMethod =
-              sampleItem.sampleXML?.gpsCaptureMethod || "";
+        if (testIds.size > 0) {
+          tests = Array.from(testIds).join(",");
 
-            const testReferringServiceRequestMap =
-              buildTestReferringServiceRequestMapAttr(sampleItem);
-            const referringMapAttr =
-              testReferringServiceRequestMap.length > 0
-                ? ` testReferringServiceRequestMap='${testReferringServiceRequestMap}'`
-                : "";
-
-            sampleXmlString += `<sample sampleID='${sampleItem.sampleTypeId}' date='${sampleItem.sampleXML.collectionDate}' time='${sampleItem.sampleXML.collectionTime}' collector='${sampleItem.sampleXML.collector}' quantity='${sampleItem.sampleXML.quantity}' uom='${sampleItem.sampleXML.uom}' tests='${tests}' testSectionMap='' testSampleTypeMap='' panels='${panels}' rejected='${sampleItem.sampleXML.rejected}' rejectReasonId='${sampleItem.sampleXML.rejectionReason}' initialConditionIds='' storageLocationId='${storageLocationId}' storageLocationType='${storageLocationType}' storagePositionCoordinate='${storagePositionCoordinate}' gpsLatitude='${gpsLatitude}' gpsLongitude='${gpsLongitude}' gpsAccuracy='${gpsAccuracy}' gpsCaptureMethod='${gpsCaptureMethod}'${referringMapAttr}/>`;
+          if (sampleItem?.panels.length > 0) {
+            panels = Object.keys(sampleItem.panels)
+              .map(function (i) {
+                return sampleItem.panels[i].id;
+              })
+              .join(",");
           }
-          if (sampleItem.referralItems.length > 0) {
-            const referredInstitutes = Object.keys(sampleItem.referralItems)
-              .map(function (i) {
-                return sampleItem.referralItems[i].institute;
-              })
-              .join(",");
+          // Extract storage location data if present
+          const storageLocation = sampleItem.sampleXML?.storageLocation;
+          const storageLocationId = storageLocation?.id || "";
+          const storageLocationType = storageLocation?.type || "";
+          const storagePositionCoordinate =
+            storageLocation?.positionCoordinate || "";
 
-            const sentDates = Object.keys(sampleItem.referralItems)
-              .map(function (i) {
-                return sampleItem.referralItems[i].sentDate;
-              })
-              .join(",");
+          // Extract GPS coordinates data if present
+          const gpsLatitude = sampleItem.sampleXML?.gpsLatitude || "";
+          const gpsLongitude = sampleItem.sampleXML?.gpsLongitude || "";
+          const gpsAccuracy = sampleItem.sampleXML?.gpsAccuracy || "";
+          const gpsCaptureMethod = sampleItem.sampleXML?.gpsCaptureMethod || "";
 
-            const referralReasonIds = Object.keys(sampleItem.referralItems)
-              .map(function (i) {
-                return sampleItem.referralItems[i].reasonForReferral;
-              })
-              .join(",");
+          const testReferringServiceRequestMap =
+            buildTestReferringServiceRequestMapAttr(sampleItem);
+          const referringMapAttr =
+            testReferringServiceRequestMap.length > 0
+              ? ` testReferringServiceRequestMap='${testReferringServiceRequestMap}'`
+              : "";
 
-            const referrers = Object.keys(sampleItem.referralItems)
-              .map(function (i) {
-                return sampleItem.referralItems[i].referrer;
-              })
-              .join(",");
-            referralItems.push({
-              referrer: referrers,
-              referredInstituteId: referredInstitutes,
-              referredTestId: tests,
-              referredSendDate: sentDates,
-              referralReasonId: referralReasonIds,
-            });
-          }
-        });
-        sampleXmlString += "</samples>";
-      }
+          sampleXmlString += `<sample sampleID='${sampleItem.sampleTypeId}' date='${sampleItem.sampleXML.collectionDate}' time='${sampleItem.sampleXML.collectionTime}' collector='${sampleItem.sampleXML.collector}' quantity='${sampleItem.sampleXML.quantity}' uom='${sampleItem.sampleXML.uom}' tests='${tests}' testSectionMap='' testSampleTypeMap='' panels='${panels}' rejected='${sampleItem.sampleXML.rejected}' rejectReasonId='${sampleItem.sampleXML.rejectionReason}' initialConditionIds='' storageLocationId='${storageLocationId}' storageLocationType='${storageLocationType}' storagePositionCoordinate='${storagePositionCoordinate}' gpsLatitude='${gpsLatitude}' gpsLongitude='${gpsLongitude}' gpsAccuracy='${gpsAccuracy}' gpsCaptureMethod='${gpsCaptureMethod}'${referringMapAttr}/>`;
+        }
+        if (sampleItem.referralItems.length > 0) {
+          const referredInstitutes = Object.keys(sampleItem.referralItems)
+            .map(function (i) {
+              return sampleItem.referralItems[i].institute;
+            })
+            .join(",");
+
+          const sentDates = Object.keys(sampleItem.referralItems)
+            .map(function (i) {
+              return sampleItem.referralItems[i].sentDate;
+            })
+            .join(",");
+
+          const referralReasonIds = Object.keys(sampleItem.referralItems)
+            .map(function (i) {
+              return sampleItem.referralItems[i].reasonForReferral;
+            })
+            .join(",");
+
+          const referrers = Object.keys(sampleItem.referralItems)
+            .map(function (i) {
+              return sampleItem.referralItems[i].referrer;
+            })
+            .join(",");
+          referralItems.push({
+            referrer: referrers,
+            referredInstituteId: referredInstitutes,
+            referredTestId: tests,
+            referredSendDate: sentDates,
+            referralReasonId: referralReasonIds,
+          });
+        }
+      });
+      sampleXmlString += "</samples>";
     }
-    setOrderFormValues({
-      ...orderFormValues,
+    setOrderFormValues((prev) => ({
+      ...prev,
       useReferral: true,
       sampleXML: sampleXmlString,
       referralItems: referralItems,
-    });
+    }));
   };
 
   const navigateForward = () => {
@@ -932,7 +1012,7 @@ const Index = () => {
             <h2>
               <FormattedMessage id="order.test.request.heading" />
             </h2>
-            {page <= orderPageNumber && (
+            {!isIncomingOrderFlow && page <= orderPageNumber && (
               <ProgressIndicator
                 currentIndex={page}
                 className="ProgressIndicator"
@@ -957,12 +1037,45 @@ const Index = () => {
               </ProgressIndicator>
             )}
 
-            {page === patientInfoPageNumber && (
+            {isIncomingOrderFlow && page !== successMsgPageNumber && (
+              <>
+                <PatientInfo
+                  orderFormValues={orderFormValues}
+                  setOrderFormValues={setOrderFormValues}
+                  error={elementError}
+                  setPhoneValidation={setPhoneValidation}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
+                />
+                <OrderEntryAdditionalQuestions
+                  orderFormValues={orderFormValues}
+                  setOrderFormValues={setOrderFormValues}
+                />
+                <AddSample
+                  error={elementError}
+                  setSamples={setSamples}
+                  samples={samples}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
+                />
+                <AddOrder
+                  orderFormValues={orderFormValues}
+                  setOrderFormValues={setOrderFormValues}
+                  samples={samples}
+                  error={elementError}
+                  isModifyOrder={false}
+                  changed={changed}
+                  setChanged={setChanged}
+                  isIncomingOrderFlow={isIncomingOrderFlow}
+                />
+              </>
+            )}
+
+            {!isIncomingOrderFlow && page === patientInfoPageNumber && (
               <PatientInfo
                 orderFormValues={orderFormValues}
                 setOrderFormValues={setOrderFormValues}
                 error={elementError}
                 setPhoneValidation={setPhoneValidation}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
             {page === programPageNumber && (
@@ -976,6 +1089,7 @@ const Index = () => {
                 error={elementError}
                 setSamples={setSamples}
                 samples={samples}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
             {page === orderPageNumber && (
@@ -987,6 +1101,7 @@ const Index = () => {
                 isModifyOrder={false}
                 changed={changed}
                 setChanged={setChanged}
+                isIncomingOrderFlow={isIncomingOrderFlow}
               />
             )}
 
@@ -999,13 +1114,15 @@ const Index = () => {
               />
             )}
             <div className="navigationButtonsLayout">
-              {page !== firstPageNumber && page <= orderPageNumber && (
-                <Button kind="tertiary" onClick={() => navigateBackWards()}>
-                  <FormattedMessage id="back.action.button" />
-                </Button>
-              )}
+              {!isIncomingOrderFlow &&
+                page !== firstPageNumber &&
+                page <= orderPageNumber && (
+                  <Button kind="tertiary" onClick={() => navigateBackWards()}>
+                    <FormattedMessage id="back.action.button" />
+                  </Button>
+                )}
 
-              {page < orderPageNumber && (
+              {!isIncomingOrderFlow && page < orderPageNumber && (
                 <Button
                   kind="primary"
                   className="forwardButton"
@@ -1015,7 +1132,26 @@ const Index = () => {
                 </Button>
               )}
 
-              {page === orderPageNumber && (
+              {isIncomingOrderFlow && page !== successMsgPageNumber && (
+                <Button
+                  kind="primary"
+                  className="forwardButton"
+                  disabled={
+                    isSubmitting ||
+                    Object.values(phoneValidation).some(
+                      (item) => item.status === false,
+                    ) ||
+                    errors?.errors?.length > 0
+                      ? true
+                      : false
+                  }
+                  onClick={handleSubmitOrderForm}
+                >
+                  <FormattedMessage id="label.button.submit" />
+                </Button>
+              )}
+
+              {!isIncomingOrderFlow && page === orderPageNumber && (
                 <Button
                   kind="primary"
                   className="forwardButton"

@@ -124,6 +124,7 @@ const AddSample = (props) => {
                     rejectSampleReasons={rejectSampleReasons}
                     removeSample={removeSample}
                     sample={sample}
+                    isIncomingOrderFlow={props.isIncomingOrderFlow}
                     setSample={(newSample) => {
                       let newSamples = [...samples];
                       newSamples[i] = newSample;

@@ -36,6 +36,7 @@ const SampleType = (props) => {
   const sampleTypesRef = useRef(null);
 
   const { index, rejectSampleReasons, removeSample, sample } = props;
+  const isIncomingOrderFlow = props.isIncomingOrderFlow === true;
 
   const [sampleTypes, setSampleTypes] = useState([]);
   const [selectedSampleType, setSelectedSampleType] = useState({
@@ -81,6 +82,18 @@ const SampleType = (props) => {
         },
   );
   const [loading, setLoading] = useState(true);
+
+  const uniqueById = (items = []) => {
+    const seen = new Set();
+    return items.filter((item) => {
+      const id = String(item?.id ?? "");
+      if (!id || seen.has(id)) {
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+  };
 
   const defaultSelect = { id: "", value: "Choose Rejection Reason" };
 
@@ -463,13 +476,33 @@ const SampleType = (props) => {
 
   const repopulateUI = () => {
     if (props.sample !== null) {
-      setSelectedTests(props.sample.tests);
-      setSelectedPanels(props.sample.panels);
+      setSelectedTests(uniqueById(props.sample.tests || []));
+      setSelectedPanels(uniqueById(props.sample.panels || []));
       setSelectedSampleType({
         id: props.sample.sampleTypeId,
       });
     }
   };
+
+  useEffect(() => {
+    if (!props.sample) {
+      return;
+    }
+
+    const incomingSampleTypeId = props.sample.sampleTypeId || "";
+    if (
+      incomingSampleTypeId &&
+      String(selectedSampleType.id || "") !== String(incomingSampleTypeId)
+    ) {
+      setSelectedSampleType((prev) => ({
+        ...prev,
+        id: incomingSampleTypeId,
+      }));
+    }
+
+    setSelectedTests(uniqueById(props.sample.tests || []));
+    setSelectedPanels(uniqueById(props.sample.panels || []));
+  }, [props.sample]);
 
   useEffect(() => {
     componentMounted.current = true;
@@ -526,65 +559,71 @@ const SampleType = (props) => {
             onChange={(e) => handleReasons(e)}
           />
         )}
-        <div className="inlineDiv" style={{ display: "flex", gap: "1rem" }}>
-          <TextInput
-            value={sampleXml.quantity}
-            name="quantity"
-            labelText={intl.formatMessage({
-              id: "sample.quantity.label",
-            })}
-            id="quantity"
-            type="number"
-            min="0"
-            onChange={(value) => handleQuantity(value)}
-            placeholder={intl.formatMessage({
-              id: "sample.quantity.label",
-            })}
-          />
+        {!isIncomingOrderFlow && (
+          <div className="inlineDiv" style={{ display: "flex", gap: "1rem" }}>
+            <TextInput
+              value={sampleXml.quantity}
+              name="quantity"
+              labelText={intl.formatMessage({
+                id: "sample.quantity.label",
+              })}
+              id="quantity"
+              type="number"
+              min="0"
+              onChange={(value) => handleQuantity(value)}
+              placeholder={intl.formatMessage({
+                id: "sample.quantity.label",
+              })}
+            />
 
-          <CustomSelect
-            id={"uomId_" + index}
-            labelText={intl.formatMessage({ id: "sample.uom.label" })}
-            options={uomList}
-            disabled={false}
-            value={sampleXml.uom}
-            onChange={(value) => handleUom(value)}
-          />
-        </div>
-        <div className="inlineDiv">
-          <CustomDatePicker
-            id={"collectionDate_" + index}
-            autofillDate={
-              configurationProperties?.AUTOFILL_COLLECTION_DATE === "true"
-            }
-            onChange={(date) => handleCollectionDate(date)}
-            value={sampleXml.collectionDate}
-            labelText={intl.formatMessage({ id: "sample.collection.date" })}
-            className="inputText"
-            disallowFutureDate={true}
-          />
+            <CustomSelect
+              id={"uomId_" + index}
+              labelText={intl.formatMessage({ id: "sample.uom.label" })}
+              options={uomList}
+              disabled={false}
+              value={sampleXml.uom}
+              onChange={(value) => handleUom(value)}
+            />
+          </div>
+        )}
+        {!isIncomingOrderFlow && (
+          <div className="inlineDiv">
+            <CustomDatePicker
+              id={"collectionDate_" + index}
+              autofillDate={
+                configurationProperties?.AUTOFILL_COLLECTION_DATE === "true"
+              }
+              onChange={(date) => handleCollectionDate(date)}
+              value={sampleXml.collectionDate}
+              labelText={intl.formatMessage({ id: "sample.collection.date" })}
+              className="inputText"
+              disallowFutureDate={true}
+            />
 
-          <CustomTimePicker
-            id={"collectionTime_" + index}
-            autofillTime={
-              configurationProperties?.AUTOFILL_COLLECTION_DATE === "true"
-            }
-            onChange={(time) => handleCollectionTime(time)}
-            value={sampleXml.collectionTime}
-            className="inputText"
-            labelText={intl.formatMessage({ id: "sample.collection.time" })}
-          />
-        </div>
-        <div className="inlineDiv">
-          <CustomTextInput
-            id={"collector_" + index}
-            onChange={(value) => handleCollector(value)}
-            defaultValue={""}
-            value={sampleXml.collector}
-            labelText={intl.formatMessage({ id: "collector.label" })}
-            className="inputText"
-          />
-        </div>
+            <CustomTimePicker
+              id={"collectionTime_" + index}
+              autofillTime={
+                configurationProperties?.AUTOFILL_COLLECTION_DATE === "true"
+              }
+              onChange={(time) => handleCollectionTime(time)}
+              value={sampleXml.collectionTime}
+              className="inputText"
+              labelText={intl.formatMessage({ id: "sample.collection.time" })}
+            />
+          </div>
+        )}
+        {!isIncomingOrderFlow && (
+          <div className="inlineDiv">
+            <CustomTextInput
+              id={"collector_" + index}
+              onChange={(value) => handleCollector(value)}
+              defaultValue={""}
+              value={sampleXml.collector}
+              labelText={intl.formatMessage({ id: "collector.label" })}
+              className="inputText"
+            />
+          </div>
+        )}
 
         {configurationProperties.GPS_ENABLED === "true" && (
           <div className="gpsDiv">
@@ -602,27 +641,31 @@ const SampleType = (props) => {
             Storage assignment operates at SampleItem level, so actual assignment happens
             after SampleItems are created. The location preference is stored here for
             later assignment to the first/default SampleItem. */}
-        <div className="inlineDiv">
-          <StorageLocationSelector
-            workflow="orders"
-            optional={true}
-            sampleInfo={{
-              // Note: sampleId here is temporary/placeholder - actual SampleItem ID will be available after SampleItems are created
-              sampleId: sample?.id || sample?.sampleId || `TEMP-${index}`,
-              type: selectedSampleType?.name || sampleXml?.sampleTypeName || "",
-              status: sampleXml?.rejected ? "Rejected" : "Active",
-            }}
-            initialLocation={sampleXml?.storageLocation || null}
-            onLocationChange={(locationData) => {
-              // locationData format: { sample, newLocation, reason?, conditionNotes?, positionCoordinate? }
-              // Extract newLocation and positionCoordinate from locationData
-              // Store location preference - will be assigned to SampleItem after SampleItems are created
-              const location = locationData?.newLocation || locationData;
-              const positionCoordinate = locationData?.positionCoordinate || "";
-              handleStorageLocationChange(location, positionCoordinate);
-            }}
-          />
-        </div>
+        {!isIncomingOrderFlow && (
+          <div className="inlineDiv">
+            <StorageLocationSelector
+              workflow="orders"
+              optional={true}
+              sampleInfo={{
+                // Note: sampleId here is temporary/placeholder - actual SampleItem ID will be available after SampleItems are created
+                sampleId: sample?.id || sample?.sampleId || `TEMP-${index}`,
+                type:
+                  selectedSampleType?.name || sampleXml?.sampleTypeName || "",
+                status: sampleXml?.rejected ? "Rejected" : "Active",
+              }}
+              initialLocation={sampleXml?.storageLocation || null}
+              onLocationChange={(locationData) => {
+                // locationData format: { sample, newLocation, reason?, conditionNotes?, positionCoordinate? }
+                // Extract newLocation and positionCoordinate from locationData
+                // Store location preference - will be assigned to SampleItem after SampleItems are created
+                const location = locationData?.newLocation || locationData;
+                const positionCoordinate =
+                  locationData?.positionCoordinate || "";
+                handleStorageLocationChange(location, positionCoordinate);
+              }}
+            />
+          </div>
+        )}
         <div className="testPanels">
           <div className="cds--col">
             <h4>
