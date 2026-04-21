@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Scope("prototype")
 public class TaskInterpreterImpl implements TaskInterpreter {
+    private static final String MOH_HEALTH_ID_SYSTEM = "https://id.moh.gov.et/health-id";
 
     @Autowired
     private FhirContext fhirContext;
@@ -237,6 +238,9 @@ public class TaskInterpreterImpl implements TaskInterpreter {
             if (identifier.getType().hasCoding(fhirConfig.getOeFhirSystem() + "/genIdType", "externalId")) {
                 messagePatient.setExternalId(identifier.getValue());
             }
+            if (MOH_HEALTH_ID_SYSTEM.equals(identifier.getSystem())) {
+                messagePatient.setSubjectNumber(identifier.getValue());
+            }
             if ((fhirConfig.getOeFhirSystem() + "/pat_nationalId").equals(identifier.getSystem())) {
                 messagePatient.setNationalId(identifier.getValue());
             }
@@ -372,6 +376,7 @@ public class TaskInterpreterImpl implements TaskInterpreter {
 
                 if (getMessagePatient().getNationalId() == null && getMessagePatient().getObNumber() == null
                         && getMessagePatient().getPcNumber() == null && getMessagePatient().getStNumber() == null
+                        && getMessagePatient().getSubjectNumber() == null
                         && getMessagePatient().getExternalId() == null) {
                     results.add(InterpreterResults.MISSING_PATIENT_IDENTIFIER);
                 }
