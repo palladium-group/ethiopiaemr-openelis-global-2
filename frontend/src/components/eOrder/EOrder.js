@@ -268,6 +268,12 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
               }),
             },
             {
+              key: "sampleType",
+              header: intl.formatMessage({
+                id: "sample.type",
+              }),
+            },
+            {
               key: "subjectNumber",
               header: intl.formatMessage({
                 id: "eorder.id.healthId",
