@@ -119,6 +119,7 @@ public class RestElectronicOrdersController extends BaseController {
                         item.setGroupExternalOrderIds(singleExternal);
                     }
                 }
+                applySampleTypeDisplayValues(eOrderDisplayItems);
                 paging.setDatabaseResults(request, form, eOrderDisplayItems);
             }
         } else {
@@ -253,6 +254,32 @@ public class RestElectronicOrdersController extends BaseController {
                         && SAMPLE_TYPE_INPUT_CODE.equals(input.getType().getCodingFirstRep().getCode())
                         && input.getValue() != null)
                 .map(input -> input.getValue().primitiveValue()).findFirst().orElse("");
+    }
+
+    private String resolveSampleTypeDisplayValue(String sampleTypeIdOrName) {
+        if (GenericValidator.isBlankOrNull(sampleTypeIdOrName)) {
+            return "";
+        }
+        String displayName = typeOfSampleService.getTypeOfSampleNameForId(sampleTypeIdOrName);
+        if (!GenericValidator.isBlankOrNull(displayName)) {
+            return displayName;
+        }
+        TypeOfSample sampleType = typeOfSampleService.getTypeOfSampleById(sampleTypeIdOrName);
+        if (sampleType != null) {
+            if (!GenericValidator.isBlankOrNull(sampleType.getLocalizedName())) {
+                return sampleType.getLocalizedName();
+            }
+            if (!GenericValidator.isBlankOrNull(sampleType.getDescription())) {
+                return sampleType.getDescription();
+            }
+        }
+        return sampleTypeIdOrName;
+    }
+
+    private void applySampleTypeDisplayValues(List<ElectronicOrderDisplayItem> items) {
+        for (ElectronicOrderDisplayItem item : items) {
+            item.setSampleType(resolveSampleTypeDisplayValue(item.getSampleType()));
+        }
     }
 
     /**

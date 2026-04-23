@@ -40,6 +40,7 @@ import PatientImageSelector from "./photoManagement/uploadPhoto/PatientImageSele
 
 function CreatePatientForm(props) {
   const componentMounted = useRef(false);
+  const lastResolvedRegionIdRef = useRef(null);
 
   const { notificationVisible, setNotificationVisible, addNotification } =
     useContext(NotificationContext);
@@ -292,22 +293,11 @@ function CreatePatientForm(props) {
     setPrevlastContactName(event.target.value);
   }
 
-  function fetchHealthDistrictsCallback(res) {
-    setHealthDistricts(res);
-  }
+  const normalizeValue = (value) =>
+    (value || "").toString().trim().toLowerCase();
 
   useEffect(() => {
     if (props.selectedPatient.patientPK) {
-      if (props.selectedPatient.healthRegion != null) {
-        getFromOpenElisServer(
-          "/rest/health-districts-for-region?regionId=" +
-            props.selectedPatient.healthRegion,
-          fetchHealthDistrictsCallback,
-        );
-      } else {
-        //nextState.healthDistricts = [];
-        setHealthDistricts([]);
-      }
       //merge objects together to avoid "A component is changing a controlled input to be uncontrolled"
       let patient = props.selectedPatient;
       patient.patientUpdateStatus = "UPDATE";
@@ -349,6 +339,70 @@ function CreatePatientForm(props) {
       );
     }
   }, [props.selectedPatient]);
+
+  useEffect(() => {
+    const rawRegion = props.selectedPatient?.healthRegion;
+    if (
+      !rawRegion ||
+      !Array.isArray(healthRegions) ||
+      healthRegions.length === 0
+    ) {
+      setHealthDistricts([]);
+      lastResolvedRegionIdRef.current = null;
+      return;
+    }
+
+    const matchedRegion =
+      healthRegions.find((region) => region.id === rawRegion) ||
+      healthRegions.find(
+        (region) => normalizeValue(region.value) === normalizeValue(rawRegion),
+      );
+    // Only call district API with a real OpenELIS region id.
+    const resolvedRegionId = matchedRegion?.id;
+    if (!resolvedRegionId) {
+      setHealthDistricts([]);
+      return;
+    }
+    if (lastResolvedRegionIdRef.current === resolvedRegionId) {
+      return;
+    }
+    lastResolvedRegionIdRef.current = resolvedRegionId;
+
+    setPatientDetails((prev) =>
+      prev.healthRegion === resolvedRegionId
+        ? prev
+        : { ...prev, healthRegion: resolvedRegionId },
+    );
+
+    getFromOpenElisServer(
+      `/rest/health-districts-for-region?regionId=${resolvedRegionId}`,
+      (districts) => {
+        const safeDistricts = Array.isArray(districts) ? districts : [];
+        setHealthDistricts(safeDistricts);
+
+        const rawDistrict = props.selectedPatient?.healthDistrict;
+        if (!rawDistrict) {
+          return;
+        }
+
+        const matchedDistrict =
+          safeDistricts.find((district) => district.value === rawDistrict) ||
+          safeDistricts.find(
+            (district) =>
+              normalizeValue(district.value) === normalizeValue(rawDistrict),
+          ) ||
+          safeDistricts.find((district) => district.id === rawDistrict);
+
+        if (matchedDistrict) {
+          setPatientDetails((prev) =>
+            prev.healthDistrict === matchedDistrict.id
+              ? prev
+              : { ...prev, healthDistrict: matchedDistrict.id },
+          );
+        }
+      },
+    );
+  }, [props.selectedPatient, healthRegions]);
 
   const repopulatePatientInfo = () => {
     if (props.orderFormValues != null) {
@@ -429,7 +483,7 @@ function CreatePatientForm(props) {
   };
 
   const fetchHeathDistricts = (districts) => {
-    setHealthDistricts(districts);
+    setHealthDistricts(Array.isArray(districts) ? districts : []);
   };
 
   const handleSubmit = async (values, { resetForm }) => {
@@ -1026,6 +1080,17 @@ function CreatePatientForm(props) {
                               })}
                             >
                               <SelectItem text="" value="" />
+                              {values.healthRegion &&
+                                !healthRegions?.some(
+                                  (region) =>
+                                    region.id === values.healthRegion ||
+                                    region.value === values.healthRegion,
+                                ) && (
+                                  <SelectItem
+                                    text={values.healthRegionName || ""}
+                                    value={values.healthRegion}
+                                  />
+                                )}
                               {healthRegions?.map((region, index) => (
                                 <SelectItem
                                   text={region.value}
@@ -1054,10 +1119,28 @@ function CreatePatientForm(props) {
                               })}
                             >
                               <SelectItem text="" value="" />
-                              {healthDistricts.map((district, index) => (
+                              {values.healthDistrict &&
+                                !(
+                                  Array.isArray(healthDistricts) &&
+                                  healthDistricts.some(
+                                    (district) =>
+                                      district.value ===
+                                        values.healthDistrict ||
+                                      district.id === values.healthDistrict,
+                                  )
+                                ) && (
+                                  <SelectItem
+                                    text={values.healthDistrictName || ""}
+                                    value={values.healthDistrict}
+                                  />
+                                )}
+                              {(Array.isArray(healthDistricts)
+                                ? healthDistricts
+                                : []
+                              ).map((district, index) => (
                                 <SelectItem
                                   text={district.value}
-                                  value={district.value}
+                                  value={district.id}
                                   key={index}
                                 />
                               ))}

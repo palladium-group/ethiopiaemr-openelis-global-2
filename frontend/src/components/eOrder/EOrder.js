@@ -244,12 +244,6 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
               header: intl.formatMessage({ id: "eorder.name.first" }),
             },
             {
-              key: "patientNationalId",
-              header: intl.formatMessage({
-                id: "eorder.id.national",
-              }),
-            },
-            {
               key: "requestingFacility",
               header: intl.formatMessage({
                 id: "eorder.facility.requesting",
@@ -274,21 +268,16 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
               }),
             },
             {
-              key: "referringLabNumber",
+              key: "sampleType",
               header: intl.formatMessage({
-                id: "eorder.labnumber.referring",
-              }),
-            },
-            {
-              key: "passportNumber",
-              header: intl.formatMessage({
-                id: "eorder.passport.number",
+                id: "sample.type",
               }),
             },
             {
               key: "subjectNumber",
               header: intl.formatMessage({
-                id: "eorder.id.subjectNumber",
+                id: "eorder.id.healthId",
+                defaultMessage: "Health ID",
               }),
             },
             {

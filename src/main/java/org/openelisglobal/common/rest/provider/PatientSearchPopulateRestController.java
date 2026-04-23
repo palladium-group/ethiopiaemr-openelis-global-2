@@ -10,6 +10,8 @@ import org.openelisglobal.common.rest.provider.bean.PatientInfoBean;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.organization.service.OrganizationService;
+import org.openelisglobal.organization.valueholder.Organization;
 import org.openelisglobal.patient.service.PatientContactService;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.util.PatientUtil;
@@ -46,6 +48,8 @@ public class PatientSearchPopulateRestController {
 
     @Autowired
     PatientPatientTypeService patientPatientTypeService;
+    @Autowired
+    OrganizationService organizationService;
 
     private String ADDRESS_PART_VILLAGE_ID;
 
@@ -135,6 +139,8 @@ public class PatientSearchPopulateRestController {
         patientInfo.setOtherNationality(identityMap.getIdentityValue(identityList, "OTHER NATIONALITY"));
         patientInfo.setHealthDistrict(identityMap.getIdentityValue(identityList, "HEALTH DISTRICT"));
         patientInfo.setHealthRegion(identityMap.getIdentityValue(identityList, "HEALTH REGION"));
+        patientInfo.setHealthRegionName(resolveOrganizationName(patientInfo.getHealthRegion()));
+        patientInfo.setHealthDistrictName(resolveOrganizationName(patientInfo.getHealthDistrict()));
         patientInfo.setGuid(identityMap.getIdentityValue(identityList, "GUID"));
         if (patientContacts.size() >= 1) {
             PatientContact contact = patientContacts.get(0);
@@ -157,6 +163,18 @@ public class PatientSearchPopulateRestController {
         PersonAddress address = personAddressService.getByPersonIdAndPartId(person.getId(), addressPartId);
 
         return address != null ? address.getValue() : "";
+    }
+
+    private String resolveOrganizationName(String organizationId) {
+        if (GenericValidator.isBlankOrNull(organizationId)) {
+            return "";
+        }
+        try {
+            Organization organization = organizationService.getOrganizationById(organizationId);
+            return organization == null ? "" : organization.getOrganizationName();
+        } catch (RuntimeException e) {
+            return "";
+        }
     }
 
     /**

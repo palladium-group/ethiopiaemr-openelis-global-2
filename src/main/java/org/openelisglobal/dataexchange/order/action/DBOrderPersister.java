@@ -18,6 +18,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.address.service.AddressPartService;
 import org.openelisglobal.address.service.PersonAddressService;
@@ -33,6 +34,8 @@ import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.notifications.dao.NotificationDAO;
 import org.openelisglobal.notifications.entity.Notification;
+import org.openelisglobal.organization.service.OrganizationService;
+import org.openelisglobal.organization.valueholder.Organization;
 import org.openelisglobal.patient.service.PatientContactService;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
@@ -63,6 +66,8 @@ public class DBOrderPersister implements IOrderPersister {
     private String IDENTITY_OBNUMBER_ID;
     private String IDENTITY_PCNUMBER_ID;
     private String IDENTITY_SUBJECTNUMBER_ID;
+    private String IDENTITY_HEALTH_REGION_ID;
+    private String IDENTITY_HEALTH_DISTRICT_ID;
 
     @Autowired
     private ElectronicOrderService eOrderService;
@@ -86,6 +91,8 @@ public class DBOrderPersister implements IOrderPersister {
     private NotificationDAO notificationDAO;
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private OrganizationService organizationService;
 
     private Patient patient;
 
@@ -103,6 +110,8 @@ public class DBOrderPersister implements IOrderPersister {
         IDENTITY_OBNUMBER_ID = getIdentityType(identityTypeService, "OB_NUMBER");
         IDENTITY_PCNUMBER_ID = getIdentityType(identityTypeService, "PC_NUMBER");
         IDENTITY_SUBJECTNUMBER_ID = getIdentityType(identityTypeService, "SUBJECT");
+        IDENTITY_HEALTH_REGION_ID = getIdentityType(identityTypeService, "HEALTH REGION");
+        IDENTITY_HEALTH_DISTRICT_ID = getIdentityType(identityTypeService, "HEALTH DISTRICT");
         List<AddressPart> partList = addressPartService.getAll();
         for (AddressPart addressPart : partList) {
             if ("department".equals(addressPart.getPartName())) {
@@ -121,12 +130,57 @@ public class DBOrderPersister implements IOrderPersister {
     }
 
     private void persist(MessagePatient orderPatient) {
+        normalizeHealthRegionAndDistrictIdsIfNeeded(orderPatient);
         patient = patientService.getPatientForGuid(orderPatient.getGuid());
         patient = patient == null ? patientService.getPatientByExternalId(orderPatient.getExternalId()) : patient;
         if (patient == null) {
             createNewPatient(orderPatient);
         } else {
             updatePatient(orderPatient, patient);
+        }
+    }
+
+    private void normalizeHealthRegionAndDistrictIdsIfNeeded(MessagePatient orderPatient) {
+        if (orderPatient == null) {
+            return;
+        }
+
+        String healthRegion = orderPatient.getHealthRegion();
+        if (!GenericValidator.isBlankOrNull(healthRegion) && !StringUtils.isNumeric(healthRegion)) {
+            Organization region = new Organization();
+            region.setOrganizationName(healthRegion);
+            Organization matchedRegion = organizationService.getOrganizationByName(region, true);
+            if (matchedRegion != null) {
+                orderPatient.setHealthRegion(matchedRegion.getId());
+            } else {
+                // Skip unresolved region value instead of passing non-ID text downstream.
+                orderPatient.setHealthRegion("");
+            }
+        }
+
+        String healthDistrict = orderPatient.getHealthDistrict();
+        if (!GenericValidator.isBlankOrNull(healthDistrict) && !StringUtils.isNumeric(healthDistrict)
+                && !GenericValidator.isBlankOrNull(orderPatient.getHealthRegion())
+                && StringUtils.isNumeric(orderPatient.getHealthRegion())) {
+            List<Organization> districts = organizationService
+                    .getOrganizationsByParentId(orderPatient.getHealthRegion());
+            boolean districtMatched = false;
+            for (Organization district : districts) {
+                if (district.getOrganizationName() != null && healthDistrict != null
+                        && district.getOrganizationName().equalsIgnoreCase(healthDistrict)) {
+                    orderPatient.setHealthDistrict(district.getId());
+                    districtMatched = true;
+                    break;
+                }
+            }
+            if (!districtMatched) {
+                // Skip unresolved district value instead of keeping non-ID text.
+                orderPatient.setHealthDistrict("");
+            }
+        } else if (!GenericValidator.isBlankOrNull(healthDistrict) && !StringUtils.isNumeric(healthDistrict)) {
+            // Region wasn't resolvable to a valid ID, so district cannot be resolved
+            // either.
+            orderPatient.setHealthDistrict("");
         }
     }
 
@@ -188,6 +242,8 @@ public class DBOrderPersister implements IOrderPersister {
         addIdentityIfAppropriate(IDENTITY_OBNUMBER_ID, orderPatient.getObNumber(), identities);
         addIdentityIfAppropriate(IDENTITY_PCNUMBER_ID, orderPatient.getPcNumber(), identities);
         addIdentityIfAppropriate(IDENTITY_SUBJECTNUMBER_ID, orderPatient.getSubjectNumber(), identities);
+        addIdentityIfAppropriate(IDENTITY_HEALTH_REGION_ID, orderPatient.getHealthRegion(), identities);
+        addIdentityIfAppropriate(IDENTITY_HEALTH_DISTRICT_ID, orderPatient.getHealthDistrict(), identities);
 
         personService.insert(person);
         patientService.insert(patient);
@@ -232,6 +288,10 @@ public class DBOrderPersister implements IOrderPersister {
         updateIdentityIfNeeded(IDENTITY_GUID_ID, orderPatient.getGuid(), patient.getId(), identityList,
                 identityService);
         updateIdentityIfNeeded(IDENTITY_SUBJECTNUMBER_ID, orderPatient.getSubjectNumber(), patient.getId(),
+                identityList, identityService);
+        updateIdentityIfNeeded(IDENTITY_HEALTH_REGION_ID, orderPatient.getHealthRegion(), patient.getId(), identityList,
+                identityService);
+        updateIdentityIfNeeded(IDENTITY_HEALTH_DISTRICT_ID, orderPatient.getHealthDistrict(), patient.getId(),
                 identityList, identityService);
 
         updateAddressPartsIfNeeded(orderPatient, person.getId());

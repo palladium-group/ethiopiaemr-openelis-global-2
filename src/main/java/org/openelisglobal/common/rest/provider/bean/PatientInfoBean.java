@@ -45,10 +45,12 @@ public class PatientInfoBean implements Serializable {
     private String email;
     private String patientType = "";
     private String healthRegion;
+    private String healthRegionName;
     private String education;
     private String maritialStatus;
     private String nationality;
     private String healthDistrict;
+    private String healthDistrictName;
     private String otherNationality;
     private PatientContact patientContact;
     private boolean readOnly = false;
@@ -245,12 +247,28 @@ public class PatientInfoBean implements Serializable {
         this.healthRegion = healthRegion;
     }
 
+    public String getHealthRegionName() {
+        return healthRegionName;
+    }
+
+    public void setHealthRegionName(String healthRegionName) {
+        this.healthRegionName = healthRegionName;
+    }
+
     public String getHealthDistrict() {
         return healthDistrict;
     }
 
     public void setHealthDistrict(String healthDistrict) {
         this.healthDistrict = healthDistrict;
+    }
+
+    public String getHealthDistrictName() {
+        return healthDistrictName;
+    }
+
+    public void setHealthDistrictName(String healthDistrictName) {
+        this.healthDistrictName = healthDistrictName;
     }
 
     public String getOtherNationality() {
