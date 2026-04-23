@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Patient.ContactComponent;
@@ -38,6 +39,12 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class TaskInterpreterImpl implements TaskInterpreter {
     private static final String MOH_HEALTH_ID_SYSTEM = "https://id.moh.gov.et/health-id";
+    private static final String OPENMRS_PERSON_ATTRIBUTE_URL = "http://fhir.openmrs.org/ext/person-attribute";
+    private static final String OPENMRS_PERSON_ATTRIBUTE_TYPE_URL = "http://fhir.openmrs.org/ext/person-attribute-type";
+    private static final String OPENMRS_PERSON_ATTRIBUTE_VALUE_URL = "http://fhir.openmrs.org/ext/person-attribute-value";
+    private static final String OPENMRS_ADDRESS_EXTENSION_URL = "http://fhir.openmrs.org/ext/address";
+    private static final String OPENMRS_ADDRESS4_EXTENSION_URL = "http://fhir.openmrs.org/ext/address#address4";
+    private static final String TELEPHONE_CONTACT_ATTRIBUTE = "Telephone contact";
 
     @Autowired
     private FhirContext fhirContext;
@@ -300,6 +307,7 @@ public class TaskInterpreterImpl implements TaskInterpreter {
                 messagePatient.setWorkPhone(telecom.getValue());
             }
         }
+        syncOpenMrsTelephoneContact(patient, messagePatient);
         for (Address address : patient.getAddress()) {
             for (StringType line : address.getLine()) {
                 String lineValue = line.asStringValue();
@@ -314,8 +322,11 @@ public class TaskInterpreterImpl implements TaskInterpreter {
                 }
             }
 
-            messagePatient.setAddressVillage(address.getCity());
+            String address4 = extractOpenMrsAddress4(address);
+            messagePatient.setAddressVillage(firstNonBlank(address4, address.getCity()));
             messagePatient.setAddressDepartment(address.getState());
+            messagePatient.setHealthRegion(address.getDistrict());
+            messagePatient.setHealthDistrict(address.getState());
             messagePatient.setAddressCountry(address.getCountry());
         }
 
@@ -336,6 +347,54 @@ public class TaskInterpreterImpl implements TaskInterpreter {
         }
 
         return messagePatient;
+    }
+
+    private void syncOpenMrsTelephoneContact(Patient fhirPatient, MessagePatient messagePatient) {
+        for (Extension extension : fhirPatient.getExtension()) {
+            if (!OPENMRS_PERSON_ATTRIBUTE_URL.equals(extension.getUrl()) || extension.getExtension().isEmpty()) {
+                continue;
+            }
+            String attrType = null;
+            String attrValue = null;
+            for (Extension nested : extension.getExtension()) {
+                if (OPENMRS_PERSON_ATTRIBUTE_TYPE_URL.equals(nested.getUrl()) && nested.getValue() != null) {
+                    attrType = nested.getValue().primitiveValue();
+                }
+                if (OPENMRS_PERSON_ATTRIBUTE_VALUE_URL.equals(nested.getUrl()) && nested.getValue() != null) {
+                    attrValue = nested.getValue().primitiveValue();
+                }
+            }
+            if (TELEPHONE_CONTACT_ATTRIBUTE.equalsIgnoreCase(attrType) && !GenericValidator.isBlankOrNull(attrValue)) {
+                messagePatient.setMobilePhone(attrValue);
+                if (GenericValidator.isBlankOrNull(messagePatient.getWorkPhone())) {
+                    messagePatient.setWorkPhone(attrValue);
+                }
+                return;
+            }
+        }
+    }
+
+    private String extractOpenMrsAddress4(Address address) {
+        for (Extension extension : address.getExtension()) {
+            if (!OPENMRS_ADDRESS_EXTENSION_URL.equals(extension.getUrl()) || extension.getExtension().isEmpty()) {
+                continue;
+            }
+            for (Extension nested : extension.getExtension()) {
+                if (OPENMRS_ADDRESS4_EXTENSION_URL.equals(nested.getUrl()) && nested.getValue() != null) {
+                    return nested.getValue().primitiveValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (!GenericValidator.isBlankOrNull(value)) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private List<InterpreterResults> buildResultList(boolean exceptionThrown) {

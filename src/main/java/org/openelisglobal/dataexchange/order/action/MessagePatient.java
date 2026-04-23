@@ -43,6 +43,8 @@ public class MessagePatient {
     private String addressVillage;
     private String addressDepartment;
     private String addressCountry;
+    private String healthRegion;
+    private String healthDistrict;
 
     public String getGuid() {
         return guid;
@@ -218,6 +220,22 @@ public class MessagePatient {
 
     public void setAddressCountry(String addressCountry) {
         this.addressCountry = addressCountry;
+    }
+
+    public String getHealthRegion() {
+        return healthRegion;
+    }
+
+    public void setHealthRegion(String healthRegion) {
+        this.healthRegion = healthRegion;
+    }
+
+    public String getHealthDistrict() {
+        return healthDistrict;
+    }
+
+    public void setHealthDistrict(String healthDistrict) {
+        this.healthDistrict = healthDistrict;
     }
 
     public String getFhirUuid() {

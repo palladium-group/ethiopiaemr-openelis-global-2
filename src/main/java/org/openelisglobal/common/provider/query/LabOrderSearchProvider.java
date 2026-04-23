@@ -121,6 +121,8 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
     private static final String PROVIDER_PHONE = "phone";
     private static final String PROVIDER_EMAIL = "email";
     private static final String PROVIDER_FAX = "fax";
+    private static final String OPENMRS_ADDRESS_EXTENSION_URL = "http://fhir.openmrs.org/ext/address";
+    private static final String OPENMRS_ADDRESS4_EXTENSION_URL = "http://fhir.openmrs.org/ext/address#address4";
 
     @Override
     public void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -536,7 +538,28 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
     private void addPatientGuid(StringBuilder xml, String patientGuid) {
         xml.append("<patient>");
         XMLUtil.appendKeyValue("guid", patientGuid, xml);
+        if (patient != null && patient.hasAddress()) {
+            org.hl7.fhir.r4.model.Address address = patient.getAddressFirstRep();
+            XMLUtil.appendKeyValue("healthRegion", address.getDistrict(), xml);
+            XMLUtil.appendKeyValue("healthDistrict", address.getState(), xml);
+            String town = extractOpenMrsAddress4(address);
+            XMLUtil.appendKeyValue("city", GenericValidator.isBlankOrNull(town) ? address.getCity() : town, xml);
+        }
         xml.append("</patient>");
+    }
+
+    private String extractOpenMrsAddress4(org.hl7.fhir.r4.model.Address address) {
+        for (org.hl7.fhir.r4.model.Extension extension : address.getExtension()) {
+            if (!OPENMRS_ADDRESS_EXTENSION_URL.equals(extension.getUrl()) || extension.getExtension().isEmpty()) {
+                continue;
+            }
+            for (org.hl7.fhir.r4.model.Extension nested : extension.getExtension()) {
+                if (OPENMRS_ADDRESS4_EXTENSION_URL.equals(nested.getUrl()) && nested.getValue() != null) {
+                    return nested.getValue().primitiveValue();
+                }
+            }
+        }
+        return null;
     }
 
     private void createMapsForTests(List<Request> testRequests) {

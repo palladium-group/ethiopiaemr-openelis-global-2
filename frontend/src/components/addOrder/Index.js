@@ -356,6 +356,11 @@ const Index = () => {
     newOrderFormValues.patientProperties = {
       ...newOrderFormValues.patientProperties,
       guid: patient.guid,
+      healthRegion: patient.healthRegion || "",
+      healthDistrict: patient.healthDistrict || "",
+      healthRegionName: patient.healthRegion || "",
+      healthDistrictName: patient.healthDistrict || "",
+      city: patient.city || "",
     };
   };
 
@@ -776,6 +781,12 @@ const Index = () => {
     }
     if ("days" in orderFormValues.patientProperties) {
       delete orderFormValues.patientProperties.days;
+    }
+    if ("healthRegionName" in orderFormValues.patientProperties) {
+      delete orderFormValues.patientProperties.healthRegionName;
+    }
+    if ("healthDistrictName" in orderFormValues.patientProperties) {
+      delete orderFormValues.patientProperties.healthDistrictName;
     }
     if ("questionnaire" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.questionnaire;

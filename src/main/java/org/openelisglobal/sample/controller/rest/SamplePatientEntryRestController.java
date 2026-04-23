@@ -239,6 +239,7 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
         SamplePatientUpdateData updateData = new SamplePatientUpdateData(getSysUserId(request));
 
         PatientManagementInfo patientInfo = form.getPatientProperties();
+        normalizeHealthRegionAndDistrictIdsIfNeeded(patientInfo);
         SampleOrderItem sampleOrder = form.getSampleOrderItems();
 
         boolean trackPayments = ConfigurationProperties.getInstance()
@@ -371,6 +372,50 @@ public class SamplePatientEntryRestController extends BaseSampleEntryController 
         }
 
         return (form);
+    }
+
+    private void normalizeHealthRegionAndDistrictIdsIfNeeded(PatientManagementInfo patientInfo) {
+        if (patientInfo == null) {
+            return;
+        }
+        if (!GenericValidator.isBlankOrNull(patientInfo.getHealthRegion())
+                && !StringUtils.isNumeric(patientInfo.getHealthRegion())) {
+            Organization region = new Organization();
+            region.setOrganizationName(patientInfo.getHealthRegion());
+            Organization matchedRegion = organizationService.getOrganizationByName(region, true);
+            if (matchedRegion != null) {
+                patientInfo.setHealthRegion(matchedRegion.getId());
+            } else {
+                // Skip unresolved region value instead of passing non-ID text downstream.
+                patientInfo.setHealthRegion("");
+            }
+        }
+
+        if (!GenericValidator.isBlankOrNull(patientInfo.getHealthDistrict())
+                && !StringUtils.isNumeric(patientInfo.getHealthDistrict())
+                && !GenericValidator.isBlankOrNull(patientInfo.getHealthRegion())
+                && StringUtils.isNumeric(patientInfo.getHealthRegion())) {
+            List<Organization> districtOrganizations = organizationService
+                    .getOrganizationsByParentId(patientInfo.getHealthRegion());
+            boolean districtMatched = false;
+            for (Organization district : districtOrganizations) {
+                if (district.getOrganizationName() != null && patientInfo.getHealthDistrict() != null
+                        && district.getOrganizationName().equalsIgnoreCase(patientInfo.getHealthDistrict())) {
+                    patientInfo.setHealthDistrict(district.getId());
+                    districtMatched = true;
+                    break;
+                }
+            }
+            if (!districtMatched) {
+                // Skip unresolved district value instead of keeping non-ID text.
+                patientInfo.setHealthDistrict("");
+            }
+        } else if (!GenericValidator.isBlankOrNull(patientInfo.getHealthDistrict())
+                && !StringUtils.isNumeric(patientInfo.getHealthDistrict())) {
+            // Region wasn't resolvable to a valid ID, so district cannot be resolved
+            // either.
+            patientInfo.setHealthDistrict("");
+        }
     }
 
     private void setupForm(SamplePatientEntryForm form, HttpServletRequest request, String externalOrderNumber,
