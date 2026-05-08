@@ -228,8 +228,8 @@ public class SiteBrandingServiceImpl extends BaseObjectServiceImpl<SiteBranding,
      */
     private SiteBranding createDefaultBranding() {
         SiteBranding branding = new SiteBranding();
-        branding.setHeaderColor("#1d78cb");
-        branding.setPrimaryColor("#1d78cb");
+        branding.setHeaderColor("#003b76");
+        branding.setPrimaryColor("#003b76");
         branding.setSecondaryColor("#1557a0");
         branding.setColorMode("light");
         branding.setUseHeaderLogoForLogin(false);
@@ -520,8 +520,8 @@ public class SiteBrandingServiceImpl extends BaseObjectServiceImpl<SiteBranding,
         managedBranding.setLoginLogoPath(null);
         managedBranding.setFaviconPath(null);
         managedBranding.setUseHeaderLogoForLogin(false);
-        managedBranding.setHeaderColor("#1d78cb");
-        managedBranding.setPrimaryColor("#1d78cb");
+        managedBranding.setHeaderColor("#003b76");
+        managedBranding.setPrimaryColor("#003b76");
         managedBranding.setSecondaryColor("#1557a0");
         managedBranding.setColorMode("light");
         managedBranding.setSysUserId(branding.getSysUserId());

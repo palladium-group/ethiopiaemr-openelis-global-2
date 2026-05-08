@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Update default site branding primary/header color to TenaEHR blue.
+        This migration updates existing rows that still use prior default palettes.
+    -->
+    <changeSet id="017-update-site-branding-tenaehr-primary-color" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="site_branding"/>
+        </preConditions>
+        <comment>Update site_branding default primary/header colors to TenaEHR blue (#003b76)</comment>
+        <update tableName="site_branding">
+            <column name="header_color" value="#003b76"/>
+            <column name="primary_color" value="#003b76"/>
+            <where>header_color IN ('#1d78cb', '#1372b6')</where>
+        </update>
+        <rollback>
+            <update tableName="site_branding">
+                <column name="header_color" value="#1d78cb"/>
+                <column name="primary_color" value="#1d78cb"/>
+                <where>header_color = '#003b76'</where>
+            </update>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

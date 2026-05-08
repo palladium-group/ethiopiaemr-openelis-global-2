@@ -2,13 +2,13 @@
 @use "@carbon/react/scss/theme" with (
   $fallback: themes.$g100,
   $theme: (
-    background: #1d78cb,
+    background: #003b76,
     text-primary: #ffffff,
     text-secondary: #ffffff,
     icon-primary: #ffffff,
     icon-secondary: #ffffff,
     background-hover: #1557a0,
-    layer-01: #1d78cb,
+    layer-01: #003b76,
     layer-hover-01: #1557a0,
   )
 );
@@ -21,9 +21,9 @@
  * interactive-01. Placed after @use so it wins over Carbon's defaults.
  */
 .cds--white {
-  --cds-interactive-01: var(--site-branding-primary, #1d78cb);
+  --cds-interactive-01: var(--site-branding-primary, #003b76);
   --cds-interactive-02: var(--site-branding-secondary, #1557a0);
-  --cds-button-primary: var(--site-branding-primary, #1d78cb);
+  --cds-button-primary: var(--site-branding-primary, #003b76);
   --cds-button-primary-hover: var(--site-branding-secondary, #1557a0);
   --cds-button-primary-active: var(--site-branding-secondary, #1557a0);
 }

@@ -21,13 +21,13 @@ code {
  * The value is set on :root at runtime.
  */
 .cds--header.cds--header {
-  background-color: var(--site-branding-header, #1d78cb);
+  background-color: var(--site-branding-header, #003b76);
   border-bottom: none;
 }
 
 /* Primary/secondary defaults when no site branding applied (align with Liquibase 014) */
 :root {
-  --cds-interactive-01: #1d78cb;
+  --cds-interactive-01: #003b76;
   --cds-interactive-02: #1557a0;
 }
 

@@ -40,15 +40,15 @@ public class SiteBranding extends BaseObject<Integer> {
     private String faviconPath;
 
     /**
-     * Header bar background color - default MOH primary (align: Liquibase
-     * 014-update-site-branding-default-colors)
+     * Header bar background color - default TenaEHR primary (align: Liquibase
+     * 017-update-site-branding-tenaehr-primary-color)
      */
     @Column(name = "header_color", length = 50, nullable = false)
-    private String headerColor = "#1d78cb";
+    private String headerColor = "#003b76";
 
-    /** Primary interactive color - default MOH primary */
+    /** Primary interactive color - default TenaEHR primary */
     @Column(name = "primary_color", length = 50, nullable = false)
-    private String primaryColor = "#1d78cb";
+    private String primaryColor = "#003b76";
 
     /** Secondary color - darker shade of primary */
     @Column(name = "secondary_color", length = 50, nullable = false)
