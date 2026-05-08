@@ -103,7 +103,7 @@ function Login(props) {
             src={logoSrc}
             alt="fullsize logo"
             width="300"
-            height="56"
+            height="100"
             style={{ objectFit: "contain" }}
             onError={(e) => {
               e.target.src = `images/openelis_logo_full.png`;

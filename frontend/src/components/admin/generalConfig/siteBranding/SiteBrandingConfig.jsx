@@ -90,8 +90,8 @@ function SiteBrandingConfig() {
       } else {
         // Handle error - use default values
         const defaultBranding = {
-          headerColor: "#1d78cb",
-          primaryColor: "#1d78cb",
+          headerColor: "#003b76",
+          primaryColor: "#003b76",
           secondaryColor: "#1557a0",
           colorMode: "light",
           useHeaderLogoForLogin: false,
@@ -274,8 +274,8 @@ function SiteBrandingConfig() {
     // Colors must be provided as database requires NOT NULL
     const dataToSend = {
       id: branding.id,
-      headerColor: branding.headerColor?.trim() || "#1d78cb",
-      primaryColor: branding.primaryColor?.trim() || "#1d78cb",
+      headerColor: branding.headerColor?.trim() || "#003b76",
+      primaryColor: branding.primaryColor?.trim() || "#003b76",
       secondaryColor: branding.secondaryColor?.trim() || "#1557a0",
       colorMode: branding.colorMode?.trim() || "light",
       useHeaderLogoForLogin: branding.useHeaderLogoForLogin || false,
@@ -393,11 +393,11 @@ function SiteBrandingConfig() {
         // Reset CSS custom properties to defaults (align with Liquibase 014)
         document.documentElement.style.setProperty(
           "--site-branding-header",
-          "#1d78cb",
+          "#003b76",
         );
         document.documentElement.style.setProperty(
           "--cds-interactive-01",
-          "#1d78cb",
+          "#003b76",
         );
         document.documentElement.style.setProperty(
           "--cds-interactive-02",
@@ -405,7 +405,7 @@ function SiteBrandingConfig() {
         );
         document.documentElement.style.setProperty(
           "--site-branding-primary",
-          "#1d78cb",
+          "#003b76",
         );
         document.documentElement.style.setProperty(
           "--site-branding-secondary",
@@ -549,7 +549,7 @@ function SiteBrandingConfig() {
             description={intl.formatMessage({
               id: "site.branding.header.color.description",
             })}
-            value={branding?.headerColor || "#1d78cb"}
+            value={branding?.headerColor || "#003b76"}
             onChange={(color) => {
               setBranding((prev) => ({ ...prev, headerColor: color }));
               // Apply color immediately for preview
@@ -569,7 +569,7 @@ function SiteBrandingConfig() {
             description={intl.formatMessage({
               id: "site.branding.primary.color.description",
             })}
-            value={branding?.primaryColor || "#1d78cb"}
+            value={branding?.primaryColor || "#003b76"}
             onChange={(color) => {
               setBranding((prev) => ({ ...prev, primaryColor: color }));
               // Apply color immediately for preview
