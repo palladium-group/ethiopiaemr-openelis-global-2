@@ -330,6 +330,7 @@ public class DefaultConfigurationProperties extends ConfigurationProperties {
         properties.setPropertyValue(Property.ENABLE_CLIENT_REGISTRY, "false");
         properties.setPropertyValue(Property.BAR_CODE_TYPE, "BARCODE");
         properties.setPropertyValue(Property.GPS_ENABLED, "false");
+        properties.setPropertyValue(Property.RECEPTION_APPROVAL_REQUIRED, "false");
         properties.setPropertyValue(Property.GPS_ACCURACY_METERS, "100");
         properties.setPropertyValue(Property.GPS_TIMEOUT_SECONDS, "10");
         return properties;

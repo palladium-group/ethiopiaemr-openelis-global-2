@@ -242,7 +242,9 @@ public abstract class ConfigurationProperties {
         BAR_CODE_TYPE("BarCodeType", "text"), //
         GPS_ENABLED("gpsCoordinatesEnabled", "text"), // if true, GPS coordinate fields are displayed in order entry
         GPS_ACCURACY_METERS("gpsRequiredAccuracyMeters", "text"), // maximum acceptable GPS accuracy in meters
-        GPS_TIMEOUT_SECONDS("gpsTimeoutSeconds", "text"); // timeout in seconds for GPS location requests
+        GPS_TIMEOUT_SECONDS("gpsTimeoutSeconds", "text"), // timeout in seconds for GPS location requests
+        RECEPTION_APPROVAL_REQUIRED("receptionApprovalRequired", "text"); // when true, new analyses await reception
+                                                                          // before Not Tested
 
         // visible on
         // the ui

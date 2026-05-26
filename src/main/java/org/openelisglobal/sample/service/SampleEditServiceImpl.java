@@ -34,6 +34,7 @@ import org.openelisglobal.panel.valueholder.Panel;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.service.PersonService;
 import org.openelisglobal.provider.service.ProviderService;
+import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.requester.service.SampleRequesterService;
 import org.openelisglobal.requester.valueholder.SampleRequester;
 import org.openelisglobal.result.action.util.ResultSet;
@@ -88,6 +89,8 @@ public class SampleEditServiceImpl implements SampleEditService {
     private TestSectionService testSectionService;
     @Autowired
     private PersonService personService;
+    @Autowired
+    private ReceptionApprovalSupport receptionApprovalSupport;
     @Autowired
     private ProviderService providerService;
     @Autowired
@@ -382,12 +385,8 @@ public class SampleEditServiceImpl implements SampleEditService {
         analysis.setSysUserId(sampleTestCollection.item.getSysUserId());
         analysis.setRevision("0");
         analysis.setStartedDate(collectionDateTime == null ? DateUtil.getNowAsSqlDate() : collectionDateTime);
-        if (sampleTestCollection.item.isRejected()) {
-            analysis.setStatusId(
-                    SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.SampleRejected));
-        } else {
-            analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
-        }
+        analysis.setStatusId(
+                receptionApprovalSupport.resolveInitialAnalysisStatusId(sampleTestCollection.item.isRejected()));
         analysis.setTestSection(testSection);
         analysis.setPanel(panel);
         if (sampleTestCollection.testIdToReferringServiceRequestMap != null) {
@@ -463,8 +462,7 @@ public class SampleEditServiceImpl implements SampleEditService {
                     analysis.setStartedDate(DateUtil.getNowAsSqlDate());
                 }
 
-                analysis.setStatusId(
-                        SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
+                analysis.setStatusId(receptionApprovalSupport.resolveInitialAnalysisStatusId(false));
                 analysis.setSysUserId(sysUserId);
 
                 addAnalysisList.add(analysis);

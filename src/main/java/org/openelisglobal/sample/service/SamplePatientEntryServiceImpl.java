@@ -15,9 +15,7 @@ import org.openelisglobal.common.formfields.FormFields.Field;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.DisplayListService.ListType;
-import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.SampleAddService.SampleTestCollection;
-import org.openelisglobal.common.services.StatusService.AnalysisStatus;
 import org.openelisglobal.common.services.TableIdService;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.DateUtil;
@@ -48,6 +46,7 @@ import org.openelisglobal.program.service.ProgramSampleService;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.provider.service.ProviderService;
+import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.requester.service.SampleRequesterService;
 import org.openelisglobal.requester.valueholder.SampleRequester;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
@@ -56,7 +55,6 @@ import org.openelisglobal.sample.valueholder.SampleAdditionalField;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
 import org.openelisglobal.sampleitem.service.SampleItemService;
 import org.openelisglobal.sampleitem.valueholder.SampleItem;
-import org.openelisglobal.spring.util.SpringContext;
 import org.openelisglobal.test.service.TestSectionService;
 import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
@@ -96,6 +94,8 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
     private AnalysisService analysisService;
     @Autowired
     private TestService testService;
+    @Autowired
+    private ReceptionApprovalSupport receptionApprovalSupport;
     @Autowired
     private SampleRequesterService sampleRequesterService;
     @Autowired
@@ -460,12 +460,8 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
         analysis.setSysUserId(sampleTestCollection.item.getSysUserId());
         analysis.setRevision(analysisRevision);
         analysis.setStartedDate(collectionDateTime == null ? DateUtil.getNowAsSqlDate() : collectionDateTime);
-        if (sampleTestCollection.item.isRejected()) {
-            analysis.setStatusId(
-                    SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.SampleRejected));
-        } else {
-            analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
-        }
+        analysis.setStatusId(
+                receptionApprovalSupport.resolveInitialAnalysisStatusId(sampleTestCollection.item.isRejected()));
         if (!org.apache.commons.validator.GenericValidator.isBlankOrNull(sampleTypeName)) {
             analysis.setSampleTypeName(sampleTypeName);
         }

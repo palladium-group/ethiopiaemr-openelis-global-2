@@ -11,7 +11,6 @@ import org.openelisglobal.address.valueholder.PersonAddress;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.services.IStatusService;
-import org.openelisglobal.common.services.StatusService.AnalysisStatus;
 import org.openelisglobal.common.services.StatusService.OrderStatus;
 import org.openelisglobal.common.services.StatusService.SampleStatus;
 import org.openelisglobal.common.util.DateUtil;
@@ -31,6 +30,7 @@ import org.openelisglobal.person.service.PersonService;
 import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.provider.service.ProviderService;
 import org.openelisglobal.provider.valueholder.Provider;
+import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.sample.form.SampleTbEntryForm;
 import org.openelisglobal.sample.valueholder.OrderPriority;
 import org.openelisglobal.sample.valueholder.Sample;
@@ -84,6 +84,8 @@ public class TbSampleServiceImpl implements TbSampleService {
     private AnalysisService analysisService;
     @Autowired
     private TestService testService;
+    @Autowired
+    private ReceptionApprovalSupport receptionApprovalSupport;
     @Autowired
     private OrganizationService organizationService;
     @Autowired
@@ -377,7 +379,7 @@ public class TbSampleServiceImpl implements TbSampleService {
             analysis.setIsReportable(test.getIsReportable());
             analysis.setAnalysisType(DEFAULT_ANALYSIS_TYPE);
             analysis.setStartedDate(DateUtil.getNowAsSqlDate());
-            analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
+            analysis.setStatusId(receptionApprovalSupport.resolveInitialAnalysisStatusId(false));
             analysis.setSysUserId(formData.getSysUserId());
             analysis.setFhirUuid(UUID.randomUUID());
             analysis.setSampleTypeName(typeOfSampleService.get(formData.getTbSpecimenNature()).getDescription());

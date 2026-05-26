@@ -24,4 +24,6 @@
   <include relativeToChangelogFile="true" file="015-update-banner-localization-to-moh.xml"/>
   <include relativeToChangelogFile="true" file="016-analysis-referring-service-request-id.xml"/>
   <include relativeToChangelogFile="true" file="017-update-site-branding-tenaehr-primary-color.xml"/>
+  <include relativeToChangelogFile="true" file="018-add-pending-reception-analysis-status.xml"/>
+  <include relativeToChangelogFile="true" file="019-reception-approval-site-config.xml"/>
 </databaseChangeLog>
