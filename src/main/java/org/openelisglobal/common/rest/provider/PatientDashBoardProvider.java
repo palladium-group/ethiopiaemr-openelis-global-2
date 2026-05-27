@@ -355,6 +355,11 @@ public class PatientDashBoardProvider {
                 estausIds.add(Integer.parseInt(iStatusService.getStatusID(ExternalOrderStatus.NonConforming)));
                 metrics.setIncomigOrders(electronicOrderService.getCountOfElectronicOrdersByStatusList(estausIds));
                 break;
+            case PENDING_RECEPTION:
+                statusIdList = new ArrayList<>();
+                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.PendingReception)));
+                metrics.setPendingReception(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
+                break;
             case AVERAGE_TURN_AROUND_TIME:
                 metrics.setAverageTurnAroudTime(calculateAverageReceptionToValidationTime());
                 break;
@@ -447,6 +452,10 @@ public class PatientDashBoardProvider {
             List<ElectronicOrder> eOrders = electronicOrderService.getAllElectronicOrdersByStatusList(estausIds,
                     ElectronicOrder.SortOrder.STATUS_ID);
             return convertElectronicToOrderBean(eOrders);
+        case PENDING_RECEPTION:
+            analyses = analysisService
+                    .getAnalysesForStatusId(iStatusService.getStatusID(AnalysisStatus.PendingReception));
+            return convertAnalysesToOrderBean(analyses);
         case AVERAGE_TURN_AROUND_TIME:
             return new ArrayList<>();
         case DELAYED_TURN_AROUND:

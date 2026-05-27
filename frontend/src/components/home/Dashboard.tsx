@@ -53,6 +53,7 @@ type MetricType =
   | "ORDERS_REJECTED_TODAY"
   | "UN_PRINTED_RESULTS"
   | "INCOMING_ORDERS"
+  | "PENDING_RECEPTION"
   | "AVERAGE_TURN_AROUND_TIME"
   | "DELAYED_TURN_AROUND"
   | "ORDERS_FOR_USER";
@@ -79,6 +80,7 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     ordersRejectedToday: 0,
     unPritendResults: 0,
     incomigOrders: 0,
+    pendingReception: 0,
     averageTurnAroudTime: 0,
     delayedTurnAround: 0,
   });
@@ -292,6 +294,14 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       value: counts.incomigOrders,
     },
     {
+      title: <FormattedMessage id="dashboard.pending.reception.label" />,
+      subTitle: (
+        <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
+      ),
+      type: "PENDING_RECEPTION",
+      value: counts.pendingReception,
+    },
+    {
       title: <FormattedMessage id="dashboard.avg.turn.around.label" />,
       subTitle: (
         <FormattedMessage id="dashboard.avg.turn.around.subtitle.label" />
@@ -335,6 +345,7 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     "ORDERS_REJECTED_TODAY",
     "UN_PRINTED_RESULTS",
     "DELAYED_TURN_AROUND",
+    "PENDING_RECEPTION",
     "ORDERS_FOR_USER",
     "ORDERS_PATIALLY_COMPLETED_TODAY",
   ];
@@ -437,6 +448,13 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
                         cell.value
                       : "validation?type=order&accessionNumber=" + cell.value
                   }
+                >
+                  <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
+                </Link>
+              ) : selectedTile.type == "PENDING_RECEPTION" ? (
+                <Link
+                  style={{ color: "blue" }}
+                  href={"/Reception?accessionNumber=" + cell.value}
                 >
                   <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
                 </Link>

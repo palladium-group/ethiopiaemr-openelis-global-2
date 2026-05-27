@@ -26,4 +26,5 @@
   <include relativeToChangelogFile="true" file="017-update-site-branding-tenaehr-primary-color.xml"/>
   <include relativeToChangelogFile="true" file="018-add-pending-reception-analysis-status.xml"/>
   <include relativeToChangelogFile="true" file="019-reception-approval-site-config.xml"/>
+  <include relativeToChangelogFile="true" file="020-add-reception-menu-item.xml"/>
 </databaseChangeLog>

@@ -22,6 +22,8 @@ public class DashBoardMetrics {
 
     Integer delayedTurnAround = 0;
 
+    Integer pendingReception = 0;
+
     public Integer getOrdersInProgress() {
         return ordersInProgress;
     }
@@ -100,5 +102,13 @@ public class DashBoardMetrics {
 
     public void setDelayedTurnAround(Integer delayedTurnAround) {
         this.delayedTurnAround = delayedTurnAround;
+    }
+
+    public Integer getPendingReception() {
+        return pendingReception;
+    }
+
+    public void setPendingReception(Integer pendingReception) {
+        this.pendingReception = pendingReception;
     }
 }
