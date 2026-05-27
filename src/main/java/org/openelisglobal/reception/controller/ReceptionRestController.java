@@ -2,6 +2,7 @@ package org.openelisglobal.reception.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.openelisglobal.common.constants.Constants;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.reception.dto.ReceptionActionResponse;
@@ -10,6 +11,7 @@ import org.openelisglobal.reception.dto.ReceptionQueueResponse;
 import org.openelisglobal.reception.form.ReceptionApproveForm;
 import org.openelisglobal.reception.form.ReceptionRejectForm;
 import org.openelisglobal.reception.service.ReceptionService;
+import org.openelisglobal.userrole.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,13 +34,16 @@ public class ReceptionRestController extends BaseRestController {
 
     @Autowired
     private ReceptionService receptionService;
+    @Autowired
+    private UserRoleService userRoleService;
 
     @GetMapping(value = "/queue", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<ReceptionQueueResponse> getQueue(@RequestParam(required = false) String accessionNumber,
             @RequestParam(required = false) String receivedDateFrom,
             @RequestParam(required = false) String receivedDateTo, @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "25") int pageSize) {
+            @RequestParam(defaultValue = "25") int pageSize, HttpServletRequest request) {
+        requireReceptionRole(request);
         ReceptionQueueResponse response = receptionService.getPendingQueue(accessionNumber, receivedDateFrom,
                 receivedDateTo, page, pageSize);
         return ResponseEntity.ok(response);
@@ -46,7 +51,9 @@ public class ReceptionRestController extends BaseRestController {
 
     @GetMapping(value = "/{accessionNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<ReceptionDetailResponse> getDetail(@PathVariable String accessionNumber) {
+    public ResponseEntity<ReceptionDetailResponse> getDetail(@PathVariable String accessionNumber,
+            HttpServletRequest request) {
+        requireReceptionRole(request);
         return ResponseEntity.ok(receptionService.getPendingDetail(accessionNumber));
     }
 
@@ -54,6 +61,7 @@ public class ReceptionRestController extends BaseRestController {
     @ResponseBody
     public ResponseEntity<ReceptionActionResponse> approve(@Valid @RequestBody ReceptionApproveForm form,
             HttpServletRequest request) {
+        requireReceptionRole(request);
         String sysUserId = requireSysUserId(request);
         return ResponseEntity.ok(receptionService.approve(form, sysUserId));
     }
@@ -62,6 +70,7 @@ public class ReceptionRestController extends BaseRestController {
     @ResponseBody
     public ResponseEntity<ReceptionActionResponse> reject(@Valid @RequestBody ReceptionRejectForm form,
             HttpServletRequest request) {
+        requireReceptionRole(request);
         String sysUserId = requireSysUserId(request);
         return ResponseEntity.ok(receptionService.reject(form, sysUserId));
     }
@@ -72,6 +81,13 @@ public class ReceptionRestController extends BaseRestController {
             throw new IllegalStateException("User not authenticated");
         }
         return sysUserId;
+    }
+
+    private void requireReceptionRole(HttpServletRequest request) {
+        String sysUserId = requireSysUserId(request);
+        if (!userRoleService.userInRole(sysUserId, Constants.ROLE_SAMPLE_RECEPTION_APPROVAL)) {
+            throw new SecurityException("User does not have Sample Reception Approval role");
+        }
     }
 
     @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
@@ -91,6 +107,12 @@ public class ReceptionRestController extends BaseRestController {
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
         LogEvent.logWarn(this.getClass().getName(), "handleIllegalStateException", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Invalid State", e.getMessage()));
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException e) {
+        LogEvent.logWarn(this.getClass().getName(), "handleSecurityException", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Forbidden", e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

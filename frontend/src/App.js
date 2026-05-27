@@ -487,7 +487,7 @@ export default function App() {
                   path="/Reception"
                   exact
                   component={() => <ReceptionPage />}
-                  role={Roles.RECEPTION}
+                  role={Roles.SAMPLE_RECEPTION_APPROVAL}
                 />
                 <SecureRoute
                   path="/PrintBarcode"

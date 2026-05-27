@@ -29,6 +29,7 @@ import {
   getFromOpenElisServer,
   convertAlphaNumLabNumForDisplay,
   hasRole,
+  Roles,
 } from "../utils/Utils.js";
 import { FormattedMessage, useIntl } from "react-intl";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
@@ -238,6 +239,11 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     setLoading(false);
   };
 
+  const canViewReception = hasRole(
+    userSessionDetails,
+    Roles.SAMPLE_RECEPTION_APPROVAL,
+  );
+
   const tileList: Array<Tile> = [
     {
       title: <FormattedMessage id="dashboard.in.progress.label" />,
@@ -293,14 +299,18 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       type: "INCOMING_ORDERS",
       value: counts.incomigOrders,
     },
-    {
-      title: <FormattedMessage id="dashboard.pending.reception.label" />,
-      subTitle: (
-        <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
-      ),
-      type: "PENDING_RECEPTION",
-      value: counts.pendingReception,
-    },
+    ...(canViewReception
+      ? [
+          {
+            title: <FormattedMessage id="dashboard.pending.reception.label" />,
+            subTitle: (
+              <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
+            ),
+            type: "PENDING_RECEPTION" as MetricType,
+            value: counts.pendingReception,
+          },
+        ]
+      : []),
     {
       title: <FormattedMessage id="dashboard.avg.turn.around.label" />,
       subTitle: (

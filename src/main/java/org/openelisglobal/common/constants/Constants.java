@@ -16,6 +16,7 @@ public class Constants {
     public static final String ROLE_USER_ACCOUNT_ADMIN = "User Account Administrator";
     public static final String ROLE_AUDIT_TRAIL = "Audit Trail";
     public static final String ROLE_RECEPTION = "Reception";
+    public static final String ROLE_SAMPLE_RECEPTION_APPROVAL = "Sample Reception Approval";
     public static final String ROLE_RESULTS = "Results";
     public static final String ROLE_VALIDATION = "Validation";
     public static final String ROLE_REPORTS = "Reports";

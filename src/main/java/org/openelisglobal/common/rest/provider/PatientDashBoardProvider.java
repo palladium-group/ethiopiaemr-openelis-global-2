@@ -17,6 +17,8 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
+import org.openelisglobal.common.action.IActionConstants;
+import org.openelisglobal.common.constants.Constants;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.AverageTimeDisplayBean;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardMetrics;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile;
@@ -31,6 +33,7 @@ import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
+import org.openelisglobal.login.valueholder.UserSessionData;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
@@ -38,6 +41,7 @@ import org.openelisglobal.systemuser.service.SystemUserService;
 import org.openelisglobal.systemuser.valueholder.SystemUser;
 import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
+import org.openelisglobal.userrole.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -77,6 +81,8 @@ public class PatientDashBoardProvider {
 
     @Autowired
     SystemUserService systemUserService;
+    @Autowired
+    private UserRoleService userRoleService;
 
     private double calculateAverageReceptionToValidationTime() {
         List<Analysis> analyses = analysisService.getAnalysesCompletedOnByStatusId(DateUtil.getNowAsSqlDate(),
@@ -299,9 +305,10 @@ public class PatientDashBoardProvider {
 
     @GetMapping(value = "home-dashboard/metrics", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public DashBoardMetrics getDasBoardTiles() {
+    public DashBoardMetrics getDasBoardTiles(HttpServletRequest request) {
 
         DashBoardMetrics metrics = new DashBoardMetrics();
+        boolean canViewReception = userHasSampleReceptionApprovalRole(request);
         java.sql.Timestamp startTimestamp = DateUtil
                 .convertStringDateStringTimeToTimestamp(DateUtil.getCurrentDateAsText(), "00:00:00.0");
         java.sql.Timestamp endTimestamp = DateUtil
@@ -356,9 +363,13 @@ public class PatientDashBoardProvider {
                 metrics.setIncomigOrders(electronicOrderService.getCountOfElectronicOrdersByStatusList(estausIds));
                 break;
             case PENDING_RECEPTION:
-                statusIdList = new ArrayList<>();
-                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.PendingReception)));
-                metrics.setPendingReception(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
+                if (canViewReception) {
+                    statusIdList = new ArrayList<>();
+                    statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.PendingReception)));
+                    metrics.setPendingReception(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
+                } else {
+                    metrics.setPendingReception(0);
+                }
                 break;
             case AVERAGE_TURN_AROUND_TIME:
                 metrics.setAverageTurnAroudTime(calculateAverageReceptionToValidationTime());
@@ -390,7 +401,7 @@ public class PatientDashBoardProvider {
 
         String requestedPage = request.getParameter("page");
         if (GenericValidator.isBlankOrNull(requestedPage)) {
-            orderDisplayBeans = retreiveOrders(listType, systemUserId);
+            orderDisplayBeans = retreiveOrders(listType, systemUserId, request);
 
             // All the orders retreived are fed into paging to return the first page of the
             // list.
@@ -409,7 +420,8 @@ public class PatientDashBoardProvider {
      * Returns the list of orders based on the type of the list provided by the
      * getdashBoardDisplayList method.
      */
-    private List<OrderDisplayBean> retreiveOrders(DashBoardTile.TileType listType, String systemUserId) {
+    private List<OrderDisplayBean> retreiveOrders(DashBoardTile.TileType listType, String systemUserId,
+            HttpServletRequest request) {
         Set<Integer> statusIdSet;
         List<Analysis> analyses;
         java.sql.Timestamp startTimestamp = DateUtil
@@ -453,6 +465,9 @@ public class PatientDashBoardProvider {
                     ElectronicOrder.SortOrder.STATUS_ID);
             return convertElectronicToOrderBean(eOrders);
         case PENDING_RECEPTION:
+            if (!userHasSampleReceptionApprovalRole(request)) {
+                return new ArrayList<>();
+            }
             analyses = analysisService
                     .getAnalysesForStatusId(iStatusService.getStatusID(AnalysisStatus.PendingReception));
             return convertAnalysesToOrderBean(analyses);
@@ -470,6 +485,16 @@ public class PatientDashBoardProvider {
             }
         }
         return new ArrayList<>();
+    }
+
+    private boolean userHasSampleReceptionApprovalRole(HttpServletRequest request) {
+        UserSessionData userSessionData = (UserSessionData) request.getSession()
+                .getAttribute(IActionConstants.USER_SESSION_DATA);
+        if (userSessionData == null) {
+            return false;
+        }
+        return userRoleService.userInRole(Integer.toString(userSessionData.getSystemUserId()),
+                Constants.ROLE_SAMPLE_RECEPTION_APPROVAL);
     }
 
     @GetMapping(value = "home-dashboard/turn-around-time-metrics", produces = MediaType.APPLICATION_JSON_VALUE)
