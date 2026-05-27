@@ -13,6 +13,7 @@ import org.openelisglobal.common.services.StatusService.AnalysisStatus;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.patient.valueholder.Patient;
+import org.openelisglobal.result.action.util.PendingReceptionResultGate;
 import org.openelisglobal.result.action.util.ResultsLoadUtility;
 import org.openelisglobal.result.action.util.ResultsPaging;
 import org.openelisglobal.result.form.AccessionResultsForm;
@@ -49,6 +50,8 @@ public class AccessionResultsController extends BaseController {
     private UserRoleService userRoleService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private PendingReceptionResultGate pendingReceptionResultGate;
 
     public AccessionResultsController(RoleService roleService) {
         Role editRole = roleService.getRoleByName("Results");
@@ -194,6 +197,8 @@ public class AccessionResultsController extends BaseController {
             // ActionError error = new ActionError("sample.edit.sample.notFound",
             // accessionNumber, null, null);
             errors.reject("sample.edit.sample.notFound", new String[] {}, "sample.edit.sample.notFound");
+        } else {
+            pendingReceptionResultGate.rejectIfSamplePendingReception(errors, sample, accessionNumber);
         }
 
         return errors;

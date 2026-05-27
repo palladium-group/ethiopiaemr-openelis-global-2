@@ -50,6 +50,7 @@ import org.openelisglobal.note.valueholder.Note;
 import org.openelisglobal.patient.util.PatientUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.plugin.AnalyzerImporterPlugin;
+import org.openelisglobal.result.action.util.PendingReceptionResultGate;
 import org.openelisglobal.result.action.util.ResultUtil;
 import org.openelisglobal.result.form.AnalyzerResultsForm;
 import org.openelisglobal.result.service.ResultService;
@@ -80,8 +81,10 @@ import org.openelisglobal.typeofsample.valueholder.TypeOfSampleTest;
 import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
@@ -93,6 +96,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -147,6 +151,8 @@ public class AnalyzerResultsController extends BaseController {
     private NoteService noteService;
     @Autowired
     private PluginAnalyzerService pluginAnalyzerService;
+    @Autowired
+    private PendingReceptionResultGate pendingReceptionResultGate;
 
     // used in constructor, so use constructor injection
     private TypeOfSampleService typeOfSampleService;
@@ -727,6 +733,12 @@ public class AnalyzerResultsController extends BaseController {
         if (actionableResults.isEmpty()) {
             return;
         }
+        Errors errors = new BeanPropertyBindingResult(form, "form");
+        pendingReceptionResultGate.rejectIfAnalyzerItemsPendingReception(errors, actionableResults);
+        if (errors.hasErrors()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    MessageUtil.getMessage("errors.reception.pendingResultsEntry"));
+        }
 
         List<SampleGrouping> sampleGroupList = new ArrayList<>();
 
@@ -813,6 +825,7 @@ public class AnalyzerResultsController extends BaseController {
     }
 
     private Errors validateSavableItems(List<AnalyzerResultItem> savableResults, Errors errors) {
+        pendingReceptionResultGate.rejectIfAnalyzerItemsPendingReception(errors, savableResults);
         for (AnalyzerResultItem item : savableResults) {
             if (item.getIsAccepted() && item.isUserChoicePending()) {
                 StringBuilder augmentedAccession = new StringBuilder(item.getAccessionNumber());

@@ -36,6 +36,8 @@ public class ResultsValidation {
     private ResultService resultService;
     @Autowired
     private AnalysisService analysisService;
+    @Autowired
+    private PendingReceptionResultGate pendingReceptionResultGate;
 
     public Errors validateItem(TestResultItem item) {
         Errors errors = new BaseErrors();
@@ -66,6 +68,7 @@ public class ResultsValidation {
 
     public Errors validateModifiedItems(List<TestResultItem> modifiedItems) {
         Errors errors = new BaseErrors();
+        pendingReceptionResultGate.rejectIfResultItemsPendingReception(errors, modifiedItems);
 
         for (TestResultItem item : modifiedItems) {
 

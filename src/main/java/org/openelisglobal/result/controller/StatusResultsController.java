@@ -71,6 +71,8 @@ public class StatusResultsController extends BaseController {
                 Integer.parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Canceled)));
         excludedStatusIds.add(Integer
                 .parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.SampleRejected)));
+        excludedStatusIds.add(Integer
+                .parseInt(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.PendingReception)));
     }
 
     @InitBinder
