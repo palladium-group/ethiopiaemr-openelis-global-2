@@ -25,6 +25,9 @@ import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.reception.dto.RecollectionOrderResult;
 import org.openelisglobal.sample.valueholder.OrderPriority;
 import org.openelisglobal.sample.valueholder.Sample;
+import org.openelisglobal.sampleitem.service.SampleItemService;
+import org.openelisglobal.sampleitem.valueholder.SampleItem;
+import org.openelisglobal.typeofsample.valueholder.TypeOfSample;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ElectronicOrderRecollectionServiceTest {
@@ -33,6 +36,8 @@ public class ElectronicOrderRecollectionServiceTest {
     private ElectronicOrderService electronicOrderService;
     @Mock
     private IStatusService statusService;
+    @Mock
+    private SampleItemService sampleItemService;
 
     @InjectMocks
     private ElectronicOrderRecollectionServiceImpl recollectionService;
@@ -71,7 +76,7 @@ public class ElectronicOrderRecollectionServiceTest {
         ElectronicOrder sourceOrder = new ElectronicOrder();
         sourceOrder.setId("EO-1");
         sourceOrder.setExternalId("OPENMRS-ORDER-123");
-        sourceOrder.setData("{\"resourceType\":\"Bundle\"}");
+        sourceOrder.setData("{\"resourceType\":\"Task\",\"status\":\"requested\",\"intent\":\"order\"}");
         sourceOrder.setPatient(patient);
         sourceOrder.setType(ElectronicOrderType.FHIR);
         sourceOrder.setPriority(OrderPriority.STAT);
@@ -80,6 +85,11 @@ public class ElectronicOrderRecollectionServiceTest {
         when(electronicOrderService.getElectronicOrdersByExternalId("OPENMRS-ORDER-123-R1"))
                 .thenReturn(Collections.emptyList());
         when(electronicOrderService.insert(any(ElectronicOrder.class))).thenReturn("EO-2");
+        SampleItem sampleItem = new SampleItem();
+        TypeOfSample typeOfSample = new TypeOfSample();
+        typeOfSample.setId("20");
+        sampleItem.setTypeOfSample(typeOfSample);
+        when(sampleItemService.getSampleItemsBySampleId("S1")).thenReturn(Collections.singletonList(sampleItem));
 
         Optional<RecollectionOrderResult> result = recollectionService.createRecollectionOrder(sample, "99");
 
@@ -92,7 +102,8 @@ public class ElectronicOrderRecollectionServiceTest {
         ElectronicOrder inserted = captor.getValue();
         assertEquals("OPENMRS-ORDER-123-R1", inserted.getExternalId());
         assertEquals("1", inserted.getStatusId());
-        assertEquals(sourceOrder.getData(), inserted.getData());
+        org.junit.Assert.assertTrue(inserted.getData().contains("CI0050007AAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+        org.junit.Assert.assertTrue(inserted.getData().contains("\"20\""));
         assertEquals(patient, inserted.getPatient());
         assertEquals(ElectronicOrderType.FHIR, inserted.getType());
         assertEquals(OrderPriority.STAT, inserted.getPriority());

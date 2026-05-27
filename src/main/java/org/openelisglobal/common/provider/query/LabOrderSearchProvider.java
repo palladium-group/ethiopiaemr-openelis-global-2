@@ -141,6 +141,15 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                     .getExternalOrderStatusForID(eOrder.getStatusId());
 
             IGenericClient localFhirClient = fhirUtil.getFhirClient(fhirConfig.getLocalFhirStorePath());
+            Task taskFromOrderData = null;
+            try {
+                if (!GenericValidator.isBlankOrNull(eOrder.getData())) {
+                    taskFromOrderData = fhirUtil.getFhirParser().parseResource(Task.class, eOrder.getData());
+                }
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "processRequest",
+                        "unable to parse task payload from electronic order data");
+            }
 
             for (String remotePath : fhirConfig.getRemoteStorePaths()) {
                 Bundle srBundle = (Bundle) localFhirClient.search().forResource(ServiceRequest.class)
@@ -170,6 +179,28 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                     }
                 }
             }
+            if (serviceRequest == null) {
+                String basedOnServiceRequestId = extractBasedOnServiceRequestId(taskFromOrderData);
+                if (!GenericValidator.isBlankOrNull(basedOnServiceRequestId)) {
+                    try {
+                        serviceRequest = localFhirClient.read().resource(ServiceRequest.class)
+                                .withId(basedOnServiceRequestId).execute();
+                    } catch (RuntimeException e) {
+                        LogEvent.logWarn(this.getClass().getSimpleName(), "processRequest",
+                                "unable to load basedOn service request: " + basedOnServiceRequestId);
+                    }
+                    if (serviceRequest != null && !serviceRequest.getSpecimen().isEmpty()) {
+                        try {
+                            specimen = localFhirClient.read().resource(Specimen.class)
+                                    .withId(serviceRequest.getSpecimenFirstRep().getReferenceElement().getIdPart())
+                                    .execute();
+                        } catch (RuntimeException e) {
+                            LogEvent.logWarn(this.getClass().getSimpleName(), "processRequest",
+                                    "unable to load specimen from basedOn service request");
+                        }
+                    }
+                }
+            }
             if (serviceRequest != null) {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest",
                         "found matching serviceRequest " + serviceRequest.getIdElement().getIdPart());
@@ -177,10 +208,13 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest", "no matching serviceRequest");
             }
 
-            patient = localFhirClient.read() //
-                    .resource(Patient.class) //
-                    .withId(serviceRequest.getSubject().getReferenceElement().getIdPart()) //
-                    .execute();
+            if (serviceRequest != null && serviceRequest.hasSubject()
+                    && !GenericValidator.isBlankOrNull(serviceRequest.getSubject().getReferenceElement().getIdPart())) {
+                patient = localFhirClient.read() //
+                        .resource(Patient.class) //
+                        .withId(serviceRequest.getSubject().getReferenceElement().getIdPart()) //
+                        .execute();
+            }
 
             if (patient != null) {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest",
@@ -196,7 +230,18 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
             // .where(Task.BASED_ON.hasAnyOfIds(serviceRequest.getId()))//
             // .returnBundle(Bundle.class)//
             // .execute().getEntryFirstRep().getResource();
-            task = fhirPersistanceService.getTaskBasedOnServiceRequest(orderNumber).orElseThrow();
+            Optional<Task> taskFromFhir = fhirPersistanceService.getTaskBasedOnServiceRequest(orderNumber);
+            if (taskFromFhir.isPresent()) {
+                task = taskFromFhir.get();
+            } else {
+                String basedOnServiceRequestId = extractBasedOnServiceRequestId(taskFromOrderData);
+                if (!GenericValidator.isBlankOrNull(basedOnServiceRequestId)) {
+                    task = fhirPersistanceService.getTaskBasedOnServiceRequest(basedOnServiceRequestId).orElse(null);
+                }
+                if (task == null) {
+                    task = taskFromOrderData;
+                }
+            }
 
             if (task != null) {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest",
@@ -205,7 +250,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest", "no matching task");
             }
 
-            if (!GenericValidator
+            if (task != null && !GenericValidator
                     .isBlankOrNull(task.getRestriction().getRecipientFirstRep().getReferenceElement().getIdPart())) {
                 try {
                     referringOrganization = localFhirClient.read() //
@@ -219,7 +264,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                 }
             }
 
-            if (!GenericValidator
+            if (serviceRequest != null && !GenericValidator
                     .isBlankOrNull(serviceRequest.getLocationReferenceFirstRep().getReferenceElement().getIdPart())) {
                 try {
                     location = localFhirClient.read() //
@@ -233,7 +278,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                 }
             }
 
-            if (!GenericValidator.isBlankOrNull(task.getOwner().getReferenceElement().getIdPart())
+            if (task != null && !GenericValidator.isBlankOrNull(task.getOwner().getReferenceElement().getIdPart())
                     && task.getOwner().getReference().contains(ResourceType.Practitioner.toString())) {
                 try {
                     requesterPerson = localFhirClient.read() //
@@ -247,7 +292,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                 }
             }
 
-            if (requesterPerson == null) {
+            if (requesterPerson == null && serviceRequest != null) {
                 if (!GenericValidator.isBlankOrNull(serviceRequest.getRequester().getReferenceElement().getIdPart())
                         && serviceRequest.getRequester().getReference()
                                 .contains(ResourceType.Practitioner.toString())) {
@@ -296,6 +341,14 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
             xml.append("empty");
         }
         ajaxServlet.sendData(xml.toString(), result, request, response);
+    }
+
+    private String extractBasedOnServiceRequestId(Task sourceTask) {
+        if (sourceTask == null || sourceTask.getBasedOn() == null || sourceTask.getBasedOn().isEmpty()
+                || sourceTask.getBasedOnFirstRep().getReferenceElement() == null) {
+            return null;
+        }
+        return sourceTask.getBasedOnFirstRep().getReferenceElement().getIdPart();
     }
 
     private String createSearchResultXML(String orderNumber, StringBuilder xml) {
