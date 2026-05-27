@@ -16,12 +16,14 @@
 
 package org.openelisglobal.sample.action.util;
 
+import ca.uhn.fhir.context.FhirContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.apache.commons.validator.GenericValidator;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r4.model.Task;
 import org.openelisglobal.address.valueholder.OrganizationAddress;
 import org.openelisglobal.common.formfields.FormFields;
 import org.openelisglobal.common.formfields.FormFields.Field;
@@ -67,6 +69,7 @@ import org.springframework.validation.Errors;
 
 /** */
 public class SamplePatientUpdateData {
+    private static final FhirContext FHIR_CONTEXT = FhirContext.forR4Cached();
     private boolean savePatient = false;
     private Person providerPerson;
     private Provider provider;
@@ -360,10 +363,44 @@ public class SamplePatientUpdateData {
 
             if (!electronicOrders.isEmpty()) {
                 electronicOrder = electronicOrders.get(0);
-                sample.setReferringId(electronicOrder.getExternalId());
+                String canonicalReferringId = resolveCanonicalReferringId(electronicOrder);
+                sample.setReferringId(
+                        GenericValidator.isBlankOrNull(canonicalReferringId) ? electronicOrder.getExternalId()
+                                : canonicalReferringId);
                 sample.setClinicalOrderId(electronicOrder.getId());
             }
         }
+    }
+
+    public String normalizeReferringServiceRequestId(String referringServiceRequestId) {
+        if (GenericValidator.isBlankOrNull(referringServiceRequestId)) {
+            return referringServiceRequestId;
+        }
+        String trimmed = referringServiceRequestId.trim();
+        for (ElectronicOrder order : electronicOrders) {
+            if (order != null && trimmed.equals(order.getExternalId())) {
+                String canonicalReferringId = resolveCanonicalReferringId(order);
+                if (!GenericValidator.isBlankOrNull(canonicalReferringId)) {
+                    return canonicalReferringId;
+                }
+            }
+        }
+        return trimmed;
+    }
+
+    private String resolveCanonicalReferringId(ElectronicOrder order) {
+        if (order == null || GenericValidator.isBlankOrNull(order.getData())) {
+            return null;
+        }
+        try {
+            Task task = FHIR_CONTEXT.newJsonParser().parseResource(Task.class, order.getData());
+            if (task != null && task.hasBasedOn() && task.getBasedOnFirstRep().hasReferenceElement()) {
+                return task.getBasedOnFirstRep().getReferenceElement().getIdPart();
+            }
+        } catch (RuntimeException e) {
+            // fall through to use eOrder external id
+        }
+        return null;
     }
 
     public void initProvider(SampleOrderItem sampleOrder) {

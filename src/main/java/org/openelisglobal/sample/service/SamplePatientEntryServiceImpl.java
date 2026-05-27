@@ -471,7 +471,7 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
         if (sampleTestCollection.testIdToReferringServiceRequestMap != null) {
             String referringSrId = sampleTestCollection.testIdToReferringServiceRequestMap.get(test.getId());
             if (!GenericValidator.isBlankOrNull(referringSrId)) {
-                analysis.setReferringServiceRequestId(referringSrId);
+                analysis.setReferringServiceRequestId(updateData.normalizeReferringServiceRequestId(referringSrId));
             }
         }
         return analysis;
