@@ -16,9 +16,11 @@ import org.mockito.Mockito;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.barcode.controller.PrintBarcodeController;
 import org.openelisglobal.common.services.DisplayListService;
+import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.services.RequesterService;
 import org.openelisglobal.common.services.SampleOrderService;
+import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.Versioning;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
@@ -33,6 +35,7 @@ import org.openelisglobal.odoo.client.OdooClient;
 import org.openelisglobal.odoo.client.OdooConnection;
 import org.openelisglobal.odoo.config.TestProductMapping;
 import org.openelisglobal.organization.service.OrganizationTypeService;
+import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.reports.service.WHONetReportServiceImpl;
 import org.openelisglobal.requester.service.RequesterTypeService;
@@ -136,6 +139,13 @@ public class AppTestConfig implements WebMvcConfigurer {
     @Profile("test")
     public FhirConfig fhirConfig() {
         return mock(FhirConfig.class);
+    }
+
+    @Bean
+    @Profile("test")
+    public ReceptionApprovalSupport receptionApprovalSupport(ConfigurationProperties configurationProperties,
+            IStatusService statusService) {
+        return new ReceptionApprovalSupport(configurationProperties, statusService);
     }
 
     @Bean()
