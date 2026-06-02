@@ -565,7 +565,7 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         if (eOrders.size() > 0 && ElectronicOrderType.FHIR.equals(eOrders.get(0).getType())) {
             return fhirPersistanceService.getTaskBasedOnServiceRequest(trimmed);
         }
-        return Optional.empty();
+        return fhirPersistanceService.getTaskBasedOnServiceRequest(trimmed);
     }
 
     private Optional<Task> getReferringTaskForSample(Sample sample) {
@@ -588,7 +588,7 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         if (eOrders.size() > 0 && ElectronicOrderType.FHIR.equals(eOrders.get(0).getType())) {
             return fhirPersistanceService.getServiceRequestByReferingId(trimmed);
         }
-        return Optional.empty();
+        return fhirPersistanceService.getServiceRequestByReferingId(trimmed);
     }
 
     private Optional<ServiceRequest> getReferringServiceRequestForSample(Sample sample) {

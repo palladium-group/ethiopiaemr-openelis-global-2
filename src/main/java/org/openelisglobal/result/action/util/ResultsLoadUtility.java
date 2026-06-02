@@ -182,6 +182,7 @@ public class ResultsLoadUtility {
         analyte.setAnalyteName("generated CD4 Count");
         analyte = analyteService.getAnalyteByName(analyte, false);
         ANALYTE_CD4_CNT_CONCLUSION_ID = analyte == null ? "" : analyte.getId();
+        addExcludedAnalysisStatus(AnalysisStatus.PendingReception);
     }
 
     public void setSysUser(String currentUserId) {

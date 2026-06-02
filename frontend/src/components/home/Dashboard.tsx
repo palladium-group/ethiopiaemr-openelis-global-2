@@ -29,6 +29,7 @@ import {
   getFromOpenElisServer,
   convertAlphaNumLabNumForDisplay,
   hasRole,
+  Roles,
 } from "../utils/Utils.js";
 import { FormattedMessage, useIntl } from "react-intl";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
@@ -53,6 +54,7 @@ type MetricType =
   | "ORDERS_REJECTED_TODAY"
   | "UN_PRINTED_RESULTS"
   | "INCOMING_ORDERS"
+  | "PENDING_RECEPTION"
   | "AVERAGE_TURN_AROUND_TIME"
   | "DELAYED_TURN_AROUND"
   | "ORDERS_FOR_USER";
@@ -79,6 +81,7 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     ordersRejectedToday: 0,
     unPritendResults: 0,
     incomigOrders: 0,
+    pendingReception: 0,
     averageTurnAroudTime: 0,
     delayedTurnAround: 0,
   });
@@ -236,6 +239,11 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     setLoading(false);
   };
 
+  const canViewReception = hasRole(
+    userSessionDetails,
+    Roles.SAMPLE_RECEPTION_APPROVAL,
+  );
+
   const tileList: Array<Tile> = [
     {
       title: <FormattedMessage id="dashboard.in.progress.label" />,
@@ -291,6 +299,18 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       type: "INCOMING_ORDERS",
       value: counts.incomigOrders,
     },
+    ...(canViewReception
+      ? [
+          {
+            title: <FormattedMessage id="dashboard.pending.reception.label" />,
+            subTitle: (
+              <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
+            ),
+            type: "PENDING_RECEPTION" as MetricType,
+            value: counts.pendingReception,
+          },
+        ]
+      : []),
     {
       title: <FormattedMessage id="dashboard.avg.turn.around.label" />,
       subTitle: (
@@ -335,6 +355,7 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     "ORDERS_REJECTED_TODAY",
     "UN_PRINTED_RESULTS",
     "DELAYED_TURN_AROUND",
+    "PENDING_RECEPTION",
     "ORDERS_FOR_USER",
     "ORDERS_PATIALLY_COMPLETED_TODAY",
   ];
@@ -437,6 +458,13 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
                         cell.value
                       : "validation?type=order&accessionNumber=" + cell.value
                   }
+                >
+                  <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
+                </Link>
+              ) : selectedTile.type == "PENDING_RECEPTION" ? (
+                <Link
+                  style={{ color: "blue" }}
+                  href={"/Reception?accessionNumber=" + cell.value}
                 >
                   <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
                 </Link>

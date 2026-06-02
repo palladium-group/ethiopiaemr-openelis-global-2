@@ -50,7 +50,6 @@ import org.openelisglobal.common.exception.LIMSRuntimeException;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.StatusService;
-import org.openelisglobal.common.services.StatusService.AnalysisStatus;
 import org.openelisglobal.common.services.StatusService.OrderStatus;
 import org.openelisglobal.common.services.StatusService.RecordStatus;
 import org.openelisglobal.common.services.StatusService.SampleStatus;
@@ -82,6 +81,7 @@ import org.openelisglobal.person.service.PersonService;
 import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.project.service.ProjectService;
 import org.openelisglobal.project.valueholder.Project;
+import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.referencetables.service.ReferenceTablesService;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.openelisglobal.sample.form.ProjectData;
@@ -1042,7 +1042,8 @@ public abstract class Accessioner implements IAccessioner {
         analysis.setSampleItem(sampleTestCollection.item);
         analysis.setRevision(analysisRevision);
         analysis.setStartedDate(collectionDateTime);
-        analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
+        analysis.setStatusId(
+                SpringContext.getBean(ReceptionApprovalSupport.class).resolveInitialAnalysisStatusId(false));
         analysis.setTestSection(test.getTestSection());
         analysis.setSysUserId(sysUserId);
         return analysis;

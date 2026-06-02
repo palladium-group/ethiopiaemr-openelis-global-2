@@ -511,6 +511,7 @@ public class LogbookResultsRestController extends LogbookResultsBaseController {
 
         if (errors.hasErrors()) {
             saveErrors(errors);
+            return reflexMap;
         }
 
         createResultsFromItems(actionDataSet, supportReferrals, alwaysValidate, useTechnicianName, statusRuleSet);
