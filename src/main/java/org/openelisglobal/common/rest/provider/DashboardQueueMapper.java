@@ -68,6 +68,48 @@ public class DashboardQueueMapper {
         return sortByOrderDateDesc(queueItems);
     }
 
+    public List<DashboardQueueItemDTO> filterQueueItems(List<DashboardQueueItemDTO> items, String patientQuery,
+            String labNumber) {
+        if (items == null || items.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String normalizedPatientQuery = normalizeSearchTerm(patientQuery);
+        String normalizedLabNumber = normalizeSearchTerm(labNumber);
+        if (normalizedPatientQuery == null && normalizedLabNumber == null) {
+            return new ArrayList<>(items);
+        }
+        return items.stream().filter(item -> matchesLabNumber(item, normalizedLabNumber)
+                && matchesPatientQuery(item, normalizedPatientQuery)).collect(Collectors.toList());
+    }
+
+    private String normalizeSearchTerm(String value) {
+        if (GenericValidator.isBlankOrNull(value)) {
+            return null;
+        }
+        return value.trim().toLowerCase();
+    }
+
+    private boolean matchesLabNumber(DashboardQueueItemDTO item, String normalizedLabNumber) {
+        if (normalizedLabNumber == null) {
+            return true;
+        }
+        return item.getAccessionNumber() != null
+                && item.getAccessionNumber().toLowerCase().contains(normalizedLabNumber);
+    }
+
+    private boolean matchesPatientQuery(DashboardQueueItemDTO item, String normalizedPatientQuery) {
+        if (normalizedPatientQuery == null) {
+            return true;
+        }
+        return containsNormalized(item.getPatientName(), normalizedPatientQuery)
+                || containsNormalized(item.getPatientNationalId(), normalizedPatientQuery)
+                || containsNormalized(item.getSubjectNumber(), normalizedPatientQuery);
+    }
+
+    private boolean containsNormalized(String value, String normalizedQuery) {
+        return value != null && value.toLowerCase().contains(normalizedQuery);
+    }
+
     public List<DashboardQueueItemDTO> sortByOrderDateDesc(List<DashboardQueueItemDTO> items) {
         if (items == null || items.isEmpty()) {
             return new ArrayList<>();

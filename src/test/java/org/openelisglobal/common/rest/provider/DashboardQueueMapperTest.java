@@ -121,6 +121,52 @@ public class DashboardQueueMapperTest {
     }
 
     @Test
+    public void filterQueueItems_shouldMatchPartialPatientName() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001", "Jane Doe", "334-422-A", "ET-123"),
+                createSearchableQueueItem("2026-002", "John Smith", "555-111-B", "ET-456"));
+
+        List<DashboardQueueItemDTO> filtered = dashboardQueueMapper.filterQueueItems(items, "doe", null);
+
+        assertEquals(1, filtered.size());
+        assertEquals("2026-001", filtered.get(0).getAccessionNumber());
+    }
+
+    @Test
+    public void filterQueueItems_shouldMatchSubjectNumberOrNationalId() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001", "Jane Doe", "334-422-A", "ET-123"),
+                createSearchableQueueItem("2026-002", "John Smith", "555-111-B", "ET-456"));
+
+        assertEquals(1, dashboardQueueMapper.filterQueueItems(items, "334-422", null).size());
+        assertEquals(1, dashboardQueueMapper.filterQueueItems(items, "et-456", null).size());
+    }
+
+    @Test
+    public void filterQueueItems_shouldMatchPartialLabNumber() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001234", "Jane Doe", "334-422-A", "ET-123"),
+                createSearchableQueueItem("2026-005678", "John Smith", "555-111-B", "ET-456"));
+
+        List<DashboardQueueItemDTO> filtered = dashboardQueueMapper.filterQueueItems(items, null, "1234");
+
+        assertEquals(1, filtered.size());
+        assertEquals("2026-001234", filtered.get(0).getAccessionNumber());
+    }
+
+    @Test
+    public void filterQueueItems_shouldApplyPatientAndLabNumberTogether() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001234", "Jane Doe", "334-422-A", "ET-123"),
+                createSearchableQueueItem("2026-001999", "Jane Roe", "334-422-C", "ET-789"));
+
+        List<DashboardQueueItemDTO> filtered = dashboardQueueMapper.filterQueueItems(items, "jane", "1234");
+
+        assertEquals(1, filtered.size());
+        assertEquals("2026-001234", filtered.get(0).getAccessionNumber());
+    }
+
+    @Test
     public void usesQueueView_shouldIncludePrimaryDashboardTiles() {
         assertEquals(true, DashboardQueueMapper.usesQueueView(
                 org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_IN_PROGRESS));
@@ -157,6 +203,16 @@ public class DashboardQueueMapperTest {
         DashboardQueueItemDTO item = new DashboardQueueItemDTO();
         item.setAccessionNumber(accessionNumber);
         item.setOrderDateSort(new Timestamp(sortEpochSeconds * 1000L));
+        return item;
+    }
+
+    private DashboardQueueItemDTO createSearchableQueueItem(String accessionNumber, String patientName,
+            String subjectNumber, String nationalId) {
+        DashboardQueueItemDTO item = new DashboardQueueItemDTO();
+        item.setAccessionNumber(accessionNumber);
+        item.setPatientName(patientName);
+        item.setSubjectNumber(subjectNumber);
+        item.setPatientNationalId(nationalId);
         return item;
     }
 }
