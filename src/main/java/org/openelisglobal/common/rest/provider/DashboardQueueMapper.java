@@ -3,9 +3,12 @@ package org.openelisglobal.common.rest.provider;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
@@ -13,6 +16,7 @@ import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashboardQueueItemDTO;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashboardQueueResponse;
+import org.openelisglobal.panel.valueholder.Panel;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
@@ -40,7 +44,12 @@ public class DashboardQueueMapper {
         return listType == DashBoardTile.TileType.ORDERS_IN_PROGRESS
                 || listType == DashBoardTile.TileType.ORDERS_READY_FOR_VALIDATION
                 || listType == DashBoardTile.TileType.ORDERS_COMPLETED_TODAY
-                || listType == DashBoardTile.TileType.PENDING_RECEPTION;
+                || listType == DashBoardTile.TileType.PENDING_RECEPTION
+                || listType == DashBoardTile.TileType.ORDERS_PATIALLY_COMPLETED_TODAY
+                || listType == DashBoardTile.TileType.ORDERS_REJECTED_TODAY
+                || listType == DashBoardTile.TileType.UN_PRINTED_RESULTS
+                || listType == DashBoardTile.TileType.DELAYED_TURN_AROUND
+                || listType == DashBoardTile.TileType.ORDERS_FOR_USER;
     }
 
     public List<DashboardQueueItemDTO> groupAnalysesByAccession(List<Analysis> analyses) {
@@ -66,6 +75,71 @@ public class DashboardQueueMapper {
             queueItems.add(buildQueueItem(accessionAnalyses));
         }
         return sortByOrderDateDesc(queueItems);
+    }
+
+    /**
+     * Counts order test units across all analyses, grouping panel members as one
+     * unit per panel per accession and standalone tests individually.
+     */
+    public int countTestUnitsForAnalyses(List<Analysis> analyses) {
+        if (analyses == null || analyses.isEmpty()) {
+            return 0;
+        }
+        Map<String, List<Analysis>> analysesByAccession = new LinkedHashMap<>();
+        for (Analysis analysis : analyses) {
+            if (analysis == null || analysis.getSampleItem() == null || analysis.getSampleItem().getSample() == null) {
+                continue;
+            }
+            String accessionNumber = analysis.getSampleItem().getSample().getAccessionNumber();
+            if (GenericValidator.isBlankOrNull(accessionNumber)) {
+                continue;
+            }
+            analysesByAccession.computeIfAbsent(accessionNumber, key -> new ArrayList<>()).add(analysis);
+        }
+        int totalUnits = 0;
+        for (List<Analysis> accessionAnalyses : analysesByAccession.values()) {
+            totalUnits += countTestUnits(accessionAnalyses);
+        }
+        return totalUnits;
+    }
+
+    private int countTestUnits(List<Analysis> analyses) {
+        if (analyses == null || analyses.isEmpty()) {
+            return 0;
+        }
+        int unitCount = 0;
+        Set<String> includedPanelIds = new HashSet<>();
+        for (Analysis analysis : analyses) {
+            if (analysis == null) {
+                continue;
+            }
+            Panel panel = analysis.getPanel();
+            if (panel != null && !GenericValidator.isBlankOrNull(panel.getId())) {
+                if (includedPanelIds.add(panel.getId())) {
+                    unitCount++;
+                }
+            } else {
+                unitCount++;
+            }
+        }
+        return unitCount;
+    }
+
+    /**
+     * Counts every analysis on an accession for queue row display (panel members
+     * counted individually).
+     */
+    private int countRawTests(List<Analysis> analyses) {
+        if (analyses == null || analyses.isEmpty()) {
+            return 0;
+        }
+        int testCount = 0;
+        for (Analysis analysis : analyses) {
+            if (analysis != null) {
+                testCount++;
+            }
+        }
+        return testCount;
     }
 
     public List<DashboardQueueItemDTO> filterQueueItems(List<DashboardQueueItemDTO> items, String patientQuery,
@@ -151,7 +225,7 @@ public class DashboardQueueMapper {
         item.setPriority(sample.getPriority() != null ? sample.getPriority().toString() : "");
         item.setOrderDate(resolveOrderDateDisplay(sample, analyses.get(0)));
         item.setOrderDateSort(resolveOrderDateSort(sample, analyses.get(0)));
-        item.setTestCount(analyses.size());
+        item.setTestCount(countRawTests(analyses));
         item.setTestSectionId(resolveTestSectionId(analyses));
         item.setTestNames(buildTestNames(analyses));
 
@@ -201,9 +275,31 @@ public class DashboardQueueMapper {
     }
 
     private String buildTestNames(List<Analysis> analyses) {
-        return analyses.stream()
-                .map(analysis -> analysis.getTest() != null ? analysis.getTest().getLocalizedName() : "")
-                .filter(name -> !GenericValidator.isBlankOrNull(name)).distinct().collect(Collectors.joining(", "));
+        LinkedHashSet<String> displayNames = new LinkedHashSet<>();
+        Set<String> includedPanelIds = new HashSet<>();
+
+        for (Analysis analysis : analyses) {
+            if (analysis == null) {
+                continue;
+            }
+            Panel panel = analysis.getPanel();
+            if (panel != null && !GenericValidator.isBlankOrNull(panel.getId())) {
+                if (includedPanelIds.add(panel.getId())) {
+                    String panelName = panel.getLocalizedName();
+                    if (!GenericValidator.isBlankOrNull(panelName)) {
+                        displayNames.add(panelName);
+                    }
+                }
+                continue;
+            }
+            if (analysis.getTest() != null) {
+                String testName = analysis.getTest().getLocalizedName();
+                if (!GenericValidator.isBlankOrNull(testName)) {
+                    displayNames.add(testName);
+                }
+            }
+        }
+        return String.join(", ", displayNames);
     }
 
     private String formatPatientName(Patient patient) {

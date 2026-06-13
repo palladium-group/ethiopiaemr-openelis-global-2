@@ -63,6 +63,12 @@
   font-weight: bold;
 }
 
+.dashboard-queue-subject {
+  color: #525252;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 925px) {
   .home-dashboard-container {
     grid-template-columns: repeat(3, 1fr);

@@ -1,0 +1,21 @@
+export const QUEUE_TILE_TYPES = [
+  "PENDING_RECEPTION",
+  "ORDERS_IN_PROGRESS",
+  "ORDERS_READY_FOR_VALIDATION",
+  "ORDERS_COMPLETED_TODAY",
+  "ORDERS_PATIALLY_COMPLETED_TODAY",
+  "ORDERS_REJECTED_TODAY",
+  "UN_PRINTED_RESULTS",
+  "DELAYED_TURN_AROUND",
+  "ORDERS_FOR_USER",
+];
+
+export const LEGACY_TABLE_TILE_TYPES = [
+  "ORDERS_ENTERED_BY_USER_TODAY",
+  "INCOMING_ORDERS",
+];
+
+export const isQueueTile = (tileType) => QUEUE_TILE_TYPES.includes(tileType);
+
+export const isLegacyTableTile = (tileType) =>
+  LEGACY_TABLE_TILE_TYPES.includes(tileType);

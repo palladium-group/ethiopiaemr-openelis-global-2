@@ -1,36 +1,12 @@
 import React from "react";
-import {
-  Tile,
-  ClickableTile,
-  Loading,
-  Grid,
-  Button,
-  Column,
-  DataTable,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  Pagination,
-  Link,
-  Tab,
-  Tabs,
-  TabList,
-  Tag,
-} from "@carbon/react";
+import { Tile, ClickableTile, Loading, Grid, Column } from "@carbon/react";
 import "./Dashboard.css";
-import { Minimize, Maximize, ArrowLeft, ArrowRight } from "@carbon/react/icons";
-import { Copy } from "@carbon/icons-react";
+import DashboardQueueView from "./DashboardQueueView";
+import DashboardLegacyTableView from "./DashboardLegacyTableView";
+import { isLegacyTableTile, isQueueTile } from "./dashboardConstants";
+import { Minimize, Maximize } from "@carbon/react/icons";
 import { useState, useEffect, useRef, useContext } from "react";
-import {
-  getFromOpenElisServer,
-  convertAlphaNumLabNumForDisplay,
-  hasRole,
-  Roles,
-} from "../utils/Utils.js";
+import { getFromOpenElisServer, hasRole, Roles } from "../utils/Utils.js";
 import { FormattedMessage, useIntl } from "react-intl";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import { NotificationContext } from "../layout/Layout";
@@ -94,7 +70,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
 
   const [data, setData] = useState([]);
   const [testSections, setTestSections] = useState([]);
-  const [selectedTestSection, setSelectedTestSection] = useState("");
   const [loading, setLoading] = useState(true);
   const componentMounted = useRef(true);
   const [page, setPage] = useState(1);
@@ -105,7 +80,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
   const [pagination, setPagination] = useState(false);
   const [currentApiPage, setCurrentApiPage] = useState(null);
   const [totalApiPages, setTotalApiPages] = useState(null);
-  const [url, setUrl] = useState("");
   const { userSessionDetails } = useContext(
     UserSessionDetailsContext,
   ) as UserSessionDetails;
@@ -122,7 +96,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     getFromOpenElisServer("/rest/home-dashboard/metrics", loadCount);
 
     return () => {
-      // This code runs when component is unmounted
       componentMounted.current = false;
     };
   }, []);
@@ -132,21 +105,18 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       setNextPage(null);
       setPreviousPage(null);
       setPagination(false);
+      setData([]);
+      if (isQueueTile(selectedTile.type)) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       if (selectedTile.type == "AVERAGE_TURN_AROUND_TIME") {
         getFromOpenElisServer(
           "/rest/home-dashboard/turn-around-time-metrics",
           loadTimeMetrics,
         );
-      } else if (selectedTile.type == "ORDERS_FOR_USER") {
-        getFromOpenElisServer(
-          "/rest/home-dashboard/" +
-            selectedTile.type +
-            "?systemUserId=" +
-            selectedTile.id,
-          loadData,
-        );
-      } else {
+      } else if (isLegacyTableTile(selectedTile.type)) {
         getFromOpenElisServer(
           "/rest/home-dashboard/" + selectedTile.type,
           loadData,
@@ -155,7 +125,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     }
 
     return () => {
-      // This code runs when component is unmounted
       componentMounted.current = false;
     };
   }, [selectedTile]);
@@ -164,20 +133,13 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     getFromOpenElisServer(
       "/rest/user-test-sections/ALL",
       (fetchedTestSections) => {
-        fetchTestSections(fetchedTestSections);
+        setTestSections(fetchedTestSections);
       },
     );
     return () => {
       componentMounted.current = false;
     };
   }, []);
-
-  const fetchTestSections = (res) => {
-    setTestSections(res);
-    hasRole(userSessionDetails, "Global Administrator")
-      ? setSelectedTestSection("all")
-      : setSelectedTestSection(res[0]?.id);
-  };
 
   const loadNextResultsPage = () => {
     setLoading(true);
@@ -203,14 +165,12 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
   };
 
   const loadData = (res) => {
-    // If the response object is not null and has displayItems array with length greater than 0 then set it as data.
     if (res && res.displayItems && res.displayItems.length > 0) {
       setData(res.displayItems);
     } else {
       setData([]);
     }
 
-    // Sets next and previous page numbers based on the total pages and current page number.
     if (res && res.paging) {
       const { totalPages, currentPage } = res.paging;
       if (totalPages > 1) {
@@ -348,20 +308,7 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
     },
   ];
 
-  const tilesWithTabs = [
-    "ORDERS_IN_PROGRESS",
-    "ORDERS_READY_FOR_VALIDATION",
-    "ORDERS_COMPLETED_TODAY",
-    "ORDERS_REJECTED_TODAY",
-    "UN_PRINTED_RESULTS",
-    "DELAYED_TURN_AROUND",
-    "PENDING_RECEPTION",
-    "ORDERS_FOR_USER",
-    "ORDERS_PATIALLY_COMPLETED_TODAY",
-  ];
-
   const handleMinimizeClick = () => {
-    console.log("Icon clicked!");
     if (selectedTile.type == "ORDERS_FOR_USER") {
       const tile: Tile = {
         title: <FormattedMessage id="dashboard.user.orders.label" />,
@@ -374,9 +321,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       setSelectedTile(tile);
     } else {
       setSelectedTile(null);
-      hasRole(userSessionDetails, "Global Administrator")
-        ? setSelectedTestSection("all")
-        : setSelectedTestSection(testSections[0]?.id);
     }
   };
 
@@ -397,7 +341,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
   };
 
   const viewUserOrders = (row) => {
-    console.log("Icon clicked!");
     const firstName = row.cells.find(
       (e) => e.info.header === "userFirstName",
     ).value;
@@ -427,102 +370,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       setPageSize(pageInfo.pageSize);
     }
   };
-  const renderCell = (cell, row) => {
-    if (cell.info.header === "labNumber" && cell.value) {
-      return (
-        <TableCell key={cell.id}>
-          <>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <Button
-                onClick={async () => {
-                  if ("clipboard" in navigator) {
-                    return await navigator.clipboard.writeText(cell.value);
-                  } else {
-                    return document.execCommand("copy", true, cell.value);
-                  }
-                }}
-                kind="ghost"
-                iconDescription={intl.formatMessage({
-                  id: "instructions.copy.labnum",
-                })}
-                hasIconOnly
-                renderIcon={Copy}
-              />
-              {selectedTile.type == "ORDERS_IN_PROGRESS" ||
-              selectedTile.type == "ORDERS_READY_FOR_VALIDATION" ? (
-                <Link
-                  style={{ color: "blue" }}
-                  href={
-                    selectedTile.type == "ORDERS_IN_PROGRESS"
-                      ? "/result?type=order&doRange=false&accessionNumber=" +
-                        cell.value
-                      : "validation?type=order&accessionNumber=" + cell.value
-                  }
-                >
-                  <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
-                </Link>
-              ) : selectedTile.type == "PENDING_RECEPTION" ? (
-                <Link
-                  style={{ color: "blue" }}
-                  href={"/Reception?accessionNumber=" + cell.value}
-                >
-                  <u>{convertAlphaNumLabNumForDisplay(cell.value)}</u>
-                </Link>
-              ) : (
-                <> {convertAlphaNumLabNumForDisplay(cell.value)}</>
-              )}
-            </div>
-          </>
-        </TableCell>
-      );
-    } else if (cell.info.header === "countOfOrdersEntered" && cell.value) {
-      return (
-        <TableCell key={cell.id}>
-          <Link style={{ color: "blue" }}>{cell.value} </Link>
-        </TableCell>
-      );
-    } else {
-      return <TableCell key={cell.id}>{cell.value}</TableCell>;
-    }
-  };
-
-  const orderHeaders = [
-    {
-      key: "priority",
-      header: <FormattedMessage id="eorder.priority" />,
-    },
-    {
-      key: "orderDate",
-      header: <FormattedMessage id="sample.label.orderdate" />,
-    },
-    {
-      key: "patientId",
-      header: <FormattedMessage id="patient.id" />,
-    },
-    {
-      key: "labNumber",
-      header: <FormattedMessage id="eorder.labNumber" />,
-    },
-    {
-      key: "testName",
-      header: <FormattedMessage id="eorder.test.name" />,
-    },
-  ];
-
-  const userHeaders = [
-    {
-      key: "userFirstName",
-      header: "First Name",
-    },
-    {
-      key: "userLastName",
-      header: "Last Name",
-    },
-    {
-      key: "countOfOrdersEntered",
-      header: "Orders Entered",
-    },
-  ];
 
   return (
     <>
@@ -589,208 +436,31 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
                     ))}
                   </div>
                 </>
-              ) : (
+              ) : isQueueTile(selectedTile.type) ? (
                 <Grid>
                   <Column lg={16} md={8} sm={4}>
-                    {pagination && (
-                      <Grid>
-                        <Column lg={14} />
-                        <Column
-                          lg={2}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: "10px",
-                            width: "110%",
-                          }}
-                        >
-                          <Link>
-                            {currentApiPage} / {totalApiPages}
-                          </Link>
-                          <div style={{ display: "flex", gap: "10px" }}>
-                            <Button
-                              hasIconOnly
-                              id="loadpreviousresults"
-                              onClick={loadPreviousResultsPage}
-                              disabled={previousPage != null ? false : true}
-                              renderIcon={ArrowLeft}
-                              iconDescription="previous"
-                            ></Button>
-                            <Button
-                              hasIconOnly
-                              id="loadnextresults"
-                              onClick={loadNextResultsPage}
-                              disabled={nextPage != null ? false : true}
-                              renderIcon={ArrowRight}
-                              iconDescription="next"
-                            ></Button>
-                          </div>
-                        </Column>
-                      </Grid>
-                    )}
-                    {tilesWithTabs.includes(selectedTile.type) && (
-                      <Grid>
-                        <Column lg={16} md={8} sm={4}>
-                          <Tabs>
-                            {hasRole(
-                              userSessionDetails,
-                              "Global Administrator",
-                            ) ? (
-                              <TabList
-                                style={{ width: "100%" }}
-                                aria-label="List of tabs"
-                                contained
-                              >
-                                <Tab
-                                  onClick={() => setSelectedTestSection("all")}
-                                >
-                                  <FormattedMessage id="all.label" />
-                                </Tab>
-
-                                {testSections?.map((item, id) => {
-                                  return (
-                                    <Tab
-                                      key={id}
-                                      onClick={() =>
-                                        setSelectedTestSection(item.id)
-                                      }
-                                    >
-                                      {item.value}
-                                    </Tab>
-                                  );
-                                })}
-                              </TabList>
-                            ) : (
-                              <TabList
-                                style={{ width: "100%" }}
-                                aria-label="List of tabs"
-                                contained
-                              >
-                                {testSections?.map((item, id) => {
-                                  return (
-                                    <Tab
-                                      key={id}
-                                      onClick={() =>
-                                        setSelectedTestSection(item.id)
-                                      }
-                                    >
-                                      {item.value}
-                                    </Tab>
-                                  );
-                                })}
-                              </TabList>
-                            )}
-                          </Tabs>
-                        </Column>
-                      </Grid>
-                    )}
-                    <DataTable
-                      rows={data
-                        .filter((item) =>
-                          tilesWithTabs.includes(selectedTile.type) &&
-                          selectedTestSection != "all"
-                            ? item.testSection === selectedTestSection
-                            : true,
-                        )
-                        .slice((page - 1) * pageSize, page * pageSize)}
-                      headers={
-                        selectedTile.type != "ORDERS_ENTERED_BY_USER_TODAY"
-                          ? orderHeaders
-                          : userHeaders
-                      }
-                      isSortable
-                    >
-                      {({ rows, headers, getHeaderProps, getTableProps }) => (
-                        <TableContainer title="" description="">
-                          <Table {...getTableProps()}>
-                            <TableHead>
-                              <TableRow>
-                                {headers.map((header) => (
-                                  <TableHeader
-                                    key={header.key}
-                                    {...getHeaderProps({ header })}
-                                  >
-                                    {header.header}
-                                  </TableHeader>
-                                ))}
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              <>
-                                {rows.map((row) => (
-                                  <TableRow
-                                    key={row.id}
-                                    onClick={() => {
-                                      selectedTile.type ==
-                                      "ORDERS_ENTERED_BY_USER_TODAY"
-                                        ? viewUserOrders(row)
-                                        : {};
-                                    }}
-                                  >
-                                    {row.cells.map((cell) =>
-                                      renderCell(cell, row),
-                                    )}
-                                  </TableRow>
-                                ))}
-                              </>
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      )}
-                    </DataTable>
-                    <Pagination
-                      onChange={handlePageChange}
-                      page={page}
-                      pageSize={pageSize}
-                      pageSizes={[10, 20, 30, 50, 100]}
-                      totalItems={
-                        data.filter((item) =>
-                          tilesWithTabs.includes(selectedTile.type) &&
-                          selectedTestSection != "all"
-                            ? item.testSection === selectedTestSection
-                            : true,
-                        ).length
-                      }
-                      forwardText={intl.formatMessage({
-                        id: "pagination.forward",
-                      })}
-                      backwardText={intl.formatMessage({
-                        id: "pagination.backward",
-                      })}
-                      itemRangeText={(min, max, total) =>
-                        intl.formatMessage(
-                          { id: "pagination.item-range" },
-                          { min: min, max: max, total: total },
-                        )
-                      }
-                      itemsPerPageText={intl.formatMessage({
-                        id: "pagination.items-per-page",
-                      })}
-                      itemText={(min, max) =>
-                        intl.formatMessage(
-                          { id: "pagination.item" },
-                          { min: min, max: max },
-                        )
-                      }
-                      pageNumberText={intl.formatMessage({
-                        id: "pagination.page-number",
-                      })}
-                      pageRangeText={(_current, total) =>
-                        intl.formatMessage(
-                          { id: "pagination.page-range" },
-                          { total: total },
-                        )
-                      }
-                      pageText={(page, pagesUnknown) =>
-                        intl.formatMessage(
-                          { id: "pagination.page" },
-                          { page: pagesUnknown ? "" : page },
-                        )
-                      }
+                    <DashboardQueueView
+                      listType={selectedTile.type}
+                      systemUserId={selectedTile.id}
                     />
                   </Column>
                 </Grid>
+              ) : (
+                <DashboardLegacyTableView
+                  selectedTileType={selectedTile.type}
+                  data={data}
+                  pagination={pagination}
+                  currentApiPage={currentApiPage}
+                  totalApiPages={totalApiPages}
+                  previousPage={previousPage}
+                  nextPage={nextPage}
+                  onLoadPreviousPage={loadPreviousResultsPage}
+                  onLoadNextPage={loadNextResultsPage}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onViewUserOrders={viewUserOrders}
+                />
               )}
             </div>
           </Tile>

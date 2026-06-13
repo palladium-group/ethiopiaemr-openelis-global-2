@@ -18,6 +18,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashboardQueueItemDTO;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashboardQueueResponse;
+import org.openelisglobal.panel.valueholder.Panel;
 import org.openelisglobal.patient.service.PatientService;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
@@ -176,8 +177,74 @@ public class DashboardQueueMapperTest {
                 org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_COMPLETED_TODAY));
         assertEquals(true, DashboardQueueMapper.usesQueueView(
                 org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.PENDING_RECEPTION));
+        assertEquals(true, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_PATIALLY_COMPLETED_TODAY));
+        assertEquals(true, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_REJECTED_TODAY));
+        assertEquals(true, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.UN_PRINTED_RESULTS));
+        assertEquals(true, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.DELAYED_TURN_AROUND));
+        assertEquals(true, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_FOR_USER));
         assertEquals(false, DashboardQueueMapper.usesQueueView(
                 org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.INCOMING_ORDERS));
+        assertEquals(false, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.ORDERS_ENTERED_BY_USER_TODAY));
+        assertEquals(false, DashboardQueueMapper.usesQueueView(
+                org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile.TileType.AVERAGE_TURN_AROUND_TIME));
+    }
+
+    @Test
+    public void groupAnalysesByAccession_shouldShowPanelNameOnceForPanelTests() {
+        Panel panel = mock(Panel.class);
+        when(panel.getId()).thenReturn("panel-1");
+        when(panel.getLocalizedName()).thenReturn("Complete Blood Count");
+
+        List<Analysis> analyses = Arrays.asList(createPanelAnalysis("analysis-1", "2026-001234", "Hemoglobin", panel),
+                createPanelAnalysis("analysis-2", "2026-001234", "WBC", panel),
+                createAnalysis("analysis-3", "2026-001234", "Glucose"));
+
+        List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
+
+        assertEquals(1, queueItems.size());
+        assertEquals("Complete Blood Count, Glucose", queueItems.get(0).getTestNames());
+        assertEquals(3, queueItems.get(0).getTestCount());
+    }
+
+    @Test
+    public void groupAnalysesByAccession_shouldUseRawTestCountWhileTileMetricsUseUnits() {
+        Panel panel = mock(Panel.class);
+        when(panel.getId()).thenReturn("panel-1");
+        when(panel.getLocalizedName()).thenReturn("Complete Blood Count");
+
+        List<Analysis> analyses = Arrays.asList(createPanelAnalysis("analysis-1", "2026-001234", "Hemoglobin", panel),
+                createPanelAnalysis("analysis-2", "2026-001234", "WBC", panel),
+                createAnalysis("analysis-3", "2026-005678", "Glucose"));
+
+        List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
+
+        assertEquals(2, queueItems.get(0).getTestCount());
+        assertEquals(1, queueItems.get(1).getTestCount());
+        assertEquals(2, dashboardQueueMapper.countTestUnitsForAnalyses(analyses));
+    }
+
+    @Test
+    public void countTestUnitsForAnalyses_shouldCountPanelOncePerAccession() {
+        Panel panel = mock(Panel.class);
+        when(panel.getId()).thenReturn("panel-1");
+
+        List<Analysis> analyses = Arrays.asList(createPanelAnalysis("analysis-1", "2026-001234", "Hemoglobin", panel),
+                createPanelAnalysis("analysis-2", "2026-001234", "WBC", panel),
+                createAnalysis("analysis-3", "2026-005678", "Glucose"));
+
+        assertEquals(2, dashboardQueueMapper.countTestUnitsForAnalyses(analyses));
+    }
+
+    private Analysis createPanelAnalysis(String analysisId, String accessionNumber, String testName, Panel panel) {
+        Analysis analysis = createAnalysis(analysisId, accessionNumber, testName);
+        analysis.setPanel(panel);
+        return analysis;
     }
 
     private Analysis createAnalysis(String analysisId, String accessionNumber, String testName) {
