@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <localization id="9001" description="Chemistry test"
+        english="Chemistry" french="Chimie" />
+    <localization id="9002" description="Hematology test"
+        english="Hematology" french="Hématologie" />
+    <localization id="9003" description="Serum sample"
+        english="Serum" french="Sérum" />
+
+    <unit_of_measure id="9001" name="mg/dL"
+        description="Milligrams per deciliter" />
+
+    <scriptlet id="9001" name="Scriptlet 1" code_type="T"
+        code_source="Source1" lastupdated="2025-03-13 12:00:00" />
+    <test_trailer id="9001" name="Trailer 1"
+        description="Description 1" text="Sample Text 1"
+        lastupdated="2025-03-13 12:00:00" />
+    <label id="9001" name="Specimen Label"
+        description="Label for specimen tracking" printer_type="L"
+        scriptlet_id="9001" lastupdated="2025-03-21 08:30:00" />
+    <method id="9001" name="standard" description="Standard method"
+        name_localization_id="9001" reporting_description=""
+        active_begin="2012-11-01" lastupdated="2023-10-01 12:00:00" />
+    <test_formats id="9001" lastupdated="2025-03-21 12:00:00" />
+
+    <status_of_sample id="9001" name="Sample Entered"
+        code="1" status_type="SAMPLE" description="Sample entered"
+        display_key="status.sample.entered" is_active="Y"
+        lastupdated="2025-03-18" />
+
+    <status_of_sample id="9004" name="Not Tested" code="1"
+        status_type="ANALYSIS" description="Analysis not started"
+        display_key="status.test.notStarted" is_active="Y"
+        lastupdated="2025-03-18" />
+    <status_of_sample id="9020" name="Pending Reception"
+        code="1" status_type="ANALYSIS"
+        description="Awaiting reception approval"
+        display_key="status.test.pendingReception" is_active="Y"
+        lastupdated="2025-03-18" />
+
+    <type_of_sample id="9001" description="Serum Sample"
+        domain="H" name_localization_id="9003"
+        lastupdated="2023-12-01 12:00:00" />
+
+    <organization id="9001" name="Dashboard Test Lab"
+        short_name="DTL" lastupdated="2024-06-03 12:00:00.0" is_active="Y" />
+
+    <test_section id="9001" name="Chemistry"
+        description="Chemistry Section" org_id="9001" is_external="N"
+        lastupdated="2025-03-20 12:00:00.0" sort_order="1"
+        name_localization_id="9001" display_key="TestKey1" />
+
+    <test id="9001" method_id="9001" uom_id="9001"
+        description="Chemistry Test" loinc="123456"
+        reporting_description="Chemistry" active_begin="2025-01-01 12:00:00"
+        active_end="2025-12-31 12:00:00" label_qty="1"
+        lastupdated="2025-03-20 12:00:00" label_id="9001"
+        test_trailer_id="9001" test_section_id="9001" scriptlet_id="9001"
+        test_format_id="9001" local_code="CHEM" sort_order="1"
+        name="Chemistry" orderable="true"
+        guid="550e8400-e29b-41d4-a716-446655440101"
+        name_localization_id="9001" is_active="Y" />
+    <test id="9002" method_id="9001" uom_id="9001"
+        description="Hematology Test" loinc="654321"
+        reporting_description="Hematology" active_begin="2025-01-01 12:00:00"
+        active_end="2025-12-31 12:00:00" label_qty="1"
+        lastupdated="2025-03-20 12:00:00" label_id="9001"
+        test_trailer_id="9001" test_section_id="9001" scriptlet_id="9001"
+        test_format_id="9001" local_code="HEM" sort_order="2"
+        name="Hematology" orderable="true"
+        guid="550e8400-e29b-41d4-a716-446655440102"
+        name_localization_id="9002" is_active="Y" />
+
+    <system_user id="9001" external_id="EXT9001"
+        login_name="receptionist" last_name="Approver" first_name="Sample"
+        initials="SA" is_active="Y" is_employee="Y"
+        lastupdated="2025-03-15 12:00:00" />
+    <system_user id="9002" external_id="EXT9002"
+        login_name="viewer" last_name="Viewer" first_name="Queue"
+        initials="QV" is_active="Y" is_employee="Y"
+        lastupdated="2025-03-15 12:00:00" />
+
+    <system_role id="9001" name="Sample Reception Approval"
+        description="Sample reception approval role"
+        display_key="role.sampleReceptionApproval" />
+
+    <system_user_role system_user_id="9001" role_id="9001" />
+
+    <person id="9001" last_name="Kebede" first_name="Abebe"
+        lastupdated="2024-01-01 12:00:00" />
+    <person id="9002" last_name="Smith" first_name="John"
+        lastupdated="2024-01-01 12:00:00" />
+
+    <patient id="9001" person_id="9001" national_id="ET-111"
+        external_id="PAT-9001" lastupdated="2024-01-01 12:00:00" />
+    <patient id="9002" person_id="9002" national_id="ET-222"
+        external_id="PAT-9002" lastupdated="2024-01-01 12:00:00" />
+
+    <patient_identity id="9001" identity_type_id="9"
+        patient_id="9001" identity_data="334-422-A"
+        lastupdated="2024-01-01 12:00:00" />
+    <patient_identity id="9002" identity_type_id="9"
+        patient_id="9002" identity_data="555-111-B"
+        lastupdated="2024-01-01 12:00:00" />
+
+    <sample id="9001" accession_number="2026-001234"
+        status_id="9001" domain="H" received_date="2026-06-10 10:00:00.0"
+        entered_date="2026-06-10 09:00:00.0"
+        collection_date="2026-06-10 08:00:00.0"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample id="9002" accession_number="2026-005678"
+        status_id="9001" domain="H" received_date="2026-06-13 14:00:00.0"
+        entered_date="2026-06-13 13:00:00.0"
+        collection_date="2026-06-13 12:00:00.0"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample id="9003" accession_number="2026-009999"
+        status_id="9001" domain="H" received_date="2026-06-12 11:00:00.0"
+        entered_date="2026-06-12 10:00:00.0"
+        collection_date="2026-06-12 09:00:00.0"
+        lastupdated="2024-01-01 12:00:00" />
+
+    <sample_item id="9001" sort_order="1" status_id="9001"
+        samp_id="9001" typeosamp_id="9001"
+        collection_date="2026-06-10 08:00:00"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample_item id="9002" sort_order="1" status_id="9001"
+        samp_id="9002" typeosamp_id="9001"
+        collection_date="2026-06-13 12:00:00"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample_item id="9003" sort_order="1" status_id="9001"
+        samp_id="9003" typeosamp_id="9001"
+        collection_date="2026-06-12 09:00:00"
+        lastupdated="2024-01-01 12:00:00" />
+
+    <sample_human id="9001" samp_id="9001" patient_id="9001"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample_human id="9002" samp_id="9002" patient_id="9002"
+        lastupdated="2024-01-01 12:00:00" />
+    <sample_human id="9003" samp_id="9003" patient_id="9001"
+        lastupdated="2024-01-01 12:00:00" />
+
+    <analysis id="9001" sampitem_id="9001" test_sect_id="9001"
+        test_id="9001" revision="1" status="1"
+        started_date="2026-06-10 10:00:00" analysis_type="ROUTINE"
+        lastupdated="2026-06-10 10:00:00" is_reportable="Y" status_id="9020"
+        entry_date="2026-06-10 09:00:00" corrected="false"
+        result_calculated="false" method_id="9001" />
+    <analysis id="9002" sampitem_id="9001" test_sect_id="9001"
+        test_id="9002" revision="1" status="1"
+        started_date="2026-06-10 10:00:00" analysis_type="ROUTINE"
+        lastupdated="2026-06-10 10:00:00" is_reportable="Y" status_id="9020"
+        entry_date="2026-06-10 09:00:00" corrected="false"
+        result_calculated="false" method_id="9001" />
+    <analysis id="9003" sampitem_id="9002" test_sect_id="9001"
+        test_id="9001" revision="1" status="1"
+        started_date="2026-06-13 14:00:00" analysis_type="ROUTINE"
+        lastupdated="2026-06-13 14:00:00" is_reportable="Y" status_id="9020"
+        entry_date="2026-06-13 13:00:00" corrected="false"
+        result_calculated="false" method_id="9001" />
+    <analysis id="9004" sampitem_id="9003" test_sect_id="9001"
+        test_id="9002" revision="1" status="1"
+        started_date="2026-06-12 11:00:00" analysis_type="ROUTINE"
+        lastupdated="2026-06-12 11:00:00" is_reportable="Y" status_id="9020"
+        entry_date="2026-06-12 10:00:00" corrected="false"
+        result_calculated="false" method_id="9001" />
+    <analysis id="9005" sampitem_id="9002" test_sect_id="9001"
+        test_id="9002" revision="1" status="1"
+        started_date="2026-06-13 15:00:00" analysis_type="ROUTINE"
+        lastupdated="2026-06-13 15:00:00" is_reportable="Y" status_id="9004"
+        entry_date="2026-06-13 14:00:00" corrected="false"
+        result_calculated="false" method_id="9001" />
+</dataset>
