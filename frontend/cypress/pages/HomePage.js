@@ -393,6 +393,20 @@ class HomePage {
   selectDelayedTurnAround() {
     cy.contains(this.selectors.link, "Delayed Turn Around").click();
   }
+
+  openDashboardTileByTitle(title) {
+    cy.contains(".dashboard-tile h3", title)
+      .closest(".dashboard-tile")
+      .find(this.selectors.maximizeIcon)
+      .click();
+  }
+
+  assertQueueViewVisible(listType) {
+    cy.get("#dashboard-queue-patient-" + listType).should("be.visible");
+    cy.get("#dashboard-queue-lab-" + listType).should("be.visible");
+    cy.contains("button", "Search").should("be.visible");
+    cy.get("table").should("exist");
+  }
 }
 
 export default HomePage;
