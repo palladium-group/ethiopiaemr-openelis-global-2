@@ -245,6 +245,18 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
   );
 
   const tileList: Array<Tile> = [
+    ...(canViewReception
+      ? [
+          {
+            title: <FormattedMessage id="dashboard.pending.reception.label" />,
+            subTitle: (
+              <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
+            ),
+            type: "PENDING_RECEPTION" as MetricType,
+            value: counts.pendingReception,
+          },
+        ]
+      : []),
     {
       title: <FormattedMessage id="dashboard.in.progress.label" />,
       subTitle: <FormattedMessage id="dashboard.in.progress.subtitle.label" />,
@@ -299,18 +311,6 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
       type: "INCOMING_ORDERS",
       value: counts.incomigOrders,
     },
-    ...(canViewReception
-      ? [
-          {
-            title: <FormattedMessage id="dashboard.pending.reception.label" />,
-            subTitle: (
-              <FormattedMessage id="dashboard.pending.reception.subtitle.label" />
-            ),
-            type: "PENDING_RECEPTION" as MetricType,
-            value: counts.pendingReception,
-          },
-        ]
-      : []),
     {
       title: <FormattedMessage id="dashboard.avg.turn.around.label" />,
       subTitle: (
