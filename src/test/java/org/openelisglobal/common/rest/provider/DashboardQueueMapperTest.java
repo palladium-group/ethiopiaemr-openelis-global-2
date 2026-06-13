@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
@@ -82,17 +83,41 @@ public class DashboardQueueMapperTest {
     }
 
     @Test
-    public void buildQueueResponse_shouldExposePlaceholderPaginationMetadata() {
+    public void buildQueueResponse_shouldPaginateWithDefaults() {
         DashboardQueueItemDTO item = new DashboardQueueItemDTO();
         item.setAccessionNumber("2026-001234");
 
         DashboardQueueResponse response = dashboardQueueMapper.buildQueueResponse(Arrays.asList(item));
 
-        assertEquals(1, response.getPage());
-        assertEquals(1, response.getPageSize());
+        assertEquals(DashboardQueueMapper.DEFAULT_PAGE, response.getPage());
+        assertEquals(DashboardQueueMapper.DEFAULT_PAGE_SIZE, response.getPageSize());
         assertEquals(1, response.getTotalItems());
         assertEquals(1, response.getTotalPages());
         assertEquals(1, response.getItems().size());
+    }
+
+    @Test
+    public void buildQueueResponse_shouldReturnRequestedPageSlice() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(createQueueItem("2026-001", 3),
+                createQueueItem("2026-002", 2), createQueueItem("2026-003", 1));
+
+        DashboardQueueResponse response = dashboardQueueMapper.buildQueueResponse(items, 2, 1);
+
+        assertEquals(2, response.getPage());
+        assertEquals(1, response.getPageSize());
+        assertEquals(3, response.getTotalItems());
+        assertEquals(3, response.getTotalPages());
+        assertEquals("2026-002", response.getItems().get(0).getAccessionNumber());
+    }
+
+    @Test
+    public void sortByOrderDateDesc_shouldPlaceNewestAccessionFirst() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(createQueueItem("older", 1), createQueueItem("newer", 3));
+
+        List<DashboardQueueItemDTO> sorted = dashboardQueueMapper.sortByOrderDateDesc(items);
+
+        assertEquals("newer", sorted.get(0).getAccessionNumber());
+        assertEquals("older", sorted.get(1).getAccessionNumber());
     }
 
     @Test
@@ -126,5 +151,12 @@ public class DashboardQueueMapperTest {
         analysis.setSampleItem(sampleItem);
         analysis.setTest(test);
         return analysis;
+    }
+
+    private DashboardQueueItemDTO createQueueItem(String accessionNumber, long sortEpochSeconds) {
+        DashboardQueueItemDTO item = new DashboardQueueItemDTO();
+        item.setAccessionNumber(accessionNumber);
+        item.setOrderDateSort(new Timestamp(sortEpochSeconds * 1000L));
+        return item;
     }
 }

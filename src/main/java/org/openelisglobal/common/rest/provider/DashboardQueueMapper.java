@@ -1,6 +1,8 @@
 package org.openelisglobal.common.rest.provider;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DashboardQueueMapper {
+
+    public static final int DEFAULT_PAGE = 1;
+
+    public static final int DEFAULT_PAGE_SIZE = 25;
+
+    public static final int MAX_PAGE_SIZE = 100;
 
     @Autowired
     private PatientService patientService;
@@ -57,17 +65,38 @@ public class DashboardQueueMapper {
         for (List<Analysis> accessionAnalyses : analysesByAccession.values()) {
             queueItems.add(buildQueueItem(accessionAnalyses));
         }
-        return queueItems;
+        return sortByOrderDateDesc(queueItems);
+    }
+
+    public List<DashboardQueueItemDTO> sortByOrderDateDesc(List<DashboardQueueItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<DashboardQueueItemDTO> sorted = new ArrayList<>(items);
+        sorted.sort(Comparator.comparing(DashboardQueueItemDTO::getOrderDateSort,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        return sorted;
     }
 
     public DashboardQueueResponse buildQueueResponse(List<DashboardQueueItemDTO> items) {
+        return buildQueueResponse(items, DEFAULT_PAGE, DEFAULT_PAGE_SIZE);
+    }
+
+    public DashboardQueueResponse buildQueueResponse(List<DashboardQueueItemDTO> items, int page, int pageSize) {
+        List<DashboardQueueItemDTO> sortedItems = sortByOrderDateDesc(items != null ? items : new ArrayList<>());
+        int safePage = page < 1 ? DEFAULT_PAGE : page;
+        int safePageSize = pageSize < 1 ? DEFAULT_PAGE_SIZE : Math.min(pageSize, MAX_PAGE_SIZE);
+        int totalItems = sortedItems.size();
+        int totalPages = totalItems == 0 ? 0 : (int) Math.ceil((double) totalItems / safePageSize);
+        int fromIndex = Math.min((safePage - 1) * safePageSize, totalItems);
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+
         DashboardQueueResponse response = new DashboardQueueResponse();
-        List<DashboardQueueItemDTO> queueItems = items != null ? items : new ArrayList<>();
-        response.setItems(queueItems);
-        response.setPage(1);
-        response.setPageSize(queueItems.isEmpty() ? 0 : queueItems.size());
-        response.setTotalItems(queueItems.size());
-        response.setTotalPages(queueItems.isEmpty() ? 0 : 1);
+        response.setPage(safePage);
+        response.setPageSize(safePageSize);
+        response.setTotalItems(totalItems);
+        response.setTotalPages(totalPages);
+        response.setItems(new ArrayList<>(sortedItems.subList(fromIndex, toIndex)));
         return response;
     }
 
@@ -109,12 +138,12 @@ public class DashboardQueueMapper {
         return analysis != null ? analysis.getStartedDateForDisplay() : "";
     }
 
-    private java.sql.Timestamp resolveOrderDateSort(Sample sample, Analysis analysis) {
+    private Timestamp resolveOrderDateSort(Sample sample, Analysis analysis) {
         if (sample != null && sample.getReceivedTimestamp() != null) {
             return sample.getReceivedTimestamp();
         }
         if (analysis != null && analysis.getStartedDate() != null) {
-            return new java.sql.Timestamp(analysis.getStartedDate().getTime());
+            return new Timestamp(analysis.getStartedDate().getTime());
         }
         return null;
     }

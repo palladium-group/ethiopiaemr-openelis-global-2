@@ -435,7 +435,31 @@ public class PatientDashBoardProvider extends BaseRestController {
         }
         List<Analysis> analyses = retrieveAnalyses(listType, systemUserId, request);
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
-        response.setQueue(dashboardQueueMapper.buildQueueResponse(queueItems));
+        int page = parseQueuePage(request.getParameter("page"));
+        int pageSize = parseQueuePageSize(request.getParameter("pageSize"));
+        response.setQueue(dashboardQueueMapper.buildQueueResponse(queueItems, page, pageSize));
+    }
+
+    private int parseQueuePage(String pageValue) {
+        if (GenericValidator.isBlankOrNull(pageValue)) {
+            return DashboardQueueMapper.DEFAULT_PAGE;
+        }
+        try {
+            return Integer.parseInt(pageValue);
+        } catch (NumberFormatException e) {
+            return DashboardQueueMapper.DEFAULT_PAGE;
+        }
+    }
+
+    private int parseQueuePageSize(String pageSizeValue) {
+        if (GenericValidator.isBlankOrNull(pageSizeValue)) {
+            return DashboardQueueMapper.DEFAULT_PAGE_SIZE;
+        }
+        try {
+            return Integer.parseInt(pageSizeValue);
+        } catch (NumberFormatException e) {
+            return DashboardQueueMapper.DEFAULT_PAGE_SIZE;
+        }
     }
 
     /**
