@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
+    <!-- Required by sample.sys_user_id and sample_storage_assignment.assigned_by_user_id -->
+    <system_user id="1" login_name="testadmin"
+        last_name="Admin" first_name="Test" initials="TA" is_active="Y"
+        is_employee="Y" lastupdated="2024-01-01 00:00:00" />
+
     <status_of_sample id="1" description="Test Status"
         code="1" status_type="S" />
 

@@ -352,7 +352,10 @@ class HomePage {
   }
 
   selectInProgress() {
-    cy.get(this.selectors.maximizeIcon).click();
+    cy.contains(".dashboard-tile h3", "In Progress")
+      .closest(".dashboard-tile")
+      .find(this.selectors.maximizeIcon)
+      .click();
   }
 
   selectReadyforValidation() {
