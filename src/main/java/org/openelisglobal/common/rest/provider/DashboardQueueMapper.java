@@ -3,6 +3,7 @@ package org.openelisglobal.common.rest.provider;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -58,9 +59,14 @@ public class DashboardQueueMapper {
         }
 
         Map<String, List<Analysis>> analysesByRow = new LinkedHashMap<>();
+        Set<String> sampleIds = new HashSet<>();
         for (Analysis analysis : analyses) {
             if (analysis == null || analysis.getSampleItem() == null || analysis.getSampleItem().getSample() == null) {
                 continue;
+            }
+            Sample sample = analysis.getSampleItem().getSample();
+            if (!GenericValidator.isBlankOrNull(sample.getId())) {
+                sampleIds.add(sample.getId());
             }
             String rowKey = resolveQueueRowKey(analysis);
             if (GenericValidator.isBlankOrNull(rowKey)) {
@@ -69,9 +75,15 @@ public class DashboardQueueMapper {
             analysesByRow.computeIfAbsent(rowKey, key -> new ArrayList<>()).add(analysis);
         }
 
+        Map<String, Patient> patientsBySampleId = sampleHumanService
+                .getPatientsForSampleIds(new ArrayList<>(sampleIds));
+        Map<String, String> subjectNumberByPatientId = new HashMap<>();
+        Map<String, String> nationalIdByPatientId = new HashMap<>();
+
         List<DashboardQueueItemDTO> queueItems = new ArrayList<>();
         for (List<Analysis> rowAnalyses : analysesByRow.values()) {
-            queueItems.add(buildQueueItem(rowAnalyses));
+            queueItems.add(
+                    buildQueueItem(rowAnalyses, patientsBySampleId, subjectNumberByPatientId, nationalIdByPatientId));
         }
         return sortByOrderDateDesc(queueItems);
     }
@@ -254,7 +266,8 @@ public class DashboardQueueMapper {
         return response;
     }
 
-    private DashboardQueueItemDTO buildQueueItem(List<Analysis> analyses) {
+    private DashboardQueueItemDTO buildQueueItem(List<Analysis> analyses, Map<String, Patient> patientsBySampleId,
+            Map<String, String> subjectNumberByPatientId, Map<String, String> nationalIdByPatientId) {
         DashboardQueueItemDTO item = new DashboardQueueItemDTO();
         Analysis primaryAnalysis = analyses.get(0);
         Sample sample = primaryAnalysis.getSampleItem().getSample();
@@ -268,11 +281,11 @@ public class DashboardQueueMapper {
         item.setTestSectionId(resolveAnalysisTestSectionId(primaryAnalysis));
         item.setTestNames(resolveRowTestName(primaryAnalysis, analyses));
 
-        Patient patient = sampleHumanService.getPatientForSample(sample);
+        Patient patient = patientsBySampleId.get(sample.getId());
         if (patient != null) {
             item.setPatientName(formatPatientName(patient));
-            item.setSubjectNumber(StringUtils.defaultString(patientService.getSubjectNumber(patient)));
-            item.setPatientNationalId(StringUtils.defaultString(patientService.getNationalId(patient)));
+            item.setSubjectNumber(resolveSubjectNumber(patient, subjectNumberByPatientId));
+            item.setPatientNationalId(resolveNationalId(patient, nationalIdByPatientId));
         } else {
             item.setPatientName("");
             item.setSubjectNumber("");
@@ -280,6 +293,22 @@ public class DashboardQueueMapper {
         }
 
         return item;
+    }
+
+    private String resolveSubjectNumber(Patient patient, Map<String, String> subjectNumberByPatientId) {
+        if (patient == null || GenericValidator.isBlankOrNull(patient.getId())) {
+            return "";
+        }
+        return subjectNumberByPatientId.computeIfAbsent(patient.getId(),
+                patientId -> StringUtils.defaultString(patientService.getSubjectNumber(patient)));
+    }
+
+    private String resolveNationalId(Patient patient, Map<String, String> nationalIdByPatientId) {
+        if (patient == null || GenericValidator.isBlankOrNull(patient.getId())) {
+            return "";
+        }
+        return nationalIdByPatientId.computeIfAbsent(patient.getId(),
+                patientId -> StringUtils.defaultString(patientService.getNationalId(patient)));
     }
 
     private String resolveQueueItemId(Analysis primaryAnalysis, Sample sample) {

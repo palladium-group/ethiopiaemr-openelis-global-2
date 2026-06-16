@@ -35,6 +35,20 @@ public class PatientDashBoardProviderTest extends BaseWebContextSensitiveTest {
     }
 
     @Test
+    public void getDashboardMetrics_withoutReceptionRole_returnsZeroPendingReception() throws Exception {
+        mockMvc.perform(get("/rest/home-dashboard/metrics").session(viewerSession)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.pendingReception").value(0));
+    }
+
+    @Test
+    public void getDashboardMetrics_withReceptionRole_returnsPendingReceptionCount() throws Exception {
+        mockMvc.perform(get("/rest/home-dashboard/metrics").session(receptionSession)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.pendingReception").value(4));
+    }
+
+    @Test
     public void getPendingReceptionQueue_withoutRole_returnsEmptyQueue() throws Exception {
         performQueueGet("/rest/home-dashboard/PENDING_RECEPTION", viewerSession).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

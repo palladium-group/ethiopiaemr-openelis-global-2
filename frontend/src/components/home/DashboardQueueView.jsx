@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Column,
@@ -51,6 +51,8 @@ const DashboardQueueView = ({
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const requestSequenceRef = useRef(0);
+  const abortControllerRef = useRef(null);
 
   const showTestSectionTabs =
     QUEUE_TILES_WITH_TEST_SECTION_TABS.includes(listType) &&
@@ -102,6 +104,13 @@ const DashboardQueueView = ({
     labFilter,
     testSectionFilter,
   ) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const requestId = ++requestSequenceRef.current;
+
     setLoading(true);
     setLoadError(false);
     const params = new URLSearchParams({
@@ -127,6 +136,9 @@ const DashboardQueueView = ({
     getFromOpenElisServer(
       "/rest/home-dashboard/" + listType + "?" + params.toString(),
       (response) => {
+        if (requestId !== requestSequenceRef.current) {
+          return;
+        }
         if (!response || response.queue == null) {
           setLoadError(true);
           setItems([]);
@@ -149,8 +161,17 @@ const DashboardQueueView = ({
         setPageSize(queue.pageSize || size);
         setLoading(false);
       },
+      controller.signal,
     );
   };
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!showTestSectionTabs) {
@@ -426,47 +447,55 @@ const DashboardQueueView = ({
         </DataTable>
       )}
 
-      <Pagination
-        page={page}
-        pageSize={pageSize}
-        pageSizes={[10, 25, 50, 100]}
-        totalItems={totalItems}
-        forwardText={intl.formatMessage({ id: "pagination.forward" })}
-        backwardText={intl.formatMessage({ id: "pagination.backward" })}
-        itemRangeText={(min, max, total) =>
-          intl.formatMessage(
-            { id: "pagination.item-range" },
-            { min: min, max: max, total: total },
-          )
-        }
-        itemsPerPageText={intl.formatMessage({
-          id: "pagination.items-per-page",
-        })}
-        itemText={(min, max) =>
-          intl.formatMessage({ id: "pagination.item" }, { min: min, max: max })
-        }
-        pageNumberText={intl.formatMessage({ id: "pagination.page-number" })}
-        pageRangeText={(_current, total) =>
-          intl.formatMessage({ id: "pagination.page-range" }, { total: total })
-        }
-        pageText={(pageNumber, pagesUnknown) =>
-          intl.formatMessage(
-            { id: "pagination.page" },
-            { page: pagesUnknown ? "" : pageNumber },
-          )
-        }
-        onChange={({ page: nextPage, pageSize: nextPageSize }) => {
-          setPage(nextPage);
-          setPageSize(nextPageSize);
-          loadQueue(
-            nextPage,
-            nextPageSize,
-            appliedPatientQuery,
-            appliedLabNumber,
-            selectedTestSection,
-          );
-        }}
-      />
+      {!loading && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          pageSizes={[10, 25, 50, 100]}
+          totalItems={totalItems}
+          forwardText={intl.formatMessage({ id: "pagination.forward" })}
+          backwardText={intl.formatMessage({ id: "pagination.backward" })}
+          itemRangeText={(min, max, total) =>
+            intl.formatMessage(
+              { id: "pagination.item-range" },
+              { min: min, max: max, total: total },
+            )
+          }
+          itemsPerPageText={intl.formatMessage({
+            id: "pagination.items-per-page",
+          })}
+          itemText={(min, max) =>
+            intl.formatMessage(
+              { id: "pagination.item" },
+              { min: min, max: max },
+            )
+          }
+          pageNumberText={intl.formatMessage({ id: "pagination.page-number" })}
+          pageRangeText={(_current, total) =>
+            intl.formatMessage(
+              { id: "pagination.page-range" },
+              { total: total },
+            )
+          }
+          pageText={(pageNumber, pagesUnknown) =>
+            intl.formatMessage(
+              { id: "pagination.page" },
+              { page: pagesUnknown ? "" : pageNumber },
+            )
+          }
+          onChange={({ page: nextPage, pageSize: nextPageSize }) => {
+            setPage(nextPage);
+            setPageSize(nextPageSize);
+            loadQueue(
+              nextPage,
+              nextPageSize,
+              appliedPatientQuery,
+              appliedLabNumber,
+              selectedTestSection,
+            );
+          }}
+        />
+      )}
     </>
   );
 };

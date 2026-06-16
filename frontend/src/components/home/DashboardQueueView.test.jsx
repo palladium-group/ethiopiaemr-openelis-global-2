@@ -65,6 +65,7 @@ describe("DashboardQueueView", () => {
     expect(getFromOpenElisServer).toHaveBeenCalledWith(
       "/rest/home-dashboard/ORDERS_IN_PROGRESS?page=1&pageSize=25",
       expect.any(Function),
+      expect.anything(),
     );
   });
 
@@ -139,6 +140,7 @@ describe("DashboardQueueView", () => {
     expect(getFromOpenElisServer).toHaveBeenCalledWith(
       "/rest/home-dashboard/ORDERS_FOR_USER?page=1&pageSize=25&systemUserId=user-42",
       expect.any(Function),
+      expect.anything(),
     );
   });
 
@@ -156,6 +158,7 @@ describe("DashboardQueueView", () => {
     expect(getFromOpenElisServer).toHaveBeenCalledWith(
       "/rest/home-dashboard/ORDERS_IN_PROGRESS?page=1&pageSize=25&testSectionId=9001",
       expect.any(Function),
+      expect.anything(),
     );
   });
 

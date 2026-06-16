@@ -1,6 +1,7 @@
 package org.openelisglobal.samplehuman.service;
 
 import java.util.List;
+import java.util.Map;
 import org.openelisglobal.common.service.BaseObjectService;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.provider.valueholder.Provider;
@@ -13,6 +14,8 @@ public interface SampleHumanService extends BaseObjectService<SampleHuman, Strin
     Provider getProviderForSample(Sample sample);
 
     Patient getPatientForSample(Sample sample);
+
+    Map<String, Patient> getPatientsForSampleIds(List<String> sampleIds);
 
     List<Sample> getSamplesForPatient(String patientID);
 

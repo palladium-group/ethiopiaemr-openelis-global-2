@@ -2,13 +2,17 @@ package org.openelisglobal.common.rest.provider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,9 +55,26 @@ public class DashboardQueueMapperTest {
         patient.setId("patient-1");
         patient.setPerson(person);
 
-        when(sampleHumanService.getPatientForSample(any(Sample.class))).thenReturn(patient);
+        when(sampleHumanService.getPatientsForSampleIds(anyList())).thenAnswer(invocation -> {
+            List<String> sampleIds = invocation.getArgument(0);
+            Map<String, Patient> patientsBySampleId = new HashMap<>();
+            for (String sampleId : sampleIds) {
+                patientsBySampleId.put(sampleId, patient);
+            }
+            return patientsBySampleId;
+        });
         when(patientService.getSubjectNumber(patient)).thenReturn("334-422-A");
         when(patientService.getNationalId(patient)).thenReturn("ET-123");
+    }
+
+    @Test
+    public void groupAnalysesByAccession_shouldBatchLoadPatientsOnce() {
+        List<Analysis> analyses = Arrays.asList(createAnalysis("analysis-1", "2026-001234", "Chemistry"),
+                createAnalysis("analysis-2", "2026-005678", "Hematology"));
+
+        dashboardQueueMapper.groupAnalysesByAccession(analyses);
+
+        verify(sampleHumanService, times(1)).getPatientsForSampleIds(anyList());
     }
 
     @Test

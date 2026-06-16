@@ -35,7 +35,7 @@ import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.patient.valueholder.Patient;
-import org.openelisglobal.reception.dao.ReceptionDAO;
+import org.openelisglobal.reception.service.ReceptionService;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
@@ -90,7 +90,7 @@ public class PatientDashBoardProvider extends BaseRestController {
     private DashboardQueueMapper dashboardQueueMapper;
 
     @Autowired
-    private ReceptionDAO receptionDAO;
+    private ReceptionService receptionService;
 
     private double calculateAverageReceptionToValidationTime() {
         List<Analysis> analyses = analysisService.getAnalysesCompletedOnByStatusId(DateUtil.getNowAsSqlDate(),
@@ -433,6 +433,10 @@ public class PatientDashBoardProvider extends BaseRestController {
         if (!DashboardQueueMapper.usesQueueView(listType)) {
             return;
         }
+        // Loads all matching analyses into memory, groups/filters, then paginates
+        // in-process.
+        // Suitable for dashboard queue sizes; very large result sets would need
+        // DB-level paging.
         List<Analysis> analyses = retrieveAnalyses(listType, systemUserId, request);
         analyses = dashboardQueueMapper.filterAnalysesByTestSection(analyses, request.getParameter("testSectionId"));
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
@@ -557,7 +561,7 @@ public class PatientDashBoardProvider extends BaseRestController {
     }
 
     private List<Analysis> retrieveAnalysesByStatus(AnalysisStatus status) {
-        return receptionDAO.findAnalysesByStatusWithSampleFilters(iStatusService.getStatusID(status), null, null, null);
+        return receptionService.findAnalysesByStatusForDashboard(iStatusService.getStatusID(status));
     }
 
     private boolean userHasSampleReceptionApprovalRole(HttpServletRequest request) {
