@@ -102,8 +102,9 @@
     <patient id="9002" person_id="9002" national_id="ET-222"
         external_id="PAT-9002" lastupdated="2024-01-01 12:00:00" />
 
-    <patient_identity_type id="9" identity_type="SUBJECT"
-        description="Subject Number" lastupdated="2010-01-06 12:56:16.0" />
+    <patient_identity_type id="9"
+        identity_type="SUBJECT" description="Subject Number"
+        lastupdated="2010-01-06 12:56:16.0" />
 
     <patient_identity id="9001" identity_type_id="9"
         patient_id="9001" identity_data="334-422-A"
