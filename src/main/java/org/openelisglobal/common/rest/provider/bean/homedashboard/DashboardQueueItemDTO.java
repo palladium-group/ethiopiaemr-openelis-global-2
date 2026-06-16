@@ -1,5 +1,6 @@
 package org.openelisglobal.common.rest.provider.bean.homedashboard;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.sql.Timestamp;
 
 public class DashboardQueueItemDTO {
@@ -58,6 +59,7 @@ public class DashboardQueueItemDTO {
         this.orderDate = orderDate;
     }
 
+    @JsonIgnore
     public Timestamp getOrderDateSort() {
         return orderDateSort;
     }

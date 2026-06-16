@@ -128,7 +128,8 @@ public class PatientDashBoardProviderTest extends BaseWebContextSensitiveTest {
                 .andExpect(jsonPath("$.queue.totalItems").value(1))
                 .andExpect(jsonPath("$.queue.items[0].accessionNumber").value("2026-005678"))
                 .andExpect(jsonPath("$.queue.items[0].patientName").value("John Smith"))
-                .andExpect(jsonPath("$.queue.items[0].testCount").value(1));
+                .andExpect(jsonPath("$.queue.items[0].testCount").value(1))
+                .andExpect(jsonPath("$.queue.items[0].orderDateSort").doesNotExist());
     }
 
     private ResultActions performQueueGet(String url, MockHttpSession session, String... extraParams) throws Exception {
