@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Column,
@@ -7,6 +7,7 @@ import {
   Loading,
   Link,
   Pagination,
+  Tab,
   Table,
   TableBody,
   TableCell,
@@ -14,6 +15,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Tabs,
+  TabList,
   TextInput,
 } from "@carbon/react";
 import { Copy } from "@carbon/icons-react";
@@ -22,20 +25,41 @@ import {
   convertAlphaNumLabNumForDisplay,
   getFromOpenElisServer,
 } from "../utils/Utils";
+import { QUEUE_TILES_WITH_TEST_SECTION_TABS } from "./dashboardConstants";
 
 const DEFAULT_PAGE_SIZE = 25;
 
-const DashboardQueueView = ({ listType, systemUserId }) => {
+const DashboardQueueView = ({
+  listType,
+  systemUserId,
+  testSections = [],
+  showAllTestSectionTab = false,
+}) => {
   const intl = useIntl();
   const [patientQuery, setPatientQuery] = useState("");
   const [labNumber, setLabNumber] = useState("");
   const [appliedPatientQuery, setAppliedPatientQuery] = useState("");
   const [appliedLabNumber, setAppliedLabNumber] = useState("");
+  const [selectedTestSection, setSelectedTestSection] = useState(null);
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const showTestSectionTabs =
+    QUEUE_TILES_WITH_TEST_SECTION_TABS.includes(listType) &&
+    (showAllTestSectionTab || testSections.length > 0);
+
+  const testSectionTabValues = useMemo(() => {
+    if (!showTestSectionTabs) {
+      return [];
+    }
+    if (showAllTestSectionTab) {
+      return ["all", ...testSections.map((section) => section.id)];
+    }
+    return testSections.map((section) => section.id);
+  }, [showAllTestSectionTab, showTestSectionTabs, testSections]);
 
   const headers = [
     {
@@ -66,7 +90,13 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
     },
   ];
 
-  const loadQueue = (pageNumber, size, patientFilter, labFilter) => {
+  const loadQueue = (
+    pageNumber,
+    size,
+    patientFilter,
+    labFilter,
+    testSectionFilter,
+  ) => {
     setLoading(true);
     const params = new URLSearchParams({
       page: String(pageNumber),
@@ -77,6 +107,13 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
     }
     if (labFilter.trim()) {
       params.set("labNumber", labFilter.trim());
+    }
+    if (
+      testSectionFilter &&
+      testSectionFilter !== "all" &&
+      showTestSectionTabs
+    ) {
+      params.set("testSectionId", testSectionFilter);
     }
     if (systemUserId != null && systemUserId !== "") {
       params.set("systemUserId", String(systemUserId));
@@ -95,20 +132,62 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
   };
 
   useEffect(() => {
+    if (!showTestSectionTabs) {
+      setSelectedTestSection("all");
+      return;
+    }
+    if (showAllTestSectionTab) {
+      setSelectedTestSection("all");
+      return;
+    }
+    if (testSections.length > 0) {
+      setSelectedTestSection(testSections[0].id);
+    } else {
+      setSelectedTestSection(null);
+    }
+  }, [listType]);
+
+  useEffect(() => {
+    if (
+      !showTestSectionTabs ||
+      showAllTestSectionTab ||
+      testSections.length === 0
+    ) {
+      return;
+    }
+    setSelectedTestSection((current) => {
+      if (current === null || !testSections.some((section) => section.id === current)) {
+        return testSections[0].id;
+      }
+      return current;
+    });
+  }, [showAllTestSectionTab, showTestSectionTabs, testSections]);
+
+  useEffect(() => {
+    if (selectedTestSection == null) {
+      return;
+    }
     setPatientQuery("");
     setLabNumber("");
     setAppliedPatientQuery("");
     setAppliedLabNumber("");
     setPage(1);
     setPageSize(DEFAULT_PAGE_SIZE);
-    loadQueue(1, DEFAULT_PAGE_SIZE, "", "");
-  }, [listType, systemUserId]);
+    loadQueue(1, DEFAULT_PAGE_SIZE, "", "", selectedTestSection);
+  }, [listType, systemUserId, selectedTestSection]);
 
   const applySearch = () => {
     setAppliedPatientQuery(patientQuery);
     setAppliedLabNumber(labNumber);
     setPage(1);
-    loadQueue(1, pageSize, patientQuery, labNumber);
+    loadQueue(1, pageSize, patientQuery, labNumber, selectedTestSection);
+  };
+
+  const handleTestSectionTabChange = ({ selectedIndex }) => {
+    const nextSection = testSectionTabValues[selectedIndex];
+    if (nextSection && nextSection !== selectedTestSection) {
+      setSelectedTestSection(nextSection);
+    }
   };
 
   const copyLabNumber = async (value) => {
@@ -138,7 +217,7 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
   };
 
   const rows = items.map((item) => ({
-    id: item.accessionNumber || item.id,
+    id: item.id || item.accessionNumber,
     priority: item.priority || "",
     orderDate: item.orderDate || "",
     patient: item.patientName || "",
@@ -149,8 +228,42 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
     testNames: item.testNames || "",
   }));
 
+  const selectedTestSectionIndex = testSectionTabValues.indexOf(
+    selectedTestSection ?? "",
+  );
+
   return (
     <>
+      {showTestSectionTabs ? (
+        <Grid fullWidth={true}>
+          <Column lg={16} md={8} sm={4}>
+            <Tabs
+              selectedIndex={
+                selectedTestSectionIndex >= 0 ? selectedTestSectionIndex : 0
+              }
+              onChange={handleTestSectionTabChange}
+            >
+              {showAllTestSectionTab ? (
+                <TabList aria-label="Test section tabs" contained>
+                  <Tab>
+                    <FormattedMessage id="all.label" />
+                  </Tab>
+                  {testSections.map((section) => (
+                    <Tab key={section.id}>{section.value}</Tab>
+                  ))}
+                </TabList>
+              ) : (
+                <TabList aria-label="Test section tabs" contained>
+                  {testSections.map((section) => (
+                    <Tab key={section.id}>{section.value}</Tab>
+                  ))}
+                </TabList>
+              )}
+            </Tabs>
+          </Column>
+        </Grid>
+      ) : null}
+
       <Grid fullWidth={true}>
         <Column lg={5} md={4} sm={4}>
           <TextInput
@@ -218,7 +331,7 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
                   ) : (
                     rows.map((row) => {
                       const sourceItem = items.find(
-                        (item) => (item.accessionNumber || item.id) === row.id,
+                        (item) => item.id === row.id,
                       );
                       const accessionNumber = sourceItem?.accessionNumber || "";
                       const accessionHref = getAccessionHref(accessionNumber);
@@ -322,6 +435,7 @@ const DashboardQueueView = ({ listType, systemUserId }) => {
             nextPageSize,
             appliedPatientQuery,
             appliedLabNumber,
+            selectedTestSection,
           );
         }}
       />

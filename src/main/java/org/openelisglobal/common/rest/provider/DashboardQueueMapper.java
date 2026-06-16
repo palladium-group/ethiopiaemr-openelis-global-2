@@ -57,24 +57,39 @@ public class DashboardQueueMapper {
             return new ArrayList<>();
         }
 
-        Map<String, List<Analysis>> analysesByAccession = new LinkedHashMap<>();
+        Map<String, List<Analysis>> analysesByRow = new LinkedHashMap<>();
         for (Analysis analysis : analyses) {
             if (analysis == null || analysis.getSampleItem() == null || analysis.getSampleItem().getSample() == null) {
                 continue;
             }
-            Sample sample = analysis.getSampleItem().getSample();
-            String accessionNumber = sample.getAccessionNumber();
-            if (GenericValidator.isBlankOrNull(accessionNumber)) {
+            String rowKey = resolveQueueRowKey(analysis);
+            if (GenericValidator.isBlankOrNull(rowKey)) {
                 continue;
             }
-            analysesByAccession.computeIfAbsent(accessionNumber, key -> new ArrayList<>()).add(analysis);
+            analysesByRow.computeIfAbsent(rowKey, key -> new ArrayList<>()).add(analysis);
         }
 
         List<DashboardQueueItemDTO> queueItems = new ArrayList<>();
-        for (List<Analysis> accessionAnalyses : analysesByAccession.values()) {
-            queueItems.add(buildQueueItem(accessionAnalyses));
+        for (List<Analysis> rowAnalyses : analysesByRow.values()) {
+            queueItems.add(buildQueueItem(rowAnalyses));
         }
         return sortByOrderDateDesc(queueItems);
+    }
+
+    private String resolveQueueRowKey(Analysis analysis) {
+        Sample sample = analysis.getSampleItem().getSample();
+        String accessionNumber = sample.getAccessionNumber();
+        if (GenericValidator.isBlankOrNull(accessionNumber)) {
+            return null;
+        }
+        Panel panel = analysis.getPanel();
+        if (panel != null && !GenericValidator.isBlankOrNull(panel.getId())) {
+            return accessionNumber + "|panel|" + panel.getId();
+        }
+        if (!GenericValidator.isBlankOrNull(analysis.getId())) {
+            return accessionNumber + "|test|" + analysis.getId();
+        }
+        return null;
     }
 
     /**
@@ -140,6 +155,29 @@ public class DashboardQueueMapper {
             }
         }
         return testCount;
+    }
+
+    public List<Analysis> filterAnalysesByTestSection(List<Analysis> analyses, String testSectionId) {
+        if (analyses == null || analyses.isEmpty()) {
+            return new ArrayList<>();
+        }
+        if (GenericValidator.isBlankOrNull(testSectionId)) {
+            return new ArrayList<>(analyses);
+        }
+        return analyses.stream().filter(analysis -> testSectionId.equals(resolveAnalysisTestSectionId(analysis)))
+                .collect(Collectors.toList());
+    }
+
+    public List<DashboardQueueItemDTO> filterQueueItemsByTestSection(List<DashboardQueueItemDTO> items,
+            String testSectionId) {
+        if (items == null || items.isEmpty()) {
+            return new ArrayList<>();
+        }
+        if (GenericValidator.isBlankOrNull(testSectionId)) {
+            return new ArrayList<>(items);
+        }
+        return items.stream().filter(item -> testSectionId.equals(item.getTestSectionId()))
+                .collect(Collectors.toList());
     }
 
     public List<DashboardQueueItemDTO> filterQueueItems(List<DashboardQueueItemDTO> items, String patientQuery,
@@ -218,16 +256,17 @@ public class DashboardQueueMapper {
 
     private DashboardQueueItemDTO buildQueueItem(List<Analysis> analyses) {
         DashboardQueueItemDTO item = new DashboardQueueItemDTO();
-        Sample sample = analyses.get(0).getSampleItem().getSample();
+        Analysis primaryAnalysis = analyses.get(0);
+        Sample sample = primaryAnalysis.getSampleItem().getSample();
 
-        item.setId(sample.getId());
+        item.setId(resolveQueueItemId(primaryAnalysis, sample));
         item.setAccessionNumber(sample.getAccessionNumber());
         item.setPriority(sample.getPriority() != null ? sample.getPriority().toString() : "");
-        item.setOrderDate(resolveOrderDateDisplay(sample, analyses.get(0)));
-        item.setOrderDateSort(resolveOrderDateSort(sample, analyses.get(0)));
+        item.setOrderDate(resolveOrderDateDisplay(sample, primaryAnalysis));
+        item.setOrderDateSort(resolveOrderDateSort(sample, primaryAnalysis));
         item.setTestCount(countRawTests(analyses));
-        item.setTestSectionId(resolveTestSectionId(analyses));
-        item.setTestNames(buildTestNames(analyses));
+        item.setTestSectionId(resolveAnalysisTestSectionId(primaryAnalysis));
+        item.setTestNames(resolveRowTestName(primaryAnalysis, analyses));
 
         Patient patient = sampleHumanService.getPatientForSample(sample);
         if (patient != null) {
@@ -241,6 +280,27 @@ public class DashboardQueueMapper {
         }
 
         return item;
+    }
+
+    private String resolveQueueItemId(Analysis primaryAnalysis, Sample sample) {
+        Panel panel = primaryAnalysis.getPanel();
+        if (panel != null && !GenericValidator.isBlankOrNull(panel.getId())) {
+            return sample.getAccessionNumber() + "-panel-" + panel.getId();
+        }
+        return primaryAnalysis.getId();
+    }
+
+    private String resolveRowTestName(Analysis primaryAnalysis, List<Analysis> analyses) {
+        Panel panel = primaryAnalysis.getPanel();
+        if (panel != null && !GenericValidator.isBlankOrNull(panel.getId())) {
+            String panelName = panel.getLocalizedName();
+            return GenericValidator.isBlankOrNull(panelName) ? "" : panelName;
+        }
+        if (primaryAnalysis.getTest() != null) {
+            String testName = primaryAnalysis.getTest().getLocalizedName();
+            return GenericValidator.isBlankOrNull(testName) ? "" : testName;
+        }
+        return buildTestNames(analyses);
     }
 
     private String resolveOrderDateDisplay(Sample sample, Analysis analysis) {
@@ -264,12 +324,16 @@ public class DashboardQueueMapper {
         return null;
     }
 
-    private String resolveTestSectionId(List<Analysis> analyses) {
-        for (Analysis analysis : analyses) {
-            if (analysis.getTestSection() != null
-                    && !GenericValidator.isBlankOrNull(analysis.getTestSection().getId())) {
-                return analysis.getTestSection().getId();
-            }
+    private String resolveAnalysisTestSectionId(Analysis analysis) {
+        if (analysis == null) {
+            return "";
+        }
+        if (analysis.getTestSection() != null && !GenericValidator.isBlankOrNull(analysis.getTestSection().getId())) {
+            return analysis.getTestSection().getId();
+        }
+        if (analysis.getTest() != null && analysis.getTest().getTestSection() != null
+                && !GenericValidator.isBlankOrNull(analysis.getTest().getTestSection().getId())) {
+            return analysis.getTest().getTestSection().getId();
         }
         return "";
     }

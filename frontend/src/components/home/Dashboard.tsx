@@ -442,6 +442,11 @@ const HomeDashBoard: React.FC<DashBoardProps> = () => {
                     <DashboardQueueView
                       listType={selectedTile.type}
                       systemUserId={selectedTile.id}
+                      testSections={testSections}
+                      showAllTestSectionTab={hasRole(
+                        userSessionDetails,
+                        "Global Administrator",
+                      )}
                     />
                   </Column>
                 </Grid>

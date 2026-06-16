@@ -15,6 +15,7 @@ const queueResponse = {
   queue: {
     items: [
       {
+        id: "analysis-1",
         accessionNumber: "2026-001234",
         patientName: "Jane Doe",
         subjectNumber: "SUB-001",
@@ -105,5 +106,45 @@ describe("DashboardQueueView", () => {
       "/rest/home-dashboard/ORDERS_FOR_USER?page=1&pageSize=25&systemUserId=user-42",
       expect.any(Function),
     );
+  });
+
+  test("passesTestSectionIdWhenUserHasAssignedSections", async () => {
+    render(
+      <IntlProvider locale="en" messages={messages}>
+        <DashboardQueueView
+          listType="ORDERS_IN_PROGRESS"
+          testSections={[{ id: "9001", value: "Chemistry" }]}
+          showAllTestSectionTab={false}
+        />
+      </IntlProvider>,
+    );
+
+    await screen.findByText("Jane Doe");
+
+    expect(getFromOpenElisServer).toHaveBeenCalledWith(
+      "/rest/home-dashboard/ORDERS_IN_PROGRESS?page=1&pageSize=25&testSectionId=9001",
+      expect.any(Function),
+    );
+  });
+
+  test("rendersTestSectionTabsForQueueTiles", async () => {
+    render(
+      <IntlProvider locale="en" messages={messages}>
+        <DashboardQueueView
+          listType="ORDERS_IN_PROGRESS"
+          testSections={[
+            { id: "9001", value: "Chemistry" },
+            { id: "9002", value: "Hematology" },
+          ]}
+          showAllTestSectionTab={true}
+        />
+      </IntlProvider>,
+    );
+
+    await screen.findByText("Jane Doe");
+
+    expect(screen.getByText("All")).toBeInTheDocument();
+    expect(screen.getByText("Chemistry")).toBeInTheDocument();
+    expect(screen.getByText("Hematology")).toBeInTheDocument();
   });
 });

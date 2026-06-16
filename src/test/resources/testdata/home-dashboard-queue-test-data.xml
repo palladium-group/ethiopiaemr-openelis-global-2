@@ -6,6 +6,8 @@
         english="Hematology" french="Hématologie" />
     <localization id="9003" description="Serum sample"
         english="Serum" french="Sérum" />
+    <localization id="9004" description="Hematology section"
+        english="Hematology" french="Hématologie" />
 
     <unit_of_measure id="9001" name="mg/dL"
         description="Milligrams per deciliter" />
@@ -49,6 +51,10 @@
         description="Chemistry Section" org_id="9001" is_external="N"
         lastupdated="2025-03-20 12:00:00.0" sort_order="1"
         name_localization_id="9001" display_key="TestKey1" />
+    <test_section id="9002" name="Hematology"
+        description="Hematology Section" org_id="9001" is_external="N"
+        lastupdated="2025-03-20 12:00:00.0" sort_order="2"
+        name_localization_id="9004" display_key="TestKey2" />
 
     <test id="9001" method_id="9001" uom_id="9001"
         description="Chemistry Test" loinc="123456"
@@ -65,7 +71,7 @@
         reporting_description="Hematology" active_begin="2025-01-01 12:00:00"
         active_end="2025-12-31 12:00:00" label_qty="1"
         lastupdated="2025-03-20 12:00:00" label_id="9001"
-        test_trailer_id="9001" test_section_id="9001" scriptlet_id="9001"
+        test_trailer_id="9001" test_section_id="9002" scriptlet_id="9001"
         test_format_id="9001" local_code="HEM" sort_order="2"
         name="Hematology" orderable="true"
         guid="550e8400-e29b-41d4-a716-446655440102"
@@ -145,7 +151,7 @@
         lastupdated="2026-06-10 10:00:00" is_reportable="Y" status_id="9020"
         entry_date="2026-06-10 09:00:00" corrected="false"
         result_calculated="false" method_id="9001" />
-    <analysis id="9002" sampitem_id="9001" test_sect_id="9001"
+    <analysis id="9002" sampitem_id="9001" test_sect_id="9002"
         test_id="9002" revision="1" status="1"
         started_date="2026-06-10 10:00:00" analysis_type="ROUTINE"
         lastupdated="2026-06-10 10:00:00" is_reportable="Y" status_id="9020"
@@ -157,13 +163,13 @@
         lastupdated="2026-06-13 14:00:00" is_reportable="Y" status_id="9020"
         entry_date="2026-06-13 13:00:00" corrected="false"
         result_calculated="false" method_id="9001" />
-    <analysis id="9004" sampitem_id="9003" test_sect_id="9001"
+    <analysis id="9004" sampitem_id="9003" test_sect_id="9002"
         test_id="9002" revision="1" status="1"
         started_date="2026-06-12 11:00:00" analysis_type="ROUTINE"
         lastupdated="2026-06-12 11:00:00" is_reportable="Y" status_id="9020"
         entry_date="2026-06-12 10:00:00" corrected="false"
         result_calculated="false" method_id="9001" />
-    <analysis id="9005" sampitem_id="9002" test_sect_id="9001"
+    <analysis id="9005" sampitem_id="9002" test_sect_id="9002"
         test_id="9002" revision="1" status="1"
         started_date="2026-06-13 15:00:00" analysis_type="ROUTINE"
         lastupdated="2026-06-13 15:00:00" is_reportable="Y" status_id="9004"

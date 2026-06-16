@@ -25,6 +25,7 @@ import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
 import org.openelisglobal.sampleitem.valueholder.SampleItem;
+import org.openelisglobal.test.valueholder.TestSection;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DashboardQueueMapperTest {
@@ -56,21 +57,18 @@ public class DashboardQueueMapperTest {
     }
 
     @Test
-    public void groupAnalysesByAccession_shouldReturnOneRowForMultipleTestsOnSameAccession() {
+    public void groupAnalysesByAccession_shouldReturnOneRowPerStandaloneTestOnSameAccession() {
         List<Analysis> analyses = Arrays.asList(createAnalysis("analysis-1", "2026-001234", "Chemistry"),
                 createAnalysis("analysis-2", "2026-001234", "Hematology"),
                 createAnalysis("analysis-3", "2026-001234", "Serology"));
 
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
 
-        assertEquals("Should group to one accession row", 1, queueItems.size());
-        DashboardQueueItemDTO item = queueItems.get(0);
-        assertEquals("2026-001234", item.getAccessionNumber());
-        assertEquals(3, item.getTestCount());
-        assertEquals("Jane Doe", item.getPatientName());
-        assertEquals("334-422-A", item.getSubjectNumber());
-        assertEquals("ET-123", item.getPatientNationalId());
-        assertNotNull(item.getTestNames());
+        assertEquals("Each standalone test should be its own row", 3, queueItems.size());
+        assertEquals(3, queueItems.stream().filter(item -> "2026-001234".equals(item.getAccessionNumber())).count());
+        assertEquals("Jane Doe", queueItems.get(0).getPatientName());
+        assertEquals("334-422-A", queueItems.get(0).getSubjectNumber());
+        assertEquals("ET-123", queueItems.get(0).getPatientNationalId());
     }
 
     @Test
@@ -156,6 +154,33 @@ public class DashboardQueueMapperTest {
     }
 
     @Test
+    public void filterQueueItemsByTestSection_shouldReturnAllItemsWhenSectionNotProvided() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001234", "Jane Doe", "A", "ET-1"),
+                createSearchableQueueItem("2026-005678", "John Smith", "B", "ET-2"));
+        items.get(0).setTestSectionId("9001");
+        items.get(1).setTestSectionId("9002");
+
+        List<DashboardQueueItemDTO> filtered = dashboardQueueMapper.filterQueueItemsByTestSection(items, null);
+
+        assertEquals(2, filtered.size());
+    }
+
+    @Test
+    public void filterQueueItemsByTestSection_shouldFilterBySectionId() {
+        List<DashboardQueueItemDTO> items = Arrays.asList(
+                createSearchableQueueItem("2026-001234", "Jane Doe", "A", "ET-1"),
+                createSearchableQueueItem("2026-005678", "John Smith", "B", "ET-2"));
+        items.get(0).setTestSectionId("9001");
+        items.get(1).setTestSectionId("9002");
+
+        List<DashboardQueueItemDTO> filtered = dashboardQueueMapper.filterQueueItemsByTestSection(items, "9002");
+
+        assertEquals(1, filtered.size());
+        assertEquals("2026-005678", filtered.get(0).getAccessionNumber());
+    }
+
+    @Test
     public void filterQueueItems_shouldApplyPatientAndLabNumberTogether() {
         List<DashboardQueueItemDTO> items = Arrays.asList(
                 createSearchableQueueItem("2026-001234", "Jane Doe", "334-422-A", "ET-123"),
@@ -196,7 +221,7 @@ public class DashboardQueueMapperTest {
     }
 
     @Test
-    public void groupAnalysesByAccession_shouldShowPanelNameOnceForPanelTests() {
+    public void groupAnalysesByAccession_shouldReturnSeparateRowsForPanelsAndStandaloneTests() {
         Panel panel = mock(Panel.class);
         when(panel.getId()).thenReturn("panel-1");
         when(panel.getLocalizedName()).thenReturn("Complete Blood Count");
@@ -207,13 +232,45 @@ public class DashboardQueueMapperTest {
 
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
 
-        assertEquals(1, queueItems.size());
-        assertEquals("Complete Blood Count, Glucose", queueItems.get(0).getTestNames());
-        assertEquals(3, queueItems.get(0).getTestCount());
+        assertEquals(2, queueItems.size());
+        DashboardQueueItemDTO panelRow = queueItems.stream()
+                .filter(item -> "Complete Blood Count".equals(item.getTestNames())).findFirst().orElse(null);
+        DashboardQueueItemDTO glucoseRow = queueItems.stream().filter(item -> "Glucose".equals(item.getTestNames()))
+                .findFirst().orElse(null);
+        assertNotNull(panelRow);
+        assertNotNull(glucoseRow);
+        assertEquals(2, panelRow.getTestCount());
+        assertEquals(1, glucoseRow.getTestCount());
+        assertEquals("2026-001234-panel-panel-1", panelRow.getId());
+        assertEquals("analysis-3", glucoseRow.getId());
     }
 
     @Test
-    public void groupAnalysesByAccession_shouldUseRawTestCountWhileTileMetricsUseUnits() {
+    public void groupAnalysesByAccession_shouldReturnSeparateRowsForTwoPanelsOnSameAccession() {
+        Panel cbcPanel = mock(Panel.class);
+        when(cbcPanel.getId()).thenReturn("panel-1");
+        when(cbcPanel.getLocalizedName()).thenReturn("Complete Blood Count");
+
+        Panel bmpPanel = mock(Panel.class);
+        when(bmpPanel.getId()).thenReturn("panel-2");
+        when(bmpPanel.getLocalizedName()).thenReturn("Basic Metabolic Panel");
+
+        List<Analysis> analyses = Arrays.asList(
+                createPanelAnalysis("analysis-1", "2026-001234", "Hemoglobin", cbcPanel),
+                createPanelAnalysis("analysis-2", "2026-001234", "WBC", cbcPanel),
+                createPanelAnalysis("analysis-3", "2026-001234", "Sodium", bmpPanel),
+                createPanelAnalysis("analysis-4", "2026-001234", "Potassium", bmpPanel));
+
+        List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
+
+        assertEquals(2, queueItems.size());
+        assertEquals(1, queueItems.stream().filter(item -> "Complete Blood Count".equals(item.getTestNames())).count());
+        assertEquals(1,
+                queueItems.stream().filter(item -> "Basic Metabolic Panel".equals(item.getTestNames())).count());
+    }
+
+    @Test
+    public void groupAnalysesByAccession_shouldCountPanelMembersInPanelRow() {
         Panel panel = mock(Panel.class);
         when(panel.getId()).thenReturn("panel-1");
         when(panel.getLocalizedName()).thenReturn("Complete Blood Count");
@@ -224,9 +281,55 @@ public class DashboardQueueMapperTest {
 
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
 
-        assertEquals(2, queueItems.get(0).getTestCount());
-        assertEquals(1, queueItems.get(1).getTestCount());
+        assertEquals(2, queueItems.size());
+        DashboardQueueItemDTO panelRow = queueItems.stream()
+                .filter(item -> "2026-001234".equals(item.getAccessionNumber())).findFirst().orElse(null);
+        DashboardQueueItemDTO glucoseRow = queueItems.stream()
+                .filter(item -> "2026-005678".equals(item.getAccessionNumber())).findFirst().orElse(null);
+        assertNotNull(panelRow);
+        assertNotNull(glucoseRow);
+        assertEquals(2, panelRow.getTestCount());
+        assertEquals(1, glucoseRow.getTestCount());
         assertEquals(2, dashboardQueueMapper.countTestUnitsForAnalyses(analyses));
+    }
+
+    @Test
+    public void filterAnalysesByTestSection_shouldKeepOnlyMatchingAnalyses() {
+        TestSection chemistrySection = mock(TestSection.class);
+        when(chemistrySection.getId()).thenReturn("9001");
+        TestSection hematologySection = mock(TestSection.class);
+        when(hematologySection.getId()).thenReturn("9002");
+
+        Analysis chemistryAnalysis = createAnalysis("analysis-1", "2026-001234", "Glucose");
+        chemistryAnalysis.setTestSection(chemistrySection);
+        Analysis hematologyAnalysis = createAnalysis("analysis-2", "2026-005678", "Hematology");
+        hematologyAnalysis.setTestSection(hematologySection);
+
+        List<Analysis> filtered = dashboardQueueMapper
+                .filterAnalysesByTestSection(Arrays.asList(chemistryAnalysis, hematologyAnalysis), "9002");
+
+        assertEquals(1, filtered.size());
+        assertEquals("analysis-2", filtered.get(0).getId());
+    }
+
+    @Test
+    public void filterAnalysesByTestSection_beforeGrouping_shouldExcludeOtherSectionRows() {
+        TestSection hematologySection = mock(TestSection.class);
+        when(hematologySection.getId()).thenReturn("9002");
+        TestSection chemistrySection = mock(TestSection.class);
+        when(chemistrySection.getId()).thenReturn("9001");
+
+        Analysis hematologyAnalysis = createAnalysis("analysis-1", "2026-001234", "Hemoglobin");
+        hematologyAnalysis.setTestSection(hematologySection);
+        Analysis chemistryAnalysis = createAnalysis("analysis-2", "2026-001234", "Glucose");
+        chemistryAnalysis.setTestSection(chemistrySection);
+
+        List<Analysis> chemistryOnly = dashboardQueueMapper
+                .filterAnalysesByTestSection(Arrays.asList(hematologyAnalysis, chemistryAnalysis), "9001");
+        List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(chemistryOnly);
+
+        assertEquals(1, queueItems.size());
+        assertEquals("Glucose", queueItems.get(0).getTestNames());
     }
 
     @Test

@@ -434,6 +434,7 @@ public class PatientDashBoardProvider extends BaseRestController {
             return;
         }
         List<Analysis> analyses = retrieveAnalyses(listType, systemUserId, request);
+        analyses = dashboardQueueMapper.filterAnalysesByTestSection(analyses, request.getParameter("testSectionId"));
         List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
         queueItems = dashboardQueueMapper.filterQueueItems(queueItems, request.getParameter("patientQuery"),
                 request.getParameter("labNumber"));
