@@ -246,28 +246,11 @@ public class PatientDashBoardProvider extends BaseRestController {
                 userOrderBean.setId(userId);
                 userOrderBean.setUserFirstName(user.getFirstName());
                 userOrderBean.setUserLastName(user.getLastName());
-                userOrderBean.setCountOfOrdersEntered(countDistinctAccessions(analysisList));
+                userOrderBean.setCountOfOrdersEntered(userOrdersMap.get(userId).size());
                 userOrders.add(userOrderBean);
             }
         });
         return userOrders;
-    }
-
-    private int countDistinctAccessions(List<Analysis> analyses) {
-        if (analyses == null || analyses.isEmpty()) {
-            return 0;
-        }
-        Set<String> accessionNumbers = new HashSet<>();
-        for (Analysis analysis : analyses) {
-            if (analysis == null || analysis.getSampleItem() == null || analysis.getSampleItem().getSample() == null) {
-                continue;
-            }
-            String accessionNumber = analysis.getSampleItem().getSample().getAccessionNumber();
-            if (StringUtils.isNotBlank(accessionNumber)) {
-                accessionNumbers.add(accessionNumber);
-            }
-        }
-        return accessionNumbers.size();
     }
 
     private List<OrderDisplayBean> getUserOrderBeans(List<Analysis> analyses, String userId) {
@@ -346,39 +329,43 @@ public class PatientDashBoardProvider extends BaseRestController {
             Set<Integer> statusIdSet;
             switch (type) {
             case ORDERS_IN_PROGRESS:
-                metrics.setOrdersInProgress(dashboardQueueMapper
-                        .countTestUnitsForAnalyses(retrieveAnalysesByStatus(AnalysisStatus.NotStarted)));
+                statusIdList = new ArrayList<>();
+                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.NotStarted)));
+                metrics.setOrdersInProgress(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
                 break;
             case ORDERS_READY_FOR_VALIDATION:
-                metrics.setOrdersReadyForValidation(dashboardQueueMapper
-                        .countTestUnitsForAnalyses(retrieveAnalysesByStatus(AnalysisStatus.TechnicalAcceptance)));
+                statusIdList = new ArrayList<>();
+                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.TechnicalAcceptance)));
+                metrics.setOrdersReadyForValidation(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
                 break;
             case ORDERS_COMPLETED_TODAY:
-                metrics.setOrdersCompletedToday(
-                        dashboardQueueMapper.countTestUnitsForAnalyses(analysisService.getAnalysesCompletedOnByStatusId(
-                                DateUtil.getNowAsSqlDate(), iStatusService.getStatusID(AnalysisStatus.Finalized))));
+                statusIdList = new ArrayList<>();
+                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.Finalized)));
+                metrics.setOrdersCompletedToday(analysisService
+                        .getCountOfAnalysisCompletedOnByStatusId(DateUtil.getNowAsSqlDate(), statusIdList));
                 break;
             case ORDERS_PATIALLY_COMPLETED_TODAY:
                 statusIdSet = new HashSet<>();
                 statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
                 statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.Finalized)));
-                metrics.setPatiallyCompletedToday(dashboardQueueMapper.countTestUnitsForAnalyses(analysisService
-                        .getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet)));
+                metrics.setPatiallyCompletedToday(analysisService
+                        .getCountOfAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet));
                 break;
 
             case ORDERS_ENTERED_BY_USER_TODAY:
                 statusIdSet = new HashSet<>();
                 statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
-                metrics.setOrderEnterdByUserToday(countDistinctAccessions(analysisService
-                        .getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet)));
+                metrics.setOrderEnterdByUserToday(analysisService
+                        .getCountOfAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet));
                 break;
             case ORDERS_REJECTED_TODAY:
-                metrics.setOrdersRejectedToday(dashboardQueueMapper.countTestUnitsForAnalyses(analysisService
-                        .getAnalysisStartedOnRangeByStatusId(DateUtil.getNowAsSqlDate(), DateUtil.getNowAsSqlDate(),
-                                iStatusService.getStatusID(AnalysisStatus.SampleRejected))));
+                statusIdList = new ArrayList<>();
+                statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
+                metrics.setOrdersRejectedToday(analysisService
+                        .getCountOfAnalysisStartedOnByStatusId(DateUtil.getNowAsSqlDate(), statusIdList));
                 break;
             case UN_PRINTED_RESULTS:
-                metrics.setUnPritendResults(dashboardQueueMapper.countTestUnitsForAnalyses(unprintedResults()));
+                metrics.setUnPritendResults(unprintedResults().size());
                 break;
             case INCOMING_ORDERS:
                 List<Integer> estausIds = new ArrayList<>();
@@ -388,8 +375,9 @@ public class PatientDashBoardProvider extends BaseRestController {
                 break;
             case PENDING_RECEPTION:
                 if (canViewReception) {
-                    metrics.setPendingReception(dashboardQueueMapper
-                            .countTestUnitsForAnalyses(retrieveAnalysesByStatus(AnalysisStatus.PendingReception)));
+                    statusIdList = new ArrayList<>();
+                    statusIdList.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.PendingReception)));
+                    metrics.setPendingReception(analysisService.getCountOfAnalysesForStatusIds(statusIdList));
                 } else {
                     metrics.setPendingReception(0);
                 }
@@ -398,8 +386,7 @@ public class PatientDashBoardProvider extends BaseRestController {
                 metrics.setAverageTurnAroudTime(calculateAverageReceptionToValidationTime());
                 break;
             case DELAYED_TURN_AROUND:
-                metrics.setDelayedTurnAround(
-                        dashboardQueueMapper.countTestUnitsForAnalyses(analysesWithDelayedTurnAroundTime()));
+                metrics.setDelayedTurnAround(analysesWithDelayedTurnAroundTime().size());
                 break;
             default:
                 break;
