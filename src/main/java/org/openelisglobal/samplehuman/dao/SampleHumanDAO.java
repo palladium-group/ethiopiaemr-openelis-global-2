@@ -14,6 +14,7 @@
 package org.openelisglobal.samplehuman.dao;
 
 import java.util.List;
+import java.util.Map;
 import org.openelisglobal.common.dao.BaseDAO;
 import org.openelisglobal.common.exception.LIMSRuntimeException;
 import org.openelisglobal.patient.valueholder.Patient;
@@ -42,6 +43,8 @@ public interface SampleHumanDAO extends BaseDAO<SampleHuman, String> {
     public void getDataBySample(SampleHuman sampleHuman) throws LIMSRuntimeException;
 
     public Patient getPatientForSample(Sample sample) throws LIMSRuntimeException;
+
+    Map<String, Patient> getPatientsForSampleIds(List<String> sampleIds) throws LIMSRuntimeException;
 
     public Provider getProviderForSample(Sample sample) throws LIMSRuntimeException;
 

@@ -28,8 +28,9 @@ public class ReceptionDAOImpl extends BaseDAOImpl<Analysis, String> implements R
             Timestamp receivedFrom, Timestamp receivedTo) throws LIMSRuntimeException {
         try {
             StringBuilder hql = new StringBuilder(
-                    "select distinct a from Analysis a join fetch a.sampleItem si join fetch si.sample s left join fetch a.test t "
-                            + "where a.statusId = :statusId");
+                    "select distinct a from Analysis a join fetch a.sampleItem si join fetch si.sample s "
+                            + "left join fetch a.test t left join fetch t.testSection ts left join fetch a.testSection ats "
+                            + "left join fetch a.panel p where a.statusId = :statusId");
             if (!GenericValidator.isBlankOrNull(accessionNumberFilter)) {
                 hql.append(" and lower(s.accessionNumber) like lower(:accessionFilter)");
             }

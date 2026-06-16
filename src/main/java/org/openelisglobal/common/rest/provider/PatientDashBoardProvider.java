@@ -17,11 +17,12 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.common.action.IActionConstants;
 import org.openelisglobal.common.constants.Constants;
+import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.AverageTimeDisplayBean;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardMetrics;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.DashBoardTile;
+import org.openelisglobal.common.rest.provider.bean.homedashboard.DashboardQueueItemDTO;
 import org.openelisglobal.common.rest.provider.bean.homedashboard.OrderDisplayBean;
 import org.openelisglobal.common.rest.provider.form.PatientDashBoardForm;
 import org.openelisglobal.common.rest.util.PatientDashBoardPaging;
@@ -33,7 +34,8 @@ import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
-import org.openelisglobal.login.valueholder.UserSessionData;
+import org.openelisglobal.patient.valueholder.Patient;
+import org.openelisglobal.reception.service.ReceptionService;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
@@ -53,7 +55,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping(value = "/rest/")
-public class PatientDashBoardProvider {
+public class PatientDashBoardProvider extends BaseRestController {
 
     @Autowired
     AnalysisService analysisService;
@@ -83,6 +85,12 @@ public class PatientDashBoardProvider {
     SystemUserService systemUserService;
     @Autowired
     private UserRoleService userRoleService;
+
+    @Autowired
+    private DashboardQueueMapper dashboardQueueMapper;
+
+    @Autowired
+    private ReceptionService receptionService;
 
     private double calculateAverageReceptionToValidationTime() {
         List<Analysis> analyses = analysisService.getAnalysesCompletedOnByStatusId(DateUtil.getNowAsSqlDate(),
@@ -200,7 +208,10 @@ public class PatientDashBoardProvider {
                     if (sample != null) {
                         orderBean.setPriority(sample.getPriority() != null ? sample.getPriority().toString() : "");
                         orderBean.setLabNumber(sample.getAccessionNumber() != null ? sample.getAccessionNumber() : "");
-                        orderBean.setPatientId(sampleHumanService.getPatientForSample(sample).getNationalId());
+                        Patient patient = sampleHumanService.getPatientForSample(sample);
+                        if (patient != null && patient.getNationalId() != null) {
+                            orderBean.setPatientId(patient.getNationalId());
+                        }
                     }
                     orderBean.setOrderDate(analysis.getStartedDateForDisplay());
                     orderBean.setTestName(analysis.getTest() != null ? analysis.getTest().getLocalizedName() : "");
@@ -400,20 +411,62 @@ public class PatientDashBoardProvider {
         List<OrderDisplayBean> orderDisplayBeans = new ArrayList<>();
 
         String requestedPage = request.getParameter("page");
-        if (GenericValidator.isBlankOrNull(requestedPage)) {
+        if (GenericValidator.isBlankOrNull(requestedPage) && !DashboardQueueMapper.usesQueueView(listType)) {
             orderDisplayBeans = retreiveOrders(listType, systemUserId, request);
 
             // All the orders retreived are fed into paging to return the first page of the
             // list.
             paging.setDatabaseResults(request, response, orderDisplayBeans);
-        } else {
+        } else if (!GenericValidator.isBlankOrNull(requestedPage) && !DashboardQueueMapper.usesQueueView(listType)) {
             int requestedPageNumber = Integer.parseInt(requestedPage);
 
             // Sets the requested page in the response.
             paging.page(request, response, requestedPageNumber);
         }
+        populateQueueResponse(listType, systemUserId, request, response);
 
         return response;
+    }
+
+    private void populateQueueResponse(DashBoardTile.TileType listType, String systemUserId, HttpServletRequest request,
+            PatientDashBoardForm response) {
+        if (!DashboardQueueMapper.usesQueueView(listType)) {
+            return;
+        }
+        // Loads all matching analyses into memory, groups/filters, then paginates
+        // in-process.
+        // Suitable for dashboard queue sizes; very large result sets would need
+        // DB-level paging.
+        List<Analysis> analyses = retrieveAnalyses(listType, systemUserId, request);
+        analyses = dashboardQueueMapper.filterAnalysesByTestSection(analyses, request.getParameter("testSectionId"));
+        List<DashboardQueueItemDTO> queueItems = dashboardQueueMapper.groupAnalysesByAccession(analyses);
+        queueItems = dashboardQueueMapper.filterQueueItems(queueItems, request.getParameter("patientQuery"),
+                request.getParameter("labNumber"));
+        int page = parseQueuePage(request.getParameter("page"));
+        int pageSize = parseQueuePageSize(request.getParameter("pageSize"));
+        response.setQueue(dashboardQueueMapper.buildQueueResponse(queueItems, page, pageSize));
+    }
+
+    private int parseQueuePage(String pageValue) {
+        if (GenericValidator.isBlankOrNull(pageValue)) {
+            return DashboardQueueMapper.DEFAULT_PAGE;
+        }
+        try {
+            return Integer.parseInt(pageValue);
+        } catch (NumberFormatException e) {
+            return DashboardQueueMapper.DEFAULT_PAGE;
+        }
+    }
+
+    private int parseQueuePageSize(String pageSizeValue) {
+        if (GenericValidator.isBlankOrNull(pageSizeValue)) {
+            return DashboardQueueMapper.DEFAULT_PAGE_SIZE;
+        }
+        try {
+            return Integer.parseInt(pageSizeValue);
+        } catch (NumberFormatException e) {
+            return DashboardQueueMapper.DEFAULT_PAGE_SIZE;
+        }
     }
 
     /**
@@ -422,41 +475,22 @@ public class PatientDashBoardProvider {
      */
     private List<OrderDisplayBean> retreiveOrders(DashBoardTile.TileType listType, String systemUserId,
             HttpServletRequest request) {
-        Set<Integer> statusIdSet;
-        List<Analysis> analyses;
-        java.sql.Timestamp startTimestamp = DateUtil
-                .convertStringDateStringTimeToTimestamp(DateUtil.getCurrentDateAsText(), "00:00:00.0");
-        java.sql.Timestamp endTimestamp = DateUtil
-                .convertStringDateStringTimeToTimestamp(DateUtil.getCurrentDateAsText(), "23:59:59");
         switch (listType) {
         case ORDERS_IN_PROGRESS:
-            analyses = analysisService.getAnalysesForStatusId(iStatusService.getStatusID(AnalysisStatus.NotStarted));
-            return convertAnalysesToOrderBean(analyses);
         case ORDERS_READY_FOR_VALIDATION:
-            analyses = analysisService
-                    .getAnalysesForStatusId(iStatusService.getStatusID(AnalysisStatus.TechnicalAcceptance));
-            return convertAnalysesToOrderBean(analyses);
         case ORDERS_COMPLETED_TODAY:
-            analyses = analysisService.getAnalysesCompletedOnByStatusId(DateUtil.getNowAsSqlDate(),
-                    iStatusService.getStatusID(AnalysisStatus.Finalized));
-            return convertAnalysesToOrderBean(analyses);
         case ORDERS_PATIALLY_COMPLETED_TODAY:
-            statusIdSet = new HashSet<>();
-            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
-            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.Finalized)));
-            analyses = analysisService.getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet);
-            return convertAnalysesToOrderBean(analyses);
-        case ORDERS_ENTERED_BY_USER_TODAY:
-            statusIdSet = new HashSet<>();
-            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
-            analyses = analysisService.getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet);
-            return convertAnalysesToUserOrdersBean(analyses);
         case ORDERS_REJECTED_TODAY:
-            analyses = analysisService.getAnalysisStartedOnRangeByStatusId(DateUtil.getNowAsSqlDate(),
-                    DateUtil.getNowAsSqlDate(), iStatusService.getStatusID(AnalysisStatus.SampleRejected));
-            return convertAnalysesToOrderBean(analyses);
         case UN_PRINTED_RESULTS:
-            return convertAnalysesToOrderBean(unprintedResults());
+        case PENDING_RECEPTION:
+        case DELAYED_TURN_AROUND:
+        case ORDERS_FOR_USER:
+            return convertAnalysesToOrderBean(retrieveAnalyses(listType, systemUserId, request));
+        case ORDERS_ENTERED_BY_USER_TODAY:
+            Set<Integer> statusIdSet = new HashSet<>();
+            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
+            return convertAnalysesToUserOrdersBean(
+                    analysisService.getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet));
         case INCOMING_ORDERS:
             List<Integer> estausIds = new ArrayList<>();
             estausIds.add(Integer.parseInt(iStatusService.getStatusID(ExternalOrderStatus.Entered)));
@@ -464,37 +498,78 @@ public class PatientDashBoardProvider {
             List<ElectronicOrder> eOrders = electronicOrderService.getAllElectronicOrdersByStatusList(estausIds,
                     ElectronicOrder.SortOrder.STATUS_ID);
             return convertElectronicToOrderBean(eOrders);
+        case AVERAGE_TURN_AROUND_TIME:
+        default:
+            return new ArrayList<>();
+        }
+    }
+
+    private List<Analysis> retrieveAnalyses(DashBoardTile.TileType listType, String systemUserId,
+            HttpServletRequest request) {
+        Set<Integer> statusIdSet;
+        switch (listType) {
+        case ORDERS_IN_PROGRESS:
+            return retrieveAnalysesByStatus(AnalysisStatus.NotStarted);
+        case ORDERS_READY_FOR_VALIDATION:
+            return retrieveAnalysesByStatus(AnalysisStatus.TechnicalAcceptance);
+        case ORDERS_COMPLETED_TODAY:
+            return analysisService.getAnalysesCompletedOnByStatusId(DateUtil.getNowAsSqlDate(),
+                    iStatusService.getStatusID(AnalysisStatus.Finalized));
+        case ORDERS_PATIALLY_COMPLETED_TODAY:
+            statusIdSet = new HashSet<>();
+            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
+            statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.Finalized)));
+            return analysisService.getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet);
+        case ORDERS_REJECTED_TODAY:
+            return analysisService.getAnalysisStartedOnRangeByStatusId(DateUtil.getNowAsSqlDate(),
+                    DateUtil.getNowAsSqlDate(), iStatusService.getStatusID(AnalysisStatus.SampleRejected));
+        case UN_PRINTED_RESULTS:
+            return unprintedResults();
         case PENDING_RECEPTION:
             if (!userHasSampleReceptionApprovalRole(request)) {
                 return new ArrayList<>();
             }
-            analyses = analysisService
-                    .getAnalysesForStatusId(iStatusService.getStatusID(AnalysisStatus.PendingReception));
-            return convertAnalysesToOrderBean(analyses);
-        case AVERAGE_TURN_AROUND_TIME:
-            return new ArrayList<>();
+            return retrieveAnalysesByStatus(AnalysisStatus.PendingReception);
         case DELAYED_TURN_AROUND:
-            return convertAnalysesToOrderBean(analysesWithDelayedTurnAroundTime());
+            return analysesWithDelayedTurnAroundTime();
         case ORDERS_FOR_USER:
             if (StringUtils.isNotBlank(systemUserId)) {
                 statusIdSet = new HashSet<>();
                 statusIdSet.add(Integer.parseInt(iStatusService.getStatusID(AnalysisStatus.SampleRejected)));
-                analyses = analysisService.getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(),
-                        statusIdSet);
-                return getUserOrderBeans(analyses, systemUserId);
+                List<Analysis> analyses = analysisService
+                        .getAnalysisStartedOnExcludedByStatusId(DateUtil.getNowAsSqlDate(), statusIdSet);
+                return filterAnalysesForUser(analyses, systemUserId);
+            }
+            return new ArrayList<>();
+        default:
+            return new ArrayList<>();
+        }
+    }
+
+    private List<Analysis> filterAnalysesForUser(List<Analysis> analyses, String userId) {
+        List<Analysis> userAnalyses = new ArrayList<>();
+        if (analyses == null) {
+            return userAnalyses;
+        }
+        for (Analysis analysis : analyses) {
+            if (analysis.getSampleItem() != null && analysis.getSampleItem().getSample() != null
+                    && userId.equals(analysis.getSampleItem().getSample().getSysUserId())) {
+                userAnalyses.add(analysis);
             }
         }
-        return new ArrayList<>();
+        return userAnalyses;
+    }
+
+    private List<Analysis> retrieveAnalysesByStatus(AnalysisStatus status) {
+        return receptionService.findAnalysesByStatusForDashboard(iStatusService.getStatusID(status));
     }
 
     private boolean userHasSampleReceptionApprovalRole(HttpServletRequest request) {
-        UserSessionData userSessionData = (UserSessionData) request.getSession()
-                .getAttribute(IActionConstants.USER_SESSION_DATA);
-        if (userSessionData == null) {
+        String sysUserId = getSysUserId(request);
+        if (sysUserId == null) {
             return false;
         }
-        return userRoleService.userInRole(Integer.toString(userSessionData.getSystemUserId()),
-                Constants.ROLE_SAMPLE_RECEPTION_APPROVAL);
+        return userRoleService.userInRole(sysUserId, Constants.ROLE_SAMPLE_RECEPTION_APPROVAL);
     }
 
     @GetMapping(value = "home-dashboard/turn-around-time-metrics", produces = MediaType.APPLICATION_JSON_VALUE)

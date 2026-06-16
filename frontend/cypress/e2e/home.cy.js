@@ -74,3 +74,19 @@ describe("User navigates to different tiles", function () {
     home.selectDelayedTurnAround();
   });
 });
+
+describe("Dashboard queue tile smoke tests", function () {
+  afterEach(() => {
+    home.afterAll();
+  });
+
+  it("shows queue search and table on In Progress", function () {
+    home.openDashboardTileByTitle("In Progress");
+    home.assertQueueViewVisible("ORDERS_IN_PROGRESS");
+  });
+
+  it("shows queue search and table on Orders Rejected", function () {
+    home.openDashboardTileByTitle("Orders Rejected");
+    home.assertQueueViewVisible("ORDERS_REJECTED_TODAY");
+  });
+});

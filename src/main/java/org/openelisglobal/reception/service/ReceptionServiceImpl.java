@@ -333,4 +333,10 @@ public class ReceptionServiceImpl implements ReceptionService {
         Note note = noteService.createSavableNote(loaded, NoteType.EXTERNAL, text, SAMPLE_NOTE_SUBJECT, sysUserId);
         noteService.insert(note);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Analysis> findAnalysesByStatusForDashboard(String statusId) {
+        return receptionDAO.findAnalysesByStatusWithSampleFilters(statusId, null, null, null);
+    }
 }

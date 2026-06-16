@@ -1,6 +1,7 @@
 package org.openelisglobal.samplehuman.service;
 
 import java.util.List;
+import java.util.Map;
 import org.openelisglobal.common.service.AuditableBaseObjectServiceImpl;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.provider.valueholder.Provider;
@@ -42,6 +43,12 @@ public class SampleHumanServiceImpl extends AuditableBaseObjectServiceImpl<Sampl
     @Transactional(readOnly = true)
     public void getData(SampleHuman sampleHuman) {
         getBaseObjectDAO().getData(sampleHuman);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Patient> getPatientsForSampleIds(List<String> sampleIds) {
+        return baseObjectDAO.getPatientsForSampleIds(sampleIds);
     }
 
     @Override

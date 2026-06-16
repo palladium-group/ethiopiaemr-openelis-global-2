@@ -17,7 +17,9 @@ package org.openelisglobal.samplehuman.daoimpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -114,6 +116,40 @@ public class SampleHumanDAOImpl extends BaseDAOImpl<SampleHuman, String> impleme
         }
 
         return patient;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Patient> getPatientsForSampleIds(List<String> sampleIds) throws LIMSRuntimeException {
+        Map<String, Patient> patientsBySampleId = new HashMap<>();
+        if (sampleIds == null || sampleIds.isEmpty()) {
+            return patientsBySampleId;
+        }
+        try {
+            List<Integer> numericSampleIds = new ArrayList<>();
+            for (String sampleId : sampleIds) {
+                if (sampleId != null && !sampleId.trim().isEmpty()) {
+                    numericSampleIds.add(Integer.parseInt(sampleId));
+                }
+            }
+            if (numericSampleIds.isEmpty()) {
+                return patientsBySampleId;
+            }
+            String sql = "select sampleHuman.sampleId, patient from Patient as patient, SampleHuman as sampleHuman where"
+                    + " sampleHuman.patientId = patient.id and sampleHuman.sampleId in :sIds";
+            Query<Object[]> query = entityManager.unwrap(Session.class).createQuery(sql, Object[].class);
+            query.setParameter("sIds", numericSampleIds);
+            List<Object[]> rows = query.list();
+            for (Object[] row : rows) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] instanceof Patient) {
+                    patientsBySampleId.put(String.valueOf(row[0]), (Patient) row[1]);
+                }
+            }
+        } catch (HibernateException e) {
+            LogEvent.logError(e);
+            throw new LIMSRuntimeException("Error in SampleHuman getPatientsForSampleIds()", e);
+        }
+        return patientsBySampleId;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package org.openelisglobal.reception.service;
 
+import java.util.List;
+import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.reception.dto.ReceptionActionResponse;
 import org.openelisglobal.reception.dto.ReceptionDetailResponse;
 import org.openelisglobal.reception.dto.ReceptionQueueResponse;
@@ -16,4 +18,10 @@ public interface ReceptionService {
     ReceptionActionResponse approve(ReceptionApproveForm form, String sysUserId);
 
     ReceptionActionResponse reject(ReceptionRejectForm form, String sysUserId);
+
+    /**
+     * Loads analyses for a single status with sample/test joins used by the home
+     * dashboard queue.
+     */
+    List<Analysis> findAnalysesByStatusForDashboard(String statusId);
 }
