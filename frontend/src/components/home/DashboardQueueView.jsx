@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Button,
   Column,
@@ -26,6 +26,8 @@ import {
   getFromOpenElisServer,
 } from "../utils/Utils";
 import { QUEUE_TILES_WITH_TEST_SECTION_TABS } from "./dashboardConstants";
+import { NotificationContext } from "../layout/Layout";
+import { NotificationKinds } from "../common/CustomNotification";
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -36,6 +38,8 @@ const DashboardQueueView = ({
   showAllTestSectionTab = false,
 }) => {
   const intl = useIntl();
+  const { setNotificationVisible, addNotification } =
+    useContext(NotificationContext);
   const [patientQuery, setPatientQuery] = useState("");
   const [labNumber, setLabNumber] = useState("");
   const [appliedPatientQuery, setAppliedPatientQuery] = useState("");
@@ -46,6 +50,7 @@ const DashboardQueueView = ({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const showTestSectionTabs =
     QUEUE_TILES_WITH_TEST_SECTION_TABS.includes(listType) &&
@@ -98,6 +103,7 @@ const DashboardQueueView = ({
     testSectionFilter,
   ) => {
     setLoading(true);
+    setLoadError(false);
     const params = new URLSearchParams({
       page: String(pageNumber),
       pageSize: String(size),
@@ -121,7 +127,22 @@ const DashboardQueueView = ({
     getFromOpenElisServer(
       "/rest/home-dashboard/" + listType + "?" + params.toString(),
       (response) => {
-        const queue = response?.queue || {};
+        if (!response || response.queue == null) {
+          setLoadError(true);
+          setItems([]);
+          setTotalItems(0);
+          setLoading(false);
+          setNotificationVisible(true);
+          addNotification({
+            kind: NotificationKinds.error,
+            title: intl.formatMessage({ id: "notification.title" }),
+            message: intl.formatMessage({ id: "server.error.msg" }),
+          });
+          return;
+        }
+
+        const queue = response.queue;
+        setLoadError(false);
         setItems(queue.items || []);
         setTotalItems(queue.totalItems || 0);
         setPage(queue.page || pageNumber);
@@ -156,7 +177,10 @@ const DashboardQueueView = ({
       return;
     }
     setSelectedTestSection((current) => {
-      if (current === null || !testSections.some((section) => section.id === current)) {
+      if (
+        current === null ||
+        !testSections.some((section) => section.id === current)
+      ) {
         return testSections[0].id;
       }
       return current;
@@ -325,7 +349,11 @@ const DashboardQueueView = ({
                   {rows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={headers.length}>
-                        <FormattedMessage id="dashboard.queue.noResults" />
+                        {loadError ? (
+                          <FormattedMessage id="dashboard.queue.loadError" />
+                        ) : (
+                          <FormattedMessage id="dashboard.queue.noResults" />
+                        )}
                       </TableCell>
                     </TableRow>
                   ) : (

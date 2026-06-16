@@ -920,6 +920,7 @@
   "dashboard.validation.ready.subtitle.label": "Awaiting Review",
   "dashboard.queue.search.patient": "Patient name, subject number, or ID",
   "dashboard.queue.noResults": "No orders found",
+  "dashboard.queue.loadError": "Unable to load orders. Please try again.",
   "datasubmission.siteid": "Site Id",
   "date.created": "Date Created",
   "delete.error.msg": "Error while Deleting",

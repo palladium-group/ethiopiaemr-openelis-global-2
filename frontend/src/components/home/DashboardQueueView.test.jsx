@@ -5,11 +5,19 @@ import { IntlProvider } from "react-intl";
 import DashboardQueueView from "./DashboardQueueView";
 import messages from "../../languages/en.json";
 import { getFromOpenElisServer } from "../utils/Utils";
+import { NotificationContext } from "../layout/Layout";
+import { NotificationKinds } from "../common/CustomNotification";
 
 jest.mock("../utils/Utils", () => ({
   getFromOpenElisServer: jest.fn(),
   convertAlphaNumLabNumForDisplay: (value) => value,
 }));
+
+const mockNotificationContext = {
+  notificationVisible: false,
+  setNotificationVisible: jest.fn(),
+  addNotification: jest.fn(),
+};
 
 const queueResponse = {
   queue: {
@@ -32,10 +40,12 @@ const queueResponse = {
   },
 };
 
-const renderQueueView = (listType = "ORDERS_IN_PROGRESS", systemUserId) =>
+const renderQueueView = (component) =>
   render(
     <IntlProvider locale="en" messages={messages}>
-      <DashboardQueueView listType={listType} systemUserId={systemUserId} />
+      <NotificationContext.Provider value={mockNotificationContext}>
+        {component}
+      </NotificationContext.Provider>
     </IntlProvider>,
   );
 
@@ -48,7 +58,7 @@ describe("DashboardQueueView", () => {
   });
 
   test("loadsQueueFromHomeDashboardApi", async () => {
-    renderQueueView("ORDERS_IN_PROGRESS");
+    renderQueueView(<DashboardQueueView listType="ORDERS_IN_PROGRESS" />);
 
     await screen.findByText("Jane Doe");
 
@@ -59,7 +69,7 @@ describe("DashboardQueueView", () => {
   });
 
   test("rendersPatientNameAndSubjectNumberInPatientCell", async () => {
-    renderQueueView("ORDERS_IN_PROGRESS");
+    renderQueueView(<DashboardQueueView listType="ORDERS_IN_PROGRESS" />);
 
     expect(await screen.findByText("Jane Doe")).toBeInTheDocument();
 
@@ -68,7 +78,7 @@ describe("DashboardQueueView", () => {
   });
 
   test("rendersPatientAndAccessionSearchFields", async () => {
-    renderQueueView("ORDERS_REJECTED_TODAY");
+    renderQueueView(<DashboardQueueView listType="ORDERS_REJECTED_TODAY" />);
 
     expect(
       screen.getByLabelText("Patient name, subject number, or ID"),
@@ -92,13 +102,37 @@ describe("DashboardQueueView", () => {
       });
     });
 
-    renderQueueView("ORDERS_COMPLETED_TODAY");
+    renderQueueView(<DashboardQueueView listType="ORDERS_COMPLETED_TODAY" />);
 
     expect(await screen.findByText("No orders found")).toBeInTheDocument();
   });
 
+  test("showsLoadErrorAndNotificationWhenApiFails", async () => {
+    getFromOpenElisServer.mockImplementation((url, callback) => {
+      callback(undefined);
+    });
+
+    renderQueueView(<DashboardQueueView listType="ORDERS_IN_PROGRESS" />);
+
+    expect(
+      await screen.findByText("Unable to load orders. Please try again."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No orders found")).not.toBeInTheDocument();
+    expect(mockNotificationContext.setNotificationVisible).toHaveBeenCalledWith(
+      true,
+    );
+    expect(mockNotificationContext.addNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: NotificationKinds.error,
+        message: "Oops, Server error please contact administrator",
+      }),
+    );
+  });
+
   test("passesSystemUserIdForPerUserOrdersTile", async () => {
-    renderQueueView("ORDERS_FOR_USER", "user-42");
+    renderQueueView(
+      <DashboardQueueView listType="ORDERS_FOR_USER" systemUserId="user-42" />,
+    );
 
     await screen.findByText("Jane Doe");
 
@@ -109,14 +143,12 @@ describe("DashboardQueueView", () => {
   });
 
   test("passesTestSectionIdWhenUserHasAssignedSections", async () => {
-    render(
-      <IntlProvider locale="en" messages={messages}>
-        <DashboardQueueView
-          listType="ORDERS_IN_PROGRESS"
-          testSections={[{ id: "9001", value: "Chemistry" }]}
-          showAllTestSectionTab={false}
-        />
-      </IntlProvider>,
+    renderQueueView(
+      <DashboardQueueView
+        listType="ORDERS_IN_PROGRESS"
+        testSections={[{ id: "9001", value: "Chemistry" }]}
+        showAllTestSectionTab={false}
+      />,
     );
 
     await screen.findByText("Jane Doe");
@@ -128,17 +160,15 @@ describe("DashboardQueueView", () => {
   });
 
   test("rendersTestSectionTabsForQueueTiles", async () => {
-    render(
-      <IntlProvider locale="en" messages={messages}>
-        <DashboardQueueView
-          listType="ORDERS_IN_PROGRESS"
-          testSections={[
-            { id: "9001", value: "Chemistry" },
-            { id: "9002", value: "Hematology" },
-          ]}
-          showAllTestSectionTab={true}
-        />
-      </IntlProvider>,
+    renderQueueView(
+      <DashboardQueueView
+        listType="ORDERS_IN_PROGRESS"
+        testSections={[
+          { id: "9001", value: "Chemistry" },
+          { id: "9002", value: "Hematology" },
+        ]}
+        showAllTestSectionTab={true}
+      />,
     );
 
     await screen.findByText("Jane Doe");

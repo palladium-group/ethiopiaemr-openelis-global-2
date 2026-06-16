@@ -920,6 +920,7 @@
   "dashboard.validation.ready.subtitle.label": "En attente de validation",
   "dashboard.queue.search.patient": "Nom du patient, numéro de sujet ou identifiant",
   "dashboard.queue.noResults": "Aucune ordonnance trouvée",
+  "dashboard.queue.loadError": "Impossible de charger les ordonnances. Veuillez réessayer.",
   "datasubmission.siteid": "ID du Site",
   "date.created": "Date de création",
   "delete.error.msg": "Erreur lors de la suppression de l'élément",
