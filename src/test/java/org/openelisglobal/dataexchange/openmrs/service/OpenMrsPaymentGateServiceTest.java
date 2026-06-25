@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +26,7 @@ import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.sample.action.util.SamplePatientUpdateData;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class OpenMrsPaymentGateServiceTest {
@@ -47,6 +49,15 @@ public class OpenMrsPaymentGateServiceTest {
         MessageUtil.setMessageSource(messageSource);
         when(paymentConfiguration.isGateEnabled()).thenReturn(true);
         when(paymentOrderScope.isSubjectToPaymentGate(any())).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:/languages/message");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setUseCodeAsDefaultMessage(true);
+        MessageUtil.setMessageSource(messageSource);
     }
 
     @Test
