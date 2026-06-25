@@ -243,8 +243,12 @@ public abstract class ConfigurationProperties {
         GPS_ENABLED("gpsCoordinatesEnabled", "text"), // if true, GPS coordinate fields are displayed in order entry
         GPS_ACCURACY_METERS("gpsRequiredAccuracyMeters", "text"), // maximum acceptable GPS accuracy in meters
         GPS_TIMEOUT_SECONDS("gpsTimeoutSeconds", "text"), // timeout in seconds for GPS location requests
-        RECEPTION_APPROVAL_REQUIRED("receptionApprovalRequired", "text"); // when true, new analyses await reception
+        RECEPTION_APPROVAL_REQUIRED("receptionApprovalRequired", "text"), // when true, new analyses await reception
                                                                           // before Not Tested
+        OPENMRS_PAYMENT_GATE_ENABLED("openmrsPaymentGateEnabled", "text"), // when true, sample collection for OpenMRS
+                                                                           // FHIR orders requires paid/exempted status
+        OPENMRS_PAYMENT_EXTENSION_URL("openmrsPaymentExtensionUrl", "text"); // FHIR ServiceRequest extension URL for
+                                                                             // OpenMRS payment status
 
         // visible on
         // the ui

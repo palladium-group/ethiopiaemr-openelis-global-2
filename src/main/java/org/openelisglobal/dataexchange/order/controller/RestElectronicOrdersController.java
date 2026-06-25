@@ -25,6 +25,7 @@ import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
+import org.openelisglobal.dataexchange.openmrs.service.OpenMrsPaymentVerificationService;
 import org.openelisglobal.dataexchange.order.ElectronicOrderSortOrderCategoryConvertor;
 import org.openelisglobal.dataexchange.order.form.ElectronicOrderPaging;
 import org.openelisglobal.dataexchange.order.form.ElectronicOrderViewForm;
@@ -81,6 +82,8 @@ public class RestElectronicOrdersController extends BaseController {
     private FhirUtil fhirUtil;
     @Autowired
     private FhirConfig fhirConfig;
+    @Autowired
+    private OpenMrsPaymentVerificationService openMrsPaymentVerificationService;
 
     @InitBinder
     public void initBinder(final WebDataBinder webdataBinder) {
@@ -193,6 +196,7 @@ public class RestElectronicOrdersController extends BaseController {
                     displayItem.setSampleType(typeIdFromOrder);
                 }
             }
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             if (useAllInfo) {
 
                 if (serviceRequest.getRequisition() != null) {
@@ -231,14 +235,17 @@ public class RestElectronicOrdersController extends BaseController {
         } catch (ResourceNotFoundException e) {
             String errorMsg = "error in data collection - FHIR resource not found";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         } catch (NullPointerException e) {
             String errorMsg = "error in data collection - null data";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         } catch (RuntimeException e) {
             String errorMsg = "error in data collection - unknown exception";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         }
 

@@ -331,6 +331,9 @@ public class DefaultConfigurationProperties extends ConfigurationProperties {
         properties.setPropertyValue(Property.BAR_CODE_TYPE, "BARCODE");
         properties.setPropertyValue(Property.GPS_ENABLED, "false");
         properties.setPropertyValue(Property.RECEPTION_APPROVAL_REQUIRED, "false");
+        properties.setPropertyValue(Property.OPENMRS_PAYMENT_GATE_ENABLED, "false");
+        properties.setPropertyValue(Property.OPENMRS_PAYMENT_EXTENSION_URL,
+                "https://palladiumethiopia.com/fhir/ext/payment-status");
         properties.setPropertyValue(Property.GPS_ACCURACY_METERS, "100");
         properties.setPropertyValue(Property.GPS_TIMEOUT_SECONDS, "10");
         return properties;

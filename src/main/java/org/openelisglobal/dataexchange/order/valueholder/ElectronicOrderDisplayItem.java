@@ -66,6 +66,12 @@ public class ElectronicOrderDisplayItem {
 
     private List<String> groupExternalOrderIds;
 
+    private String openMrsPaymentStatus;
+
+    private String openMrsOrderUuid;
+
+    private boolean collectionAllowed = true;
+
     public String getBirthDate() {
         return birthDate;
     }
@@ -276,5 +282,29 @@ public class ElectronicOrderDisplayItem {
 
     public void setGroupExternalOrderIds(List<String> groupExternalOrderIds) {
         this.groupExternalOrderIds = groupExternalOrderIds;
+    }
+
+    public String getOpenMrsPaymentStatus() {
+        return openMrsPaymentStatus;
+    }
+
+    public void setOpenMrsPaymentStatus(String openMrsPaymentStatus) {
+        this.openMrsPaymentStatus = openMrsPaymentStatus;
+    }
+
+    public String getOpenMrsOrderUuid() {
+        return openMrsOrderUuid;
+    }
+
+    public void setOpenMrsOrderUuid(String openMrsOrderUuid) {
+        this.openMrsOrderUuid = openMrsOrderUuid;
+    }
+
+    public boolean isCollectionAllowed() {
+        return collectionAllowed;
+    }
+
+    public void setCollectionAllowed(boolean collectionAllowed) {
+        this.collectionAllowed = collectionAllowed;
     }
 }
