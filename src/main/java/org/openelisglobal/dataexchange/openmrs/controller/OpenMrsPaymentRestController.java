@@ -1,6 +1,7 @@
 package org.openelisglobal.dataexchange.openmrs.controller;
 
 import org.apache.commons.validator.GenericValidator;
+import org.hibernate.ObjectNotFoundException;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.dataexchange.openmrs.PaymentVerificationResult;
@@ -43,7 +44,12 @@ public class OpenMrsPaymentRestController extends BaseRestController {
     @ResponseBody
     public ResponseEntity<OpenMrsPaymentStatusForm> refreshElectronicOrderPaymentStatus(
             @PathVariable String electronicOrderId) {
-        ElectronicOrder electronicOrder = electronicOrderService.get(electronicOrderId);
+        ElectronicOrder electronicOrder;
+        try {
+            electronicOrder = electronicOrderService.get(electronicOrderId);
+        } catch (ObjectNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         if (electronicOrder == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

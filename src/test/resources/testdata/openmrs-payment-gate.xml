@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <status_of_sample id="1"
+        description="Sample Description 1" code="1" status_type="ORDER"
+        lastupdated="2025-03-18" name="Status 1"
+        display_key="sample_display_key_1" is_active="Y" />
+
+    <person id="5001" last_name="Doe" first_name="John"
+        middle_name="" city="Addis" state="" zip_code="" country="Ethiopia"
+        work_phone="" home_phone="" cell_phone="" primary_phone="" fax=""
+        email="" lastUpdated="2023-11-01 12:00:00" />
+
+    <patient id="1001" person_id="5001" race="A" gender="M"
+        epi_first_name="John" epi_middle_name="" epi_last_name="Doe"
+        national_id="NAT-PAY-001" ethnicity="1" school_attend=""
+        medicare_id="" medicaid_id="" birth_place=""
+        lastupdated="2023-01-01 00:00:00" />
+
+    <electronic_order id="9101"
+        external_id="EXT-PAY-UNPAID" patient_id="1001" status_id="1"
+        order_timestamp="2024-03-03 12:00:00" type="FHIR"
+        order_priority="ROUTINE"
+        data='{"resourceType":"Task","id":"task-9101","basedOn":[{"reference":"ServiceRequest/order-uuid-9101"}],"status":"requested","authoredOn":"2024-03-03T12:00:00Z"}'
+        lastupdated="2024-01-12 00:00:00" />
+
+    <electronic_order id="9102" external_id="EXT-PAY-HL7"
+        patient_id="1001" status_id="1" order_timestamp="2024-03-04 12:00:00"
+        type="HL7_V2" order_priority="ROUTINE"
+        data="HL7 order payload placeholder" lastupdated="2024-01-12 00:00:00" />
+</dataset>
