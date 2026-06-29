@@ -317,6 +317,9 @@ public class SamplePatientEntryController extends BaseSampleEntryController {
             if (e.getCause() instanceof StaleObjectStateException) {
                 // error = new ActionError("errors.OptimisticLockException", null, null);
                 result.reject("errors.OptimisticLockException", "errors.OptimisticLockException");
+            } else if (e.getMessage() != null && !e.getMessage().isBlank()) {
+                LogEvent.logDebug(e);
+                result.reject("error", e.getMessage());
             } else {
                 LogEvent.logDebug(e);
                 // error = new ActionError("errors.UpdateException", null, null);

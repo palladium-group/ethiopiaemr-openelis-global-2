@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-openmrs-payment-gate-enabled-config" author="openmrs-payment-gate">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(*) FROM clinlims.site_information WHERE name = 'openmrsPaymentGateEnabled'</sqlCheck>
+        </preConditions>
+        <comment>When true, OpenMRS FHIR electronic orders require paid or exempted payment status before sample collection</comment>
+        <insert schemaName="clinlims" tableName="site_information">
+            <column name="id" valueSequenceNext="site_information_seq" />
+            <column name="name" value="openmrsPaymentGateEnabled" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="Require OpenMRS payment before collecting samples for FHIR electronic orders" />
+            <column name="value" value="false" />
+            <column name="encrypted" value="false" />
+            <column name="domain_id" valueComputed="(SELECT id FROM site_information_domain WHERE name = 'sampleEntryConfig')" />
+            <column name="value_type" value="boolean" />
+            <column name="instruction_key" value="instructions.openmrs.payment.gate" />
+            <column name="group" value="0" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="add-openmrs-payment-extension-url-config" author="openmrs-payment-gate">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(*) FROM clinlims.site_information WHERE name = 'openmrsPaymentExtensionUrl'</sqlCheck>
+        </preConditions>
+        <comment>FHIR ServiceRequest extension URL used to read OpenMRS payment status</comment>
+        <insert schemaName="clinlims" tableName="site_information">
+            <column name="id" valueSequenceNext="site_information_seq" />
+            <column name="name" value="openmrsPaymentExtensionUrl" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="FHIR extension URL for OpenMRS payment status on ServiceRequest resources" />
+            <column name="value" value="https://palladiumethiopia.com/fhir/ext/payment-status" />
+            <column name="encrypted" value="false" />
+            <column name="domain_id" valueComputed="(SELECT id FROM site_information_domain WHERE name = 'sampleEntryConfig')" />
+            <column name="value_type" value="text" />
+            <column name="instruction_key" value="instructions.openmrs.payment.ext.url" />
+            <column name="group" value="0" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

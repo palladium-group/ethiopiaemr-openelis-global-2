@@ -25,6 +25,8 @@ import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsOrderUuidResolver;
+import org.openelisglobal.dataexchange.openmrs.service.OpenMrsPaymentVerificationService;
 import org.openelisglobal.dataexchange.order.ElectronicOrderSortOrderCategoryConvertor;
 import org.openelisglobal.dataexchange.order.form.ElectronicOrderPaging;
 import org.openelisglobal.dataexchange.order.form.ElectronicOrderViewForm;
@@ -81,6 +83,10 @@ public class RestElectronicOrdersController extends BaseController {
     private FhirUtil fhirUtil;
     @Autowired
     private FhirConfig fhirConfig;
+    @Autowired
+    private OpenMrsPaymentVerificationService openMrsPaymentVerificationService;
+    @Autowired
+    private OpenMrsOrderUuidResolver orderUuidResolver;
 
     @InitBinder
     public void initBinder(final WebDataBinder webdataBinder) {
@@ -182,63 +188,73 @@ public class RestElectronicOrdersController extends BaseController {
             }
 
             IGenericClient fhirClient = fhirUtil.getFhirClient(fhirConfig.getLocalFhirStorePath());
-            ServiceRequest serviceRequest = fhirClient.read().resource(ServiceRequest.class)
-                    .withId(electronicOrder.getExternalId()).execute();
-            if (serviceRequest.hasEncounter() && serviceRequest.getEncounter().hasReferenceElement()) {
-                displayItem.setEncounterId(serviceRequest.getEncounter().getReferenceElement().getIdPart());
-            }
-            if (GenericValidator.isBlankOrNull(displayItem.getSampleType())) {
-                String typeIdFromOrder = resolveTypeOfSampleIdFromServiceRequest(serviceRequest);
-                if (!GenericValidator.isBlankOrNull(typeIdFromOrder)) {
-                    displayItem.setSampleType(typeIdFromOrder);
+            String serviceRequestId = orderUuidResolver.resolve(electronicOrder);
+            if (GenericValidator.isBlankOrNull(serviceRequestId)) {
+                openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
+            } else {
+                ServiceRequest serviceRequest = fhirClient.read().resource(ServiceRequest.class)
+                        .withId(serviceRequestId).execute();
+                if (serviceRequest.hasEncounter() && serviceRequest.getEncounter().hasReferenceElement()) {
+                    displayItem.setEncounterId(serviceRequest.getEncounter().getReferenceElement().getIdPart());
                 }
-            }
-            if (useAllInfo) {
-
-                if (serviceRequest.getRequisition() != null) {
-                    displayItem.setReferringLabNumber(serviceRequest.getRequisition().getValue());
+                if (GenericValidator.isBlankOrNull(displayItem.getSampleType())) {
+                    String typeIdFromOrder = resolveTypeOfSampleIdFromServiceRequest(serviceRequest);
+                    if (!GenericValidator.isBlankOrNull(typeIdFromOrder)) {
+                        displayItem.setSampleType(typeIdFromOrder);
+                    }
                 }
+                openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder,
+                        serviceRequest);
+                if (useAllInfo) {
 
-                Test test = null;
-                for (Coding coding : serviceRequest.getCode().getCoding()) {
-                    if (coding.hasSystem()) {
-                        if (coding.getSystem().equalsIgnoreCase("http://loinc.org")) {
-                            List<Test> tests = testService.getActiveTestsByLoinc(coding.getCode());
-                            if (tests.size() != 0) {
-                                test = tests.get(0);
-                                break;
+                    if (serviceRequest.getRequisition() != null) {
+                        displayItem.setReferringLabNumber(serviceRequest.getRequisition().getValue());
+                    }
+
+                    Test test = null;
+                    for (Coding coding : serviceRequest.getCode().getCoding()) {
+                        if (coding.hasSystem()) {
+                            if (coding.getSystem().equalsIgnoreCase("http://loinc.org")) {
+                                List<Test> tests = testService.getActiveTestsByLoinc(coding.getCode());
+                                if (tests.size() != 0) {
+                                    test = tests.get(0);
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                if (test != null) {
-                    displayItem.setTestName(test.getLocalizedTestName().getLocalizedValue());
-                }
-
-                String patientUuid = serviceRequest.getSubject().getReferenceElement().getIdPart();
-                org.hl7.fhir.r4.model.Patient fhirPatient = fhirClient.read()
-                        .resource(org.hl7.fhir.r4.model.Patient.class).withId(patientUuid).execute();
-
-                for (Identifier identifier : fhirPatient.getIdentifier()) {
-                    if ("passport".equals(identifier.getSystem())) {
-                        displayItem.setPassportNumber(identifier.getId());
+                    if (test != null) {
+                        displayItem.setTestName(test.getLocalizedTestName().getLocalizedValue());
                     }
-                    if ((fhirConfig.getOeFhirSystem() + "/pat_subjectNumber").equals(identifier.getSystem())) {
-                        displayItem.setSubjectNumber(identifier.getId());
+
+                    String patientUuid = serviceRequest.getSubject().getReferenceElement().getIdPart();
+                    org.hl7.fhir.r4.model.Patient fhirPatient = fhirClient.read()
+                            .resource(org.hl7.fhir.r4.model.Patient.class).withId(patientUuid).execute();
+
+                    for (Identifier identifier : fhirPatient.getIdentifier()) {
+                        if ("passport".equals(identifier.getSystem())) {
+                            displayItem.setPassportNumber(identifier.getId());
+                        }
+                        if ((fhirConfig.getOeFhirSystem() + "/pat_subjectNumber").equals(identifier.getSystem())) {
+                            displayItem.setSubjectNumber(identifier.getId());
+                        }
                     }
                 }
             }
         } catch (ResourceNotFoundException e) {
             String errorMsg = "error in data collection - FHIR resource not found";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         } catch (NullPointerException e) {
             String errorMsg = "error in data collection - null data";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         } catch (RuntimeException e) {
             String errorMsg = "error in data collection - unknown exception";
             displayItem.setWarnings(Arrays.asList(errorMsg));
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
             LogEvent.logError(e);
         }
 

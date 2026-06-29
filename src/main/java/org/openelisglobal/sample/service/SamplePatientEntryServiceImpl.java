@@ -20,6 +20,7 @@ import org.openelisglobal.common.services.TableIdService;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.common.util.IdValuePair;
+import org.openelisglobal.dataexchange.openmrs.service.OpenMrsPaymentGateService;
 import org.openelisglobal.dataexchange.service.order.ElectronicOrderService;
 import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.note.service.NoteServiceImpl.NoteType;
@@ -110,11 +111,15 @@ public class SamplePatientEntryServiceImpl implements SamplePatientEntryService 
     private ImmunohistochemistrySampleService immunohistochemistrySampleService;
     @Autowired
     private ProgramSampleService programSampleService;
+    @Autowired
+    private OpenMrsPaymentGateService openMrsPaymentGateService;
 
     @Transactional
     @Override
     public void persistData(SamplePatientUpdateData updateData, PatientManagementUpdate patientUpdate,
             PatientManagementInfo patientInfo, SamplePatientEntryForm form, HttpServletRequest request) {
+        openMrsPaymentGateService.assertSampleCollectionAllowed(updateData);
+
         boolean useInitialSampleCondition = FormFields.getInstance().useField(Field.InitialSampleCondition);
         boolean useSampleNature = FormFields.getInstance().useField(Field.SampleNature);
 

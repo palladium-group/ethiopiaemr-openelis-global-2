@@ -14,11 +14,13 @@ import {
   Button,
   Pagination,
   Link,
+  Tag,
 } from "@carbon/react";
 
 import { FormattedMessage, useIntl } from "react-intl";
-import { ChevronDown, Edit, TaskAdd } from "@carbon/icons-react";
+import { ChevronDown, Edit, Renew, TaskAdd } from "@carbon/icons-react";
 import { getFromOpenElisServer } from "../utils/Utils";
+import config from "../../config.json";
 import CustomLabNumberInput from "../common/CustomLabNumberInput";
 import { ConfigurationContext, NotificationContext } from "../layout/Layout";
 import { NotificationKinds } from "../common/CustomNotification";
@@ -30,11 +32,104 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
 
   const intl = useIntl();
 
+  const paymentGateEnabled =
+    configurationProperties?.OPENMRS_PAYMENT_GATE_ENABLED === "true";
+
+  const getPaymentStatusLabel = (status) => {
+    if (!status) {
+      return intl.formatMessage({ id: "eorder.payment.status.UNKNOWN" });
+    }
+    const key = `eorder.payment.status.${status}`;
+    return intl.formatMessage({ id: key, defaultMessage: status });
+  };
+
+  const getPaymentTagType = (status) => {
+    if (status === "PAID" || status === "EXEMPTED") {
+      return "green";
+    }
+    if (status === "PENDING" || status === "POSTED") {
+      return "red";
+    }
+    return "gray";
+  };
+
   const [entering, setEntering] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
 
   useEffect(() => {}, []);
+
+  function refreshPaymentStatus(electronicOrderId, index) {
+    fetch(
+      config.serverBaseUrl +
+        "/rest/openmrs-payment/electronic-order/" +
+        electronicOrderId,
+      {
+        credentials: "include",
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    )
+      .then((response) => {
+        if (response.status === 404) {
+          setNotificationVisible(true);
+          addNotification({
+            kind: NotificationKinds.error,
+            title: intl.formatMessage({ id: "notification.title" }),
+            message: intl.formatMessage({
+              id: "eorder.payment.notFound",
+            }),
+          });
+          return null;
+        }
+        if (!response.ok) {
+          setNotificationVisible(true);
+          addNotification({
+            kind: NotificationKinds.error,
+            title: intl.formatMessage({ id: "notification.title" }),
+            message: intl.formatMessage({
+              id: "eorder.payment.refreshError",
+            }),
+          });
+          return null;
+        }
+        return response.json();
+      })
+      .then((response) => {
+        if (!response) {
+          return;
+        }
+        setEOrders((prevEOrders) =>
+          prevEOrders.map((order, i) =>
+            i === index
+              ? {
+                  ...order,
+                  openMrsPaymentStatus: response.status,
+                  collectionAllowed: response.collectionAllowed,
+                }
+              : order,
+          ),
+        );
+        if (paymentGateEnabled && response.collectionAllowed === false) {
+          setNotificationVisible(true);
+          addNotification({
+            kind: NotificationKinds.warning,
+            title: intl.formatMessage({ id: "notification.title" }),
+            message: intl.formatMessage({ id: "eorder.payment.unpaid" }),
+          });
+        }
+      })
+      .catch(() => {
+        setNotificationVisible(true);
+        addNotification({
+          kind: NotificationKinds.error,
+          title: intl.formatMessage({ id: "notification.title" }),
+          message: intl.formatMessage({
+            id: "eorder.payment.refreshError",
+          }),
+        });
+      });
+  }
 
   function saveEntry(externalOrderIds, labNumber) {
     const groupedIds =
@@ -137,6 +232,9 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
     const hasRealizedStatus = row.cells.some(
       (cell) => cell.info?.header === "status" && cell.value === "Realized",
     );
+    const paymentBlocked =
+      paymentGateEnabled && eOrders[index].collectionAllowed === false;
+    const actionDisabled = hasRealizedStatus || paymentBlocked;
     const groupedExternalOrderIds = eOrders[index].groupExternalOrderIds || [
       electronicOrderUUID,
     ];
@@ -156,7 +254,7 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
             onKeyPress={(e) => {
               handleKeyPress(e, index);
             }}
-            disabled={hasRealizedStatus}
+            disabled={actionDisabled}
             labelText={intl.formatMessage({ id: "sample.label.labnumber" })}
             id="labNo"
             helperText={
@@ -164,7 +262,7 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
                 <FormattedMessage id="label.order.scan.text" />{" "}
                 <Link
                   href="#"
-                  disabled={hasRealizedStatus}
+                  disabled={actionDisabled}
                   onClick={(e) => {
                     handleLabNoGeneration(e, index);
                   }}
@@ -176,13 +274,38 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
             className="inputText"
           />
           <span className="middleAlignVertical">
+            {paymentGateEnabled && (
+              <>
+                <Tag
+                  type={getPaymentTagType(eOrders[index].openMrsPaymentStatus)}
+                >
+                  {getPaymentStatusLabel(eOrders[index].openMrsPaymentStatus)}
+                </Tag>
+                <Button
+                  type="button"
+                  kind="ghost"
+                  label={intl.formatMessage({
+                    id: "eorder.button.refreshPayment",
+                  })}
+                  hasIconOnly={true}
+                  renderIcon={Renew}
+                  disabled={hasRealizedStatus}
+                  iconDescription={intl.formatMessage({
+                    id: "eorder.button.refreshPayment",
+                  })}
+                  onClick={() => {
+                    refreshPaymentStatus(eOrderId, index);
+                  }}
+                />
+              </>
+            )}
             <Button
               type="button"
               kind="tertiary"
               label={intl.formatMessage({ id: "eorder.button.editOrder" })}
               hasIconOnly={true}
               renderIcon={Edit}
-              disabled={hasRealizedStatus}
+              disabled={actionDisabled}
               iconDescription={intl.formatMessage({
                 id: "eorder.button.editOrder",
               })}
@@ -196,11 +319,22 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
               label={intl.formatMessage({ id: "eorder.button.enterOrder" })}
               hasIconOnly={true}
               renderIcon={TaskAdd}
-              disabled={hasRealizedStatus}
+              disabled={actionDisabled}
               iconDescription={intl.formatMessage({
                 id: "eorder.button.enterOrder",
               })}
               onClick={() => {
+                if (paymentBlocked) {
+                  setNotificationVisible(true);
+                  addNotification({
+                    kind: NotificationKinds.error,
+                    title: intl.formatMessage({ id: "notification.title" }),
+                    message: intl.formatMessage({
+                      id: "eorder.payment.unpaid",
+                    }),
+                  });
+                  return;
+                }
                 saveEntry(groupedExternalOrderIds, eOrders[index].labNo);
               }}
             />
@@ -211,7 +345,86 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
   };
 
   const renderCell = (cell, row) => {
+    if (cell.info.header === "openMrsPaymentStatus" && paymentGateEnabled) {
+      const eOrder = eOrders.find((item) => item.id === row.id);
+      return (
+        <TableCell key={cell.id}>
+          <Tag type={getPaymentTagType(eOrder?.openMrsPaymentStatus)}>
+            {getPaymentStatusLabel(eOrder?.openMrsPaymentStatus)}
+          </Tag>
+        </TableCell>
+      );
+    }
     return <TableCell key={cell.id}>{cell.value}</TableCell>;
+  };
+
+  const buildTableHeaders = () => {
+    const headers = [
+      {
+        key: "requestDateDisplay",
+        header: intl.formatMessage({ id: "eorder.requestDate" }),
+      },
+      {
+        key: "patientLastName",
+        header: intl.formatMessage({ id: "eorder.name.last" }),
+      },
+      {
+        key: "patientFirstName",
+        header: intl.formatMessage({ id: "eorder.name.first" }),
+      },
+      {
+        key: "requestingFacility",
+        header: intl.formatMessage({
+          id: "eorder.facility.requesting",
+        }),
+      },
+      {
+        key: "priority",
+        header: intl.formatMessage({
+          id: "eorder.priority",
+        }),
+      },
+      {
+        key: "status",
+        header: intl.formatMessage({
+          id: "eorder.status",
+        }),
+      },
+    ];
+    if (paymentGateEnabled) {
+      headers.push({
+        key: "openMrsPaymentStatus",
+        header: intl.formatMessage({ id: "eorder.payment.status" }),
+      });
+    }
+    headers.push(
+      {
+        key: "testName",
+        header: intl.formatMessage({
+          id: "eorder.test.name",
+        }),
+      },
+      {
+        key: "sampleType",
+        header: intl.formatMessage({
+          id: "sample.type",
+        }),
+      },
+      {
+        key: "subjectNumber",
+        header: intl.formatMessage({
+          id: "eorder.id.healthId",
+          defaultMessage: "Health ID",
+        }),
+      },
+      {
+        key: "labNumber",
+        header: intl.formatMessage({
+          id: "eorder.labNumber",
+        }),
+      },
+    );
+    return headers;
   };
 
   const handlePageChange = (pageInfo) => {
@@ -230,63 +443,7 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
         <DataTable
           id="eOrderTable"
           rows={eOrdersCurrent.slice((page - 1) * pageSize, page * pageSize)}
-          headers={[
-            {
-              key: "requestDateDisplay",
-              header: intl.formatMessage({ id: "eorder.requestDate" }),
-            },
-            {
-              key: "patientLastName",
-              header: intl.formatMessage({ id: "eorder.name.last" }),
-            },
-            {
-              key: "patientFirstName",
-              header: intl.formatMessage({ id: "eorder.name.first" }),
-            },
-            {
-              key: "requestingFacility",
-              header: intl.formatMessage({
-                id: "eorder.facility.requesting",
-              }),
-            },
-            {
-              key: "priority",
-              header: intl.formatMessage({
-                id: "eorder.priority",
-              }),
-            },
-            {
-              key: "status",
-              header: intl.formatMessage({
-                id: "eorder.status",
-              }),
-            },
-            {
-              key: "testName",
-              header: intl.formatMessage({
-                id: "eorder.test.name",
-              }),
-            },
-            {
-              key: "sampleType",
-              header: intl.formatMessage({
-                id: "sample.type",
-              }),
-            },
-            {
-              key: "subjectNumber",
-              header: intl.formatMessage({
-                id: "eorder.id.healthId",
-                defaultMessage: "Health ID",
-              }),
-            },
-            {
-              key: "labNumber",
-              header: intl.formatMessage({
-                id: "eorder.labNumber",
-              }),
-            },
-          ]}
+          headers={buildTableHeaders()}
           isSortable
           expandableRows
         >
