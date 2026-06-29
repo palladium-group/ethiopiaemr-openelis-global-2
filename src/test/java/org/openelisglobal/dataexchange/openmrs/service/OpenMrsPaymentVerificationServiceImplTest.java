@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -114,6 +117,31 @@ public class OpenMrsPaymentVerificationServiceImplTest {
         assertFalse(verificationService.verifyAndSync(ORDER_UUID, false).isCollectionAllowed());
         assertTrue(verificationService.verifyAndSync(ORDER_UUID, true).isCollectionAllowed());
         verify(readExecutable, times(2)).execute();
+    }
+
+    @Test
+    public void verifyAndSync_evictsSingleEntryWhenCacheFull() throws Exception {
+        when(readTyped.withId(anyString())).thenReturn(readExecutable);
+        ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
+        when(readExecutable.execute()).thenReturn(paidRequest);
+        when(extensionReader.readPaymentStatus(any(ServiceRequest.class), eq(EXTENSION_URL)))
+                .thenReturn(OpenMrsPaymentStatus.PAID);
+
+        for (int i = 0; i < OpenMrsPaymentConstants.MAX_CACHE_ENTRIES; i++) {
+            verificationService.verifyAndSync("order-" + i, false);
+        }
+        verificationService.verifyAndSync("order-overflow", false);
+
+        clearInvocations(readExecutable);
+        verificationService.verifyAndSync("order-overflow", false);
+        verify(readExecutable, never()).execute();
+
+        clearInvocations(readExecutable);
+        for (int i = 0; i < OpenMrsPaymentConstants.MAX_CACHE_ENTRIES; i++) {
+            verificationService.verifyAndSync("order-" + i, false);
+        }
+
+        verify(readExecutable, atMost(50)).execute();
     }
 
     @Test

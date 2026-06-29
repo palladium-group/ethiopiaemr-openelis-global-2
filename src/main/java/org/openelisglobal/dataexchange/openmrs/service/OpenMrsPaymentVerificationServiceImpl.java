@@ -6,6 +6,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
@@ -200,10 +201,24 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
 
     private void putCachedResult(String orderUuid, PaymentVerificationResult result) {
         if (verificationCache.size() >= OpenMrsPaymentConstants.MAX_CACHE_ENTRIES) {
-            verificationCache.clear();
+            evictOneCacheEntry();
         }
         long ttlMillis = paymentConfiguration.getCacheSeconds() * 1000L;
         verificationCache.put(orderUuid, new CacheEntry(result, System.currentTimeMillis() + ttlMillis));
+    }
+
+    private void evictOneCacheEntry() {
+        String oldestKey = null;
+        long oldestExpiry = Long.MAX_VALUE;
+        for (Map.Entry<String, CacheEntry> entry : verificationCache.entrySet()) {
+            if (entry.getValue().expiresAtMillis < oldestExpiry) {
+                oldestExpiry = entry.getValue().expiresAtMillis;
+                oldestKey = entry.getKey();
+            }
+        }
+        if (oldestKey != null) {
+            verificationCache.remove(oldestKey);
+        }
     }
 
     private ServiceRequest readRemoteServiceRequest(String orderUuid) {
