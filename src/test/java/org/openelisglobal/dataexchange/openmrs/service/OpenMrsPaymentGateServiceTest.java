@@ -74,7 +74,7 @@ public class OpenMrsPaymentGateServiceTest {
     public void assertSampleCollectionAllowed_allowsPaidOrder() {
         ElectronicOrder order = new ElectronicOrder();
         order.setId("1");
-        when(paymentVerificationService.verifyAndSyncForElectronicOrder(order, false))
+        when(paymentVerificationService.verifyAndSyncForElectronicOrder(order, true))
                 .thenReturn(new PaymentVerificationResult("uuid", OpenMrsPaymentStatus.PAID, true, true, null));
 
         gateService.assertSampleCollectionAllowed(mockUpdateDataWithOrder(order));
@@ -84,7 +84,7 @@ public class OpenMrsPaymentGateServiceTest {
     public void assertSampleCollectionAllowed_blocksPendingOrder() {
         ElectronicOrder order = new ElectronicOrder();
         order.setId("1");
-        when(paymentVerificationService.verifyAndSyncForElectronicOrder(order, false))
+        when(paymentVerificationService.verifyAndSyncForElectronicOrder(order, true))
                 .thenReturn(new PaymentVerificationResult("uuid", OpenMrsPaymentStatus.PENDING, false, true, null));
 
         gateService.assertSampleCollectionAllowed(mockUpdateDataWithOrder(order));
@@ -99,7 +99,7 @@ public class OpenMrsPaymentGateServiceTest {
 
         gateService.assertSampleCollectionAllowed(updateData);
 
-        verify(paymentVerificationService, never()).verifyAndSyncForElectronicOrder(any(), eq(false));
+        verify(paymentVerificationService, never()).verifyAndSyncForElectronicOrder(any(), eq(true));
     }
 
     private SamplePatientUpdateData mockUpdateDataWithOrder(ElectronicOrder order) {

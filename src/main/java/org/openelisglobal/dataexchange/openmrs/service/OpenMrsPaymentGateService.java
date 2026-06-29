@@ -44,7 +44,7 @@ public class OpenMrsPaymentGateService {
                 continue;
             }
             PaymentVerificationResult result = paymentVerificationService
-                    .verifyAndSyncForElectronicOrder(electronicOrder, false);
+                    .verifyAndSyncForElectronicOrder(electronicOrder, true);
             if (!result.isCollectionAllowed()) {
                 String statusLabel = result.getStatus() == null ? OpenMrsPaymentStatus.UNKNOWN.name()
                         : result.getStatus().name();
