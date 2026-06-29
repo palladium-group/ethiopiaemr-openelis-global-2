@@ -104,7 +104,7 @@ public class OpenMrsPaymentVerificationServiceImplTest {
     }
 
     @Test
-    public void applyPaymentStatusToDisplayItem_usesRemoteVerificationForFhirOrders() throws Exception {
+    public void applyPaymentStatusToDisplayItem_usesLocalVerificationForFhirOrders() throws Exception {
         ElectronicOrder electronicOrder = new ElectronicOrder();
         electronicOrder.setType(ElectronicOrderType.FHIR);
         ElectronicOrderDisplayItem displayItem = new ElectronicOrderDisplayItem();
@@ -121,6 +121,26 @@ public class OpenMrsPaymentVerificationServiceImplTest {
         assertEquals(OpenMrsPaymentStatus.PAID.name(), displayItem.getOpenMrsPaymentStatus());
         assertTrue(displayItem.isCollectionAllowed());
         assertEquals(ORDER_UUID, displayItem.getOpenMrsOrderUuid());
+        verify(fhirConfig, never()).getRemoteStorePaths();
+    }
+
+    @Test
+    public void applyPaymentStatusToDisplayItem_reusesProvidedLocalServiceRequest() {
+        ElectronicOrder electronicOrder = new ElectronicOrder();
+        electronicOrder.setType(ElectronicOrderType.FHIR);
+        ElectronicOrderDisplayItem displayItem = new ElectronicOrderDisplayItem();
+
+        when(paymentOrderScope.isSubjectToPaymentGate(electronicOrder)).thenReturn(true);
+        when(orderUuidResolver.resolve(electronicOrder)).thenReturn(ORDER_UUID);
+
+        ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
+        when(extensionReader.readPaymentStatus(paidRequest, EXTENSION_URL)).thenReturn(OpenMrsPaymentStatus.PAID);
+
+        verificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder, paidRequest);
+
+        assertEquals(OpenMrsPaymentStatus.PAID.name(), displayItem.getOpenMrsPaymentStatus());
+        assertTrue(displayItem.isCollectionAllowed());
+        verify(fhirUtil, never()).getFhirClient(any());
     }
 
     @Test

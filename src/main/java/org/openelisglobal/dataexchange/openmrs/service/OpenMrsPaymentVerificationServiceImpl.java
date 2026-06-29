@@ -115,6 +115,12 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
     @Override
     public void applyPaymentStatusToDisplayItem(ElectronicOrderDisplayItem displayItem,
             ElectronicOrder electronicOrder) {
+        applyPaymentStatusToDisplayItem(displayItem, electronicOrder, null);
+    }
+
+    @Override
+    public void applyPaymentStatusToDisplayItem(ElectronicOrderDisplayItem displayItem, ElectronicOrder electronicOrder,
+            ServiceRequest localServiceRequest) {
         if (!paymentConfiguration.isGateEnabled()) {
             displayItem.setOpenMrsPaymentStatus(OpenMrsPaymentStatus.NOT_APPLICABLE.name());
             displayItem.setCollectionAllowed(true);
@@ -134,7 +140,8 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
             return;
         }
 
-        PaymentVerificationResult result = verifyAndSync(orderUuid.trim(), false);
+        PaymentVerificationResult result = localServiceRequest == null ? readLocalStatus(orderUuid.trim())
+                : readLocalStatusFromServiceRequest(orderUuid.trim(), localServiceRequest);
         OpenMrsPaymentStatus status = result.getStatus() == null ? OpenMrsPaymentStatus.UNKNOWN : result.getStatus();
         displayItem.setOpenMrsPaymentStatus(status.name());
         displayItem.setCollectionAllowed(result.isCollectionAllowed());
@@ -155,9 +162,14 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
             return buildResult(normalizedUuid, OpenMrsPaymentStatus.UNKNOWN, false, false);
         }
 
+        return readLocalStatusFromServiceRequest(normalizedUuid, localServiceRequest);
+    }
+
+    private PaymentVerificationResult readLocalStatusFromServiceRequest(String orderUuid,
+            ServiceRequest localServiceRequest) {
         OpenMrsPaymentStatus status = extensionReader.readPaymentStatus(localServiceRequest,
                 paymentConfiguration.getPaymentStatusExtensionUrl());
-        return buildResult(normalizedUuid, status, status.allowsSampleCollection(), false);
+        return buildResult(orderUuid, status, status.allowsSampleCollection(), false);
     }
 
     @Override

@@ -196,7 +196,8 @@ public class RestElectronicOrdersController extends BaseController {
                     displayItem.setSampleType(typeIdFromOrder);
                 }
             }
-            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder);
+            openMrsPaymentVerificationService.applyPaymentStatusToDisplayItem(displayItem, electronicOrder,
+                    serviceRequest);
             if (useAllInfo) {
 
                 if (serviceRequest.getRequisition() != null) {
