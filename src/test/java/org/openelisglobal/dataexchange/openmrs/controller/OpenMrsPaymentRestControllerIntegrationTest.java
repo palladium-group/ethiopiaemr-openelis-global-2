@@ -4,16 +4,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import javax.sql.DataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentGateTestSupport;
 import org.openelisglobal.siteinformation.service.SiteInformationService;
 import org.openelisglobal.siteinformation.valueholder.SiteInformation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Integration tests for {@link OpenMrsPaymentRestController}.
@@ -24,15 +27,19 @@ public class OpenMrsPaymentRestControllerIntegrationTest extends BaseWebContextS
 
     @Autowired
     private SiteInformationService siteInformationService;
+    @Autowired
+    private DataSource dataSource;
 
+    private JdbcTemplate jdbcTemplate;
     private String originalGateEnabledValue;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        jdbcTemplate = new JdbcTemplate(dataSource);
         executeDataSetWithStateManagement("testdata/openmrs-payment-gate.xml");
-        SiteInformation gateSetting = siteInformationService.getSiteInformationByName("openmrsPaymentGateEnabled");
-        originalGateEnabledValue = gateSetting.getValue();
+        OpenMrsPaymentGateTestSupport.ensurePaymentGateSiteSettings(jdbcTemplate);
+        originalGateEnabledValue = OpenMrsPaymentGateTestSupport.requireGateSetting(siteInformationService).getValue();
         enablePaymentGate();
     }
 
@@ -77,7 +84,7 @@ public class OpenMrsPaymentRestControllerIntegrationTest extends BaseWebContextS
     }
 
     private void setGateEnabled(String value) {
-        SiteInformation gateSetting = siteInformationService.getSiteInformationByName("openmrsPaymentGateEnabled");
+        SiteInformation gateSetting = OpenMrsPaymentGateTestSupport.requireGateSetting(siteInformationService);
         gateSetting.setValue(value);
         siteInformationService.persistData(gateSetting, false);
         ConfigurationProperties.loadDBValuesIntoConfiguration();

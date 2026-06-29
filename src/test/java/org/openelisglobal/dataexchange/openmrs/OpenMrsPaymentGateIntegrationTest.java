@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import javax.sql.DataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.openelisglobal.sample.service.SamplePatientEntryService;
 import org.openelisglobal.siteinformation.service.SiteInformationService;
 import org.openelisglobal.siteinformation.valueholder.SiteInformation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -47,6 +49,10 @@ public class OpenMrsPaymentGateIntegrationTest extends BaseWebContextSensitiveTe
     private ElectronicOrderService electronicOrderService;
     @Autowired
     private SiteInformationService siteInformationService;
+    @Autowired
+    private DataSource dataSource;
+
+    private JdbcTemplate jdbcTemplate;
 
     private OpenMrsPaymentVerificationService originalVerificationService;
     private String originalGateEnabledValue;
@@ -54,10 +60,12 @@ public class OpenMrsPaymentGateIntegrationTest extends BaseWebContextSensitiveTe
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        jdbcTemplate = new JdbcTemplate(dataSource);
         executeDataSetWithStateManagement("testdata/openmrs-payment-gate.xml");
+        OpenMrsPaymentGateTestSupport.ensurePaymentGateSiteSettings(jdbcTemplate);
         originalVerificationService = (OpenMrsPaymentVerificationService) ReflectionTestUtils
                 .getField(paymentGateService, "paymentVerificationService");
-        SiteInformation gateSetting = siteInformationService.getSiteInformationByName("openmrsPaymentGateEnabled");
+        SiteInformation gateSetting = OpenMrsPaymentGateTestSupport.requireGateSetting(siteInformationService);
         originalGateEnabledValue = gateSetting.getValue();
     }
 
@@ -151,7 +159,7 @@ public class OpenMrsPaymentGateIntegrationTest extends BaseWebContextSensitiveTe
     }
 
     private void setGateEnabled(String value) {
-        SiteInformation gateSetting = siteInformationService.getSiteInformationByName("openmrsPaymentGateEnabled");
+        SiteInformation gateSetting = OpenMrsPaymentGateTestSupport.requireGateSetting(siteInformationService);
         gateSetting.setValue(value);
         siteInformationService.persistData(gateSetting, false);
         ConfigurationProperties.loadDBValuesIntoConfiguration();
