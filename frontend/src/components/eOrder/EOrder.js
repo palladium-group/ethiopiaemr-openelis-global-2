@@ -99,10 +99,17 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
         if (!response) {
           return;
         }
-        const newEOrders = [...eOrders];
-        newEOrders[index].openMrsPaymentStatus = response.status;
-        newEOrders[index].collectionAllowed = response.collectionAllowed;
-        setEOrders(newEOrders);
+        setEOrders((prevEOrders) =>
+          prevEOrders.map((order, i) =>
+            i === index
+              ? {
+                  ...order,
+                  openMrsPaymentStatus: response.status,
+                  collectionAllowed: response.collectionAllowed,
+                }
+              : order,
+          ),
+        );
         if (paymentGateEnabled && response.collectionAllowed === false) {
           setNotificationVisible(true);
           addNotification({
