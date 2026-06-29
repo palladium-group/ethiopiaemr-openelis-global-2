@@ -4,12 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.gclient.IRead;
 import ca.uhn.fhir.rest.gclient.IReadExecutable;
 import ca.uhn.fhir.rest.gclient.IReadTyped;
@@ -37,6 +40,8 @@ import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrderType;
 @RunWith(MockitoJUnitRunner.class)
 public class OpenMrsPaymentVerificationServiceImplTest {
 
+    private static final String REMOTE_FHIR_PATH = "http://remote-fhir/fhir/";
+    private static final String LOCAL_FHIR_PATH = "https://local-fhir/fhir/";
     private static final String ORDER_UUID = "lab-order-uuid";
     private static final String EXTENSION_URL = OpenMrsPaymentConstants.DEFAULT_PAYMENT_STATUS_EXTENSION_URL;
 
@@ -50,6 +55,8 @@ public class OpenMrsPaymentVerificationServiceImplTest {
     private OpenMrsPaymentExtensionReader extensionReader;
     @Mock
     private FhirUtil fhirUtil;
+    @Mock
+    private FhirContext fhirContext;
     @Mock
     private FhirConfig fhirConfig;
     @Mock
@@ -71,12 +78,28 @@ public class OpenMrsPaymentVerificationServiceImplTest {
         when(paymentConfiguration.isGateEnabled()).thenReturn(true);
         when(paymentConfiguration.getPaymentStatusExtensionUrl()).thenReturn(EXTENSION_URL);
         when(paymentConfiguration.getCacheSeconds()).thenReturn(60);
-        when(fhirConfig.getRemoteStorePaths()).thenReturn(new String[] { "http://remote-fhir/fhir/" });
-        when(fhirConfig.getLocalFhirStorePath()).thenReturn("https://local-fhir/fhir/");
-        when(fhirUtil.getFhirClient(any())).thenReturn(remoteClient);
+        when(fhirConfig.getRemoteStorePaths()).thenReturn(new String[] { REMOTE_FHIR_PATH });
+        when(fhirConfig.getLocalFhirStorePath()).thenReturn(LOCAL_FHIR_PATH);
+        when(fhirConfig.getUsername()).thenReturn("openelis");
+        when(fhirConfig.getPassword()).thenReturn("secret");
+        when(fhirContext.newRestfulGenericClient(REMOTE_FHIR_PATH)).thenReturn(remoteClient);
+        when(fhirUtil.getFhirClient(LOCAL_FHIR_PATH)).thenReturn(remoteClient);
         when(remoteClient.read()).thenReturn(read);
         when(read.resource(ServiceRequest.class)).thenReturn(readTyped);
         when(readTyped.withId(ORDER_UUID)).thenReturn(readExecutable);
+    }
+
+    @Test
+    public void verifyAndSync_registersSingleAuthInterceptorOnRemoteClient() throws Exception {
+        ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
+        when(readExecutable.execute()).thenReturn(paidRequest);
+        when(extensionReader.readPaymentStatus(paidRequest, EXTENSION_URL)).thenReturn(OpenMrsPaymentStatus.PAID);
+
+        verificationService.verifyAndSync(ORDER_UUID, false);
+
+        verify(fhirContext).newRestfulGenericClient(REMOTE_FHIR_PATH);
+        verify(fhirUtil, never()).getFhirClient(eq(REMOTE_FHIR_PATH));
+        verify(remoteClient, times(1)).registerInterceptor(any(BasicAuthInterceptor.class));
     }
 
     @Test

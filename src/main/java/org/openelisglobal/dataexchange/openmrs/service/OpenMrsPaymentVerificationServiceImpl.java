@@ -1,5 +1,6 @@
 package org.openelisglobal.dataexchange.openmrs.service;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
@@ -53,6 +54,8 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
     private OpenMrsPaymentExtensionReader extensionReader;
     @Autowired
     private FhirUtil fhirUtil;
+    @Autowired
+    private FhirContext fhirContext;
     @Autowired
     private FhirConfig fhirConfig;
     @Autowired
@@ -263,9 +266,9 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
     }
 
     private IGenericClient createRemoteFhirClient(String remotePath) {
-        IGenericClient remoteClient = fhirUtil.getFhirClient(remotePath);
+        IGenericClient remoteClient = fhirContext.newRestfulGenericClient(remotePath);
         String localPath = fhirConfig.getLocalFhirStorePath();
-        if (StringUtils.isNotBlank(fhirConfig.getUsername()) && !remotePath.equals(localPath)) {
+        if (StringUtils.isNotBlank(fhirConfig.getUsername()) && !StringUtils.equals(remotePath, localPath)) {
             IClientInterceptor authInterceptor = new BasicAuthInterceptor(fhirConfig.getUsername(),
                     fhirConfig.getPassword());
             remoteClient.registerInterceptor(authInterceptor);
