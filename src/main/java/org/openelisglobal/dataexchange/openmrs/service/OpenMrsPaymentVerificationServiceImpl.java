@@ -95,7 +95,7 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
                 paymentConfiguration.getPaymentStatusExtensionUrl());
         boolean synced = syncToLocalFhir(remoteServiceRequest);
         PaymentVerificationResult result = buildResult(normalizedUuid, status, status.allowsSampleCollection(), synced);
-        if (!bypassCache && shouldCacheResult(result)) {
+        if (shouldCacheResult(result)) {
             putCachedResult(normalizedUuid, result);
         }
         return result;

@@ -120,6 +120,23 @@ public class OpenMrsPaymentVerificationServiceImplTest {
     }
 
     @Test
+    public void verifyAndSync_bypassCacheRecachesFreshResult() throws Exception {
+        ServiceRequest pendingRequest = serviceRequestWithStatus("PENDING");
+        ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
+
+        when(readExecutable.execute()).thenReturn(pendingRequest, paidRequest);
+        when(extensionReader.readPaymentStatus(pendingRequest, EXTENSION_URL)).thenReturn(OpenMrsPaymentStatus.PENDING);
+        when(extensionReader.readPaymentStatus(paidRequest, EXTENSION_URL)).thenReturn(OpenMrsPaymentStatus.PAID);
+
+        verificationService.verifyAndSync(ORDER_UUID, false);
+        verificationService.verifyAndSync(ORDER_UUID, true);
+
+        clearInvocations(readExecutable);
+        assertTrue(verificationService.verifyAndSync(ORDER_UUID, false).isCollectionAllowed());
+        verify(readExecutable, never()).execute();
+    }
+
+    @Test
     public void verifyAndSync_evictsSingleEntryWhenCacheFull() throws Exception {
         when(readTyped.withId(anyString())).thenReturn(readExecutable);
         ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
