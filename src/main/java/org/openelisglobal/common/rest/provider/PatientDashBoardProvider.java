@@ -98,6 +98,10 @@ public class PatientDashBoardProvider extends BaseRestController {
 
         List<Long> hours = new ArrayList<>();
         analyses.forEach(analysis -> {
+            // Skip analyses missing either date to avoid NullPointerException
+            if (analysis.getStartedDate() == null || analysis.getReleasedDate() == null) {
+                return;
+            }
             // Convert java.sql.Date to java.time.LocalDate
             LocalDate localStartDate = analysis.getStartedDate().toLocalDate();
             LocalDate localEndDate = analysis.getReleasedDate().toLocalDate();
@@ -123,6 +127,10 @@ public class PatientDashBoardProvider extends BaseRestController {
 
         List<Long> hours = new ArrayList<>();
         analyses.forEach(analysis -> {
+            // Skip analyses missing either date to avoid NullPointerException
+            if (analysis.getStartedDate() == null || analysis.getCompletedDate() == null) {
+                return;
+            }
             // Convert java.sql.Date to java.time.LocalDate
             LocalDate localStartDate = analysis.getStartedDate().toLocalDate();
             LocalDate localEndDate = analysis.getCompletedDate().toLocalDate();
@@ -146,6 +154,10 @@ public class PatientDashBoardProvider extends BaseRestController {
 
         List<Long> hours = new ArrayList<>();
         analyses.forEach(analysis -> {
+            // Skip analyses missing either date to avoid NullPointerException
+            if (analysis.getCompletedDate() == null || analysis.getReleasedDate() == null) {
+                return;
+            }
             // Convert java.sql.Date to java.time.LocalDate
             LocalDate localStartDate = analysis.getCompletedDate().toLocalDate();
             LocalDate localEndDate = analysis.getReleasedDate().toLocalDate();
@@ -169,6 +181,10 @@ public class PatientDashBoardProvider extends BaseRestController {
 
         List<Analysis> delayedAnalyses = new ArrayList<>();
         analyses.forEach(analysis -> {
+            // Skip analyses missing either date to avoid NullPointerException
+            if (analysis.getStartedDate() == null || analysis.getReleasedDate() == null) {
+                return;
+            }
             // Convert java.sql.Date to java.time.LocalDate
             LocalDate localStartDate = analysis.getStartedDate().toLocalDate();
             LocalDate localEndDate = analysis.getReleasedDate().toLocalDate();
