@@ -718,9 +718,6 @@ const AddOrder = (props) => {
                 id="provisionalDiagnosisId"
               />
             </Column>
-            {/* <Column lg={8} md={4} sm={4}>
-              {" "}
-            </Column> */}
             <Column lg={16} md={4} sm={3}>
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
@@ -792,6 +789,32 @@ const AddOrder = (props) => {
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
             </Column>
+            {orderFormValues.sampleOrderItems.emergencyContact && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="emergencyContact"
+                  readOnly
+                  value={orderFormValues.sampleOrderItems.emergencyContact}
+                  labelText={intl.formatMessage({
+                    id: "order.patient.emergencyContact.label",
+                  })}
+                  id="emergencyContactId"
+                />
+              </Column>
+            )}
+            {orderFormValues.sampleOrderItems.requesterPhone && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="requesterPhone"
+                  readOnly
+                  value={orderFormValues.sampleOrderItems.requesterPhone}
+                  labelText={intl.formatMessage({
+                    id: "order.requester.phone.label",
+                  })}
+                  id="requesterPhoneId"
+                />
+              </Column>
+            )}
             {!isIncomingOrderFlow && (
               <Column lg={8} sm={4}>
                 <TextInput

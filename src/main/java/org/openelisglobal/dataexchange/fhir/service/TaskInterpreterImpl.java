@@ -340,10 +340,9 @@ public class TaskInterpreterImpl implements TaskInterpreter {
             if (ContactPoint.ContactPointSystem.SMS.equals(contactTelecom.getSystem())) {
                 messagePatient.setContactPhone(contactTelecom.getValue());
             }
-            // if (ContactPoint.ContactPointSystem.PHONE.equals(contactTelecom.getSystem()))
-            // {
-            // messagePatient.setContactPhone(contactTelecom.getValue());
-            // }
+            if (ContactPoint.ContactPointSystem.PHONE.equals(contactTelecom.getSystem())) {
+                messagePatient.setContactPhone(contactTelecom.getValue());
+            }
         }
 
         return messagePatient;

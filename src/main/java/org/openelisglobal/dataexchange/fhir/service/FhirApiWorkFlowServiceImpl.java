@@ -7,10 +7,12 @@ import ca.uhn.fhir.rest.gclient.IQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.validator.GenericValidator;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
@@ -19,6 +21,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Location;
@@ -566,6 +569,8 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         if (remotePatientForTask == null) {
             remotePatientForTask = getForPatientFromServer(sourceFhirClient, remoteServiceRequests);
         }
+        List<Condition> remoteDiagnoses = getReasonReferenceDiagnosesFromServer(sourceFhirClient,
+                remoteServiceRequests);
         Practitioner remotePractitionerForTask = getPractitionerFromServer(sourceFhirClient, remoteTask);
         if (remotePractitionerForTask != null) {
             Provider provider = providerService
@@ -659,6 +664,23 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             objects.specimens.add(localSpecimen);
         }
 
+        // Diagnosis (Condition) - the order's referring diagnoses, resolved from the
+        // ServiceRequest.reasonReference link set by OpenMRS's labonfhir module (the
+        // FHIR-standard way to tie a lab order to the diagnosis it was placed for).
+        objects.diagnoses = new ArrayList<>();
+        for (Condition remoteDiagnosis : remoteDiagnoses) {
+            Condition localDiagnosis;
+            Optional<Condition> existingLocalDiagnosis = getConditionWithSameIdentifier(remoteDiagnosis,
+                    remoteStorePath);
+            if (existingLocalDiagnosis.isEmpty()) {
+                localDiagnosis = remoteDiagnosis
+                        .addIdentifier(createIdentifierToRemoteResource(remoteDiagnosis, remoteStorePath));
+            } else {
+                localDiagnosis = existingLocalDiagnosis.get();
+            }
+            objects.diagnoses.add(localDiagnosis);
+        }
+
         // Patient
         // Patient forPatient = getForPatientFromBundle(bundle, remoteTask);
         Optional<Patient> existingLocalPatient = getPatientWithSameServiceIdentifier(remotePatientForTask,
@@ -677,6 +699,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         objects.task.setFor(fhirTransformService.createReferenceFor(objects.patient));
         for (ServiceRequest serviceRequest : objects.serviceRequests) {
             serviceRequest.setSubject(fhirTransformService.createReferenceFor(objects.patient));
+        }
+        for (Condition diagnosis : objects.diagnoses) {
+            diagnosis.setSubject(fhirTransformService.createReferenceFor(objects.patient));
+            fhirOperations.updateResources.put(diagnosis.getIdElement().getIdPart(), diagnosis);
         }
 
         // Task Practitioner
@@ -737,6 +763,74 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         }
         LogEvent.logTrace(this.getClass().getSimpleName(), "",
                 "no specimen with same identifier " + specimen.getIdElement().getIdPart());
+        return Optional.empty();
+    }
+
+    /**
+     * Fetches the referring-diagnosis Conditions an order was placed for, following
+     * the {@code ServiceRequest.reasonReference} links that OpenMRS's labonfhir
+     * module stamps onto each order (the FHIR-standard order-to-diagnosis link).
+     * Each referenced Condition is read from the source server by id; duplicates
+     * (the same diagnosis referenced by several service requests) are fetched once.
+     * A failure reading any single Condition is skipped rather than failing the
+     * whole order import.
+     */
+    List<Condition> getReasonReferenceDiagnosesFromServer(IGenericClient fhirClient,
+            List<ServiceRequest> serviceRequests) {
+        List<Condition> diagnoses = new ArrayList<>();
+        Set<String> fetchedIds = new HashSet<>();
+        for (String conditionId : getReasonReferenceConditionIds(serviceRequests)) {
+            if (!fetchedIds.add(conditionId)) {
+                continue;
+            }
+            try {
+                Condition condition = fhirClient.read().resource(Condition.class).withId(conditionId).execute();
+                if (condition != null) {
+                    diagnoses.add(condition);
+                }
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "getReasonReferenceDiagnosesFromServer",
+                        "could not fetch referring diagnosis Condition/" + conditionId + ": " + e.getMessage());
+            }
+        }
+        return diagnoses;
+    }
+
+    /**
+     * Collects the distinct-in-order Condition ids referenced by the given service
+     * requests' {@code reasonReference}s, keeping only references that actually
+     * point at a Condition.
+     */
+    static List<String> getReasonReferenceConditionIds(List<ServiceRequest> serviceRequests) {
+        List<String> conditionIds = new ArrayList<>();
+        for (ServiceRequest serviceRequest : serviceRequests) {
+            for (Reference reason : serviceRequest.getReasonReference()) {
+                String resourceType = reason.getReferenceElement().getResourceType();
+                String id = reason.getReferenceElement().getIdPart();
+                if (!GenericValidator.isBlankOrNull(id) && ResourceType.Condition.name().equals(resourceType)) {
+                    conditionIds.add(id);
+                }
+            }
+        }
+        return conditionIds;
+    }
+
+    private Optional<Condition> getConditionWithSameIdentifier(Condition condition, String remoteStorePath) {
+        IGenericClient localFhirClient = fhirUtil.getFhirClient(localFhirStorePath);
+        Bundle localBundle = localFhirClient.search() //
+                .forResource(Condition.class) //
+                .where(Condition.IDENTIFIER.exactly().systemAndIdentifier(remoteStorePath,
+                        condition.getIdElement().getIdPart())) //
+                .returnBundle(Bundle.class).execute();
+        for (BundleEntryComponent entry : localBundle.getEntry()) {
+            if (entry.hasResource() && ResourceType.Condition.equals(entry.getResource().getResourceType())) {
+                LogEvent.logTrace(this.getClass().getSimpleName(), "",
+                        "found condition with same identifier as " + condition.getIdElement().getIdPart());
+                return Optional.of((Condition) localBundle.getEntryFirstRep().getResource());
+            }
+        }
+        LogEvent.logTrace(this.getClass().getSimpleName(), "",
+                "no condition with same identifier " + condition.getIdElement().getIdPart());
         return Optional.empty();
     }
 
@@ -971,6 +1065,7 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         public List<ServiceRequest> serviceRequests;
         public List<Practitioner> requestors;
         public List<Specimen> specimens;
+        public List<Condition> diagnoses;
         public Patient patient;
         public Location location;
     }

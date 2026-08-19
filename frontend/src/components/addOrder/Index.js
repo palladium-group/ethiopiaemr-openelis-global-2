@@ -270,6 +270,22 @@ const Index = () => {
         );
       }
 
+      if (order.referringDiagnoses && order.referringDiagnoses != "") {
+        parseReferringDiagnoses(newOrderFormValues, order.referringDiagnoses);
+      }
+
+      if (order.emergencyContact && order.emergencyContact != "") {
+        parseEmergencyContact(newOrderFormValues, order.emergencyContact);
+      }
+
+      // Requester phone is read-only, synced from OpenMRS - never sent back on submit.
+      if (order.requesterPhone && order.requesterPhone != "") {
+        newOrderFormValues.sampleOrderItems = {
+          ...newOrderFormValues.sampleOrderItems,
+          requesterPhone: order.requesterPhone,
+        };
+      }
+
       // One-page incoming flow does not force step-by-step completion,
       // so ensure required order timing fields are populated like the
       // previous tabbed workflow.
@@ -428,6 +444,53 @@ const Index = () => {
         // Departments loaded - handled elsewhere
       },
     );
+  };
+
+  // Referring diagnoses are synced from OpenMRS and shown (read-only) in the existing
+  // Provisional Clinical Diagnosis field - never sent back on submit. When orders are
+  // grouped (multiple IDs), diagnoses from every loaded order are merged in, since each
+  // order in the group may correlate to a different OpenMRS visit/diagnosis. The
+  // referringDiagnoses array is retained purely as a "synced from OpenMRS" flag so the
+  // Provisional Clinical Diagnosis field can render read-only with a source-aware label.
+  const parseReferringDiagnoses = (newOrderFormValues, referringDiagnoses) => {
+    const diagnosisNodes = !referringDiagnoses.referringDiagnosis
+      ? []
+      : referringDiagnoses.referringDiagnosis instanceof Array
+        ? referringDiagnoses.referringDiagnosis
+        : [referringDiagnoses.referringDiagnosis];
+    const newTexts = diagnosisNodes
+      .map((node) => node.text)
+      .filter((text) => text && text.trim().length > 0);
+    if (newTexts.length === 0) {
+      return;
+    }
+    const existingTexts =
+      newOrderFormValues.sampleOrderItems.referringDiagnoses || [];
+    const mergedTexts = Array.from(new Set([...existingTexts, ...newTexts]));
+    newOrderFormValues.sampleOrderItems = {
+      ...newOrderFormValues.sampleOrderItems,
+      referringDiagnoses: mergedTexts,
+      provisionalClinicalDiagnosis: mergedTexts.join("; "),
+    };
+  };
+
+  // Emergency contact (next of kin) is read-only, synced from OpenMRS - never sent back on
+  // submit. Rendered as "Name - phone" in a read-only field. The first loaded order in a
+  // grouped set wins (all share the same patient, so the contact is identical).
+  const parseEmergencyContact = (newOrderFormValues, emergencyContact) => {
+    if (newOrderFormValues.sampleOrderItems.emergencyContact) {
+      return;
+    }
+    const name = (emergencyContact.name || "").trim();
+    const phone = (emergencyContact.phone || "").trim();
+    const display = phone ? (name ? name + " - " + phone : phone) : name;
+    if (display.length === 0) {
+      return;
+    }
+    newOrderFormValues.sampleOrderItems = {
+      ...newOrderFormValues.sampleOrderItems,
+      emergencyContact: display,
+    };
   };
 
   const parseSampletypes = (
@@ -790,6 +853,21 @@ const Index = () => {
     }
     if ("questionnaire" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.questionnaire;
+    }
+    // Referring diagnoses are read-only display data synced from OpenMRS (shown in the
+    // Provisional Clinical Diagnosis field) and are not a SampleOrderItem property, so
+    // strip them before submit to avoid a deserialization error on the backend bean.
+    if ("referringDiagnoses" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.referringDiagnoses;
+    }
+    // Emergency contact is read-only display data synced from OpenMRS and is not a
+    // SampleOrderItem property, so strip it before submit (same reason as referringDiagnoses).
+    if ("emergencyContact" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.emergencyContact;
+    }
+    // Requester phone is read-only display data synced from OpenMRS; strip it before submit.
+    if ("requesterPhone" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.requesterPhone;
     }
     //remove display Lists rom the form
     orderFormValues.sampleOrderItems.priorityList = [];
