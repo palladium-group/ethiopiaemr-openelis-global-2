@@ -709,19 +709,11 @@ const AddOrder = (props) => {
                   id: "input.placeholder.provisionalClinicalDiagnosis",
                 })}
                 onChange={handleProvisionalClinicalDiagnosisChange}
-                readOnly={
-                  orderFormValues.sampleOrderItems.referringDiagnoses?.length >
-                  0
-                }
                 value={
                   orderFormValues.sampleOrderItems.provisionalClinicalDiagnosis
                 }
                 labelText={intl.formatMessage({
-                  id:
-                    orderFormValues.sampleOrderItems.referringDiagnoses
-                      ?.length > 0
-                      ? "order.requester.referringDiagnosis.label"
-                      : "order.requester.provisionalDiagnosis.label",
+                  id: "order.requester.provisionalDiagnosis.label",
                 })}
                 id="provisionalDiagnosisId"
               />
