@@ -112,6 +112,7 @@ export const SampleOrderFormValues = {
     programId: "",
     additionalQuestions: null,
     referringDiagnoses: [],
+    emergencyContact: "",
   },
   initialSampleConditionList: [],
   sampleNatureList: null,

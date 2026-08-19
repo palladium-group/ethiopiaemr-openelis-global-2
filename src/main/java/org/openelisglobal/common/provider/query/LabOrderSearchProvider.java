@@ -477,6 +477,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
         addCrossPanels(xml);
         addCrosstests(xml);
         addReferringDiagnoses(xml);
+        addEmergencyContact(xml);
         addAlerts(xml, patientGuid);
         xml.append("</order>");
     }
@@ -489,6 +490,37 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
             xml.append("</referringDiagnosis>");
         }
         xml.append("</referringDiagnoses>");
+    }
+
+    /**
+     * Emits the patient's emergency contact (name + phone) read from the imported
+     * FHIR Patient.contact - the FHIR-standard emergency-contact field set by
+     * OpenMRS's labonfhir module. Read-only, display-only; nothing is emitted when
+     * no contact was synced.
+     */
+    private void addEmergencyContact(StringBuilder xml) {
+        if (patient == null || !patient.hasContact()) {
+            return;
+        }
+        Patient.ContactComponent contact = patient.getContactFirstRep();
+        String name = contact.hasName() ? contact.getName().getText() : null;
+        if (GenericValidator.isBlankOrNull(name) && contact.hasName()) {
+            name = contact.getName().getNameAsSingleString();
+        }
+        String phone = null;
+        for (ContactPoint telecom : contact.getTelecom()) {
+            if (ContactPointSystem.PHONE.equals(telecom.getSystem())
+                    || ContactPointSystem.SMS.equals(telecom.getSystem())) {
+                phone = telecom.getValue();
+            }
+        }
+        if (GenericValidator.isBlankOrNull(name) && GenericValidator.isBlankOrNull(phone)) {
+            return;
+        }
+        xml.append("<emergencyContact>");
+        XMLUtil.appendKeyValue("name", name == null ? "" : name, xml);
+        XMLUtil.appendKeyValue("phone", phone == null ? "" : phone, xml);
+        xml.append("</emergencyContact>");
     }
 
     private void addRequestingOrg(StringBuilder xml) {

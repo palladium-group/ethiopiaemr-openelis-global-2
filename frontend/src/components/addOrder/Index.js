@@ -274,6 +274,10 @@ const Index = () => {
         parseReferringDiagnoses(newOrderFormValues, order.referringDiagnoses);
       }
 
+      if (order.emergencyContact && order.emergencyContact != "") {
+        parseEmergencyContact(newOrderFormValues, order.emergencyContact);
+      }
+
       // One-page incoming flow does not force step-by-step completion,
       // so ensure required order timing fields are populated like the
       // previous tabbed workflow.
@@ -459,6 +463,25 @@ const Index = () => {
       ...newOrderFormValues.sampleOrderItems,
       referringDiagnoses: mergedTexts,
       provisionalClinicalDiagnosis: mergedTexts.join("; "),
+    };
+  };
+
+  // Emergency contact (next of kin) is read-only, synced from OpenMRS - never sent back on
+  // submit. Rendered as "Name - phone" in a read-only field. The first loaded order in a
+  // grouped set wins (all share the same patient, so the contact is identical).
+  const parseEmergencyContact = (newOrderFormValues, emergencyContact) => {
+    if (newOrderFormValues.sampleOrderItems.emergencyContact) {
+      return;
+    }
+    const name = (emergencyContact.name || "").trim();
+    const phone = (emergencyContact.phone || "").trim();
+    const display = phone ? (name ? name + " - " + phone : phone) : name;
+    if (display.length === 0) {
+      return;
+    }
+    newOrderFormValues.sampleOrderItems = {
+      ...newOrderFormValues.sampleOrderItems,
+      emergencyContact: display,
     };
   };
 
@@ -828,6 +851,11 @@ const Index = () => {
     // strip them before submit to avoid a deserialization error on the backend bean.
     if ("referringDiagnoses" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.referringDiagnoses;
+    }
+    // Emergency contact is read-only display data synced from OpenMRS and is not a
+    // SampleOrderItem property, so strip it before submit (same reason as referringDiagnoses).
+    if ("emergencyContact" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.emergencyContact;
     }
     //remove display Lists rom the form
     orderFormValues.sampleOrderItems.priorityList = [];

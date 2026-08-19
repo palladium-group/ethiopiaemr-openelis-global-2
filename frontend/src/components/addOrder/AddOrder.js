@@ -797,6 +797,19 @@ const AddOrder = (props) => {
               {" "}
               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{" "}
             </Column>
+            {orderFormValues.sampleOrderItems.emergencyContact && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="emergencyContact"
+                  readOnly
+                  value={orderFormValues.sampleOrderItems.emergencyContact}
+                  labelText={intl.formatMessage({
+                    id: "order.patient.emergencyContact.label",
+                  })}
+                  id="emergencyContactId"
+                />
+              </Column>
+            )}
             {!isIncomingOrderFlow && (
               <Column lg={8} sm={4}>
                 <TextInput

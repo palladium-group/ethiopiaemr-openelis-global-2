@@ -1743,6 +1743,7 @@
   "order.requester.lastName.label": "Requester's LastName:",
   "order.requester.phone.label": "Requester Phone:",
   "order.requester.provisionalDiagnosis.label": "Provisional Clinical Diagnosis:",
+  "order.patient.emergencyContact.label": "Emergency Contact (from OpenMRS):",
   "order.requester.referringDiagnosis.label": "Referring Diagnosis (from OpenMRS):",
   "order.result.reporting.heading": "RESULT REPORTING",
   "order.sampling.performed.label": "Sampling performed for analysis:",
