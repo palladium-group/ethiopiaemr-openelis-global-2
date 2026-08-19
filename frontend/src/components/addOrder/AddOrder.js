@@ -802,6 +802,19 @@ const AddOrder = (props) => {
                 />
               </Column>
             )}
+            {orderFormValues.sampleOrderItems.requesterPhone && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="requesterPhone"
+                  readOnly
+                  value={orderFormValues.sampleOrderItems.requesterPhone}
+                  labelText={intl.formatMessage({
+                    id: "order.requester.phone.label",
+                  })}
+                  id="requesterPhoneId"
+                />
+              </Column>
+            )}
             {!isIncomingOrderFlow && (
               <Column lg={8} sm={4}>
                 <TextInput

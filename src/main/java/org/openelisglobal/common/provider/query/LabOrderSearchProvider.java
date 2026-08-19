@@ -478,8 +478,31 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
         addCrosstests(xml);
         addReferringDiagnoses(xml);
         addEmergencyContact(xml);
+        addRequesterPhone(xml);
         addAlerts(xml, patientGuid);
         xml.append("</order>");
+    }
+
+    /**
+     * Emits the requester's (ordering provider's) phone read from the imported FHIR
+     * Practitioner.telecom - set by OpenMRS's labonfhir module from the provider's
+     * phone. Read-only, display-only; nothing is emitted when no phone was synced.
+     */
+    private void addRequesterPhone(StringBuilder xml) {
+        if (requesterPerson == null) {
+            return;
+        }
+        String phone = null;
+        for (ContactPoint telecom : requesterPerson.getTelecom()) {
+            if (ContactPointSystem.PHONE.equals(telecom.getSystem())
+                    || ContactPointSystem.SMS.equals(telecom.getSystem())) {
+                phone = telecom.getValue();
+            }
+        }
+        if (GenericValidator.isBlankOrNull(phone)) {
+            return;
+        }
+        XMLUtil.appendKeyValue("requesterPhone", phone, xml);
     }
 
     private void addReferringDiagnoses(StringBuilder xml) {

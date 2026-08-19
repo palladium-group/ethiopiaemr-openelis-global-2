@@ -278,6 +278,14 @@ const Index = () => {
         parseEmergencyContact(newOrderFormValues, order.emergencyContact);
       }
 
+      // Requester phone is read-only, synced from OpenMRS - never sent back on submit.
+      if (order.requesterPhone && order.requesterPhone != "") {
+        newOrderFormValues.sampleOrderItems = {
+          ...newOrderFormValues.sampleOrderItems,
+          requesterPhone: order.requesterPhone,
+        };
+      }
+
       // One-page incoming flow does not force step-by-step completion,
       // so ensure required order timing fields are populated like the
       // previous tabbed workflow.
@@ -856,6 +864,10 @@ const Index = () => {
     // SampleOrderItem property, so strip it before submit (same reason as referringDiagnoses).
     if ("emergencyContact" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.emergencyContact;
+    }
+    // Requester phone is read-only display data synced from OpenMRS; strip it before submit.
+    if ("requesterPhone" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.requesterPhone;
     }
     //remove display Lists rom the form
     orderFormValues.sampleOrderItems.priorityList = [];

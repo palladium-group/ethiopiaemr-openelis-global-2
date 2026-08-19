@@ -113,6 +113,7 @@ export const SampleOrderFormValues = {
     additionalQuestions: null,
     referringDiagnoses: [],
     emergencyContact: "",
+    requesterPhone: "",
   },
   initialSampleConditionList: [],
   sampleNatureList: null,
