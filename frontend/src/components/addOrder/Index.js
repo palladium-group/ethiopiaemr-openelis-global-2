@@ -270,6 +270,10 @@ const Index = () => {
         );
       }
 
+      if (order.referringDiagnoses && order.referringDiagnoses != "") {
+        parseReferringDiagnoses(newOrderFormValues, order.referringDiagnoses);
+      }
+
       // One-page incoming flow does not force step-by-step completion,
       // so ensure required order timing fields are populated like the
       // previous tabbed workflow.
@@ -428,6 +432,34 @@ const Index = () => {
         // Departments loaded - handled elsewhere
       },
     );
+  };
+
+  // Referring diagnoses are synced from OpenMRS and shown (read-only) in the existing
+  // Provisional Clinical Diagnosis field - never sent back on submit. When orders are
+  // grouped (multiple IDs), diagnoses from every loaded order are merged in, since each
+  // order in the group may correlate to a different OpenMRS visit/diagnosis. The
+  // referringDiagnoses array is retained purely as a "synced from OpenMRS" flag so the
+  // Provisional Clinical Diagnosis field can render read-only with a source-aware label.
+  const parseReferringDiagnoses = (newOrderFormValues, referringDiagnoses) => {
+    const diagnosisNodes = !referringDiagnoses.referringDiagnosis
+      ? []
+      : referringDiagnoses.referringDiagnosis instanceof Array
+        ? referringDiagnoses.referringDiagnosis
+        : [referringDiagnoses.referringDiagnosis];
+    const newTexts = diagnosisNodes
+      .map((node) => node.text)
+      .filter((text) => text && text.trim().length > 0);
+    if (newTexts.length === 0) {
+      return;
+    }
+    const existingTexts =
+      newOrderFormValues.sampleOrderItems.referringDiagnoses || [];
+    const mergedTexts = Array.from(new Set([...existingTexts, ...newTexts]));
+    newOrderFormValues.sampleOrderItems = {
+      ...newOrderFormValues.sampleOrderItems,
+      referringDiagnoses: mergedTexts,
+      provisionalClinicalDiagnosis: mergedTexts.join("; "),
+    };
   };
 
   const parseSampletypes = (
@@ -790,6 +822,12 @@ const Index = () => {
     }
     if ("questionnaire" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.questionnaire;
+    }
+    // Referring diagnoses are read-only display data synced from OpenMRS (shown in the
+    // Provisional Clinical Diagnosis field) and are not a SampleOrderItem property, so
+    // strip them before submit to avoid a deserialization error on the backend bean.
+    if ("referringDiagnoses" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.referringDiagnoses;
     }
     //remove display Lists rom the form
     orderFormValues.sampleOrderItems.priorityList = [];

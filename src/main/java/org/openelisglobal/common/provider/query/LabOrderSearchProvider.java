@@ -21,22 +21,29 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.validator.GenericValidator;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Specimen;
@@ -106,6 +113,7 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
     private Specimen specimen = null;
     private Patient patient = null;
     private String patientGuid;
+    private List<Condition> referringDiagnoses = new ArrayList<>();
 
     private List<ElectronicOrder> eOrders = null;
     private ElectronicOrder eOrder = null;
@@ -221,6 +229,12 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
                         "found matching patient " + patient.getIdElement().getIdPart());
             } else {
                 LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest", "no matching patient");
+            }
+
+            if (serviceRequest != null) {
+                referringDiagnoses = getReferringDiagnosesForServiceRequest(localFhirClient, serviceRequest);
+                LogEvent.logDebug(this.getClass().getSimpleName(), "processRequest",
+                        "found " + referringDiagnoses.size() + " referring diagnoses");
             }
 
             // task = fhirUtil.getFhirParser().parseResource(Task.class, eOrder.getData());
@@ -343,6 +357,63 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
         ajaxServlet.sendData(xml.toString(), result, request, response);
     }
 
+    /**
+     * Reads this order's referring diagnoses from the local FHIR store by following
+     * the {@code ServiceRequest.reasonReference} links copied in at import time
+     * (the FHIR-standard order-to-diagnosis link set by OpenMRS's labonfhir
+     * module). Ordered by OpenMRS's diagnosis rank (primary first) when present; a
+     * Condition that cannot be read is skipped rather than failing the whole
+     * lookup.
+     */
+    private List<Condition> getReferringDiagnosesForServiceRequest(IGenericClient localFhirClient,
+            ServiceRequest serviceRequest) {
+        List<Condition> matched = new ArrayList<>();
+        Set<String> seenIds = new HashSet<>();
+        for (Reference reason : serviceRequest.getReasonReference()) {
+            String resourceType = reason.getReferenceElement().getResourceType();
+            String conditionId = reason.getReferenceElement().getIdPart();
+            if (GenericValidator.isBlankOrNull(conditionId) || !ResourceType.Condition.name().equals(resourceType)
+                    || !seenIds.add(conditionId)) {
+                continue;
+            }
+            try {
+                Condition condition = localFhirClient.read().resource(Condition.class).withId(conditionId).execute();
+                if (condition != null) {
+                    matched.add(condition);
+                }
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "getReferringDiagnosesForServiceRequest",
+                        "could not read referring diagnosis Condition/" + conditionId + ": " + e.getMessage());
+            }
+        }
+        matched.sort(Comparator.comparingInt(LabOrderSearchProvider::getConditionRank));
+        return matched;
+    }
+
+    static int getConditionRank(Condition condition) {
+        Optional<Extension> rankExtension = Optional
+                .ofNullable(condition.getExtensionByUrl(FhirConfig.OPENMRS_DIAGNOSIS_RANK_EXTENSION_URL));
+        if (rankExtension.isPresent() && rankExtension.get().getValue() instanceof IntegerType) {
+            return ((IntegerType) rankExtension.get().getValue()).getValue();
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    static String getConditionDisplayText(Condition condition) {
+        if (!condition.hasCode()) {
+            return "";
+        }
+        if (condition.getCode().hasText()) {
+            return condition.getCode().getText();
+        }
+        for (Coding coding : condition.getCode().getCoding()) {
+            if (!GenericValidator.isBlankOrNull(coding.getDisplay())) {
+                return coding.getDisplay();
+            }
+        }
+        return condition.getCode().getCodingFirstRep().getCode();
+    }
+
     private String extractBasedOnServiceRequestId(Task sourceTask) {
         if (sourceTask == null || sourceTask.getBasedOn() == null || sourceTask.getBasedOn().isEmpty()
                 || sourceTask.getBasedOnFirstRep().getReferenceElement() == null) {
@@ -405,8 +476,19 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
         addSampleTypes(xml);
         addCrossPanels(xml);
         addCrosstests(xml);
+        addReferringDiagnoses(xml);
         addAlerts(xml, patientGuid);
         xml.append("</order>");
+    }
+
+    private void addReferringDiagnoses(StringBuilder xml) {
+        xml.append("<referringDiagnoses>");
+        for (Condition condition : referringDiagnoses) {
+            xml.append("<referringDiagnosis>");
+            XMLUtil.appendKeyValue("text", getConditionDisplayText(condition), xml);
+            xml.append("</referringDiagnosis>");
+        }
+        xml.append("</referringDiagnoses>");
     }
 
     private void addRequestingOrg(StringBuilder xml) {

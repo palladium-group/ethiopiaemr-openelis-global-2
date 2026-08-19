@@ -26,6 +26,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FhirConfig {
 
+    /** OpenMRS fhir2's extension URL carrying a Diagnosis's rank (1 = primary). */
+    public static final String OPENMRS_DIAGNOSIS_RANK_EXTENSION_URL = "http://fhir.openmrs.org/R4/StructureDefinition/diagnosis-rank";
+
     @Getter
     @Value("${org.openelisglobal.oe.fhir.system:http://openelis-global.org}")
     private String oeFhirSystem;

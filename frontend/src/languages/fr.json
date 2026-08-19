@@ -1764,6 +1764,7 @@
   "order.requester.lastName.label": "Nom du demandeur:",
   "order.requester.phone.label": "Téléphone du demandeur:",
   "order.requester.provisionalDiagnosis.label": "Diagnostic clinique provisoire :",
+  "order.requester.referringDiagnosis.label": "Diagnostic de référence (depuis OpenMRS) :",
   "order.result.reporting.heading": "RAPPORT DE RÉSULTATS",
   "order.sampling.performed.label": "Échantillonnage effectué pour analyse:",
   "order.search.requester.label": "Demandeur de recherche",
