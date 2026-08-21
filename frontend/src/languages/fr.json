@@ -1765,6 +1765,7 @@
   "order.requester.phone.label": "Téléphone du demandeur:",
   "order.requester.provisionalDiagnosis.label": "Diagnostic clinique provisoire :",
   "order.patient.emergencyContact.label": "Contact d'urgence :",
+  "order.additionalInstructions.label": "Instructions supplémentaires :",
   "order.requester.referringDiagnosis.label": "Diagnostic de référence (depuis OpenMRS) :",
   "order.result.reporting.heading": "RAPPORT DE RÉSULTATS",
   "order.sampling.performed.label": "Échantillonnage effectué pour analyse:",

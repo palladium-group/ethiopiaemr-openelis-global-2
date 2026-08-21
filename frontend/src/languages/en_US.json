@@ -1744,6 +1744,7 @@
   "order.requester.phone.label": "Requester Phone:",
   "order.requester.provisionalDiagnosis.label": "Provisional Clinical Diagnosis:",
   "order.patient.emergencyContact.label": "Emergency Contact:",
+  "order.additionalInstructions.label": "Additional Instructions:",
   "order.requester.referringDiagnosis.label": "Referring Diagnosis (from OpenMRS):",
   "order.result.reporting.heading": "RESULT REPORTING",
   "order.sampling.performed.label": "Sampling performed for analysis:",

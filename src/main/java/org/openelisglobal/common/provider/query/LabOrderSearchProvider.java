@@ -479,8 +479,25 @@ public class LabOrderSearchProvider extends BaseQueryProvider {
         addReferringDiagnoses(xml);
         addEmergencyContact(xml);
         addRequesterPhone(xml);
+        addAdditionalInstructions(xml);
         addAlerts(xml, patientGuid);
         xml.append("</order>");
+    }
+
+    /**
+     * Emits Additional Instructions from the imported FHIR
+     * ServiceRequest.patientInstruction (OpenMRS TestOrder.instructions via fhir2).
+     * Read-only, display-only; nothing is emitted when blank.
+     */
+    private void addAdditionalInstructions(StringBuilder xml) {
+        if (serviceRequest == null || !serviceRequest.hasPatientInstruction()) {
+            return;
+        }
+        String instructions = serviceRequest.getPatientInstruction();
+        if (GenericValidator.isBlankOrNull(instructions)) {
+            return;
+        }
+        XMLUtil.appendKeyValue("additionalInstructions", instructions, xml);
     }
 
     /**

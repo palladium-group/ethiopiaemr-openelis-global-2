@@ -815,6 +815,19 @@ const AddOrder = (props) => {
                 />
               </Column>
             )}
+            {orderFormValues.sampleOrderItems.additionalInstructions && (
+              <Column lg={8} md={4} sm={4}>
+                <TextInput
+                  name="additionalInstructions"
+                  readOnly
+                  value={orderFormValues.sampleOrderItems.additionalInstructions}
+                  labelText={intl.formatMessage({
+                    id: "order.additionalInstructions.label",
+                  })}
+                  id="additionalInstructionsId"
+                />
+              </Column>
+            )}
             {!isIncomingOrderFlow && (
               <Column lg={8} sm={4}>
                 <TextInput
