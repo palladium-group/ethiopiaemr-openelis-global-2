@@ -820,7 +820,9 @@ const AddOrder = (props) => {
                 <TextInput
                   name="additionalInstructions"
                   readOnly
-                  value={orderFormValues.sampleOrderItems.additionalInstructions}
+                  value={
+                    orderFormValues.sampleOrderItems.additionalInstructions
+                  }
                   labelText={intl.formatMessage({
                     id: "order.additionalInstructions.label",
                   })}
