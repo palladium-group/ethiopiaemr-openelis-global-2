@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Default the sample collection date/time autofill to ON for every deployment.
+        The base data seeds "auto-fill collection date/time" (Property.AUTOFILL_COLLECTION_DATE)
+        as false, which leaves the collection date blank on order entry. Flip it to true so new
+        deployments default the collection date/time to the current date without an admin having
+        to toggle it in the Site Information UI. Runs once; admins can still change it afterward.
+    -->
+    <changeSet id="023-autofill-collection-date-default" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">SELECT count(*) FROM clinlims.site_information WHERE name = 'auto-fill collection date/time'</sqlCheck>
+        </preConditions>
+        <comment>Default AUTOFILL_COLLECTION_DATE (auto-fill collection date/time) site config to true</comment>
+        <update schemaName="clinlims" tableName="site_information">
+            <column name="value" value="true"/>
+            <column name="lastupdated" valueComputed="${now}"/>
+            <where>name = 'auto-fill collection date/time'</where>
+        </update>
+        <rollback>
+            <update schemaName="clinlims" tableName="site_information">
+                <column name="value" value="false"/>
+                <column name="lastupdated" valueComputed="${now}"/>
+                <where>name = 'auto-fill collection date/time'</where>
+            </update>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

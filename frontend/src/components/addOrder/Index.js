@@ -286,6 +286,14 @@ const Index = () => {
         };
       }
 
+      // Additional instructions from OpenMRS Order.instructions → FHIR patientInstruction.
+      if (order.additionalInstructions && order.additionalInstructions != "") {
+        newOrderFormValues.sampleOrderItems = {
+          ...newOrderFormValues.sampleOrderItems,
+          additionalInstructions: order.additionalInstructions,
+        };
+      }
+
       // One-page incoming flow does not force step-by-step completion,
       // so ensure required order timing fields are populated like the
       // previous tabbed workflow.
@@ -868,6 +876,10 @@ const Index = () => {
     // Requester phone is read-only display data synced from OpenMRS; strip it before submit.
     if ("requesterPhone" in orderFormValues.sampleOrderItems) {
       delete orderFormValues.sampleOrderItems.requesterPhone;
+    }
+    // Additional instructions are read-only display data synced from OpenMRS; strip before submit.
+    if ("additionalInstructions" in orderFormValues.sampleOrderItems) {
+      delete orderFormValues.sampleOrderItems.additionalInstructions;
     }
     //remove display Lists rom the form
     orderFormValues.sampleOrderItems.priorityList = [];
