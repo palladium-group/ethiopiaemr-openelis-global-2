@@ -355,6 +355,32 @@ const EOrder = ({ eOrders, setEOrders, eOrderRef }) => {
         </TableCell>
       );
     }
+    if (cell.info.header === "status") {
+      const eOrder = eOrders.find((item) => item.id === row.id);
+      return (
+        <TableCell key={cell.id}>
+          {cell.value}
+          {eOrder?.upcoming && (
+            <>
+              {" "}
+              {/* Native title on the wrapper shows the scheduled date on hover.
+                  The inner <span> stops Carbon Tag from injecting its own
+                  title={children} ("Upcoming"), which would otherwise shadow it. */}
+              <span
+                title={intl.formatMessage(
+                  { id: "eorder.upcoming.scheduledFor" },
+                  { date: eOrder.scheduledDate },
+                )}
+              >
+                <Tag type="blue">
+                  <span>{intl.formatMessage({ id: "eorder.upcoming" })}</span>
+                </Tag>
+              </span>
+            </>
+          )}
+        </TableCell>
+      );
+    }
     return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
