@@ -5,8 +5,11 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,6 +200,17 @@ public class RestElectronicOrdersController extends BaseController {
                 if (serviceRequest.hasEncounter() && serviceRequest.getEncounter().hasReferenceElement()) {
                     displayItem.setEncounterId(serviceRequest.getEncounter().getReferenceElement().getIdPart());
                 }
+                // Appointment-based orders (OpenMRS priority "On scheduled date") carry the
+                // scheduled/collection date in ServiceRequest.occurrencePeriod.start (=
+                // TestOrder.effectiveStartDate). Flag it as upcoming when that date is a future
+                // calendar day so collectors can distinguish it from collect-now orders.
+                if (serviceRequest.hasOccurrencePeriod() && serviceRequest.getOccurrencePeriod().hasStart()) {
+                    Date scheduledStart = serviceRequest.getOccurrencePeriod().getStart();
+                    if (isUpcoming(scheduledStart)) {
+                        displayItem.setUpcoming(true);
+                        displayItem.setScheduledDate(DateUtil.formatDateAsText(scheduledStart));
+                    }
+                }
                 if (GenericValidator.isBlankOrNull(displayItem.getSampleType())) {
                     String typeIdFromOrder = resolveTypeOfSampleIdFromServiceRequest(serviceRequest);
                     if (!GenericValidator.isBlankOrNull(typeIdFromOrder)) {
@@ -259,6 +273,15 @@ public class RestElectronicOrdersController extends BaseController {
         }
 
         return displayItem;
+    }
+
+    /** True when the scheduled/appointment date falls on a future calendar day. */
+    private boolean isUpcoming(Date scheduledStart) {
+        if (scheduledStart == null) {
+            return false;
+        }
+        LocalDate scheduledDay = scheduledStart.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return scheduledDay.isAfter(LocalDate.now());
     }
 
     private String getSampleTypeFromTask(Task task) {

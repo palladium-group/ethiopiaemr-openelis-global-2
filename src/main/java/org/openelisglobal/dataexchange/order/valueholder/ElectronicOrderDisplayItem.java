@@ -72,6 +72,26 @@ public class ElectronicOrderDisplayItem {
 
     private boolean collectionAllowed = true;
 
+    private boolean upcoming = false;
+
+    private String scheduledDate;
+
+    public boolean isUpcoming() {
+        return upcoming;
+    }
+
+    public void setUpcoming(boolean upcoming) {
+        this.upcoming = upcoming;
+    }
+
+    public String getScheduledDate() {
+        return scheduledDate;
+    }
+
+    public void setScheduledDate(String scheduledDate) {
+        this.scheduledDate = scheduledDate;
+    }
+
     public String getBirthDate() {
         return birthDate;
     }
