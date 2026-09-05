@@ -3,6 +3,7 @@ package org.openelisglobal.program.service;
 import jakarta.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,8 @@ import org.openelisglobal.common.services.serviceBeans.ResultSaveBean;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
+import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.note.service.NoteServiceImpl.NoteType;
@@ -59,6 +62,8 @@ import org.openelisglobal.test.valueholder.TestSection;
 import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl.ResultType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<PathologySample, Integer>
@@ -90,6 +95,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
     @Autowired
     private TestSectionService testSectionService;
+
+    @Autowired
+    private FhirTransformService fhirTransformService;
 
     PathologySampleServiceImpl() {
         super(PathologySample.class);
@@ -212,18 +220,28 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         Sample sample = pathologySample.getSample();
         Patient patient = sampleService.getPatient(sample);
         ResultsUpdateDataSet actionDataSet = new ResultsUpdateDataSet(form.getSystemUserId());
+        // Collected for the FHIR sync-back below (completes the order's referring Task so the result
+        // returns to the ordering physician in OpenMRS).
+        List<Analysis> finalizedAnalyses = new ArrayList<>();
+        ArrayList<Result> resultUpdateList = new ArrayList<>();
 
         ResultsLoadUtility resultsUtility = SpringContext.getBean(ResultsLoadUtility.class);
         List<TestResultItem> testResultItems = resultsUtility.getGroupedTestsForSample(sample);
         for (TestResultItem testResultItem : testResultItems) {
             if (!testResultItem.getIsGroupSeparator()) {
                 if (ResultType.isTextOnlyVariant(testResultItem.getResultType())) {
-                    testResultItem.setResultValue(MessageUtil.getMessage("result.pathology.seereport"));
+                    // Return the pathologist's conclusion as the structured result value (so it reaches the
+                    // ordering physician), falling back to the generic "see report" text when none was given.
+                    String conclusionText = form.getConclusionText();
+                    testResultItem.setResultValue(GenericValidator.isBlankOrNull(conclusionText)
+                            ? MessageUtil.getMessage("result.pathology.seereport")
+                            : conclusionText);
                 }
-                Analysis analysis = analysisService.get(sample.getId());
+                Analysis analysis = analysisService.get(testResultItem.getAnalysisId());
                 ResultSaveBean bean = ResultSaveBeanAdapter.fromTestResultItem(testResultItem);
                 ResultSaveService resultSaveService = new ResultSaveService(analysis, form.getSystemUserId());
                 List<Result> results = resultSaveService.createResultsFromTestResultItem(bean, new ArrayList<>());
+                resultUpdateList.addAll(results);
                 for (Result result : results) {
                     boolean newResult = result.getId() == null;
                     analysis.setEnteredDate(DateUtil.getNowAsTimestamp());
@@ -273,12 +291,40 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 }
                 analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized));
                 analysis.setReleasedDate(new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+                finalizedAnalyses.add(analysis);
             }
         }
 
         logbookResultsPersistService.persistDataSet(actionDataSet, ResultUpdateRegister.getRegisteredUpdaters(),
                 form.getSystemUserId());
-        sample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+        // Re-load the sample as a managed entity and mark it finished so the change flushes with this
+        // transaction (the pathologySample here is a detached copy, so updating its Sample directly trips
+        // optimistic locking).
+        Sample finishedSample = sampleService.get(sample.getId());
+        finishedSample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+
+        // Push the pathology result to the local FHIR store exactly as Result Validation does: build the
+        // Observation/DiagnosticReport for the finalized analysis and complete the order's referring Task,
+        // so OpenMRS's FetchTaskUpdates returns the result to the ordering physician. The transform is
+        // @Async and reads committed state, so defer it until after this transaction commits (otherwise the
+        // async thread can't see the analysis/results just saved). Failure must not affect the completion.
+        final List<Analysis> analysesForFhir = finalizedAnalyses;
+        final ArrayList<Result> resultsForFhir = resultUpdateList;
+        final Sample sampleForFhir = finishedSample;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
+                            analysesForFhir, resultsForFhir, new ArrayList<>(),
+                            new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>());
+                } catch (FhirLocalPersistingException e) {
+                    LogEvent.logError(PathologySampleServiceImpl.class.getSimpleName(), "validatePathologySample",
+                            "could not push pathology result to FHIR for sample " + sampleForFhir.getAccessionNumber()
+                                    + ": " + e.getMessage());
+                }
+            }
+        });
     }
 
     private void referToImmunoHistoChemistry(PathologySample pathologySample, PathologySampleForm form) {

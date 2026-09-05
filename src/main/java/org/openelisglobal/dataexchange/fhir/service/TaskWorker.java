@@ -53,6 +53,14 @@ public class TaskWorker {
         this.interpreter = interpreter;
     }
 
+    /**
+     * Supplies interpretation results already produced by the caller so
+     * {@link #handleOrderRequest()} does not call {@code interpret} again.
+     */
+    public void setInterpretResults(List<InterpreterResults> interpretResults) {
+        this.interpretResults = interpretResults;
+    }
+
     public void setExistanceChecker(IOrderExistanceChecker orderExistanceChecker) {
         existanceChecker = orderExistanceChecker;
     }
@@ -93,7 +101,11 @@ public class TaskWorker {
             throw new IllegalStateException("Interpreter, existanceChecker or persister have not been set");
         }
 
-        interpretResults = interpreter.interpret(task, serviceRequest, patient);
+        // Reuse caller-supplied results when present (program-order routing interprets once then
+        // falls through here for non-program orders).
+        if (interpretResults == null) {
+            interpretResults = interpreter.interpret(task, serviceRequest, patient);
+        }
         String referringOrderNumber = interpreter.getReferringOrderNumber();
         OrderType orderType = interpreter.getOrderType();
         OrderPriority priority = interpreter.getOrderPriority();

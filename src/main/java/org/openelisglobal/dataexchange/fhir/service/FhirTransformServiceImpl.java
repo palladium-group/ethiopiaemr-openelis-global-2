@@ -1586,6 +1586,12 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         for (Result curResult : allResults) {
             diagnosticReport
                     .addResult(this.createReferenceFor(ResourceType.Observation, curResult.getFhirUuidAsString()));
+            // For text/remark results (e.g. a pathologist's conclusion) also surface the value as the
+            // report's narrative conclusion, so the receiving chart shows it as a report, not just a value.
+            if (TypeOfTestResultServiceImpl.ResultType.isTextOnlyVariant(curResult.getResultType())
+                    && curResult.getValue() != null && !curResult.getValue().trim().isEmpty()) {
+                diagnosticReport.setConclusion(curResult.getValue());
+            }
         }
         diagnosticReport.setCode(transformTestToCodeableConcept(test.getId()));
 

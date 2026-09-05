@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <!--
+      Enables program-order routing for incoming FHIR orders. When on, an imported order whose test
+      belongs to a program (e.g. Pathology) is created as a case on that program's dashboard instead
+      of an Electronic Order (see FhirApiWorkFlowServiceImpl.routeProgramOrdersFromFhirEnabled, which
+      reads Property.ROUTE_PROGRAM_ORDERS_FROM_FHIR -> this site_information row by name). Code default
+      is also "true"; this row makes the setting visible/editable in site config.
+    -->
+    <changeSet id="025-route-program-orders-from-fhir-config" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(*) FROM clinlims.site_information WHERE name = 'route program orders from FHIR'</sqlCheck>
+        </preConditions>
+        <comment>Route incoming FHIR program orders (e.g. Pathology) to the program dashboard instead of the Electronic Orders list</comment>
+        <insert schemaName="clinlims" tableName="site_information">
+            <column name="id" valueSequenceNext="site_information_seq" />
+            <column name="name" value="route program orders from FHIR" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="Route incoming FHIR program orders (e.g. Pathology) to the program dashboard instead of the Electronic Orders list" />
+            <column name="value" value="true" />
+            <column name="encrypted" value="false" />
+            <column name="domain_id" valueComputed="(SELECT id FROM site_information_domain WHERE name = 'sampleEntryConfig')" />
+            <column name="value_type" value="text" />
+            <column name="group" value="0" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Questionnaire;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.SampleOrderService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.common.util.IdValuePair;
@@ -91,11 +92,28 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setLabNumber(pathologySample.getSample().getAccessionNumber());
         displayItem.setPathologySampleId(pathologySample.getId());
         displayItem.setPatientPK(patient.getId());
-        displayItem.setProgramQuestionnaire(fhirUtil.getLocalFhirClient().read().resource(Questionnaire.class)
-                .withId(pathologySample.getProgram().getQuestionnaireUUID().toString()).execute());
-        displayItem.setProgramQuestionnaireResponse(
-                fhirUtil.getLocalFhirClient().read().resource(QuestionnaireResponse.class)
-                        .withId(pathologySample.getQuestionnaireResponseUuid().toString()).execute());
+        // Guard both FHIR reads: a program without a questionnaire, or a sample whose
+        // questionnaire response is not (yet) in the local store, must not crash the
+        // case view.
+        if (pathologySample.getProgram() != null && pathologySample.getProgram().getQuestionnaireUUID() != null) {
+            try {
+                displayItem.setProgramQuestionnaire(fhirUtil.getLocalFhirClient().read().resource(Questionnaire.class)
+                        .withId(pathologySample.getProgram().getQuestionnaireUUID().toString()).execute());
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "convertToCaseDisplayItem",
+                        "could not load program Questionnaire for pathology sample " + pathologySampleId);
+            }
+        }
+        if (pathologySample.getQuestionnaireResponseUuid() != null) {
+            try {
+                displayItem.setProgramQuestionnaireResponse(
+                        fhirUtil.getLocalFhirClient().read().resource(QuestionnaireResponse.class)
+                                .withId(pathologySample.getQuestionnaireResponseUuid().toString()).execute());
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "convertToCaseDisplayItem",
+                        "could not load QuestionnaireResponse for pathology sample " + pathologySampleId);
+            }
+        }
 
         displayItem.setGrossExam(pathologySample.getGrossExam());
         displayItem.setMicroscopyExam(pathologySample.getMicroscopyExam());

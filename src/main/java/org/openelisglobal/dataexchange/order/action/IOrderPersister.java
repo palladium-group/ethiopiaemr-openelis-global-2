@@ -14,10 +14,22 @@
 package org.openelisglobal.dataexchange.order.action;
 
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
+import org.openelisglobal.patient.valueholder.Patient;
 
 public interface IOrderPersister {
 
     void persist(MessagePatient patient, ElectronicOrder eOrder);
+
+    /**
+     * Resolves (matching by GUID/external id) or creates the OpenELIS patient for
+     * the given order patient, without creating an electronic order. Used by the
+     * program-order import path so a program case (e.g. Pathology) can be created
+     * directly from an imported FHIR order.
+     *
+     * @param patient the interpreted order patient
+     * @return the resolved or newly created OpenELIS patient
+     */
+    Patient persistPatientData(MessagePatient patient);
 
     String getServiceUserId();
 

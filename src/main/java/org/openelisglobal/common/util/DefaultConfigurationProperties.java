@@ -274,6 +274,7 @@ public class DefaultConfigurationProperties extends ConfigurationProperties {
         properties.setPropertyValue(Property.NEXT_VISIT_DATE_ON_WORKPLAN, "false");
         properties.setPropertyValue(Property.ACCEPT_EXTERNAL_ORDERS, "false");
         properties.setPropertyValue(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR, "true");
+        properties.setPropertyValue(Property.ROUTE_PROGRAM_ORDERS_FROM_FHIR, "true");
         properties.setPropertyValue(Property.SIGNATURES_ON_NONCONFORMITY_REPORTS, "false");
         properties.setPropertyValue(Property.AUTOFILL_COLLECTION_DATE, "true");
         properties.setPropertyValue(Property.RESULTS_ON_WORKPLAN, "false");

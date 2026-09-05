@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <!--
+      Safety net for the orderable "Histopathology examination" test that incoming FHIR pathology
+      orders route to (matched by LOINC 11529-5 in TaskInterpreterImpl / getTestsByLoincCode).
+
+      On a clean Liquibase database this test is already created by 2.8.x.x/pathology.xml changeSet 16
+      (with 024 adding the LOINC), so this changeSet MARK_RANs. It only fires on databases restored
+      from a dump where changeSet 16 is recorded as run but the test row is absent, creating the
+      test (with its LOINC) so program-order routing still resolves it. Keep the LOINC equal to the
+      OpenMRS content-repo pathology order concept's LOINC.
+    -->
+    <changeSet id="026-pathology-histopathology-test-safety-net" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(*) from clinlims.test where description = 'Histopathology examination'</sqlCheck>
+            <sqlCheck expectedResult="1">select count(*) from clinlims.test_section where name = 'Pathology'</sqlCheck>
+        </preConditions>
+        <comment>Create the Histopathology examination test (LOINC 11529-5) when missing so program-order routing resolves it</comment>
+        <insert schemaName="clinlims" tableName="localization">
+            <column name="id" valueSequenceNext="localization_seq" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="histopathology test name (026)" />
+            <column name="english" value="Histopathology examination" />
+            <column name="french" value="Histopathology examination"/>
+        </insert>
+        <insert schemaName="clinlims" tableName="localization">
+            <column name="id" valueSequenceNext="localization_seq" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="histopathology test reporting name (026)" />
+            <column name="english" value="Histopathology examination" />
+            <column name="french" value="Histopathology examination"/>
+        </insert>
+        <insert schemaName="clinlims" tableName="test">
+            <column name="id" valueNumeric="nextval('test_seq')"/>
+            <column name="description" value="Histopathology examination"/>
+            <column name="lastupdated" valueDate="now()" />
+            <column name="is_active" value="Y" />
+            <column name="is_reportable" value="Y" />
+            <column name="orderable" valueBoolean="true" />
+            <column name="loinc" value="11529-5" />
+            <column name="test_section_id" valueComputed="(select id from test_section where name = 'Pathology' limit 1)" />
+            <column name="name" value="Histopathology examination" />
+            <column name="name_localization_id" valueComputed="(select id from localization where description = 'histopathology test name (026)' limit 1)" />
+            <column name="reporting_name_localization_id" valueComputed="(select id from localization where description = 'histopathology test reporting name (026)' limit 1)" />
+            <column name="guid" value="a7c1e2f0-1152-4a26-9d3b-0e1f2a3b4c02"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

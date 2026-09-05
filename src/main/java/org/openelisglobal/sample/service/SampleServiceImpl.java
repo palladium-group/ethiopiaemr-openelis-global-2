@@ -490,6 +490,12 @@ public class SampleServiceImpl extends AuditableBaseObjectServiceImpl<Sample, St
 
     @Override
     @Transactional(readOnly = true)
+    public List<Sample> getSamplesByReferringId(String referringId) {
+        return getBaseObjectDAO().getSamplesByReferringId(referringId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Sample> getSamplesReceivedInDateRange(String receivedDateStart, String receivedDateEnd) {
         return getBaseObjectDAO().getSamplesReceivedInDateRange(receivedDateStart, receivedDateEnd);
     }
