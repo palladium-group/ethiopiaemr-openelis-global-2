@@ -3,6 +3,7 @@ package org.openelisglobal.program.service.cytology;
 import jakarta.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.action.IActionConstants;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.service.AuditableBaseObjectServiceImpl;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.ResultSaveService;
@@ -22,6 +24,8 @@ import org.openelisglobal.common.services.serviceBeans.ResultSaveBean;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
+import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.cytology.CytologySampleForm;
@@ -42,6 +46,8 @@ import org.openelisglobal.test.beanItems.TestResultItem;
 import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl.ResultType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<CytologySample, Integer>
@@ -61,6 +67,9 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Autowired
     private LogbookResultsPersistService logbookResultsPersistService;
+
+    @Autowired
+    private FhirTransformService fhirTransformService;
 
     CytologySampleServiceImpl() {
         super(CytologySample.class);
@@ -166,6 +175,8 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
         Sample sample = cytologySample.getSample();
         Patient patient = sampleService.getPatient(sample);
         ResultsUpdateDataSet actionDataSet = new ResultsUpdateDataSet(form.getSystemUserId());
+        List<Analysis> finalizedAnalyses = new ArrayList<>();
+        ArrayList<Result> resultUpdateList = new ArrayList<>();
 
         ResultsLoadUtility resultsUtility = SpringContext.getBean(ResultsLoadUtility.class);
         List<TestResultItem> testResultItems = resultsUtility.getGroupedTestsForSample(sample);
@@ -174,10 +185,11 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
                 if (ResultType.isTextOnlyVariant(testResultItem.getResultType())) {
                     testResultItem.setResultValue(MessageUtil.getMessage("result.cytoology.seereport"));
                 }
-                Analysis analysis = analysisService.get(sample.getId());
+                Analysis analysis = analysisService.get(testResultItem.getAnalysisId());
                 ResultSaveBean bean = ResultSaveBeanAdapter.fromTestResultItem(testResultItem);
                 ResultSaveService resultSaveService = new ResultSaveService(analysis, form.getSystemUserId());
                 List<Result> results = resultSaveService.createResultsFromTestResultItem(bean, new ArrayList<>());
+                resultUpdateList.addAll(results);
                 for (Result result : results) {
                     boolean newResult = result.getId() == null;
                     analysis.setEnteredDate(DateUtil.getNowAsTimestamp());
@@ -192,10 +204,6 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
                                 .add(new ResultSet(result, null, null, patient, sample, new HashMap<>(), false));
                     }
 
-                    // analysis.setStartedDateForDisplay(testResultItem.getTestDate());
-
-                    // This needs to be refactored -- part of the logic is in
-                    // getStatusForTestResult. RetroCI over rides to whatever was set before
                     if (ConfigurationProperties.getInstance().getPropertyValueUpperCase(Property.StatusRules)
                             .equals(IActionConstants.STATUS_RULES_RETROCI)) {
                         if (!SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Canceled)
@@ -215,23 +223,34 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
                         analysis.setStatusId(
                                 SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized));
                     }
-
-                    // this code is pulled from LogbookResultsRestController
-                    // addResult(result, testResultItem, analysis, results.size() > 1,
-                    // actionDataSet, useTechnicianName);
-                    //
-                    // if (analysisShouldBeUpdated(testResultItem, result, supportReferrals)) {
-                    // updateAnalysis(testResultItem, testResultItem.getTestDate(),
-                    // analysis, statusRuleSet);
-                    // }
                 }
                 analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.Finalized));
                 analysis.setReleasedDate(new java.sql.Date(Calendar.getInstance().getTimeInMillis()));
+                finalizedAnalyses.add(analysis);
             }
         }
 
         logbookResultsPersistService.persistDataSet(actionDataSet, ResultUpdateRegister.getRegisteredUpdaters(),
                 form.getSystemUserId());
-        sample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+        Sample finishedSample = sampleService.get(sample.getId());
+        finishedSample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
+
+        final List<Analysis> analysesForFhir = finalizedAnalyses;
+        final ArrayList<Result> resultsForFhir = resultUpdateList;
+        final Sample sampleForFhir = finishedSample;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
+                            analysesForFhir, resultsForFhir, new ArrayList<>(),
+                            new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>());
+                } catch (FhirLocalPersistingException e) {
+                    LogEvent.logError(CytologySampleServiceImpl.class.getSimpleName(), "validateCytologySample",
+                            "could not push cytology result to FHIR for sample " + sampleForFhir.getAccessionNumber()
+                                    + ": " + e.getMessage());
+                }
+            }
+        });
     }
 }
