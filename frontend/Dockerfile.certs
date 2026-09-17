@@ -1,7 +1,7 @@
 ##
 # Build Stage
 #
-FROM ubuntu:focal as build
+FROM ubuntu:focal AS build
 
 ENV KEYSTORE_PW="kspass"
 ENV TRUSTSTORE_PW="tspass"
