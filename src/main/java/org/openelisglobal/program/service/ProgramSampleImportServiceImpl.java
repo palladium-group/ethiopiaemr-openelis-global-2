@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.log.LogEvent;
@@ -11,6 +12,7 @@ import org.openelisglobal.common.provider.validation.IAccessionNumberGenerator;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.StatusService.OrderStatus;
 import org.openelisglobal.common.services.StatusService.SampleStatus;
+import org.openelisglobal.common.services.TableIdService;
 import org.openelisglobal.common.util.ConfigurationProperties;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.order.action.IOrderPersister;
@@ -21,7 +23,10 @@ import org.openelisglobal.program.valueholder.ProgramSample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
+import org.openelisglobal.provider.valueholder.Provider;
 import org.openelisglobal.reception.service.ReceptionApprovalSupport;
+import org.openelisglobal.requester.service.SampleRequesterService;
+import org.openelisglobal.requester.valueholder.SampleRequester;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.util.AccessionNumberUtil;
 import org.openelisglobal.sample.valueholder.OrderPriority;
@@ -51,6 +56,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     @Autowired
     private SampleHumanService sampleHumanService;
     @Autowired
+    private SampleRequesterService sampleRequesterService;
+    @Autowired
     private AnalysisService analysisService;
     @Autowired
     private TypeOfSampleService typeOfSampleService;
@@ -72,7 +79,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     @Override
     @Transactional
     public void createProgramSampleFromImport(Program programArg, Test testArg, MessagePatient messagePatient,
-            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate) {
+            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
+            Provider requestingProvider) {
         // Idempotency guard: the poller can process the same remote task more than once (e.g. it runs
         // once per configured remote store path, and again on any cycle before the task status flips),
         // so skip if a sample for this order already exists. The standard electronic-order import gets
@@ -167,12 +175,34 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         sampleHuman.setSysUserId(serviceUserId);
         sampleHuman.setSampleId(sample.getId());
         sampleHuman.setPatientId(patient.getId());
+        if (requestingProvider != null && !GenericValidator.isBlankOrNull(requestingProvider.getId())) {
+            sampleHuman.setProviderId(requestingProvider.getId());
+        }
         sampleHumanService.insert(sampleHuman);
+
+        linkRequestingProvider(sample, requestingProvider, serviceUserId);
 
         LogEvent.logInfo(this.getClass().getSimpleName(), "createProgramSampleFromImport",
                 "created " + program.getProgramName() + " case for imported order " + externalOrderId
                         + " with accession " + sample.getAccessionNumber()
                         + " (sample not collected yet; collectionDate unset)");
+    }
+
+    /**
+     * Persists the ordering physician so Reception can show Requesting physician
+     * (SampleOrderService reads sample_requester of type provider).
+     */
+    private void linkRequestingProvider(Sample sample, Provider requestingProvider, String serviceUserId) {
+        if (requestingProvider == null || requestingProvider.getPerson() == null
+                || GenericValidator.isBlankOrNull(requestingProvider.getPerson().getId())) {
+            return;
+        }
+        SampleRequester sampleRequester = new SampleRequester();
+        sampleRequester.setSampleId(Long.parseLong(sample.getId()));
+        sampleRequester.setRequesterId(Long.parseLong(requestingProvider.getPerson().getId()));
+        sampleRequester.setRequesterTypeId(TableIdService.getInstance().PROVIDER_REQUESTER_TYPE_ID);
+        sampleRequester.setSysUserId(serviceUserId);
+        sampleRequesterService.insert(sampleRequester);
     }
 
     private TypeOfSample resolveTypeOfSample(Test test) {
@@ -197,7 +227,9 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         String code = program.getCode() == null ? "" : program.getCode().trim();
         switch (code) {
         case "PATH":
-            return new PathologySample();
+            PathologySample pathologySample = new PathologySample();
+            pathologySample.setStatus(PathologySample.PathologyStatus.RECEIVED);
+            return pathologySample;
         case "IHC":
             return new ImmunohistochemistrySample();
         case "CYTO":

@@ -29,8 +29,9 @@ import org.openelisglobal.systemuser.valueholder.SystemUser;
 public class PathologySample extends ProgramSample {
 
     public enum PathologyStatus {
-        GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"), SLICING("Slicing for Slides"),
-        STAINING("Staining"), READY_PATHOLOGIST("Ready for Pathologist"),
+        /** Order received from EMR; awaiting Reception pathologist assignment / collection. */
+        RECEIVED("Received"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
+        SLICING("Slicing for Slides"), STAINING("Staining"), READY_PATHOLOGIST("Ready for Pathologist"),
         ADDITIONAL_REQUEST("Additional Pathologist Request"), COMPLETED("Completed");
 
         private String display;
@@ -56,7 +57,7 @@ public class PathologySample extends ProgramSample {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private PathologyStatus status = PathologyStatus.GROSSING;
+    private PathologyStatus status = PathologyStatus.RECEIVED;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pathology_sample_id")

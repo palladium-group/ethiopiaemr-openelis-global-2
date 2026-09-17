@@ -20,6 +20,9 @@ public class PathologyDisplayItem {
 
     private String patientPK;
 
+    /** Requesting physician from the order (read-only on Reception dashboard). */
+    private String requester;
+
     public Date getRequestDate() {
         return requestDate;
     }
@@ -90,5 +93,13 @@ public class PathologyDisplayItem {
 
     public void setPatientPK(String patientPK) {
         this.patientPK = patientPK;
+    }
+
+    public String getRequester() {
+        return requester;
+    }
+
+    public void setRequester(String requester) {
+        this.requester = requester;
     }
 }

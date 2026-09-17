@@ -137,6 +137,38 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         return baseObjectDAO.getCountWithStatus(statuses);
     }
 
+    @Override
+    public Long getCountUnassigned() {
+        return baseObjectDAO.getCountUnassigned();
+    }
+
+    @Override
+    public List<PathologySample> searchUnassigned(String searchTerm) {
+        List<PathologySample> pathologySamples = baseObjectDAO.getUnassigned();
+        if (StringUtils.isNotBlank(searchTerm)) {
+            Sample sample = sampleService.getSampleByAccessionNumber(searchTerm);
+            if (sample != null) {
+                pathologySamples = baseObjectDAO.searchUnassignedWithAccessionNumber(searchTerm);
+            } else {
+                List<PathologySample> filtered = new ArrayList<>();
+                pathologySamples.forEach(pathologySample -> {
+                    Patient patient = sampleService.getPatient(pathologySample.getSample());
+                    if (patient.getPerson().getFirstName().equals(searchTerm)
+                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                        filtered.add(pathologySample);
+                    }
+                });
+                pathologySamples = filtered;
+            }
+        }
+        return pathologySamples;
+    }
+
+    @Override
+    public Long getOpenCaseloadForPathologist(String pathologistId) {
+        return baseObjectDAO.getOpenCaseloadForPathologist(pathologistId);
+    }
+
     private PathologySample copyPathologySample(PathologySample oldPathologySample) {
         PathologySample pathologySample = new PathologySample();
         pathologySample.setBlocks(new ArrayList<>(oldPathologySample.getBlocks()));

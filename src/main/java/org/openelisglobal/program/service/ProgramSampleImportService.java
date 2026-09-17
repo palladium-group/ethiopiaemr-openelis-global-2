@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.UUID;
 import org.openelisglobal.dataexchange.order.action.MessagePatient;
 import org.openelisglobal.program.valueholder.Program;
+import org.openelisglobal.provider.valueholder.Provider;
 import org.openelisglobal.sample.valueholder.OrderPriority;
 import org.openelisglobal.test.valueholder.Test;
 
@@ -29,7 +30,10 @@ public interface ProgramSampleImportService {
      * @param collectionDate            ignored — EMR e-orders are not sample-collected;
      *                                  the lab records collection later in OpenELIS. Kept
      *                                  on the signature for call-site compatibility.
+     * @param requestingProvider        the ordering physician from ServiceRequest.requester
+     *                                  (may be null)
      */
     void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
-            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate);
+            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
+            Provider requestingProvider);
 }

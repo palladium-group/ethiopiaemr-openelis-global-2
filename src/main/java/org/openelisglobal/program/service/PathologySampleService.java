@@ -22,5 +22,12 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
 
     Long getCountWithStatusBetweenDates(List<PathologyStatus> statuses, Timestamp from, Timestamp to);
 
+    Long getCountUnassigned();
+
+    /** Open cases with no pathologist (Reception unassigned queue list). */
+    List<PathologySample> searchUnassigned(String searchTerm);
+
+    Long getOpenCaseloadForPathologist(String pathologistId);
+
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }

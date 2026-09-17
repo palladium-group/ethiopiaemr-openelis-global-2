@@ -492,9 +492,11 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                                     localObjects);
                             // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
                             // pathology/cytology orders arrive uncollected; the lab collects later.
+                            Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
                             programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
                                     interpreter.getMessagePatient(), interpreter.getOrderPriority(),
-                                    serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid, null);
+                                    serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid, null,
+                                    requestingProvider);
                             taskOrderAcceptedFlag = true;
                         }
                         continue;
@@ -564,6 +566,44 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     private UUID resolveProgramQuestionnaireResponseUuid(ServiceRequest serviceRequest,
             OriginalReferralObjects localObjects) {
         return synthesizeQuestionnaireResponseFromObservations(serviceRequest, localObjects.observations);
+    }
+
+    /**
+     * Resolves the ordering physician from ServiceRequest.requester so program-case import can
+     * persist SampleRequester / SampleHuman.provider (Reception "Requesting physician").
+     */
+    private Provider resolveRequestingProvider(ServiceRequest serviceRequest, OriginalReferralObjects localObjects) {
+        if (serviceRequest == null || !serviceRequest.hasRequester()
+                || GenericValidator.isBlankOrNull(serviceRequest.getRequester().getReferenceElement().getIdPart())) {
+            return null;
+        }
+        String practitionerId = serviceRequest.getRequester().getReferenceElement().getIdPart();
+        try {
+            UUID fhirUuid = UUID.fromString(practitionerId);
+            Provider existing = providerService.getProviderByFhirId(fhirUuid);
+            if (existing != null) {
+                return existing;
+            }
+            Practitioner practitioner = null;
+            if (localObjects != null && localObjects.requestors != null) {
+                for (Practitioner candidate : localObjects.requestors) {
+                    if (practitionerId.equals(candidate.getIdElement().getIdPart())) {
+                        practitioner = candidate;
+                        break;
+                    }
+                }
+            }
+            if (practitioner == null) {
+                return null;
+            }
+            Provider transformed = fhirTransformService.transformToProvider(practitioner);
+            return providerService.insertOrUpdateProviderByFhirUuid(transformed.getFhirUuid(), transformed);
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolveRequestingProvider",
+                    "could not resolve requesting provider for ServiceRequest "
+                            + serviceRequest.getIdElement().getIdPart() + ": " + e.getMessage());
+            return null;
+        }
     }
 
     /**

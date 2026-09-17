@@ -43,65 +43,78 @@ function PathologyDashboard() {
 
   const [statuses, setStatuses] = useState([]);
   const [pathologyEntries, setPathologyEntries] = useState([]);
+  const [pathologists, setPathologists] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [filters, setFilters] = useState({
     searchTerm: "",
     myCases: false,
-    statuses: [{}],
+    // Default Reception queue: no pathologist assigned (not merely RECEIVED status)
+    unassignedOnly: true,
+    statuses: [],
   });
 
   const [inProgressStatuses, setInProgressStatuses] = useState([]);
 
   const [counts, setCounts] = useState({
+    unassigned: 0,
     inProgress: 0,
     awaitingReview: 0,
     additionalRequests: 0,
     complete: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [inProgressStatusObjects, setInProgressStatusObjects] = useState(
-    inProgressStatuses.map((statusId) => ({ id: statusId })),
-  );
+  const [inProgressStatusObjects, setInProgressStatusObjects] = useState([]);
   const setStatusList = (statusList) => {
     if (componentMounted.current) {
-      // Set all statuses
       setStatuses(statusList);
 
-      // Filter out COMPLETED statuses and update the in-progress statuses state
       const filteredStatuses = statusList
-        .filter((status) => status.id !== "COMPLETED")
+        .filter(
+          (status) =>
+            status.id !== "COMPLETED" && status.id !== "RECEIVED",
+        )
         .map((status) => status.id);
 
       setInProgressStatuses(filteredStatuses);
-
-      // Update the inProgressStatusObjects state
       setInProgressStatusObjects(
         filteredStatuses.map((statusId) => ({ id: statusId })),
       );
-
-      // Set filters using the updated state
-      setFilters((prev) => ({
-        ...prev,
-        statuses: filteredStatuses.map((statusId) => ({ id: statusId })),
-      }));
     }
   };
 
-  const assignCurrentUserAsTechnician = (event, pathologySampleId) => {
+  const assignPathologist = (event, pathologySampleId, pathologistId) => {
+    event.stopPropagation();
+    if (!pathologistId) {
+      return;
+    }
     postToOpenElisServerFullResponse(
-      "/rest/pathology/assignTechnician?pathologySampleId=" + pathologySampleId,
+      "/rest/pathology/assignPathologist?pathologySampleId=" +
+        pathologySampleId +
+        "&pathologistId=" +
+        encodeURIComponent(pathologistId),
       {},
-      refreshItems,
+      () => {
+        refreshItems();
+        refreshCounts();
+        getFromOpenElisServer(
+          "/rest/pathology/pathologists",
+          setPathologistsList,
+        );
+      },
     );
   };
 
   const assignCurrentUserAsPathologist = (event, pathologySampleId) => {
+    event.stopPropagation();
     postToOpenElisServerFullResponse(
       "/rest/pathology/assignPathologist?pathologySampleId=" +
         pathologySampleId,
       {},
-      refreshItems,
+      () => {
+        refreshItems();
+        refreshCounts();
+      },
     );
   };
 
@@ -118,42 +131,58 @@ function PathologyDashboard() {
   const renderCell = (cell, row) => {
     var status = row.cells.find((e) => e.info.header === "status").value;
     var pathologySampleId = row.id;
+    var assignedPathologist = row.cells.find(
+      (e) => e.info.header === "assignedPathologist",
+    )?.value;
 
-    if (cell.info.header === "assignedTechnician" && !cell.value) {
+    // Reception Step 1: inline pathologist dropdown with caseload for unassigned cases
+    if (cell.info.header === "assignedPathologist" && !assignedPathologist) {
       return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsTechnician(e, pathologySampleId);
-            }}
+        <TableCell key={cell.id} onClick={(e) => e.stopPropagation()}>
+          <Select
+            id={"assign-pathologist-" + pathologySampleId}
+            labelText=""
+            hideLabel
+            size="sm"
+            defaultValue=""
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) =>
+              assignPathologist(e, pathologySampleId, e.target.value)
+            }
           >
-            <FormattedMessage id="label.button.start" />
-          </Button>
+            <SelectItem
+              value=""
+              text={intl.formatMessage({
+                id: "pathology.label.assignPathologist",
+              })}
+            />
+            {pathologists.map((p) => (
+              <SelectItem
+                key={p.id}
+                value={p.id}
+                text={`${p.value} (${p.openCaseload ?? 0})`}
+              />
+            ))}
+          </Select>
+          {status === "READY_PATHOLOGIST" &&
+            hasRole(userSessionDetails, "Pathologist") && (
+              <Button
+                type="button"
+                size="sm"
+                kind="ghost"
+                className="assign-self-button"
+                onClick={(e) =>
+                  assignCurrentUserAsPathologist(e, pathologySampleId)
+                }
+              >
+                <FormattedMessage id="label.button.start" />
+              </Button>
+            )}
         </TableCell>
       );
     }
-    if (
-      cell.info.header === "assignedPathologist" &&
-      !cell.value &&
-      status === "READY_PATHOLOGIST" &&
-      hasRole(userSessionDetails, "Pathologist")
-    ) {
-      return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsPathologist(e, pathologySampleId);
-            }}
-          >
-            <FormattedMessage id="label.button.start" />
-          </Button>
-        </TableCell>
-      );
-    } else {
-      return <TableCell key={cell.id}>{cell.value}</TableCell>;
-    }
+
+    return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
   const setPathologyEntriesWithIds = (entries) => {
@@ -171,31 +200,59 @@ function PathologyDashboard() {
     }
   };
 
+  const setPathologistsList = (list) => {
+    if (componentMounted.current && Array.isArray(list)) {
+      setPathologists(list);
+    }
+  };
+
   const setStatusFilter = (event) => {
     const { value } = event.target;
 
-    if (value === "All") {
-      setFilters({ ...filters, statuses: statuses });
+    if (value === "UNASSIGNED") {
+      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
+    } else if (value === "All") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: statuses.map((s) => ({ id: s.id })),
+      });
     } else if (value === "IN_PROGRESS") {
-      setFilters({ ...filters, statuses: inProgressStatusObjects });
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: inProgressStatusObjects,
+      });
     } else {
-      setFilters({ ...filters, statuses: [{ id: value }] });
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: value }],
+      });
     }
   };
 
   const getSelectedValue = () => {
+    if (filters.unassignedOnly) {
+      return "UNASSIGNED";
+    }
     const selectedValue =
       filters.statuses.length === inProgressStatuses.length &&
       filters.statuses.every((status) => inProgressStatuses.includes(status.id))
         ? "IN_PROGRESS"
         : filters.statuses.length > 1
           ? "All"
-          : filters.statuses[0].id;
+          : filters.statuses[0]?.id;
 
     return selectedValue;
   };
 
   const filtersToParameters = () => {
+    if (filters.unassignedOnly) {
+      return (
+        "unassigned=true&searchTerm=" + encodeURIComponent(filters.searchTerm || "")
+      );
+    }
     return (
       "statuses=" +
       filters.statuses
@@ -204,7 +261,7 @@ function PathologyDashboard() {
         })
         .join(",") +
       "&searchTerm=" +
-      filters.searchTerm
+      encodeURIComponent(filters.searchTerm || "")
     );
   };
 
@@ -215,14 +272,49 @@ function PathologyDashboard() {
     );
   };
 
+  const refreshCounts = () => {
+    getFromOpenElisServer("/rest/pathology/dashboard/count", loadCounts);
+  };
+
   const openCaseView = (id) => {
     window.location.href = "/PathologyCaseView/" + id;
+  };
+
+  const filterByTile = (tileKey) => {
+    if (tileKey === "unassigned") {
+      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
+    } else if (tileKey === "inProgress") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: inProgressStatusObjects,
+      });
+    } else if (tileKey === "awaitingReview") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: "READY_PATHOLOGIST" }],
+      });
+    } else if (tileKey === "additionalRequests") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: "ADDITIONAL_REQUEST" }],
+      });
+    } else if (tileKey === "complete") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: "COMPLETED" }],
+      });
+    }
   };
 
   useEffect(() => {
     componentMounted.current = true;
     getFromOpenElisServer("/rest/displayList/PATHOLOGY_STATUS", setStatusList);
     getFromOpenElisServer("/rest/pathology/dashboard/count", loadCounts);
+    getFromOpenElisServer("/rest/pathology/pathologists", setPathologistsList);
 
     return () => {
       componentMounted.current = false;
@@ -230,28 +322,29 @@ function PathologyDashboard() {
   }, []);
 
   const loadCounts = (data) => {
-    setCounts(data);
+    setCounts({
+      unassigned: data?.unassigned ?? 0,
+      inProgress: data?.inProgress ?? 0,
+      awaitingReview: data?.awaitingReview ?? 0,
+      additionalRequests: data?.additionalRequests ?? 0,
+      complete: data?.complete ?? 0,
+    });
   };
 
   function formatDateToDDMMYYYY(date) {
     var day = date.getDate();
-    var month = date.getMonth() + 1; // Month is zero-based
+    var month = date.getMonth() + 1;
     var year = date.getFullYear();
 
-    // Ensure leading zeros for single-digit day and month
     var formattedDay = (day < 10 ? "0" : "") + day;
     var formattedMonth = (month < 10 ? "0" : "") + month;
 
-    // Construct the formatted string
     var formattedDate = formattedDay + "/" + formattedMonth + "/" + year;
     return formattedDate;
   }
 
   const getPastWeek = () => {
-    // Get the current date
     var currentDate = new Date();
-
-    // Calculate the date of the past week
     var pastWeekDate = new Date(currentDate);
     pastWeekDate.setDate(currentDate.getDate() - 7);
 
@@ -264,24 +357,38 @@ function PathologyDashboard() {
 
   const tileList = [
     {
+      key: "unassigned",
+      title: <FormattedMessage id="pathology.label.unassigned" />,
+      count: counts.unassigned,
+      className: "dashboard-tile unassigned-tile",
+    },
+    {
+      key: "inProgress",
       title: <FormattedMessage id="pathology.label.casesInProgress" />,
       count: counts.inProgress,
+      className: "dashboard-tile",
     },
     {
+      key: "awaitingReview",
       title: <FormattedMessage id="pathology.label.review" />,
       count: counts.awaitingReview,
+      className: "dashboard-tile",
     },
     {
+      key: "additionalRequests",
       title: <FormattedMessage id="pathology.label.requests" />,
       count: counts.additionalRequests,
+      className: "dashboard-tile",
     },
     {
+      key: "complete",
       title:
         intl.formatMessage({ id: "pathology.label.complete" }) +
         "(Week " +
         getPastWeek() +
         " )",
       count: counts.complete,
+      className: "dashboard-tile",
     },
   ];
 
@@ -294,6 +401,11 @@ function PathologyDashboard() {
   }, [filters]);
 
   let breadcrumbs = [{ label: "home.label", link: "/" }];
+
+  const rowClassName = (row) => {
+    const status = row.cells.find((e) => e.info.header === "status")?.value;
+    return status === "RECEIVED" ? "received-row" : undefined;
+  };
 
   return (
     <>
@@ -312,9 +424,14 @@ function PathologyDashboard() {
           </Section>
         </Column>
       </Grid>
-      <div className="dashboard-container">
-        {tileList.map((tile, index) => (
-          <Tile key={index} className="dashboard-tile">
+      <div className="dashboard-container dashboard-container-5">
+        {tileList.map((tile) => (
+          <Tile
+            key={tile.key}
+            className={tile.className}
+            onClick={() => filterByTile(tile.key)}
+            style={{ cursor: "pointer" }}
+          >
             <h3 className="tile-title">{tile.title}</h3>
             <p className="tile-value">{tile.count}</p>
           </Tile>
@@ -357,6 +474,12 @@ function PathologyDashboard() {
                 noLabel
               >
                 <SelectItem disabled value="placeholder" text="Status" />
+                <SelectItem
+                  text={intl.formatMessage({
+                    id: "pathology.label.unassigned",
+                  })}
+                  value="UNASSIGNED"
+                />
                 <SelectItem text="All" value="All" />
                 <SelectItem text="In Progress" value="IN_PROGRESS" />
                 {statuses.map((status, index) => (
@@ -394,6 +517,12 @@ function PathologyDashboard() {
                   header: <FormattedMessage id="patient.first.name" />,
                 },
                 {
+                  key: "requester",
+                  header: (
+                    <FormattedMessage id="pathology.label.requestingPhysician" />
+                  ),
+                },
+                {
                   key: "assignedTechnician",
                   header: <FormattedMessage id="assigned.technician.label" />,
                 },
@@ -428,6 +557,7 @@ function PathologyDashboard() {
                         {rows.map((row) => (
                           <TableRow
                             key={row.id}
+                            className={rowClassName(row)}
                             onClick={() => {
                               openCaseView(row.id);
                             }}
