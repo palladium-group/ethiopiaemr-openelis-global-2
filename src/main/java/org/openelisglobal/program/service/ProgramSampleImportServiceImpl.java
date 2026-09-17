@@ -93,19 +93,24 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         String serviceUserId = orderPersister.getServiceUserId();
         Patient patient = orderPersister.persistPatientData(messagePatient);
 
-        // Program orders arrive with the specimen already collected (a pathology specimen is taken at
-        // the procedure that accompanies the order), so stamp the collection date -- from the order's
-        // authored date when known, else the import time -- onto the sample, sample item, and analysis.
-        // Without it the sample reads as "not collected" even though the case is already at grossing.
-        Timestamp collectionTimestamp = collectionDate != null ? new Timestamp(collectionDate.getTime())
-                : DateUtil.getNowAsTimestamp();
+        // EMR pathology/cytology orders arrive as e-orders only. Physical sample collection happens
+        // later in OpenELIS by the lab user, so leave collectionDate unset. receivedTimestamp is set
+        // to now (order received by the lab) because sample.received_date is NOT NULL. Caller-supplied
+        // collectionDate is ignored for this reason.
+        if (collectionDate != null) {
+            LogEvent.logDebug(this.getClass().getSimpleName(), "createProgramSampleFromImport",
+                    "ignoring collectionDate for imported order " + externalOrderId
+                            + "; sample collection is recorded later by the lab");
+        }
+        java.sql.Date enteredDate = DateUtil.getNowAsSqlDate();
+        Timestamp receivedTimestamp = DateUtil.getNowAsTimestamp();
 
         // Sample
         Sample sample = new Sample();
         sample.setSysUserId(serviceUserId);
-        sample.setEnteredDate(DateUtil.getNowAsSqlDate());
-        sample.setReceivedTimestamp(DateUtil.getNowAsTimestamp());
-        sample.setCollectionDate(collectionTimestamp);
+        sample.setEnteredDate(enteredDate);
+        sample.setReceivedTimestamp(receivedTimestamp);
+        // intentionally not set: collectionDate — lab collects later
         sample.setReferringId(externalOrderId);
         sample.setDomain(ConfigurationProperties.getInstance().getPropertyValue("domain.human"));
         sample.setStatusId(statusService.getStatusID(OrderStatus.Entered));
@@ -136,7 +141,7 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         SampleItem sampleItem = new SampleItem();
         sampleItem.setSysUserId(serviceUserId);
         sampleItem.setSample(sample);
-        sampleItem.setCollectionDate(collectionTimestamp);
+        // intentionally not set: collectionDate — lab collects later
         sampleItem.setTypeOfSample(resolveTypeOfSample(test));
         sampleItem.setSortOrder("1");
         sampleItem.setStatusId(statusService.getStatusID(SampleStatus.Entered));
@@ -151,7 +156,7 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         analysis.setSampleItem(sampleItem);
         analysis.setSysUserId(serviceUserId);
         analysis.setRevision(ConfigurationProperties.getInstance().getPropertyValue("analysis.default.revision"));
-        analysis.setStartedDate(new java.sql.Date(collectionTimestamp.getTime()));
+        analysis.setStartedDate(enteredDate);
         analysis.setStatusId(receptionApprovalSupport.resolveInitialAnalysisStatusId(false));
         analysis.setTestSection(test.getTestSection());
         analysis.setFhirUuid(UUID.randomUUID());
@@ -166,7 +171,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
 
         LogEvent.logInfo(this.getClass().getSimpleName(), "createProgramSampleFromImport",
                 "created " + program.getProgramName() + " case for imported order " + externalOrderId
-                        + " with accession " + sample.getAccessionNumber());
+                        + " with accession " + sample.getAccessionNumber()
+                        + " (sample not collected yet; collectionDate unset)");
     }
 
     private TypeOfSample resolveTypeOfSample(Test test) {

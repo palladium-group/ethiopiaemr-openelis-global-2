@@ -6,7 +6,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.IQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -491,12 +490,11 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                         if (!interpretResults.isEmpty() && interpretResults.get(0) == InterpreterResults.OK) {
                             UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(serviceRequest,
                                     localObjects);
-                            Date collectionDate = serviceRequest.hasAuthoredOn() ? serviceRequest.getAuthoredOn()
-                                    : null;
+                            // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
+                            // pathology/cytology orders arrive uncollected; the lab collects later.
                             programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
                                     interpreter.getMessagePatient(), interpreter.getOrderPriority(),
-                                    serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid,
-                                    collectionDate);
+                                    serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid, null);
                             taskOrderAcceptedFlag = true;
                         }
                         continue;

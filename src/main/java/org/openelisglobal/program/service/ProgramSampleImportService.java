@@ -26,8 +26,9 @@ public interface ProgramSampleImportService {
      *                                  the sample's referring id
      * @param questionnaireResponseUuid the id of the already-imported
      *                                  QuestionnaireResponse, or null
-     * @param collectionDate            when the specimen was collected (the order's
-     *                                  authored date), or null to use the import time
+     * @param collectionDate            ignored — EMR e-orders are not sample-collected;
+     *                                  the lab records collection later in OpenELIS. Kept
+     *                                  on the signature for call-site compatibility.
      */
     void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate);
