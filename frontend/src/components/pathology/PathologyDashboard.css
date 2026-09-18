@@ -127,3 +127,328 @@
     font-size: 0.9rem;
   }
 }
+
+/* PDF-style vertical progress rail for the pathology case page */
+.pathology-case-rail {
+  --path-teal: var(--cds-button-primary, #0f62fe);
+  --path-teal-dark: var(--cds-button-primary-hover, #0050e6);
+  --path-green: #198038;
+  --path-green-soft: #defbe6;
+  --path-muted: #6f6f6f;
+  --path-line: #c6c6c6;
+  --path-border: #e0e0e0;
+  --path-bg: #f4f4f4;
+  --path-card: #ffffff;
+  --path-text: #161616;
+
+  margin: 1rem 0 2rem;
+  width: 100%;
+  background: var(--path-bg);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pathology-case-rail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem 1.35rem;
+  background: var(--path-card);
+  border-bottom: 1px solid var(--path-border);
+}
+
+.pathology-case-rail-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--path-text);
+  line-height: 1.3;
+}
+
+.pathology-case-rail-meta {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--path-muted);
+  line-height: 1.45;
+}
+
+.pathology-case-rail-badge {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: var(--path-green-soft);
+  color: var(--path-green);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pathology-case-rail-badge--progress {
+  background: #edf5ff;
+  color: var(--path-teal);
+}
+
+.pathology-rail {
+  list-style: none;
+  margin: 0;
+  padding: 1.75rem 1.75rem 2rem;
+}
+
+.pathology-rail-step {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  column-gap: 1.15rem;
+  position: relative;
+}
+
+.pathology-rail-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100%;
+}
+
+.pathology-rail-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  z-index: 1;
+  background: var(--path-card);
+  border: 2px solid var(--path-line);
+  color: var(--path-muted);
+  box-sizing: border-box;
+}
+
+.pathology-rail-step--completed .pathology-rail-dot {
+  background: var(--path-green);
+  border-color: var(--path-green);
+  color: #ffffff;
+}
+
+.pathology-rail-step--active .pathology-rail-dot {
+  background: var(--path-teal);
+  border-color: var(--path-teal);
+  color: #ffffff;
+}
+
+.pathology-rail-line {
+  flex: 1 1 auto;
+  width: 2px;
+  min-height: 1.35rem;
+  margin: 0.3rem 0;
+  background: var(--path-line);
+}
+
+.pathology-rail-step--completed .pathology-rail-line {
+  background: #9ccbb3;
+}
+
+.pathology-rail-body {
+  min-width: 0;
+  padding-bottom: 1.5rem;
+}
+
+.pathology-rail-step:last-child .pathology-rail-body {
+  padding-bottom: 0.35rem;
+}
+
+.pathology-rail-collapsed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.15rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.pathology-rail-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0 0 0.65rem;
+  padding: 0.2rem 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.pathology-rail-toggle:hover .pathology-rail-collapsed-title {
+  color: var(--path-text);
+}
+
+.pathology-rail-toggle-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem;
+  min-width: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.pathology-rail-chevron {
+  flex-shrink: 0;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.35rem;
+  border-right: 2px solid var(--path-muted);
+  border-bottom: 2px solid var(--path-muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.pathology-rail-chevron--open {
+  margin-top: 0.5rem;
+  transform: rotate(225deg);
+}
+
+.pathology-rail-collapsed-title {
+  font-weight: 600;
+  color: var(--path-muted);
+}
+
+.pathology-rail-collapsed-summary {
+  color: var(--path-muted);
+  font-weight: 400;
+}
+
+.pathology-rail-collapsed--locked {
+  opacity: 0.85;
+}
+
+.pathology-rail-panel {
+  background: transparent;
+  padding-top: 0.15rem;
+}
+
+.pathology-rail-step-title {
+  margin: 0.15rem 0 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--path-text);
+  line-height: 1.3;
+}
+
+.pathology-rail-step-copy {
+  margin: 0 0 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #374151;
+  max-width: 42rem;
+}
+
+.pathology-rail-step-copy--muted {
+  color: var(--path-muted);
+  font-style: italic;
+}
+
+.pathology-container-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+}
+
+.pathology-container-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-container-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--path-text);
+  margin-bottom: 0.3rem;
+}
+
+.pathology-container-card-meta {
+  font-size: 0.85rem;
+  color: var(--path-muted);
+  line-height: 1.45;
+}
+
+.pathology-container-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.pathology-btn {
+  appearance: none;
+  border-radius: 6px;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pathology-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pathology-btn--ghost {
+  background: #ffffff;
+  border-color: #cfd4dc;
+  color: var(--path-text);
+}
+
+.pathology-btn--ghost:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.pathology-btn--primary {
+  background: var(--path-teal);
+  border-color: var(--path-teal);
+  color: #ffffff;
+}
+
+.pathology-btn--primary:hover:not(:disabled) {
+  background: var(--path-teal-dark);
+  border-color: var(--path-teal-dark);
+}
+
+@media screen and (max-width: 672px) {
+  .pathology-case-rail-header {
+    flex-direction: column;
+  }
+
+  .pathology-container-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pathology-container-card-actions {
+    width: 100%;
+  }
+
+  .pathology-container-card-actions .pathology-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

@@ -29,5 +29,11 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
 
     Long getOpenCaseloadForPathologist(String pathologistId);
 
+    /**
+     * Marks the specimen physically collected (Sample/SampleItem.collectionDate = now) and advances
+     * status from RECEIVED to GROSSING. Idempotent if already collected.
+     */
+    void confirmReceived(Integer pathologySampleId, String curUserId);
+
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }

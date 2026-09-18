@@ -125,6 +125,18 @@ public class PathologyController extends BaseRestController {
         return ResponseEntity.ok("ok");
     }
 
+    /**
+     * Collection Step 3: mark specimen physically received (collectionDate) and move RECEIVED → GROSSING.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/confirmReceived",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public PathologyCaseViewDisplayItem confirmReceived(
+            @PathVariable("pathologySampleId") Integer pathologySampleId, HttpServletRequest request) {
+        pathologySampleService.confirmReceived(pathologySampleId, getSysUserId(request));
+        return pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId);
+    }
+
     @GetMapping(value = "/rest/pathology/caseView/{pathologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public PathologyCaseViewDisplayItem getFilteredPathologyEntries(

@@ -281,6 +281,12 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
         displayItem.setAge(DateUtil.getCurrentAgeForDate(patient.getBirthDate(), DateUtil.getNowAsTimestamp()));
         displayItem.setSex(patient.getGender());
+        if (pathologySample.getSample().getCollectionDate() != null) {
+            displayItem.setCollectionDate(pathologySample.getSample().getCollectionDate());
+        }
+        if (pathologySample.getPathologist() != null && pathologySample.getLastupdated() != null) {
+            displayItem.setAssignedAt(pathologySample.getLastupdated());
+        }
         return displayItem;
     }
 

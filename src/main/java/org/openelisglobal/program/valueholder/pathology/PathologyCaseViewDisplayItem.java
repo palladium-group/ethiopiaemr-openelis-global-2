@@ -1,5 +1,7 @@
 package org.openelisglobal.program.valueholder.pathology;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.Date;
 import java.util.List;
 import org.hl7.fhir.r4.model.Questionnaire;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
@@ -16,7 +18,16 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     private String department;
 
-    private String requester;
+    /** When the specimen was physically collected / confirmed received (null until Collection). */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date collectionDate;
+
+    /**
+     * Approximate assignment time for Collection summary — PathologySample.lastupdated when a
+     * pathologist is assigned (no dedicated assignment timestamp yet).
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date assignedAt;
 
     private Questionnaire programQuestionnaire;
 
@@ -172,12 +183,20 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
         this.department = department;
     }
 
-    public String getRequester() {
-        return requester;
+    public Date getCollectionDate() {
+        return collectionDate;
     }
 
-    public void setRequester(String requester) {
-        this.requester = requester;
+    public void setCollectionDate(Date collectionDate) {
+        this.collectionDate = collectionDate;
+    }
+
+    public Date getAssignedAt() {
+        return assignedAt;
+    }
+
+    public void setAssignedAt(Date assignedAt) {
+        this.assignedAt = assignedAt;
     }
 
     public List<PathologyReport> getReports() {

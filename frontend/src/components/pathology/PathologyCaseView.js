@@ -35,6 +35,7 @@ import PatientHeader from "../common/PatientHeader";
 import QuestionnaireResponse from "../common/QuestionnaireResponse";
 import "./PathologyDashboard.css";
 import PageBreadCrumb from "../common/PageBreadCrumb";
+import PathologyCaseWorkflowRail from "./PathologyCaseWorkflowRail";
 
 function PathologyCaseView() {
   const intl = useIntl();
@@ -389,6 +390,18 @@ function PathologyCaseView() {
           >
             <FormattedMessage id="label.button.save" />
           </Button>
+        </Column>
+        <Column lg={16} md={8} sm={4}>
+          <PathologyCaseWorkflowRail
+            pathologySampleId={pathologySampleId}
+            pathologySampleInfo={pathologySampleInfo}
+            onCaseUpdated={(updated) => {
+              setPathologySampleInfo({
+                ...pathologySampleInfo,
+                ...updated,
+              });
+            }}
+          />
         </Column>
         <Column lg={16} md={8} sm={4}>
           <div> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>

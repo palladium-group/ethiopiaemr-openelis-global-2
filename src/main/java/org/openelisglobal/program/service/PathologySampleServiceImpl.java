@@ -51,6 +51,8 @@ import org.openelisglobal.result.service.LogbookResultsPersistService;
 import org.openelisglobal.result.valueholder.Result;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
+import org.openelisglobal.sampleitem.service.SampleItemService;
+import org.openelisglobal.sampleitem.valueholder.SampleItem;
 import org.openelisglobal.spring.util.SpringContext;
 import org.openelisglobal.systemuser.service.SystemUserService;
 import org.openelisglobal.systemuser.valueholder.SystemUser;
@@ -77,6 +79,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
     @Autowired
     private SampleService sampleService;
+
+    @Autowired
+    private SampleItemService sampleItemService;
 
     @Autowired
     private AnalysisService analysisService;
@@ -167,6 +172,37 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     @Override
     public Long getOpenCaseloadForPathologist(String pathologistId) {
         return baseObjectDAO.getOpenCaseloadForPathologist(pathologistId);
+    }
+
+    @Transactional
+    @Override
+    public void confirmReceived(Integer pathologySampleId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        Sample sample = pathologySample.getSample();
+        Timestamp now = DateUtil.getNowAsTimestamp();
+
+        if (sample.getCollectionDate() == null) {
+            sample.setCollectionDate(now);
+            sample.setSysUserId(curUserId);
+            sampleService.update(sample);
+
+            List<SampleItem> items = sampleItemService.getSampleItemsBySampleId(sample.getId());
+            if (items != null) {
+                for (SampleItem item : items) {
+                    if (item.getCollectionDate() == null) {
+                        item.setCollectionDate(now);
+                        item.setSysUserId(curUserId);
+                        sampleItemService.update(item);
+                    }
+                }
+            }
+        }
+
+        if (pathologySample.getStatus() == PathologyStatus.RECEIVED) {
+            pathologySample.setStatus(PathologyStatus.GROSSING);
+            pathologySample.setSysUserId(curUserId);
+            update(pathologySample);
+        }
     }
 
     private PathologySample copyPathologySample(PathologySample oldPathologySample) {
