@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import config from "../../config.json";
-import { postToOpenElisServerFullResponse } from "../utils/Utils";
+import {
+  getFromOpenElisServer,
+  postToOpenElisServerFullResponse,
+} from "../utils/Utils";
 
 const WORKFLOW_STEPS = [
   { id: "collection", labelId: "pathology.workflow.collection" },
@@ -10,8 +13,8 @@ const WORKFLOW_STEPS = [
   { id: "embedding", labelId: "pathology.workflow.embedding" },
   { id: "microtomy", labelId: "pathology.workflow.microtomy" },
   { id: "staining", labelId: "pathology.workflow.staining" },
-  { id: "review", labelId: "pathology.workflow.review" },
-  { id: "release", labelId: "pathology.workflow.release" },
+  /** Collapsed PDF Steps 9–10: The read + Sign-out & report. */
+  { id: "review", labelId: "pathology.workflow.reviewAndReport" },
 ];
 
 /** Statuses at or past Grossing completion (GROSSING → PROCESSING jump). */
@@ -60,6 +63,9 @@ const PAST_STAINING = new Set([
   "COMPLETED",
 ]);
 
+/** Case finalized (collapsed Steps 9–10 complete). */
+const PAST_READ = new Set(["COMPLETED"]);
+
 const PLANNED_SLIDES_PER_BLOCK = 1;
 
 const DEFAULT_STAIN_TYPE = "H&E";
@@ -91,7 +97,7 @@ const slideDisplayCode = (slide, labNo) => {
 /**
  * PDF-style vertical progress rail for Steps 3–10.
  * Completed steps are collapsed by default; user can expand to view details /
- * allowed actions (e.g. reprint). Collection through Staining are interactive.
+ * allowed actions (e.g. reprint). Collection through The read & report are interactive.
  */
 function PathologyCaseWorkflowRail({
   pathologySampleId,
@@ -106,11 +112,17 @@ function PathologyCaseWorkflowRail({
   const [cuttingBlockId, setCuttingBlockId] = useState(null);
   const [confirmingSlideId, setConfirmingSlideId] = useState(null);
   const [stainingSlideId, setStainingSlideId] = useState(null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   /** Completed step ids the user has manually expanded. */
   const [expandedCompleted, setExpandedCompleted] = useState({});
   const [grossExamDraft, setGrossExamDraft] = useState("");
   /** Local draft cassette count (suffixes A1..An). Persisted only on send. */
   const [cassetteCount, setCassetteCount] = useState(0);
+  const [microscopyDraft, setMicroscopyDraft] = useState("");
+  const [conclusionTextDraft, setConclusionTextDraft] = useState("");
+  const [selectedConclusionIds, setSelectedConclusionIds] = useState([]);
+  const [conclusionOptions, setConclusionOptions] = useState([]);
 
   const status = pathologySampleInfo?.status;
   const isCollected = !!pathologySampleInfo?.collectionDate;
@@ -124,6 +136,9 @@ function PathologyCaseWorkflowRail({
   const isMicrotomyActive = status === "SLICING";
   const isStainingDone = PAST_STAINING.has(status);
   const isStainingActive = status === "STAINING";
+  const isReadDone = PAST_READ.has(status);
+  const isReadActive =
+    status === "READY_PATHOLOGIST" || status === "ADDITIONAL_REQUEST";
   const labNo = pathologySampleInfo?.labNumber;
 
   useEffect(() => {
@@ -138,6 +153,34 @@ function PathologyCaseWorkflowRail({
     pathologySampleInfo?.blocks,
     pathologySampleId,
   ]);
+
+  useEffect(() => {
+    if (isReadActive || isReadDone) {
+      setMicroscopyDraft(pathologySampleInfo?.microscopyExam || "");
+      setConclusionTextDraft(pathologySampleInfo?.conclusionText || "");
+      setSelectedConclusionIds(
+        (pathologySampleInfo?.conclusions || [])
+          .map((c) => c.id)
+          .filter(Boolean),
+      );
+    }
+  }, [
+    isReadActive,
+    isReadDone,
+    pathologySampleInfo?.microscopyExam,
+    pathologySampleInfo?.conclusionText,
+    pathologySampleInfo?.conclusions,
+    pathologySampleId,
+  ]);
+
+  useEffect(() => {
+    getFromOpenElisServer(
+      "/rest/displayList/PATHOLOGIST_CONCLUSIONS",
+      (list) => {
+        setConclusionOptions(Array.isArray(list) ? list : []);
+      },
+    );
+  }, []);
 
   const formatDateTime = (value) => {
     if (!value) {
@@ -401,6 +444,69 @@ function PathologyCaseWorkflowRail({
     );
   };
 
+  const buildReadPayload = () =>
+    JSON.stringify({
+      microscopyExam: microscopyDraft,
+      conclusionText: conclusionTextDraft,
+      conclusions: selectedConclusionIds,
+    });
+
+  const saveReadDraft = () => {
+    if (savingDraft || signingOut || !isReadActive) {
+      return;
+    }
+    setSavingDraft(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/saveReadDraft",
+      buildReadPayload(),
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setSavingDraft(false));
+        } else {
+          setSavingDraft(false);
+        }
+      },
+    );
+  };
+
+  const signOutCase = () => {
+    if (signingOut || savingDraft || !isReadActive) {
+      return;
+    }
+    setSigningOut(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/signOut",
+      buildReadPayload(),
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setSigningOut(false));
+        } else {
+          setSigningOut(false);
+        }
+      },
+    );
+  };
+
+  const toggleConclusionId = (id) => {
+    setSelectedConclusionIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const stepState = (stepId) => {
     if (stepId === "collection") {
       return isCollected ? "completed" : "active";
@@ -465,8 +571,17 @@ function PathologyCaseWorkflowRail({
       }
       return "locked";
     }
-    if (stepId === "review" && isStainingDone) {
-      return "active";
+    if (stepId === "review") {
+      if (!isStainingDone) {
+        return "locked";
+      }
+      if (isReadDone) {
+        return "completed";
+      }
+      if (isReadActive) {
+        return "active";
+      }
+      return "locked";
     }
     return "locked";
   };
@@ -574,6 +689,10 @@ function PathologyCaseWorkflowRail({
     },
   );
 
+  const completedReadSummary = intl.formatMessage({
+    id: "pathology.workflow.readSummaryDone",
+  });
+
   const badgeLabelId = !isCollected
     ? "pathology.workflow.badgeCollection"
     : !isGrossingDone
@@ -584,9 +703,11 @@ function PathologyCaseWorkflowRail({
           ? "pathology.workflow.badgeEmbedding"
           : !isMicrotomyDone
             ? "pathology.workflow.badgeMicrotomy"
-            : isStainingDone
-              ? "pathology.workflow.badgeReview"
-              : "pathology.workflow.badgeStaining";
+            : !isStainingDone
+              ? "pathology.workflow.badgeStaining"
+              : isReadDone
+                ? "pathology.workflow.badgeCompleted"
+                : "pathology.workflow.badgeReview";
 
   const renderCollectionCard = ({ showConfirm }) => (
     <div
@@ -1058,6 +1179,125 @@ function PathologyCaseWorkflowRail({
     </div>
   );
 
+  const renderReadCard = ({ editable }) => (
+    <div
+      className={
+        "pathology-read-card" + (editable ? "" : " pathology-read-card--compact")
+      }
+    >
+      <label className="pathology-grossing-label" htmlFor="pathology-microscopy">
+        <FormattedMessage id="pathology.workflow.microscopicFindings" />
+      </label>
+      {editable ? (
+        <textarea
+          id="pathology-microscopy"
+          className="pathology-grossing-textarea"
+          rows={4}
+          value={microscopyDraft}
+          onChange={(e) => setMicroscopyDraft(e.target.value)}
+          placeholder={intl.formatMessage({
+            id: "pathology.workflow.microscopicFindingsHint",
+          })}
+        />
+      ) : (
+        <div className="pathology-grossing-readonly">
+          {pathologySampleInfo?.microscopyExam?.trim()
+            ? pathologySampleInfo.microscopyExam
+            : "—"}
+        </div>
+      )}
+
+      <div className="pathology-grossing-label">
+        <FormattedMessage id="pathology.workflow.conclusionStructured" />
+      </div>
+      {editable ? (
+        <div className="pathology-conclusion-options">
+          {conclusionOptions.length === 0 ? (
+            <div className="pathology-cassette-empty">
+              <FormattedMessage id="pathology.workflow.noConclusionOptions" />
+            </div>
+          ) : (
+            conclusionOptions.map((option) => (
+              <label key={option.id} className="pathology-conclusion-option">
+                <input
+                  type="checkbox"
+                  checked={selectedConclusionIds.includes(option.id)}
+                  onChange={() => toggleConclusionId(option.id)}
+                />
+                <span>{option.value}</span>
+              </label>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="pathology-grossing-readonly">
+          {(pathologySampleInfo?.conclusions || []).length > 0
+            ? (pathologySampleInfo.conclusions || [])
+                .map((c) => c.value)
+                .filter(Boolean)
+                .join(", ")
+            : "—"}
+        </div>
+      )}
+
+      <label
+        className="pathology-grossing-label"
+        htmlFor="pathology-conclusion-text"
+      >
+        <FormattedMessage id="pathology.workflow.conclusionText" />
+      </label>
+      {editable ? (
+        <textarea
+          id="pathology-conclusion-text"
+          className="pathology-grossing-textarea"
+          rows={3}
+          value={conclusionTextDraft}
+          onChange={(e) => setConclusionTextDraft(e.target.value)}
+          placeholder={intl.formatMessage({
+            id: "pathology.workflow.conclusionTextHint",
+          })}
+        />
+      ) : (
+        <div className="pathology-grossing-readonly">
+          {pathologySampleInfo?.conclusionText?.trim()
+            ? pathologySampleInfo.conclusionText
+            : "—"}
+        </div>
+      )}
+
+      {editable ? (
+        <div className="pathology-read-footer">
+          <button
+            type="button"
+            className="pathology-btn pathology-btn--ghost"
+            disabled={savingDraft || signingOut}
+            onClick={saveReadDraft}
+          >
+            <FormattedMessage id="pathology.workflow.saveDraft" />
+          </button>
+          <button
+            type="button"
+            className="pathology-btn pathology-btn--primary"
+            disabled={signingOut || savingDraft}
+            onClick={signOutCase}
+          >
+            <FormattedMessage id="pathology.workflow.signOutFinalize" />
+          </button>
+        </div>
+      ) : (
+        <div className="pathology-read-signed-note">
+          <FormattedMessage
+            id="pathology.workflow.signedOutNote"
+            values={{
+              pathologist:
+                pathologySampleInfo?.assignedPathologist || "—",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="pathology-case-rail">
       <div className="pathology-case-rail-header">
@@ -1303,6 +1543,38 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "completed" && step.id === "review" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedReadSummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderReadCard({ editable: false })}
+                  </div>
+                )}
+
                 {state === "active" && step.id === "collection" && (
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
@@ -1363,13 +1635,24 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "active" && step.id === "review" && (
+                  <div className="pathology-rail-panel">
+                    <h3 className="pathology-rail-step-title">{label}</h3>
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.reviewIntro" />
+                    </p>
+                    {renderReadCard({ editable: true })}
+                  </div>
+                )}
+
                 {state === "active" &&
                   step.id !== "collection" &&
                   step.id !== "grossing" &&
                   step.id !== "processing" &&
                   step.id !== "embedding" &&
                   step.id !== "microtomy" &&
-                  step.id !== "staining" && (
+                  step.id !== "staining" &&
+                  step.id !== "review" && (
                     <div className="pathology-rail-panel">
                       <h3 className="pathology-rail-step-title">{label}</h3>
                       <p className="pathology-rail-step-copy pathology-rail-step-copy--muted">

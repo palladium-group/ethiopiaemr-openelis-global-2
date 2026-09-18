@@ -442,6 +442,66 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         update(pathologySample);
     }
 
+    @Transactional
+    @Override
+    public void saveReadDraft(Integer pathologySampleId, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        requireReadyForRead(pathologySample);
+        applyReadFindings(pathologySample, microscopyExam, conclusionText, conclusionDictionaryIds, curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void signOut(Integer pathologySampleId, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() == PathologyStatus.COMPLETED) {
+            return;
+        }
+        requireReadyForRead(pathologySample);
+        applyReadFindings(pathologySample, microscopyExam, conclusionText, conclusionDictionaryIds, curUserId);
+
+        PathologySampleForm form = new PathologySampleForm();
+        form.setSystemUserId(curUserId);
+        form.setConclusionText(conclusionText);
+        form.setRelease(true);
+        validatePathologySample(pathologySample, form);
+        update(pathologySample);
+    }
+
+    private void requireReadyForRead(PathologySample pathologySample) {
+        PathologyStatus status = pathologySample.getStatus();
+        if (status != PathologyStatus.READY_PATHOLOGIST && status != PathologyStatus.ADDITIONAL_REQUEST) {
+            throw new IllegalArgumentException("case must be ready for pathologist read");
+        }
+    }
+
+    /**
+     * Updates microscopy + conclusions only. Leaves blocks, slides, techniques, requests, reports
+     * untouched so Microtomy/Staining metadata is preserved.
+     */
+    private void applyReadFindings(PathologySample pathologySample, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, String curUserId) {
+        pathologySample.setMicroscopyExam(microscopyExam);
+        if (pathologySample.getConclusions() == null) {
+            pathologySample.setConclusions(new ArrayList<>());
+        } else {
+            pathologySample.getConclusions().removeAll(pathologySample.getConclusions());
+        }
+        pathologySample.getConclusions().add(createConclusion(conclusionText, ConclusionType.TEXT));
+        if (conclusionDictionaryIds != null) {
+            for (String dictionaryId : conclusionDictionaryIds) {
+                if (!GenericValidator.isBlankOrNull(dictionaryId)) {
+                    pathologySample.getConclusions().add(createConclusion(dictionaryId, ConclusionType.DICTIONARY));
+                }
+            }
+        }
+        pathologySample.setSysUserId(curUserId);
+    }
+
     private void requireSlicing(PathologySample pathologySample) {
         if (pathologySample.getStatus() != PathologyStatus.SLICING) {
             throw new IllegalArgumentException("case must be in SLICING (microtomy) for this action");

@@ -236,6 +236,41 @@ public class PathologyController extends BaseRestController {
         return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
     }
 
+    /**
+     * The read: save microscopy + conclusions without releasing (does not rewrite blocks/slides).
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/saveReadDraft",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> saveReadDraft(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @RequestBody PathologySampleForm form, HttpServletRequest request) {
+        try {
+            pathologySampleService.saveReadDraft(pathologySampleId, form.getMicroscopyExam(), form.getConclusionText(),
+                    form.getConclusions(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * The read / sign-out: save findings and finalize (COMPLETED + results/FHIR) without rewriting
+     * blocks/slides.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/signOut",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> signOut(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @RequestBody PathologySampleForm form, HttpServletRequest request) {
+        try {
+            pathologySampleService.signOut(pathologySampleId, form.getMicroscopyExam(), form.getConclusionText(),
+                    form.getConclusions(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
     @GetMapping(value = "/rest/pathology/caseView/{pathologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public PathologyCaseViewDisplayItem getFilteredPathologyEntries(

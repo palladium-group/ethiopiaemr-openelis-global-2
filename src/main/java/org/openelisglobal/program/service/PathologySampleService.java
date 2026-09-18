@@ -74,5 +74,19 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
      */
     void markSlideStained(Integer pathologySampleId, Integer slideId, String curUserId);
 
+    /**
+     * The read: save microscopy findings + conclusions without touching blocks/slides or releasing.
+     * Case must be in READY_PATHOLOGIST (or ADDITIONAL_REQUEST).
+     */
+    void saveReadDraft(Integer pathologySampleId, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, String curUserId);
+
+    /**
+     * The read / sign-out: save findings + conclusions, then finalize via the existing release path
+     * (COMPLETED + results/FHIR). Does not rewrite blocks/slides.
+     */
+    void signOut(Integer pathologySampleId, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, String curUserId);
+
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }
