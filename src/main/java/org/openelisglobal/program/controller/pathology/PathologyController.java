@@ -186,6 +186,56 @@ public class PathologyController extends BaseRestController {
         return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
     }
 
+    /**
+     * Microtomy Step 7: cut (create) the next slide for a block.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/cutSlide",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> cutSlide(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @PathVariable("blockId") Integer blockId, HttpServletRequest request) {
+        try {
+            pathologySampleService.cutSlide(pathologySampleId, blockId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * Microtomy Step 7: confirm a slide; when all planned slides are confirmed, moves SLICING →
+     * STAINING.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/confirm",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> confirmSlide(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @PathVariable("slideId") Integer slideId, HttpServletRequest request) {
+        try {
+            pathologySampleService.confirmSlide(pathologySampleId, slideId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * Staining Step 8: mark a slide stained; when all Microtomy slides are stained, moves STAINING →
+     * READY_PATHOLOGIST.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/markStained",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> markSlideStained(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @PathVariable("slideId") Integer slideId, HttpServletRequest request) {
+        try {
+            pathologySampleService.markSlideStained(pathologySampleId, slideId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
     @GetMapping(value = "/rest/pathology/caseView/{pathologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public PathologyCaseViewDisplayItem getFilteredPathologyEntries(

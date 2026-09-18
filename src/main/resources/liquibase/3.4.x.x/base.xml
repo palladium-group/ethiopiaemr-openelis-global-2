@@ -37,4 +37,6 @@
   <include relativeToChangelogFile="true" file="028-cytology-test-loinc-and-config.xml"/>
   <include relativeToChangelogFile="true" file="029-pathology-processing-started-at.xml"/>
   <include relativeToChangelogFile="true" file="030-pathology-block-embedded-at.xml"/>
+  <include relativeToChangelogFile="true" file="031-pathology-slide-block-and-confirmed-at.xml"/>
+  <include relativeToChangelogFile="true" file="032-pathology-slide-stained-at.xml"/>
 </databaseChangeLog>

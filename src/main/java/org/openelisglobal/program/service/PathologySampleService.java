@@ -56,5 +56,23 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
      */
     void markBlockEmbedded(Integer pathologySampleId, Integer blockId, String curUserId);
 
+    /**
+     * Microtomy Step 7: create the next slide for a block (cut + ready to print). Case must be in
+     * SLICING.
+     */
+    void cutSlide(Integer pathologySampleId, Integer blockId, String curUserId);
+
+    /**
+     * Microtomy Step 7: confirm a cut slide. When every block has its planned slides confirmed,
+     * advances SLICING → STAINING.
+     */
+    void confirmSlide(Integer pathologySampleId, Integer slideId, String curUserId);
+
+    /**
+     * Staining Step 8: mark a Microtomy-confirmed slide stained. When every such slide is stained,
+     * advances STAINING → READY_PATHOLOGIST.
+     */
+    void markSlideStained(Integer pathologySampleId, Integer slideId, String curUserId);
+
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }

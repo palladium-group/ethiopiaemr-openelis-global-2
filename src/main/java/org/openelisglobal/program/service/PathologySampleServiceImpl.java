@@ -43,6 +43,7 @@ import org.openelisglobal.program.valueholder.pathology.PathologyRequest.Request
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
+import org.openelisglobal.program.valueholder.pathology.PathologySlide;
 import org.openelisglobal.program.valueholder.pathology.PathologyTechnique;
 import org.openelisglobal.program.valueholder.pathology.PathologyTechnique.TechniqueType;
 import org.openelisglobal.result.action.util.ResultSet;
@@ -308,6 +309,196 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         }
         pathologySample.setSysUserId(curUserId);
         update(pathologySample);
+    }
+
+    /** Default planned slides per block for Microtomy (PDF Step 7). */
+    private static final int PLANNED_SLIDES_PER_BLOCK = 1;
+
+    @Transactional
+    @Override
+    public void cutSlide(Integer pathologySampleId, Integer blockId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        requireSlicing(pathologySample);
+        PathologyBlock block = findBlock(pathologySample, blockId);
+
+        if (pathologySample.getSlides() == null) {
+            pathologySample.setSlides(new ArrayList<>());
+        }
+
+        int nextSlideNumber = 1;
+        for (PathologySlide existing : pathologySample.getSlides()) {
+            if (blockId.equals(existing.getPathologyBlockId()) && existing.getSlideNumber() != null
+                    && existing.getSlideNumber() >= nextSlideNumber) {
+                nextSlideNumber = existing.getSlideNumber() + 1;
+            }
+        }
+
+        String blockSuffix = StringUtils.isNotBlank(block.getLocation()) ? block.getLocation()
+                : ("A" + (block.getBlockNumber() != null ? block.getBlockNumber() : blockId));
+        PathologySlide slide = new PathologySlide();
+        slide.setPathologyBlockId(blockId);
+        slide.setSlideNumber(nextSlideNumber);
+        slide.setLocation(blockSuffix + "." + nextSlideNumber);
+        slide.setSysUserId(curUserId);
+        pathologySample.getSlides().add(slide);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void confirmSlide(Integer pathologySampleId, Integer slideId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() != PathologyStatus.SLICING
+                && pathologySample.getStatus() != PathologyStatus.EMBEDDING
+                && pathologySample.getStatus() != PathologyStatus.PROCESSING
+                && pathologySample.getStatus() != PathologyStatus.GROSSING
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.CUTTING) {
+            // Already at STAINING or later — leave as-is.
+            return;
+        }
+        requireSlicing(pathologySample);
+        if (slideId == null) {
+            throw new IllegalArgumentException("slide id is required");
+        }
+
+        PathologySlide target = null;
+        if (pathologySample.getSlides() != null) {
+            for (PathologySlide slide : pathologySample.getSlides()) {
+                if (slideId.equals(slide.getId())) {
+                    target = slide;
+                    break;
+                }
+            }
+        }
+        if (target == null) {
+            throw new IllegalArgumentException("slide not found on this case");
+        }
+        if (target.getPathologyBlockId() == null) {
+            throw new IllegalArgumentException("slide is not linked to a block");
+        }
+
+        if (target.getConfirmedAt() == null) {
+            target.setConfirmedAt(DateUtil.getNowAsTimestamp());
+            target.setSysUserId(curUserId);
+        }
+
+        if (isMicrotomyComplete(pathologySample)) {
+            pathologySample.setStatus(PathologyStatus.STAINING);
+        }
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void markSlideStained(Integer pathologySampleId, Integer slideId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() != PathologyStatus.STAINING
+                && pathologySample.getStatus() != PathologyStatus.SLICING
+                && pathologySample.getStatus() != PathologyStatus.EMBEDDING
+                && pathologySample.getStatus() != PathologyStatus.PROCESSING
+                && pathologySample.getStatus() != PathologyStatus.GROSSING
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.CUTTING) {
+            // Already at READY_PATHOLOGIST or later — leave as-is.
+            return;
+        }
+        if (pathologySample.getStatus() != PathologyStatus.STAINING) {
+            throw new IllegalArgumentException("case must be in STAINING before marking a slide stained");
+        }
+        if (slideId == null) {
+            throw new IllegalArgumentException("slide id is required");
+        }
+
+        PathologySlide target = null;
+        if (pathologySample.getSlides() != null) {
+            for (PathologySlide slide : pathologySample.getSlides()) {
+                if (slideId.equals(slide.getId())) {
+                    target = slide;
+                    break;
+                }
+            }
+        }
+        if (target == null) {
+            throw new IllegalArgumentException("slide not found on this case");
+        }
+        if (target.getPathologyBlockId() == null || target.getConfirmedAt() == null) {
+            throw new IllegalArgumentException("slide must be a confirmed microtomy slide");
+        }
+
+        if (target.getStainedAt() == null) {
+            target.setStainedAt(DateUtil.getNowAsTimestamp());
+            target.setSysUserId(curUserId);
+        }
+
+        if (isStainingComplete(pathologySample)) {
+            pathologySample.setStatus(PathologyStatus.READY_PATHOLOGIST);
+        }
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    private void requireSlicing(PathologySample pathologySample) {
+        if (pathologySample.getStatus() != PathologyStatus.SLICING) {
+            throw new IllegalArgumentException("case must be in SLICING (microtomy) for this action");
+        }
+    }
+
+    private PathologyBlock findBlock(PathologySample pathologySample, Integer blockId) {
+        if (blockId == null) {
+            throw new IllegalArgumentException("block id is required");
+        }
+        if (pathologySample.getBlocks() == null) {
+            throw new IllegalArgumentException("case has no blocks");
+        }
+        for (PathologyBlock block : pathologySample.getBlocks()) {
+            if (blockId.equals(block.getId())) {
+                return block;
+            }
+        }
+        throw new IllegalArgumentException("block not found on this case");
+    }
+
+    /**
+     * Each block has at least {@link #PLANNED_SLIDES_PER_BLOCK} confirmed slides, and every
+     * block-linked slide on the case is confirmed (extra cuts must be confirmed too).
+     */
+    private boolean isMicrotomyComplete(PathologySample pathologySample) {
+        if (pathologySample.getBlocks() == null || pathologySample.getBlocks().isEmpty()) {
+            return false;
+        }
+        List<PathologySlide> slides = pathologySample.getSlides() == null ? new ArrayList<>()
+                : pathologySample.getSlides();
+        for (PathologyBlock block : pathologySample.getBlocks()) {
+            List<PathologySlide> forBlock = slides.stream()
+                    .filter(s -> block.getId() != null && block.getId().equals(s.getPathologyBlockId()))
+                    .collect(Collectors.toList());
+            long confirmed = forBlock.stream().filter(s -> s.getConfirmedAt() != null).count();
+            if (confirmed < PLANNED_SLIDES_PER_BLOCK) {
+                return false;
+            }
+            if (confirmed != forBlock.size()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Every Microtomy-confirmed (block-linked) slide has stainedAt set. */
+    private boolean isStainingComplete(PathologySample pathologySample) {
+        List<PathologySlide> slides = pathologySample.getSlides() == null ? new ArrayList<>()
+                : pathologySample.getSlides();
+        List<PathologySlide> toStain = slides.stream()
+                .filter(s -> s.getPathologyBlockId() != null && s.getConfirmedAt() != null)
+                .collect(Collectors.toList());
+        if (toStain.isEmpty()) {
+            return false;
+        }
+        return toStain.stream().allMatch(s -> s.getStainedAt() != null);
     }
 
     private PathologySample copyPathologySample(PathologySample oldPathologySample) {

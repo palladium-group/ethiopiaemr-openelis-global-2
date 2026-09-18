@@ -45,6 +45,25 @@ const PAST_EMBEDDING = new Set([
   "COMPLETED",
 ]);
 
+/** Statuses at or past Microtomy completion (SLICING → STAINING). */
+const PAST_MICROTOMY = new Set([
+  "STAINING",
+  "READY_PATHOLOGIST",
+  "ADDITIONAL_REQUEST",
+  "COMPLETED",
+]);
+
+/** Statuses at or past Staining completion (STAINING → READY_PATHOLOGIST / The read). */
+const PAST_STAINING = new Set([
+  "READY_PATHOLOGIST",
+  "ADDITIONAL_REQUEST",
+  "COMPLETED",
+]);
+
+const PLANNED_SLIDES_PER_BLOCK = 1;
+
+const DEFAULT_STAIN_TYPE = "H&E";
+
 const cassetteSuffix = (index) => "A" + (index + 1);
 
 const cassetteCode = (labNo, index) => {
@@ -59,10 +78,20 @@ const blockDisplayCode = (block, labNo, index) => {
   return cassetteCode(labNo, index);
 };
 
+const slideDisplayCode = (slide, labNo) => {
+  if (slide?.location && labNo) {
+    return labNo + "." + slide.location;
+  }
+  if (slide?.location) {
+    return slide.location;
+  }
+  return slide?.slideNumber != null ? String(slide.slideNumber) : "—";
+};
+
 /**
  * PDF-style vertical progress rail for Steps 3–10.
  * Completed steps are collapsed by default; user can expand to view details /
- * allowed actions (e.g. reprint). Collection through Embedding are interactive.
+ * allowed actions (e.g. reprint). Collection through Staining are interactive.
  */
 function PathologyCaseWorkflowRail({
   pathologySampleId,
@@ -74,6 +103,9 @@ function PathologyCaseWorkflowRail({
   const [sending, setSending] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
   const [markingBlockId, setMarkingBlockId] = useState(null);
+  const [cuttingBlockId, setCuttingBlockId] = useState(null);
+  const [confirmingSlideId, setConfirmingSlideId] = useState(null);
+  const [stainingSlideId, setStainingSlideId] = useState(null);
   /** Completed step ids the user has manually expanded. */
   const [expandedCompleted, setExpandedCompleted] = useState({});
   const [grossExamDraft, setGrossExamDraft] = useState("");
@@ -88,6 +120,10 @@ function PathologyCaseWorkflowRail({
   const isProcessingActive = status === "PROCESSING";
   const isEmbeddingDone = PAST_EMBEDDING.has(status);
   const isEmbeddingActive = status === "EMBEDDING";
+  const isMicrotomyDone = PAST_MICROTOMY.has(status);
+  const isMicrotomyActive = status === "SLICING";
+  const isStainingDone = PAST_STAINING.has(status);
+  const isStainingActive = status === "STAINING";
   const labNo = pathologySampleInfo?.labNumber;
 
   useEffect(() => {
@@ -139,6 +175,18 @@ function PathologyCaseWorkflowRail({
     window.open(
       config.serverBaseUrl +
         "/LabelMakerServlet?labelType=block&code=" +
+        encodeURIComponent(code),
+      "_blank",
+    );
+  };
+
+  const printSlideLabel = (code) => {
+    if (!code) {
+      return;
+    }
+    window.open(
+      config.serverBaseUrl +
+        "/LabelMakerServlet?labelType=slide&code=" +
         encodeURIComponent(code),
       "_blank",
     );
@@ -263,6 +311,96 @@ function PathologyCaseWorkflowRail({
     );
   };
 
+  const cutSlide = (blockId, onCreated) => {
+    if (!isMicrotomyActive || !blockId || cuttingBlockId) {
+      return;
+    }
+    setCuttingBlockId(blockId);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" +
+        pathologySampleId +
+        "/blocks/" +
+        blockId +
+        "/cutSlide",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+              if (onCreated) {
+                onCreated(data);
+              }
+            })
+            .finally(() => setCuttingBlockId(null));
+        } else {
+          setCuttingBlockId(null);
+        }
+      },
+    );
+  };
+
+  const confirmSlide = (slideId) => {
+    if (!isMicrotomyActive || !slideId || confirmingSlideId) {
+      return;
+    }
+    setConfirmingSlideId(slideId);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" +
+        pathologySampleId +
+        "/slides/" +
+        slideId +
+        "/confirm",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setConfirmingSlideId(null));
+        } else {
+          setConfirmingSlideId(null);
+        }
+      },
+    );
+  };
+
+  const markSlideStained = (slideId) => {
+    if (!isStainingActive || !slideId || stainingSlideId) {
+      return;
+    }
+    setStainingSlideId(slideId);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" +
+        pathologySampleId +
+        "/slides/" +
+        slideId +
+        "/markStained",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setStainingSlideId(null));
+        } else {
+          setStainingSlideId(null);
+        }
+      },
+    );
+  };
+
   const stepState = (stepId) => {
     if (stepId === "collection") {
       return isCollected ? "completed" : "active";
@@ -303,7 +441,31 @@ function PathologyCaseWorkflowRail({
       }
       return "locked";
     }
-    if (stepId === "microtomy" && isEmbeddingDone) {
+    if (stepId === "microtomy") {
+      if (!isEmbeddingDone) {
+        return "locked";
+      }
+      if (isMicrotomyDone) {
+        return "completed";
+      }
+      if (isMicrotomyActive) {
+        return "active";
+      }
+      return "locked";
+    }
+    if (stepId === "staining") {
+      if (!isMicrotomyDone) {
+        return "locked";
+      }
+      if (isStainingDone) {
+        return "completed";
+      }
+      if (isStainingActive) {
+        return "active";
+      }
+      return "locked";
+    }
+    if (stepId === "review" && isStainingDone) {
       return "active";
     }
     return "locked";
@@ -383,15 +545,48 @@ function PathologyCaseWorkflowRail({
     },
   );
 
+  const savedSlides = pathologySampleInfo?.slides || [];
+  const slidesForBlock = (blockId) =>
+    savedSlides.filter((s) => s.pathologyBlockId === blockId);
+  const confirmedSlideCount = savedSlides.filter(
+    (s) => s.pathologyBlockId != null && !!s.confirmedAt,
+  ).length;
+  const linkedSlideCount = savedSlides.filter(
+    (s) => s.pathologyBlockId != null,
+  ).length;
+  const completedMicrotomySummary = intl.formatMessage(
+    { id: "pathology.workflow.microtomySummaryDone" },
+    {
+      confirmed: confirmedSlideCount,
+      total: Math.max(linkedSlideCount, savedBlocks.length * PLANNED_SLIDES_PER_BLOCK),
+    },
+  );
+
+  const slidesToStain = savedSlides.filter(
+    (s) => s.pathologyBlockId != null && !!s.confirmedAt,
+  );
+  const stainedCount = slidesToStain.filter((s) => !!s.stainedAt).length;
+  const completedStainingSummary = intl.formatMessage(
+    { id: "pathology.workflow.stainingSummaryDone" },
+    {
+      stained: stainedCount,
+      total: slidesToStain.length,
+    },
+  );
+
   const badgeLabelId = !isCollected
     ? "pathology.workflow.badgeCollection"
     : !isGrossingDone
       ? "pathology.workflow.badgeGrossing"
       : !isProcessingDone
         ? "pathology.workflow.badgeProcessing"
-        : isEmbeddingDone
-          ? "pathology.workflow.badgeMicrotomy"
-          : "pathology.workflow.badgeEmbedding";
+        : !isEmbeddingDone
+          ? "pathology.workflow.badgeEmbedding"
+          : !isMicrotomyDone
+            ? "pathology.workflow.badgeMicrotomy"
+            : isStainingDone
+              ? "pathology.workflow.badgeReview"
+              : "pathology.workflow.badgeStaining";
 
   const renderCollectionCard = ({ showConfirm }) => (
     <div
@@ -667,6 +862,202 @@ function PathologyCaseWorkflowRail({
     </div>
   );
 
+  const handleCutSlide = (block, blockIndex) => {
+    cutSlide(block.id, (updated) => {
+      const blockSlides = (updated?.slides || []).filter(
+        (s) => s.pathologyBlockId === block.id,
+      );
+      const newest = blockSlides.reduce((best, slide) => {
+        if (!best) {
+          return slide;
+        }
+        return (slide.slideNumber || 0) > (best.slideNumber || 0) ? slide : best;
+      }, null);
+      if (newest) {
+        printSlideLabel(slideDisplayCode(newest, updated?.labNumber || labNo));
+      }
+    });
+  };
+
+  const renderMicrotomyCard = ({ allowActions }) => (
+    <div
+      className={
+        "pathology-microtomy-card" +
+        (allowActions ? "" : " pathology-microtomy-card--compact")
+      }
+    >
+      {savedBlocks.length === 0 ? (
+        <div className="pathology-cassette-empty">
+          <FormattedMessage id="pathology.workflow.noCassettesYet" />
+        </div>
+      ) : (
+        <div className="pathology-microtomy-blocks">
+          {savedBlocks.map((block, blockIndex) => {
+            const blockCode = blockDisplayCode(block, labNo, blockIndex);
+            const blockSlides = slidesForBlock(block.id);
+            const confirmed = blockSlides.filter((s) => !!s.confirmedAt).length;
+            const planned = Math.max(PLANNED_SLIDES_PER_BLOCK, blockSlides.length);
+            return (
+              <div key={block.id || blockCode} className="pathology-microtomy-block">
+                <div className="pathology-microtomy-block-header">
+                  <div>
+                    <div className="pathology-cassette-code">{blockCode}</div>
+                    <div className="pathology-microtomy-block-progress">
+                      <FormattedMessage
+                        id="pathology.workflow.microtomyBlockProgress"
+                        values={{ confirmed, planned }}
+                      />
+                    </div>
+                  </div>
+                  {allowActions && (
+                    <button
+                      type="button"
+                      className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+                      disabled={cuttingBlockId === block.id || !block.id}
+                      onClick={() => handleCutSlide(block, blockIndex)}
+                    >
+                      <FormattedMessage id="pathology.workflow.cutSlide" />
+                    </button>
+                  )}
+                </div>
+                {blockSlides.length === 0 ? (
+                  <div className="pathology-cassette-empty">
+                    <FormattedMessage id="pathology.workflow.noSlidesYet" />
+                  </div>
+                ) : (
+                  <div className="pathology-cassette-list">
+                    {blockSlides.map((slide) => {
+                      const code = slideDisplayCode(slide, labNo);
+                      const isConfirmed = !!slide.confirmedAt;
+                      return (
+                        <div
+                          key={slide.id || code}
+                          className={
+                            "pathology-cassette-row" +
+                            (isConfirmed ? " pathology-cassette-row--done" : "")
+                          }
+                        >
+                          <div className="pathology-cassette-row-main">
+                            <div className="pathology-cassette-code">{code}</div>
+                            {isConfirmed && (
+                              <div className="pathology-cassette-embedded-meta">
+                                <FormattedMessage
+                                  id="pathology.workflow.slideConfirmedAt"
+                                  values={{
+                                    when: formatDateTime(slide.confirmedAt) || "—",
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div className="pathology-cassette-row-actions">
+                            <button
+                              type="button"
+                              className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+                              onClick={() => printSlideLabel(code)}
+                            >
+                              <FormattedMessage id="pathology.workflow.printSlideLabel" />
+                            </button>
+                            {allowActions && !isConfirmed && (
+                              <button
+                                type="button"
+                                className="pathology-btn pathology-btn--primary pathology-btn--sm"
+                                disabled={
+                                  confirmingSlideId === slide.id || !slide.id
+                                }
+                                onClick={() => confirmSlide(slide.id)}
+                              >
+                                <FormattedMessage id="pathology.workflow.confirmSlide" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderStainingCard = ({ allowMark }) => (
+    <div
+      className={
+        "pathology-staining-card" +
+        (allowMark ? "" : " pathology-staining-card--compact")
+      }
+    >
+      <div className="pathology-grossing-cassettes-header">
+        <span className="pathology-grossing-label">
+          <FormattedMessage id="pathology.workflow.stainingList" />
+        </span>
+        <span className="pathology-embedding-progress">
+          <FormattedMessage
+            id="pathology.workflow.stainingProgress"
+            values={{ stained: stainedCount, total: slidesToStain.length }}
+          />
+        </span>
+      </div>
+      {slidesToStain.length === 0 ? (
+        <div className="pathology-cassette-empty">
+          <FormattedMessage id="pathology.workflow.noSlidesToStain" />
+        </div>
+      ) : (
+        <div className="pathology-cassette-list">
+          {slidesToStain.map((slide) => {
+            const code = slideDisplayCode(slide, labNo);
+            const isStained = !!slide.stainedAt;
+            return (
+              <div
+                key={slide.id || code}
+                className={
+                  "pathology-cassette-row" +
+                  (isStained ? " pathology-cassette-row--done" : "")
+                }
+              >
+                <div className="pathology-cassette-row-main">
+                  <div className="pathology-cassette-code">{code}</div>
+                  <div className="pathology-stain-type">
+                    <FormattedMessage
+                      id="pathology.workflow.stainType"
+                      values={{ type: DEFAULT_STAIN_TYPE }}
+                    />
+                  </div>
+                  {isStained && (
+                    <div className="pathology-cassette-embedded-meta">
+                      <FormattedMessage
+                        id="pathology.workflow.stainedAt"
+                        values={{
+                          when: formatDateTime(slide.stainedAt) || "—",
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="pathology-cassette-row-actions">
+                  {allowMark && !isStained && (
+                    <button
+                      type="button"
+                      className="pathology-btn pathology-btn--primary pathology-btn--sm"
+                      disabled={stainingSlideId === slide.id || !slide.id}
+                      onClick={() => markSlideStained(slide.id)}
+                    >
+                      <FormattedMessage id="pathology.workflow.markStained" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="pathology-case-rail">
       <div className="pathology-case-rail-header">
@@ -848,6 +1239,70 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "completed" && step.id === "microtomy" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedMicrotomySummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderMicrotomyCard({ allowActions: false })}
+                  </div>
+                )}
+
+                {state === "completed" && step.id === "staining" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedStainingSummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderStainingCard({ allowMark: false })}
+                  </div>
+                )}
+
                 {state === "active" && step.id === "collection" && (
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
@@ -888,11 +1343,33 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "active" && step.id === "microtomy" && (
+                  <div className="pathology-rail-panel">
+                    <h3 className="pathology-rail-step-title">{label}</h3>
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.microtomyIntro" />
+                    </p>
+                    {renderMicrotomyCard({ allowActions: true })}
+                  </div>
+                )}
+
+                {state === "active" && step.id === "staining" && (
+                  <div className="pathology-rail-panel">
+                    <h3 className="pathology-rail-step-title">{label}</h3>
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.stainingIntro" />
+                    </p>
+                    {renderStainingCard({ allowMark: true })}
+                  </div>
+                )}
+
                 {state === "active" &&
                   step.id !== "collection" &&
                   step.id !== "grossing" &&
                   step.id !== "processing" &&
-                  step.id !== "embedding" && (
+                  step.id !== "embedding" &&
+                  step.id !== "microtomy" &&
+                  step.id !== "staining" && (
                     <div className="pathology-rail-panel">
                       <h3 className="pathology-rail-step-title">{label}</h3>
                       <p className="pathology-rail-step-copy pathology-rail-step-copy--muted">

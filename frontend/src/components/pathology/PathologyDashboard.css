@@ -597,6 +597,64 @@
   color: var(--path-muted);
 }
 
+.pathology-microtomy-card {
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  max-width: 42rem;
+}
+
+.pathology-microtomy-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-microtomy-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pathology-microtomy-block {
+  padding: 0.85rem 0.95rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.pathology-microtomy-block-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.pathology-microtomy-block-progress {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--path-muted);
+}
+
+.pathology-staining-card {
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  max-width: 42rem;
+}
+
+.pathology-staining-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-stain-type {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
 @media screen and (max-width: 672px) {
   .pathology-case-rail-header {
     flex-direction: column;

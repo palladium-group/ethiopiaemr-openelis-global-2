@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Pathology Staining (Step 8): stamp when a Microtomy-confirmed slide is marked stained.
+        When every such slide has stained_at, status advances STAINING → READY_PATHOLOGIST.
+    -->
+    <changeSet id="032-pathology-slide-stained-at" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="pathology_slide" columnName="stained_at"/>
+            </not>
+        </preConditions>
+        <comment>Add pathology_slide.stained_at for Staining checklist</comment>
+        <addColumn schemaName="clinlims" tableName="pathology_slide">
+            <column name="stained_at" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="pathology_slide" columnName="stained_at"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
