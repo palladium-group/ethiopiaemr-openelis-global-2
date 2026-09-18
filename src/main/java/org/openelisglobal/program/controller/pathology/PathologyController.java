@@ -68,7 +68,7 @@ public class PathologyController extends BaseRestController {
         count.setUnassigned(pathologySampleService.getCountUnassigned());
         count.setInProgress(pathologySampleService.getCountWithStatus(
                 Arrays.asList(PathologyStatus.GROSSING, PathologyStatus.CUTTING, PathologyStatus.PROCESSING,
-                        PathologyStatus.SLICING, PathologyStatus.STAINING)));
+                        PathologyStatus.EMBEDDING, PathologyStatus.SLICING, PathologyStatus.STAINING)));
         count.setAwaitingReview(
                 pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.READY_PATHOLOGIST)));
         count.setAdditionalRequests(
@@ -148,6 +148,38 @@ public class PathologyController extends BaseRestController {
         try {
             pathologySampleService.sendToProcessing(pathologySampleId, form.getGrossExam(), form.getBlocks(),
                     getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * Processing Step 5: mark tissue processing complete and move PROCESSING → EMBEDDING.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/markProcessingComplete",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> markProcessingComplete(
+            @PathVariable("pathologySampleId") Integer pathologySampleId, HttpServletRequest request) {
+        try {
+            pathologySampleService.markProcessingComplete(pathologySampleId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * Embedding Step 6: mark one cassette embedded; when all are done, moves EMBEDDING → SLICING.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/markEmbedded",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> markBlockEmbedded(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @PathVariable("blockId") Integer blockId, HttpServletRequest request) {
+        try {
+            pathologySampleService.markBlockEmbedded(pathologySampleId, blockId, getSysUserId(request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

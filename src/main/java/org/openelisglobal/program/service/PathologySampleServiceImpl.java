@@ -234,7 +234,78 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             block.setId(null);
             pathologySample.getBlocks().add(block);
         }
+        if (pathologySample.getProcessingStartedAt() == null) {
+            pathologySample.setProcessingStartedAt(DateUtil.getNowAsTimestamp());
+        }
         pathologySample.setStatus(PathologyStatus.PROCESSING);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void markProcessingComplete(Integer pathologySampleId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() != PathologyStatus.PROCESSING
+                && pathologySample.getStatus() != PathologyStatus.GROSSING
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.CUTTING) {
+            // Already at EMBEDDING or later — leave as-is.
+            return;
+        }
+        if (pathologySample.getStatus() != PathologyStatus.PROCESSING) {
+            throw new IllegalArgumentException("case must be in PROCESSING before mark complete");
+        }
+
+        pathologySample.setStatus(PathologyStatus.EMBEDDING);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void markBlockEmbedded(Integer pathologySampleId, Integer blockId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() != PathologyStatus.EMBEDDING
+                && pathologySample.getStatus() != PathologyStatus.PROCESSING
+                && pathologySample.getStatus() != PathologyStatus.GROSSING
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.CUTTING) {
+            // Already at SLICING or later — leave as-is.
+            return;
+        }
+        if (pathologySample.getStatus() != PathologyStatus.EMBEDDING) {
+            throw new IllegalArgumentException("case must be in EMBEDDING before marking a cassette embedded");
+        }
+        if (blockId == null) {
+            throw new IllegalArgumentException("block id is required");
+        }
+        if (pathologySample.getBlocks() == null || pathologySample.getBlocks().isEmpty()) {
+            throw new IllegalArgumentException("case has no cassettes to embed");
+        }
+
+        PathologyBlock target = null;
+        for (PathologyBlock block : pathologySample.getBlocks()) {
+            if (blockId.equals(block.getId())) {
+                target = block;
+                break;
+            }
+        }
+        if (target == null) {
+            throw new IllegalArgumentException("cassette not found on this case");
+        }
+
+        if (target.getEmbeddedAt() == null) {
+            target.setEmbeddedAt(DateUtil.getNowAsTimestamp());
+            target.setSysUserId(curUserId);
+        }
+
+        boolean allEmbedded = pathologySample.getBlocks().stream().allMatch(b -> b.getEmbeddedAt() != null);
+        if (allEmbedded) {
+            pathologySample.setStatus(PathologyStatus.SLICING);
+        }
         pathologySample.setSysUserId(curUserId);
         update(pathologySample);
     }
@@ -247,6 +318,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         pathologySample.setId(oldPathologySample.getId());
         pathologySample.setLastupdated(oldPathologySample.getLastupdated());
         pathologySample.setMicroscopyExam(oldPathologySample.getMicroscopyExam());
+        pathologySample.setProcessingStartedAt(oldPathologySample.getProcessingStartedAt());
         pathologySample.setPathologist(oldPathologySample.getPathologist());
         pathologySample.setProgram(oldPathologySample.getProgram());
         pathologySample.setQuestionnaireResponseUuid(oldPathologySample.getQuestionnaireResponseUuid());

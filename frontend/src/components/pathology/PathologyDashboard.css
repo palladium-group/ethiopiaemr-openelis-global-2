@@ -542,6 +542,61 @@
   justify-content: flex-end;
 }
 
+.pathology-processing-card {
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  max-width: 42rem;
+}
+
+.pathology-processing-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-processing-status {
+  margin-bottom: 1.15rem;
+}
+
+.pathology-processing-status-line {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.pathology-embedding-card {
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  max-width: 42rem;
+}
+
+.pathology-embedding-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-embedding-progress {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--path-muted);
+}
+
+.pathology-cassette-row--done {
+  background: #f3faf6;
+  border-color: #c6e6d3;
+}
+
+.pathology-cassette-row-main {
+  min-width: 0;
+}
+
+.pathology-cassette-embedded-meta {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--path-muted);
+}
+
 @media screen and (max-width: 672px) {
   .pathology-case-rail-header {
     flex-direction: column;

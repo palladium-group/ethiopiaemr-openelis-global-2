@@ -11,6 +11,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -31,8 +32,10 @@ public class PathologySample extends ProgramSample {
     public enum PathologyStatus {
         /** Order received from EMR; awaiting Reception pathologist assignment / collection. */
         RECEIVED("Received"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
-        SLICING("Slicing for Slides"), STAINING("Staining"), READY_PATHOLOGIST("Ready for Pathologist"),
-        ADDITIONAL_REQUEST("Additional Pathologist Request"), COMPLETED("Completed");
+        /** After tissue processing; cassettes being embedded in wax (PDF Step 6). */
+        EMBEDDING("Embedding"), SLICING("Slicing for Slides"), STAINING("Staining"),
+        READY_PATHOLOGIST("Ready for Pathologist"), ADDITIONAL_REQUEST("Additional Pathologist Request"),
+        COMPLETED("Completed");
 
         private String display;
 
@@ -89,6 +92,10 @@ public class PathologySample extends ProgramSample {
 
     @Column(name = "microscopy_exam")
     private String microscopyExam;
+
+    /** When tissue processing started (stamped on Grossing → PROCESSING). */
+    @Column(name = "processing_started_at")
+    private Timestamp processingStartedAt;
 
     public List<PathologyRequest> getRequests() {
         return requests;
@@ -242,6 +249,14 @@ public class PathologySample extends ProgramSample {
 
     public void setMicroscopyExam(String microscopyExam) {
         this.microscopyExam = microscopyExam;
+    }
+
+    public Timestamp getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(Timestamp processingStartedAt) {
+        this.processingStartedAt = processingStartedAt;
     }
 
     public List<PathologyReport> getReports() {

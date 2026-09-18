@@ -287,6 +287,13 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         if (pathologySample.getPathologist() != null && pathologySample.getLastupdated() != null) {
             displayItem.setAssignedAt(pathologySample.getLastupdated());
         }
+        if (pathologySample.getProcessingStartedAt() != null) {
+            displayItem.setProcessingStartedAt(pathologySample.getProcessingStartedAt());
+            // Fixed default estimate (4h); site-configurable later if needed.
+            long estimateMillis = pathologySample.getProcessingStartedAt().getTime()
+                    + (4L * 60L * 60L * 1000L);
+            displayItem.setProcessingEstimatedComplete(new java.util.Date(estimateMillis));
+        }
         return displayItem;
     }
 

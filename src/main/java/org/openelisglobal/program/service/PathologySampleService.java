@@ -39,10 +39,22 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
     /**
      * Grossing Step 4: persist macroscopic description + cassette/blocks and advance GROSSING →
      * PROCESSING. Requires at least one block. Idempotent if already past GROSSING (returns without
-     * rewriting blocks).
+     * rewriting blocks). Stamps processingStartedAt when first entering PROCESSING.
      */
     void sendToProcessing(Integer pathologySampleId, String grossExam, List<PathologyBlock> blocks,
             String curUserId);
+
+    /**
+     * Processing Step 5: mark the tissue processing run complete and advance PROCESSING → EMBEDDING.
+     * Idempotent if already past PROCESSING.
+     */
+    void markProcessingComplete(Integer pathologySampleId, String curUserId);
+
+    /**
+     * Embedding Step 6: stamp embeddedAt on one cassette/block. When every block is embedded,
+     * advances EMBEDDING → SLICING. Idempotent if the block is already embedded.
+     */
+    void markBlockEmbedded(Integer pathologySampleId, Integer blockId, String curUserId);
 
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }

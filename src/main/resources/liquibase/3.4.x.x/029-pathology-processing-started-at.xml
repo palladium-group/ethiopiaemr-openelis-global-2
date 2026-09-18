@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Pathology Processing (Step 5): stamp when tissue processing started so the case rail
+        can show Started / estimated complete. Status EMBEDDING is a Java enum value stored as
+        VARCHAR (no DB enum constraint) — no liquibase change needed for the status itself.
+    -->
+    <changeSet id="029-pathology-processing-started-at" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="pathology_sample" columnName="processing_started_at"/>
+            </not>
+        </preConditions>
+        <comment>Add pathology_sample.processing_started_at for Processing step status line</comment>
+        <addColumn schemaName="clinlims" tableName="pathology_sample">
+            <column name="processing_started_at" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="pathology_sample" columnName="processing_started_at"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

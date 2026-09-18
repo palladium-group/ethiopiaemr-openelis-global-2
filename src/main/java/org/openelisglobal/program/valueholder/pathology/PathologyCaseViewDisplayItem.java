@@ -29,6 +29,14 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date assignedAt;
 
+    /** When tissue processing started (Grossing → PROCESSING). */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date processingStartedAt;
+
+    /** Estimated processing complete (started + fixed duration). Null if not started. */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date processingEstimatedComplete;
+
     private Questionnaire programQuestionnaire;
 
     private QuestionnaireResponse programQuestionnaireResponse;
@@ -197,6 +205,22 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     public void setAssignedAt(Date assignedAt) {
         this.assignedAt = assignedAt;
+    }
+
+    public Date getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(Date processingStartedAt) {
+        this.processingStartedAt = processingStartedAt;
+    }
+
+    public Date getProcessingEstimatedComplete() {
+        return processingEstimatedComplete;
+    }
+
+    public void setProcessingEstimatedComplete(Date processingEstimatedComplete) {
+        this.processingEstimatedComplete = processingEstimatedComplete;
     }
 
     public List<PathologyReport> getReports() {

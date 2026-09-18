@@ -18,6 +18,26 @@ const WORKFLOW_STEPS = [
 const PAST_GROSSING = new Set([
   "CUTTING",
   "PROCESSING",
+  "EMBEDDING",
+  "SLICING",
+  "STAINING",
+  "READY_PATHOLOGIST",
+  "ADDITIONAL_REQUEST",
+  "COMPLETED",
+]);
+
+/** Statuses at or past Processing completion (PROCESSING → EMBEDDING). */
+const PAST_PROCESSING = new Set([
+  "EMBEDDING",
+  "SLICING",
+  "STAINING",
+  "READY_PATHOLOGIST",
+  "ADDITIONAL_REQUEST",
+  "COMPLETED",
+]);
+
+/** Statuses at or past Embedding completion (EMBEDDING → SLICING / Microtomy). */
+const PAST_EMBEDDING = new Set([
   "SLICING",
   "STAINING",
   "READY_PATHOLOGIST",
@@ -32,10 +52,17 @@ const cassetteCode = (labNo, index) => {
   return labNo ? labNo + "." + suffix : suffix;
 };
 
+const blockDisplayCode = (block, labNo, index) => {
+  if (block?.location && labNo) {
+    return labNo + "." + block.location;
+  }
+  return cassetteCode(labNo, index);
+};
+
 /**
  * PDF-style vertical progress rail for Steps 3–10.
  * Completed steps are collapsed by default; user can expand to view details /
- * allowed actions (e.g. reprint). Collection + Grossing are interactive.
+ * allowed actions (e.g. reprint). Collection through Embedding are interactive.
  */
 function PathologyCaseWorkflowRail({
   pathologySampleId,
@@ -45,6 +72,8 @@ function PathologyCaseWorkflowRail({
   const intl = useIntl();
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
+  const [markingComplete, setMarkingComplete] = useState(false);
+  const [markingBlockId, setMarkingBlockId] = useState(null);
   /** Completed step ids the user has manually expanded. */
   const [expandedCompleted, setExpandedCompleted] = useState({});
   const [grossExamDraft, setGrossExamDraft] = useState("");
@@ -55,6 +84,10 @@ function PathologyCaseWorkflowRail({
   const isCollected = !!pathologySampleInfo?.collectionDate;
   const isGrossingDone = PAST_GROSSING.has(status);
   const isGrossingActive = isCollected && status === "GROSSING";
+  const isProcessingDone = PAST_PROCESSING.has(status);
+  const isProcessingActive = status === "PROCESSING";
+  const isEmbeddingDone = PAST_EMBEDDING.has(status);
+  const isEmbeddingActive = status === "EMBEDDING";
   const labNo = pathologySampleInfo?.labNumber;
 
   useEffect(() => {
@@ -176,6 +209,60 @@ function PathologyCaseWorkflowRail({
     );
   };
 
+  const markProcessingComplete = () => {
+    if (markingComplete || !isProcessingActive) {
+      return;
+    }
+    setMarkingComplete(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/markProcessingComplete",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setMarkingComplete(false));
+        } else {
+          setMarkingComplete(false);
+        }
+      },
+    );
+  };
+
+  const markBlockEmbedded = (blockId) => {
+    if (!isEmbeddingActive || !blockId || markingBlockId) {
+      return;
+    }
+    setMarkingBlockId(blockId);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" +
+        pathologySampleId +
+        "/blocks/" +
+        blockId +
+        "/markEmbedded",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setMarkingBlockId(null));
+        } else {
+          setMarkingBlockId(null);
+        }
+      },
+    );
+  };
+
   const stepState = (stepId) => {
     if (stepId === "collection") {
       return isCollected ? "completed" : "active";
@@ -192,7 +279,31 @@ function PathologyCaseWorkflowRail({
       }
       return "locked";
     }
-    if (stepId === "processing" && isGrossingDone) {
+    if (stepId === "processing") {
+      if (!isGrossingDone) {
+        return "locked";
+      }
+      if (isProcessingDone) {
+        return "completed";
+      }
+      if (isProcessingActive) {
+        return "active";
+      }
+      return "locked";
+    }
+    if (stepId === "embedding") {
+      if (!isProcessingDone) {
+        return "locked";
+      }
+      if (isEmbeddingDone) {
+        return "completed";
+      }
+      if (isEmbeddingActive) {
+        return "active";
+      }
+      return "locked";
+    }
+    if (stepId === "microtomy" && isEmbeddingDone) {
       return "active";
     }
     return "locked";
@@ -249,11 +360,38 @@ function PathologyCaseWorkflowRail({
     },
   );
 
+  const processingStartedLabel = formatDateTime(
+    pathologySampleInfo?.processingStartedAt,
+  );
+  const processingEstimateLabel = formatDateTime(
+    pathologySampleInfo?.processingEstimatedComplete,
+  );
+  const completedProcessingSummary = intl.formatMessage(
+    { id: "pathology.workflow.processingSummaryDone" },
+    {
+      when: processingStartedLabel || "—",
+      count: savedBlocks.length,
+    },
+  );
+
+  const embeddedCount = savedBlocks.filter((b) => !!b.embeddedAt).length;
+  const completedEmbeddingSummary = intl.formatMessage(
+    { id: "pathology.workflow.embeddingSummaryDone" },
+    {
+      embedded: embeddedCount,
+      total: savedBlocks.length,
+    },
+  );
+
   const badgeLabelId = !isCollected
     ? "pathology.workflow.badgeCollection"
-    : isGrossingDone
-      ? "pathology.workflow.badgeProcessing"
-      : "pathology.workflow.badgeGrossing";
+    : !isGrossingDone
+      ? "pathology.workflow.badgeGrossing"
+      : !isProcessingDone
+        ? "pathology.workflow.badgeProcessing"
+        : isEmbeddingDone
+          ? "pathology.workflow.badgeMicrotomy"
+          : "pathology.workflow.badgeEmbedding";
 
   const renderCollectionCard = ({ showConfirm }) => (
     <div
@@ -326,10 +464,7 @@ function PathologyCaseWorkflowRail({
           }),
         )
       : savedBlocks.map((block, index) => {
-          const code =
-            block.location && labNo
-              ? labNo + "." + block.location
-              : cassetteCode(labNo, index);
+          const code = blockDisplayCode(block, labNo, index);
           return renderCassetteRow(code, index, { removable: false });
         });
 
@@ -400,6 +535,137 @@ function PathologyCaseWorkflowRail({
       </div>
     );
   };
+
+  const renderProcessingCard = ({ showComplete }) => (
+    <div
+      className={
+        "pathology-processing-card" +
+        (showComplete ? "" : " pathology-processing-card--compact")
+      }
+    >
+      <div className="pathology-processing-status">
+        <div className="pathology-grossing-label">
+          <FormattedMessage id="pathology.workflow.processingStatus" />
+        </div>
+        <div className="pathology-processing-status-line">
+          <FormattedMessage
+            id="pathology.workflow.processingStatusLine"
+            values={{
+              started: processingStartedLabel || "—",
+              estimated: processingEstimateLabel || "—",
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="pathology-grossing-cassettes-header">
+        <span className="pathology-grossing-label">
+          <FormattedMessage id="pathology.workflow.cassetteList" />
+        </span>
+      </div>
+      {savedBlocks.length === 0 ? (
+        <div className="pathology-cassette-empty">
+          <FormattedMessage id="pathology.workflow.noCassettesYet" />
+        </div>
+      ) : (
+        <div className="pathology-cassette-list">
+          {savedBlocks.map((block, index) =>
+            renderCassetteRow(blockDisplayCode(block, labNo, index), index, {
+              removable: false,
+            }),
+          )}
+        </div>
+      )}
+
+      {showComplete && (
+        <div className="pathology-grossing-footer">
+          <button
+            type="button"
+            className="pathology-btn pathology-btn--primary"
+            disabled={markingComplete}
+            onClick={markProcessingComplete}
+          >
+            <FormattedMessage id="pathology.workflow.markProcessingComplete" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderEmbeddingCard = ({ allowMark }) => (
+    <div
+      className={
+        "pathology-embedding-card" +
+        (allowMark ? "" : " pathology-embedding-card--compact")
+      }
+    >
+      <div className="pathology-grossing-cassettes-header">
+        <span className="pathology-grossing-label">
+          <FormattedMessage id="pathology.workflow.embeddingChecklist" />
+        </span>
+        <span className="pathology-embedding-progress">
+          <FormattedMessage
+            id="pathology.workflow.embeddingProgress"
+            values={{ embedded: embeddedCount, total: savedBlocks.length }}
+          />
+        </span>
+      </div>
+      {savedBlocks.length === 0 ? (
+        <div className="pathology-cassette-empty">
+          <FormattedMessage id="pathology.workflow.noCassettesYet" />
+        </div>
+      ) : (
+        <div className="pathology-cassette-list">
+          {savedBlocks.map((block, index) => {
+            const code = blockDisplayCode(block, labNo, index);
+            const isEmbedded = !!block.embeddedAt;
+            return (
+              <div
+                key={block.id || code + "-" + index}
+                className={
+                  "pathology-cassette-row" +
+                  (isEmbedded ? " pathology-cassette-row--done" : "")
+                }
+              >
+                <div className="pathology-cassette-row-main">
+                  <div className="pathology-cassette-code">{code}</div>
+                  {isEmbedded && (
+                    <div className="pathology-cassette-embedded-meta">
+                      <FormattedMessage
+                        id="pathology.workflow.embeddedAt"
+                        values={{
+                          when: formatDateTime(block.embeddedAt) || "—",
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="pathology-cassette-row-actions">
+                  <button
+                    type="button"
+                    className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+                    onClick={() => printCassetteLabel(code)}
+                  >
+                    <FormattedMessage id="pathology.workflow.printCassetteLabel" />
+                  </button>
+                  {allowMark && !isEmbedded && (
+                    <button
+                      type="button"
+                      className="pathology-btn pathology-btn--primary pathology-btn--sm"
+                      disabled={markingBlockId === block.id || !block.id}
+                      onClick={() => markBlockEmbedded(block.id)}
+                    >
+                      <FormattedMessage id="pathology.workflow.markEmbedded" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="pathology-case-rail">
@@ -518,6 +784,70 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "completed" && step.id === "processing" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedProcessingSummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderProcessingCard({ showComplete: false })}
+                  </div>
+                )}
+
+                {state === "completed" && step.id === "embedding" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedEmbeddingSummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderEmbeddingCard({ allowMark: false })}
+                  </div>
+                )}
+
                 {state === "active" && step.id === "collection" && (
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
@@ -538,9 +868,31 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "active" && step.id === "processing" && (
+                  <div className="pathology-rail-panel">
+                    <h3 className="pathology-rail-step-title">{label}</h3>
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.processingIntro" />
+                    </p>
+                    {renderProcessingCard({ showComplete: true })}
+                  </div>
+                )}
+
+                {state === "active" && step.id === "embedding" && (
+                  <div className="pathology-rail-panel">
+                    <h3 className="pathology-rail-step-title">{label}</h3>
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.embeddingIntro" />
+                    </p>
+                    {renderEmbeddingCard({ allowMark: true })}
+                  </div>
+                )}
+
                 {state === "active" &&
                   step.id !== "collection" &&
-                  step.id !== "grossing" && (
+                  step.id !== "grossing" &&
+                  step.id !== "processing" &&
+                  step.id !== "embedding" && (
                     <div className="pathology-rail-panel">
                       <h3 className="pathology-rail-step-title">{label}</h3>
                       <p className="pathology-rail-step-copy pathology-rail-step-copy--muted">
