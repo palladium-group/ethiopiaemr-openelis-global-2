@@ -35,6 +35,7 @@ import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.pathology.PathologySampleForm;
 import org.openelisglobal.program.dao.PathologySampleDAO;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
+import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion.ConclusionType;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest;
@@ -203,6 +204,39 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             pathologySample.setSysUserId(curUserId);
             update(pathologySample);
         }
+    }
+
+    @Transactional
+    @Override
+    public void sendToProcessing(Integer pathologySampleId, String grossExam, List<PathologyBlock> blocks,
+            String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+
+        if (pathologySample.getStatus() != PathologyStatus.GROSSING
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED) {
+            // Already past Grossing (PROCESSING or later) — leave as-is.
+            return;
+        }
+        if (pathologySample.getStatus() != PathologyStatus.GROSSING) {
+            throw new IllegalArgumentException("case must be in GROSSING before send to processing");
+        }
+        if (blocks == null || blocks.isEmpty()) {
+            throw new IllegalArgumentException("at least one cassette is required");
+        }
+
+        pathologySample.setGrossExam(grossExam);
+        if (pathologySample.getBlocks() == null) {
+            pathologySample.setBlocks(new ArrayList<>());
+        } else {
+            pathologySample.getBlocks().removeAll(pathologySample.getBlocks());
+        }
+        for (PathologyBlock block : blocks) {
+            block.setId(null);
+            pathologySample.getBlocks().add(block);
+        }
+        pathologySample.setStatus(PathologyStatus.PROCESSING);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
     }
 
     private PathologySample copyPathologySample(PathologySample oldPathologySample) {

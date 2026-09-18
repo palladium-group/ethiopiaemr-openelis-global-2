@@ -433,6 +433,115 @@
   border-color: var(--path-teal-dark);
 }
 
+.pathology-btn--sm {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.pathology-grossing-card {
+  padding: 1.15rem 1.25rem;
+  background: var(--path-card);
+  border: 1px solid var(--path-border);
+  border-radius: 8px;
+  max-width: 42rem;
+}
+
+.pathology-grossing-card--compact {
+  padding: 0.9rem 1.1rem;
+}
+
+.pathology-grossing-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--path-text);
+  margin-bottom: 0.45rem;
+}
+
+.pathology-grossing-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cfd4dc;
+  border-radius: 6px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.45;
+  color: var(--path-text);
+  resize: vertical;
+  margin-bottom: 1.15rem;
+}
+
+.pathology-grossing-textarea:focus {
+  outline: 2px solid var(--path-teal);
+  outline-offset: 1px;
+}
+
+.pathology-grossing-readonly {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #374151;
+  white-space: pre-wrap;
+  margin-bottom: 1.15rem;
+  min-height: 1.5rem;
+}
+
+.pathology-grossing-cassettes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.pathology-grossing-cassettes-header .pathology-grossing-label {
+  margin-bottom: 0;
+}
+
+.pathology-cassette-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pathology-cassette-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.pathology-cassette-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--path-text);
+}
+
+.pathology-cassette-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.pathology-cassette-empty {
+  font-size: 0.85rem;
+  color: var(--path-muted);
+  font-style: italic;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.pathology-grossing-footer {
+  margin-top: 1.15rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media screen and (max-width: 672px) {
   .pathology-case-rail-header {
     flex-direction: column;
@@ -445,6 +554,11 @@
 
   .pathology-container-card-actions {
     width: 100%;
+  }
+
+  .pathology-cassette-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .pathology-container-card-actions .pathology-btn {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import config from "../../config.json";
 import { postToOpenElisServerFullResponse } from "../utils/Utils";
@@ -14,10 +14,28 @@ const WORKFLOW_STEPS = [
   { id: "release", labelId: "pathology.workflow.release" },
 ];
 
+/** Statuses at or past Grossing completion (GROSSING → PROCESSING jump). */
+const PAST_GROSSING = new Set([
+  "CUTTING",
+  "PROCESSING",
+  "SLICING",
+  "STAINING",
+  "READY_PATHOLOGIST",
+  "ADDITIONAL_REQUEST",
+  "COMPLETED",
+]);
+
+const cassetteSuffix = (index) => "A" + (index + 1);
+
+const cassetteCode = (labNo, index) => {
+  const suffix = cassetteSuffix(index);
+  return labNo ? labNo + "." + suffix : suffix;
+};
+
 /**
  * PDF-style vertical progress rail for Steps 3–10.
  * Completed steps are collapsed by default; user can expand to view details /
- * allowed actions (e.g. reprint). Only Collection is fully interactive so far.
+ * allowed actions (e.g. reprint). Collection + Grossing are interactive.
  */
 function PathologyCaseWorkflowRail({
   pathologySampleId,
@@ -26,10 +44,31 @@ function PathologyCaseWorkflowRail({
 }) {
   const intl = useIntl();
   const [confirming, setConfirming] = useState(false);
+  const [sending, setSending] = useState(false);
   /** Completed step ids the user has manually expanded. */
   const [expandedCompleted, setExpandedCompleted] = useState({});
+  const [grossExamDraft, setGrossExamDraft] = useState("");
+  /** Local draft cassette count (suffixes A1..An). Persisted only on send. */
+  const [cassetteCount, setCassetteCount] = useState(0);
 
+  const status = pathologySampleInfo?.status;
   const isCollected = !!pathologySampleInfo?.collectionDate;
+  const isGrossingDone = PAST_GROSSING.has(status);
+  const isGrossingActive = isCollected && status === "GROSSING";
+  const labNo = pathologySampleInfo?.labNumber;
+
+  useEffect(() => {
+    if (isGrossingActive) {
+      setGrossExamDraft(pathologySampleInfo?.grossExam || "");
+      const existing = pathologySampleInfo?.blocks?.length || 0;
+      setCassetteCount(existing > 0 ? existing : 0);
+    }
+  }, [
+    isGrossingActive,
+    pathologySampleInfo?.grossExam,
+    pathologySampleInfo?.blocks,
+    pathologySampleId,
+  ]);
 
   const formatDateTime = (value) => {
     if (!value) {
@@ -48,7 +87,6 @@ function PathologyCaseWorkflowRail({
   };
 
   const printContainerLabel = () => {
-    const labNo = pathologySampleInfo?.labNumber;
     if (!labNo) {
       return;
     }
@@ -57,6 +95,18 @@ function PathologyCaseWorkflowRail({
         "/LabelMakerServlet?labNo=" +
         encodeURIComponent(labNo) +
         "&type=specimen",
+      "_blank",
+    );
+  };
+
+  const printCassetteLabel = (code) => {
+    if (!code) {
+      return;
+    }
+    window.open(
+      config.serverBaseUrl +
+        "/LabelMakerServlet?labelType=block&code=" +
+        encodeURIComponent(code),
       "_blank",
     );
   };
@@ -86,11 +136,63 @@ function PathologyCaseWorkflowRail({
     );
   };
 
+  const addCassette = () => {
+    setCassetteCount((n) => n + 1);
+  };
+
+  const removeCassette = (index) => {
+    setCassetteCount((n) => Math.max(0, n - 1));
+  };
+
+  const sendToProcessing = () => {
+    if (sending || !isGrossingActive || cassetteCount < 1) {
+      return;
+    }
+    const blocks = Array.from({ length: cassetteCount }, (_, index) => ({
+      blockNumber: index + 1,
+      location: cassetteSuffix(index),
+    }));
+    setSending(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/sendToProcessing",
+      JSON.stringify({
+        grossExam: grossExamDraft,
+        blocks,
+      }),
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setSending(false));
+        } else {
+          setSending(false);
+        }
+      },
+    );
+  };
+
   const stepState = (stepId) => {
     if (stepId === "collection") {
       return isCollected ? "completed" : "active";
     }
-    if (stepId === "grossing" && isCollected) {
+    if (stepId === "grossing") {
+      if (!isCollected) {
+        return "locked";
+      }
+      if (isGrossingDone) {
+        return "completed";
+      }
+      if (isGrossingActive) {
+        return "active";
+      }
+      return "locked";
+    }
+    if (stepId === "processing" && isGrossingDone) {
       return "active";
     }
     return "locked";
@@ -139,6 +241,20 @@ function PathologyCaseWorkflowRail({
     },
   );
 
+  const savedBlocks = pathologySampleInfo?.blocks || [];
+  const completedGrossingSummary = intl.formatMessage(
+    { id: "pathology.workflow.grossingSummaryDone" },
+    {
+      count: savedBlocks.length,
+    },
+  );
+
+  const badgeLabelId = !isCollected
+    ? "pathology.workflow.badgeCollection"
+    : isGrossingDone
+      ? "pathology.workflow.badgeProcessing"
+      : "pathology.workflow.badgeGrossing";
+
   const renderCollectionCard = ({ showConfirm }) => (
     <div
       className={
@@ -159,7 +275,7 @@ function PathologyCaseWorkflowRail({
           type="button"
           className="pathology-btn pathology-btn--ghost"
           onClick={printContainerLabel}
-          disabled={!pathologySampleInfo?.labNumber}
+          disabled={!labNo}
         >
           <FormattedMessage id="pathology.workflow.printContainerLabel" />
         </button>
@@ -177,6 +293,114 @@ function PathologyCaseWorkflowRail({
     </div>
   );
 
+  const renderCassetteRow = (code, index, { removable, onRemove }) => (
+    <div key={code + "-" + index} className="pathology-cassette-row">
+      <div className="pathology-cassette-code">{code}</div>
+      <div className="pathology-cassette-row-actions">
+        <button
+          type="button"
+          className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+          onClick={() => printCassetteLabel(code)}
+        >
+          <FormattedMessage id="pathology.workflow.printCassetteLabel" />
+        </button>
+        {removable && (
+          <button
+            type="button"
+            className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+            onClick={onRemove}
+          >
+            <FormattedMessage id="pathology.workflow.removeCassette" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderGrossingCard = ({ editable }) => {
+    const rows = editable
+      ? Array.from({ length: cassetteCount }, (_, index) =>
+          renderCassetteRow(cassetteCode(labNo, index), index, {
+            removable: true,
+            onRemove: () => removeCassette(index),
+          }),
+        )
+      : savedBlocks.map((block, index) => {
+          const code =
+            block.location && labNo
+              ? labNo + "." + block.location
+              : cassetteCode(labNo, index);
+          return renderCassetteRow(code, index, { removable: false });
+        });
+
+    return (
+      <div
+        className={
+          "pathology-grossing-card" +
+          (editable ? "" : " pathology-grossing-card--compact")
+        }
+      >
+        <label className="pathology-grossing-label" htmlFor="pathology-gross-exam">
+          <FormattedMessage id="pathology.workflow.macroDescription" />
+        </label>
+        {editable ? (
+          <textarea
+            id="pathology-gross-exam"
+            className="pathology-grossing-textarea"
+            rows={4}
+            value={grossExamDraft}
+            onChange={(e) => setGrossExamDraft(e.target.value)}
+            placeholder={intl.formatMessage({
+              id: "pathology.workflow.macroDescriptionHint",
+            })}
+          />
+        ) : (
+          <div className="pathology-grossing-readonly">
+            {pathologySampleInfo?.grossExam?.trim()
+              ? pathologySampleInfo.grossExam
+              : "—"}
+          </div>
+        )}
+
+        <div className="pathology-grossing-cassettes-header">
+          <span className="pathology-grossing-label">
+            <FormattedMessage id="pathology.workflow.cassetteList" />
+          </span>
+          {editable && (
+            <button
+              type="button"
+              className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+              onClick={addCassette}
+            >
+              <FormattedMessage id="pathology.workflow.addCassette" />
+            </button>
+          )}
+        </div>
+
+        {rows.length === 0 ? (
+          <div className="pathology-cassette-empty">
+            <FormattedMessage id="pathology.workflow.noCassettesYet" />
+          </div>
+        ) : (
+          <div className="pathology-cassette-list">{rows}</div>
+        )}
+
+        {editable && (
+          <div className="pathology-grossing-footer">
+            <button
+              type="button"
+              className="pathology-btn pathology-btn--primary"
+              disabled={sending || cassetteCount < 1}
+              onClick={sendToProcessing}
+            >
+              <FormattedMessage id="pathology.workflow.sendToProcessing" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="pathology-case-rail">
       <div className="pathology-case-rail-header">
@@ -185,11 +409,7 @@ function PathologyCaseWorkflowRail({
             {patientName || <FormattedMessage id="pathology.workflow.case" />}
           </div>
           <div className="pathology-case-rail-meta">
-            {[
-              pathologySampleInfo?.labNumber,
-              requester !== "—" ? requester : null,
-              pathologist,
-            ]
+            {[labNo, requester !== "—" ? requester : null, pathologist]
               .filter(Boolean)
               .join(" · ")}
           </div>
@@ -200,11 +420,7 @@ function PathologyCaseWorkflowRail({
             (isCollected ? " pathology-case-rail-badge--progress" : "")
           }
         >
-          {isCollected ? (
-            <FormattedMessage id="pathology.workflow.badgeGrossing" />
-          ) : (
-            <FormattedMessage id="pathology.workflow.badgeCollection" />
-          )}
+          <FormattedMessage id={badgeLabelId} />
         </span>
       </div>
 
@@ -270,6 +486,38 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
+                {state === "completed" && step.id === "grossing" && (
+                  <div className="pathology-rail-panel pathology-rail-panel--completed">
+                    <button
+                      type="button"
+                      className="pathology-rail-toggle"
+                      aria-expanded={isExpandedCompleted}
+                      onClick={() => toggleCompleted(step.id)}
+                    >
+                      <span className="pathology-rail-toggle-text">
+                        <span className="pathology-rail-collapsed-title">
+                          {label}
+                        </span>
+                        <span className="pathology-rail-collapsed-summary">
+                          {" — "}
+                          {completedGrossingSummary}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          "pathology-rail-chevron" +
+                          (isExpandedCompleted
+                            ? " pathology-rail-chevron--open"
+                            : "")
+                        }
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isExpandedCompleted &&
+                      renderGrossingCard({ editable: false })}
+                  </div>
+                )}
+
                 {state === "active" && step.id === "collection" && (
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
@@ -280,14 +528,26 @@ function PathologyCaseWorkflowRail({
                   </div>
                 )}
 
-                {state === "active" && step.id !== "collection" && (
+                {state === "active" && step.id === "grossing" && (
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
-                    <p className="pathology-rail-step-copy pathology-rail-step-copy--muted">
-                      <FormattedMessage id="pathology.workflow.placeholder" />
+                    <p className="pathology-rail-step-copy">
+                      <FormattedMessage id="pathology.workflow.grossingIntro" />
                     </p>
+                    {renderGrossingCard({ editable: true })}
                   </div>
                 )}
+
+                {state === "active" &&
+                  step.id !== "collection" &&
+                  step.id !== "grossing" && (
+                    <div className="pathology-rail-panel">
+                      <h3 className="pathology-rail-step-title">{label}</h3>
+                      <p className="pathology-rail-step-copy pathology-rail-step-copy--muted">
+                        <FormattedMessage id="pathology.workflow.placeholder" />
+                      </p>
+                    </div>
+                  )}
 
                 {state === "locked" && (
                   <div className="pathology-rail-collapsed pathology-rail-collapsed--locked">

@@ -137,6 +137,23 @@ public class PathologyController extends BaseRestController {
         return pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId);
     }
 
+    /**
+     * Grossing Step 4: save macroscopic description + cassettes and move GROSSING → PROCESSING.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/sendToProcessing",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> sendToProcessing(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @RequestBody PathologySampleForm form, HttpServletRequest request) {
+        try {
+            pathologySampleService.sendToProcessing(pathologySampleId, form.getGrossExam(), form.getBlocks(),
+                    getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
     @GetMapping(value = "/rest/pathology/caseView/{pathologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public PathologyCaseViewDisplayItem getFilteredPathologyEntries(

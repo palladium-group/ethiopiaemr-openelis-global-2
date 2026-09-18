@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import org.openelisglobal.common.service.BaseObjectService;
 import org.openelisglobal.program.controller.pathology.PathologySampleForm;
+import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
 import org.openelisglobal.systemuser.valueholder.SystemUser;
@@ -34,6 +35,14 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
      * status from RECEIVED to GROSSING. Idempotent if already collected.
      */
     void confirmReceived(Integer pathologySampleId, String curUserId);
+
+    /**
+     * Grossing Step 4: persist macroscopic description + cassette/blocks and advance GROSSING →
+     * PROCESSING. Requires at least one block. Idempotent if already past GROSSING (returns without
+     * rewriting blocks).
+     */
+    void sendToProcessing(Integer pathologySampleId, String grossExam, List<PathologyBlock> blocks,
+            String curUserId);
 
     void updateWithFormValues(Integer pathologySampleId, PathologySampleForm form);
 }
