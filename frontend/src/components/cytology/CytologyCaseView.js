@@ -36,6 +36,7 @@ import PatientHeader from "../common/PatientHeader";
 import QuestionnaireResponse from "../common/QuestionnaireResponse";
 import "../pathology/PathologyDashboard.css";
 import PageBreadCrumb from "../common/PageBreadCrumb";
+import CytologyCaseWorkflowRail from "./CytologyCaseWorkflowRail";
 let breadcrumbs = [
   { label: "home.label", link: "/" },
   { label: "cytology.label.dashboard", link: "/CytologyDashboard" },
@@ -432,6 +433,18 @@ function CytologyCaseView() {
           >
             <FormattedMessage id="label.button.save" />
           </Button>
+        </Column>
+        <Column lg={16} md={8} sm={4}>
+          <CytologyCaseWorkflowRail
+            cytologySampleId={cytologySampleId}
+            pathologySampleInfo={pathologySampleInfo}
+            onCaseUpdated={(updated) => {
+              setPathologySampleInfo((prev) => ({
+                ...prev,
+                ...updated,
+              }));
+            }}
+          />
         </Column>
         <Column lg={16} md={8} sm={4}>
           <div> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>

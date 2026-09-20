@@ -51,8 +51,9 @@ public class CytologyController extends BaseRestController {
     @ResponseBody
     public ResponseEntity<CytologyDashBoardCount> getCytologyDashBoardMetrics() {
         CytologyDashBoardCount count = new CytologyDashBoardCount();
-        count.setInProgress(cytologySampleService
-                .getCountWithStatus(Arrays.asList(CytologyStatus.PREPARING_SLIDES, CytologyStatus.SCREENING)));
+        count.setInProgress(cytologySampleService.getCountWithStatus(Arrays.asList(CytologyStatus.RECEIVED,
+                CytologyStatus.CELL_BLOCK, CytologyStatus.STAINING, CytologyStatus.PREPARING_SLIDES,
+                CytologyStatus.SCREENING)));
         count.setAwaitingReview(
                 cytologySampleService.getCountWithStatus(Arrays.asList(CytologyStatus.READY_FOR_CYTOPATHOLOGIST)));
 
@@ -95,5 +96,139 @@ public class CytologyController extends BaseRestController {
         cytologySampleService.updateWithFormValues(cytologySampleId, form);
 
         return form;
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/confirmCollection",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> confirmCollection(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @RequestBody(required = false) CytologySampleForm form, HttpServletRequest request) {
+        try {
+            cytologySampleService.confirmCollection(cytologySampleId, form == null ? new CytologySampleForm() : form,
+                    getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/rejectCollection",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> rejectCollection(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @RequestBody(required = false) CytologySampleForm form, HttpServletRequest request) {
+        try {
+            String reason = form == null ? null : form.getRejectionReason();
+            cytologySampleService.rejectCollection(cytologySampleId, reason, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/cellBlock/{step}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> markCellBlockStep(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @PathVariable("step") String step, HttpServletRequest request) {
+        try {
+            cytologySampleService.markCellBlockStep(cytologySampleId, step, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/slides/{slideId}/markStained",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> markSlideStained(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @PathVariable("slideId") Integer slideId, HttpServletRequest request) {
+        try {
+            cytologySampleService.markSlideStained(cytologySampleId, slideId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/addSmearSlide",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> addSmearSlide(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            HttpServletRequest request) {
+        try {
+            cytologySampleService.addSmearSlide(cytologySampleId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/saveReadDraft",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> saveReadDraft(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @RequestBody CytologySampleForm form, HttpServletRequest request) {
+        try {
+            cytologySampleService.saveReadDraft(cytologySampleId, form.getMicroscopyExam(), form.getConclusion(),
+                    form.getConclusionText(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/requestRepeat",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> requestRepeat(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            HttpServletRequest request) {
+        try {
+            cytologySampleService.requestRepeat(cytologySampleId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/requestSecondOpinion",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> requestSecondOpinion(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            HttpServletRequest request) {
+        try {
+            cytologySampleService.requestSecondOpinion(cytologySampleId, getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/orderIhc",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> orderIhc(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            HttpServletRequest request) {
+        try {
+            cytologySampleService.orderIhc(cytologySampleId, getSysUserId(request));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+    }
+
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/signOut",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> signOut(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            @RequestBody CytologySampleForm form, HttpServletRequest request) {
+        try {
+            cytologySampleService.signOut(cytologySampleId, form.getMicroscopyExam(), form.getConclusion(),
+                    form.getConclusionText(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
     }
 }

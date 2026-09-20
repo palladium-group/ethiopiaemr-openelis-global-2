@@ -39,4 +39,5 @@
   <include relativeToChangelogFile="true" file="030-pathology-block-embedded-at.xml"/>
   <include relativeToChangelogFile="true" file="031-pathology-slide-block-and-confirmed-at.xml"/>
   <include relativeToChangelogFile="true" file="032-pathology-slide-stained-at.xml"/>
+  <include relativeToChangelogFile="true" file="033-cytology-workflow-fields.xml"/>
 </databaseChangeLog>

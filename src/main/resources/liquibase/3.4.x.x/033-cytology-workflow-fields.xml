@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Cytopathology case workflow (FNAC, Image-guided FNAC, Pap smear, Fluid cytology).
+        One case-page template: Registration -> Collection -> [Cell block, fluid only] -> Staining
+        -> The read -> Sign-out. The subtype only decides which Collection / read slots apply.
+    -->
+    <changeSet id="033-cytology-subtype-and-collection" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="cytology_sample" columnName="subtype"/>
+            </not>
+        </preConditions>
+        <comment>Add cytology subtype, collection, cell block and read columns</comment>
+        <addColumn schemaName="clinlims" tableName="cytology_sample">
+            <column name="subtype" type="VARCHAR(50)" defaultValue="FNAC"/>
+            <column name="collection_site" type="VARCHAR(255)"/>
+            <column name="collection_notes" type="VARCHAR(2000)"/>
+            <column name="collection_confirmed_at" type="datetime"/>
+            <column name="radiology_reference" type="VARCHAR(500)"/>
+            <column name="rose_adequate" type="BOOLEAN"/>
+            <column name="last_menstrual_period" type="VARCHAR(255)"/>
+            <column name="previous_pap_result" type="VARCHAR(500)"/>
+            <column name="fixation_method" type="VARCHAR(100)"/>
+            <column name="fluid_volume" type="VARCHAR(100)"/>
+            <column name="fluid_clarity" type="VARCHAR(100)"/>
+            <column name="rejection_reason" type="VARCHAR(500)"/>
+            <column name="cell_block_centrifuged_at" type="datetime"/>
+            <column name="cell_block_prepared_at" type="datetime"/>
+            <column name="cell_block_slide_at" type="datetime"/>
+            <column name="microscopy_exam" type="VARCHAR(4000)"/>
+            <column name="conclusion" type="VARCHAR(100)"/>
+            <column name="conclusion_text" type="VARCHAR(4000)"/>
+            <column name="repeat_requested_at" type="datetime"/>
+            <column name="second_opinion_requested_at" type="datetime"/>
+            <column name="ihc_ordered_at" type="datetime"/>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="subtype"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="collection_site"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="collection_notes"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="collection_confirmed_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="radiology_reference"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="rose_adequate"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="last_menstrual_period"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="previous_pap_result"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="fixation_method"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="fluid_volume"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="fluid_clarity"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="rejection_reason"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="cell_block_centrifuged_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="cell_block_prepared_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="cell_block_slide_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="microscopy_exam"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="conclusion"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="conclusion_text"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="repeat_requested_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="second_opinion_requested_at"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_sample" columnName="ihc_ordered_at"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="033-cytology-slide-staining" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="cytology_slide" columnName="stained_at"/>
+            </not>
+        </preConditions>
+        <comment>Add cytology_slide.slide_type and stained_at for the Staining checklist</comment>
+        <addColumn schemaName="clinlims" tableName="cytology_slide">
+            <column name="slide_type" type="VARCHAR(50)" defaultValue="SMEAR"/>
+            <column name="stained_at" type="datetime"/>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="cytology_slide" columnName="slide_type"/>
+            <dropColumn schemaName="clinlims" tableName="cytology_slide" columnName="stained_at"/>
+        </rollback>
+    </changeSet>
+
+    <!--
+        Pre-workflow cases used a flat status list. Map them onto the rail so they keep opening:
+        slide prep sits at Collection (RECEIVED), screening at Staining.
+    -->
+    <changeSet id="033-cytology-status-migration" author="openelis">
+        <comment>Map legacy cytology statuses onto the workflow rail</comment>
+        <update schemaName="clinlims" tableName="cytology_sample">
+            <column name="status" value="RECEIVED"/>
+            <where>status = 'PREPARING_SLIDES'</where>
+        </update>
+        <update schemaName="clinlims" tableName="cytology_sample">
+            <column name="status" value="STAINING"/>
+            <where>status = 'SCREENING'</where>
+        </update>
+        <rollback/>
+    </changeSet>
+</databaseChangeLog>

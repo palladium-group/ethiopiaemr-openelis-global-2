@@ -18,6 +18,7 @@ import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.order.action.IOrderPersister;
 import org.openelisglobal.dataexchange.order.action.MessagePatient;
 import org.openelisglobal.patient.valueholder.Patient;
+import org.openelisglobal.program.service.cytology.CytologySampleService;
 import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.valueholder.ProgramSample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
@@ -74,6 +75,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     @Autowired
     private ProgramSampleService programSampleService;
     @Autowired
+    private CytologySampleService cytologySampleService;
+    @Autowired
     private IStatusService statusService;
 
     @Override
@@ -81,6 +84,15 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     public void createProgramSampleFromImport(Program programArg, Test testArg, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
             Provider requestingProvider) {
+        createProgramSampleFromImport(programArg, testArg, messagePatient, priority, externalOrderId,
+                questionnaireResponseUuid, collectionDate, requestingProvider, null);
+    }
+
+    @Override
+    @Transactional
+    public void createProgramSampleFromImport(Program programArg, Test testArg, MessagePatient messagePatient,
+            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
+            Provider requestingProvider, String programSubtypeText) {
         // Idempotency guard: the poller can process the same remote task more than once (e.g. it runs
         // once per configured remote store path, and again on any cycle before the task status flips),
         // so skip if a sample for this order already exists. The standard electronic-order import gets
@@ -138,7 +150,7 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
 
         // Program sample (e.g. PathologySample), linked to the already-imported
         // questionnaire response
-        ProgramSample programSample = newProgramSampleForProgram(program);
+        ProgramSample programSample = newProgramSampleForProgram(program, programSubtypeText);
         programSample.setProgram(program);
         programSample.setSample(sample);
         programSample.setQuestionnaireResponseUuid(questionnaireResponseUuid);
@@ -222,6 +234,10 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
      * {@code programs/*.json} (PATH / IHC / CYTO) to the matching program-sample entity.
      */
     ProgramSample newProgramSampleForProgram(Program program) {
+        return newProgramSampleForProgram(program, null);
+    }
+
+    ProgramSample newProgramSampleForProgram(Program program, String programSubtypeText) {
         // Use the stable program code from programs/*.json (PATH / IHC / CYTO), not the
         // display name — names can be renamed or localized and would silently fall through.
         String code = program.getCode() == null ? "" : program.getCode().trim();
@@ -233,7 +249,10 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         case "IHC":
             return new ImmunohistochemistrySample();
         case "CYTO":
-            return new CytologySample();
+            CytologySample cytologySample = new CytologySample();
+            cytologySample.setStatus(CytologySample.CytologyStatus.RECEIVED);
+            cytologySample.setSubtype(resolveCytologySubtype(programSubtypeText));
+            return cytologySample;
         default:
             throw new IllegalStateException(
                     "unsupported program code '" + code + "' for program " + program.getProgramName()
@@ -241,11 +260,34 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         }
     }
 
+    /**
+     * Maps the ordering system's sample-type text onto a cytopathology subtype. Unknown or missing
+     * text falls back to FNAC, the reference implementation all four tests vary from.
+     */
+    static CytologySample.CytologySubtype resolveCytologySubtype(String programSubtypeText) {
+        if (GenericValidator.isBlankOrNull(programSubtypeText)) {
+            return CytologySample.CytologySubtype.FNAC;
+        }
+        String normalized = programSubtypeText.toLowerCase().trim();
+        if (normalized.contains("image") || normalized.contains("guided")) {
+            return CytologySample.CytologySubtype.IMAGE_GUIDED_FNAC;
+        }
+        if (normalized.contains("pap")) {
+            return CytologySample.CytologySubtype.PAP_SMEAR;
+        }
+        if (normalized.contains("fluid")) {
+            return CytologySample.CytologySubtype.FLUID;
+        }
+        return CytologySample.CytologySubtype.FNAC;
+    }
+
     private void saveProgramSample(ProgramSample programSample) {
         if (programSample instanceof PathologySample) {
             pathologySampleService.save((PathologySample) programSample);
         } else if (programSample instanceof ImmunohistochemistrySample) {
             immunohistochemistrySampleService.save((ImmunohistochemistrySample) programSample);
+        } else if (programSample instanceof CytologySample) {
+            cytologySampleService.save((CytologySample) programSample);
         } else {
             programSampleService.save(programSample);
         }

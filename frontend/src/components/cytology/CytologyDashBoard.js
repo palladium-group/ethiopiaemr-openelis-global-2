@@ -64,9 +64,12 @@ function CytologyDashboard() {
       // Set all statuses
       setStatuses(statusList);
 
-      // Filter out COMPLETED statuses and update the in-progress statuses state
+      // In-progress excludes terminal statuses (COMPLETED, REJECTED)
       const filteredStatuses = statusList
-        .filter((status) => status.id !== "COMPLETED")
+        .filter(
+          (status) =>
+            status.id !== "COMPLETED" && status.id !== "REJECTED",
+        )
         .map((status) => status.id);
 
       setInProgressStatuses(filteredStatuses);

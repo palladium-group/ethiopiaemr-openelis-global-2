@@ -2,11 +2,14 @@ package org.openelisglobal.program.valueholder.cytology;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.sql.Timestamp;
 import org.hibernate.annotations.Type;
 import org.openelisglobal.common.valueholder.BaseObject;
 
@@ -30,6 +33,18 @@ public class CytologySlide extends BaseObject<Integer> {
 
     @Column(name = "location")
     private String location;
+
+    /** SMEAR for the collected smears, CELL_BLOCK_HE for the Fluid cell block's own H&E slide. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "slide_type")
+    private CytologySlideType slideType = CytologySlideType.SMEAR;
+
+    @Column(name = "stained_at")
+    private Timestamp stainedAt;
+
+    public enum CytologySlideType {
+        SMEAR, CELL_BLOCK_HE
+    }
 
     @Override
     public Integer getId() {
@@ -71,5 +86,21 @@ public class CytologySlide extends BaseObject<Integer> {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public CytologySlideType getSlideType() {
+        return slideType;
+    }
+
+    public void setSlideType(CytologySlideType slideType) {
+        this.slideType = slideType;
+    }
+
+    public Timestamp getStainedAt() {
+        return stainedAt;
+    }
+
+    public void setStainedAt(Timestamp stainedAt) {
+        this.stainedAt = stainedAt;
     }
 }

@@ -493,10 +493,12 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                             // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
                             // pathology/cytology orders arrive uncollected; the lab collects later.
                             Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
+                            String programSubtypeText = resolveProgramSubtypeText(serviceRequest,
+                                    localObjects.observations);
                             programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
                                     interpreter.getMessagePatient(), interpreter.getOrderPriority(),
                                     serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid, null,
-                                    requestingProvider);
+                                    requestingProvider, programSubtypeText);
                             taskOrderAcceptedFlag = true;
                         }
                         continue;
@@ -566,6 +568,32 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     private UUID resolveProgramQuestionnaireResponseUuid(ServiceRequest serviceRequest,
             OriginalReferralObjects localObjects) {
         return synthesizeQuestionnaireResponseFromObservations(serviceRequest, localObjects.observations);
+    }
+
+    /**
+     * Reads the order form's sample type out of the context Observations
+     * ({@code ServiceRequest.supportingInfo}) so cytopathology can open the case as the right
+     * subtype (FNAC / Image-guided FNAC / Pap smear / Fluid). Null when the order carried none.
+     */
+    static String resolveProgramSubtypeText(ServiceRequest serviceRequest, List<Observation> observations) {
+        if (serviceRequest == null || observations == null || observations.isEmpty()) {
+            return null;
+        }
+        List<String> observationIds = getSupportingInfoObservationIds(Arrays.asList(serviceRequest));
+        for (Observation observation : observations) {
+            if (!observationIds.contains(observation.getIdElement().getIdPart())) {
+                continue;
+            }
+            String label = observationLabel(observation);
+            if (label == null || !label.toLowerCase().contains("sample type")) {
+                continue;
+            }
+            String value = observationValueText(observation);
+            if (!GenericValidator.isBlankOrNull(value)) {
+                return value;
+            }
+        }
+        return null;
     }
 
     /**

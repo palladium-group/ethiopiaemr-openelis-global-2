@@ -2,6 +2,7 @@ package org.openelisglobal.program.valueholder.cytology;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
+import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 
 public class CytologyDisplayItem {
@@ -18,6 +19,8 @@ public class CytologyDisplayItem {
     private Integer pathologySampleId;
 
     private String patientPK;
+
+    private CytologySample.CytologySubtype subtype;
 
     public Date getRequestDate() {
         return requestDate;
@@ -89,5 +92,13 @@ public class CytologyDisplayItem {
 
     public void setPatientPK(String patientPK) {
         this.patientPK = patientPK;
+    }
+
+    public CytologySample.CytologySubtype getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(CytologySample.CytologySubtype subtype) {
+        this.subtype = subtype;
     }
 }

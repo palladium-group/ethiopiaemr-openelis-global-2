@@ -70,11 +70,17 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
                 fhirUtil.getLocalFhirClient().read().resource(QuestionnaireResponse.class)
                         .withId(cytologySample.getQuestionnaireResponseUuid().toString()).execute());
 
-        cytologySample.getSlides().size();
-        displayItem.setSlides(cytologySample.getSlides());
-        cytologySample.getReports().size();
+        if (cytologySample.getSlides() != null) {
+            cytologySample.getSlides().size();
+            displayItem.setSlides(cytologySample.getSlides());
+        } else {
+            displayItem.setSlides(new ArrayList<>());
+        }
         if (cytologySample.getReports() != null) {
+            cytologySample.getReports().size();
             displayItem.setReports(cytologySample.getReports());
+        } else {
+            displayItem.setReports(new ArrayList<>());
         }
         if (cytologySample.getSpecimenAdequacy() != null) {
             CytologyCaseViewDisplayItem.SpecimenAdequacy adquecy = new CytologyCaseViewDisplayItem.SpecimenAdequacy();
@@ -125,6 +131,28 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
         displayItem.setRequester(sampleItem.getProviderLastName() + " " + sampleItem.getProviderFirstName());
         displayItem.setAge(DateUtil.getCurrentAgeForDate(patient.getBirthDate(), DateUtil.getNowAsTimestamp()));
         displayItem.setSex(patient.getGender());
+        displayItem.setSubtype(cytologySample.getSubtype());
+        displayItem.setCollectionDate(cytologySample.getSample().getCollectionDate());
+        displayItem.setCollectionSite(cytologySample.getCollectionSite());
+        displayItem.setCollectionNotes(cytologySample.getCollectionNotes());
+        displayItem.setCollectionConfirmedAt(cytologySample.getCollectionConfirmedAt());
+        displayItem.setRadiologyReference(cytologySample.getRadiologyReference());
+        displayItem.setRoseAdequate(cytologySample.getRoseAdequate());
+        displayItem.setLastMenstrualPeriod(cytologySample.getLastMenstrualPeriod());
+        displayItem.setPreviousPapResult(cytologySample.getPreviousPapResult());
+        displayItem.setFixationMethod(cytologySample.getFixationMethod());
+        displayItem.setFluidVolume(cytologySample.getFluidVolume());
+        displayItem.setFluidClarity(cytologySample.getFluidClarity());
+        displayItem.setRejectionReason(cytologySample.getRejectionReason());
+        displayItem.setCellBlockCentrifugedAt(cytologySample.getCellBlockCentrifugedAt());
+        displayItem.setCellBlockPreparedAt(cytologySample.getCellBlockPreparedAt());
+        displayItem.setCellBlockSlideAt(cytologySample.getCellBlockSlideAt());
+        displayItem.setMicroscopyExam(cytologySample.getMicroscopyExam());
+        displayItem.setConclusion(cytologySample.getConclusion());
+        displayItem.setConclusionText(cytologySample.getConclusionText());
+        displayItem.setRepeatRequestedAt(cytologySample.getRepeatRequestedAt());
+        displayItem.setSecondOpinionRequestedAt(cytologySample.getSecondOpinionRequestedAt());
+        displayItem.setIhcOrderedAt(cytologySample.getIhcOrderedAt());
         return displayItem;
     }
 
@@ -146,6 +174,7 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
         displayItem.setLastName(patient.getPerson().getLastName());
         displayItem.setLabNumber(cytologySample.getSample().getAccessionNumber());
         displayItem.setPathologySampleId(cytologySample.getId());
+        displayItem.setSubtype(cytologySample.getSubtype());
         return displayItem;
     }
 

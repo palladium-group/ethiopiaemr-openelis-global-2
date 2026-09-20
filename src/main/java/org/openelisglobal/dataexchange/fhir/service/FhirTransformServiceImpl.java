@@ -1452,6 +1452,10 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     private static final String OM_PATH_CONCLUSION_UUID = "c4000001-4444-4a2b-8c3d-0e1f2a3b4c01";
     private static final String OM_PATH_CONCLUSION_TEXT_UUID = "c4000003-4444-4a2b-8c3d-0e1f2a3b4c03";
     private static final String OM_PATH_MICROSCOPIC_UUID = "c4000004-4444-4a2b-8c3d-0e1f2a3b4c04";
+    // OpenMRS Cytology Result Form member concept UUIDs.
+    private static final String OM_CYTO_CONCLUSION_UUID = "c4000002-4444-4a2b-8c3d-0e1f2a3b4c02";
+    private static final String OM_CYTO_CONCLUSION_TEXT_UUID = "c4000005-4444-4a2b-8c3d-0e1f2a3b4c05";
+    private static final String OM_CYTO_MICROSCOPIC_UUID = "c4000006-4444-4a2b-8c3d-0e1f2a3b4c06";
 
     @Async
     @Override
@@ -1492,8 +1496,13 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             this.addToOperations(fhirOperations, tempIdGenerator, serviceRequest);
             if (statusService.matches(analysis.getStatusId(), AnalysisStatus.Finalized)) {
                 DiagnosticReport diagnosticReport = this.transformResultToDiagnosticReport(analysis.getId());
-                attachPathologyResultFormObservations(diagnosticReport, analysis, microscopicFinding, conclusionText,
-                        conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                if (isCytologyAnalysis(analysis)) {
+                    attachCytologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
+                            conclusionText, conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                } else {
+                    attachPathologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
+                            conclusionText, conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                }
                 this.addToOperations(fhirOperations, tempIdGenerator, diagnosticReport);
             }
         }
@@ -1614,6 +1623,38 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         diagnosticReport.setCode(transformTestToCodeableConcept(test.getId()));
 
         return diagnosticReport;
+    }
+
+    private boolean isCytologyAnalysis(Analysis analysis) {
+        return analysis != null && analysis.getTestSection() != null
+                && "Cytology".equalsIgnoreCase(analysis.getTestSection().getTestSectionName());
+    }
+
+    /**
+     * Adds OpenMRS Cytology Result Form Observations onto the DiagnosticReport so labonfhir imports
+     * conclusion / conclusion text / microscopic finding by concept UUID.
+     */
+    private void attachCytologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
+            String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds,
+            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+        if (diagnosticReport == null || analysis == null) {
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(microscopicFinding) && GenericValidator.isBlankOrNull(conclusionText)
+                && (conclusionDictionaryIds == null || conclusionDictionaryIds.isEmpty())) {
+            return;
+        }
+
+        SampleItem sampleItem = analysis.getSampleItem();
+        Patient patient = sampleHumanService.getPatientForSample(sampleItem.getSample());
+        String codedConclusion = formatCodedPathologyConclusions(conclusionDictionaryIds);
+
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_CONCLUSION_UUID,
+                "Cytology conclusion", codedConclusion, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_CONCLUSION_TEXT_UUID,
+                "Cytology conclusion text", conclusionText, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_MICROSCOPIC_UUID,
+                "Cytology microscopic finding", microscopicFinding, fhirOperations, tempIdGenerator);
     }
 
     /**

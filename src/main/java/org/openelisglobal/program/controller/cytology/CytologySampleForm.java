@@ -28,6 +28,23 @@ public class CytologySampleForm {
 
     private List<CytologyReportForm> reports;
 
+    // Collection / The read (workflow rail)
+    private String collectionSite;
+    private String collectionNotes;
+    private String radiologyReference;
+    private Boolean roseAdequate;
+    private String lastMenstrualPeriod;
+    private String previousPapResult;
+    private String fixationMethod;
+    private String fluidVolume;
+    private String fluidClarity;
+    private String rejectionReason;
+    private String microscopyExam;
+    private String conclusion;
+    private String conclusionText;
+    /** Fluid cell-block checklist: centrifuge | prepare | slide */
+    private String cellBlockStep;
+
     public CytologyStatus getStatus() {
         return status;
     }
@@ -98,6 +115,118 @@ public class CytologySampleForm {
 
     public void setReports(List<CytologyReportForm> reports) {
         this.reports = reports;
+    }
+
+    public String getCollectionSite() {
+        return collectionSite;
+    }
+
+    public void setCollectionSite(String collectionSite) {
+        this.collectionSite = collectionSite;
+    }
+
+    public String getCollectionNotes() {
+        return collectionNotes;
+    }
+
+    public void setCollectionNotes(String collectionNotes) {
+        this.collectionNotes = collectionNotes;
+    }
+
+    public String getRadiologyReference() {
+        return radiologyReference;
+    }
+
+    public void setRadiologyReference(String radiologyReference) {
+        this.radiologyReference = radiologyReference;
+    }
+
+    public Boolean getRoseAdequate() {
+        return roseAdequate;
+    }
+
+    public void setRoseAdequate(Boolean roseAdequate) {
+        this.roseAdequate = roseAdequate;
+    }
+
+    public String getLastMenstrualPeriod() {
+        return lastMenstrualPeriod;
+    }
+
+    public void setLastMenstrualPeriod(String lastMenstrualPeriod) {
+        this.lastMenstrualPeriod = lastMenstrualPeriod;
+    }
+
+    public String getPreviousPapResult() {
+        return previousPapResult;
+    }
+
+    public void setPreviousPapResult(String previousPapResult) {
+        this.previousPapResult = previousPapResult;
+    }
+
+    public String getFixationMethod() {
+        return fixationMethod;
+    }
+
+    public void setFixationMethod(String fixationMethod) {
+        this.fixationMethod = fixationMethod;
+    }
+
+    public String getFluidVolume() {
+        return fluidVolume;
+    }
+
+    public void setFluidVolume(String fluidVolume) {
+        this.fluidVolume = fluidVolume;
+    }
+
+    public String getFluidClarity() {
+        return fluidClarity;
+    }
+
+    public void setFluidClarity(String fluidClarity) {
+        this.fluidClarity = fluidClarity;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public String getMicroscopyExam() {
+        return microscopyExam;
+    }
+
+    public void setMicroscopyExam(String microscopyExam) {
+        this.microscopyExam = microscopyExam;
+    }
+
+    public String getConclusion() {
+        return conclusion;
+    }
+
+    public void setConclusion(String conclusion) {
+        this.conclusion = conclusion;
+    }
+
+    public String getConclusionText() {
+        return conclusionText;
+    }
+
+    public void setConclusionText(String conclusionText) {
+        this.conclusionText = conclusionText;
+    }
+
+    public String getCellBlockStep() {
+        return cellBlockStep;
+    }
+
+    public void setCellBlockStep(String cellBlockStep) {
+        this.cellBlockStep = cellBlockStep;
     }
 
     public static class CytologySlideForm extends CytologySlide {

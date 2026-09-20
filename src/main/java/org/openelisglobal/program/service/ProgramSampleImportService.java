@@ -36,4 +36,15 @@ public interface ProgramSampleImportService {
     void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
             Provider requestingProvider);
+
+    /**
+     * Same as {@link #createProgramSampleFromImport}, plus the ordering system's sample-type text
+     * (e.g. "FNAC", "Pap smear"). Cytopathology uses it to pick the case subtype, which decides which
+     * Collection / read slots the shared case page shows. Ignored by the other programs.
+     *
+     * @param programSubtypeText the order form's sample type, or null when the order carried none
+     */
+    void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
+            OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
+            Provider requestingProvider, String programSubtypeText);
 }
