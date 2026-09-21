@@ -1,10 +1,6 @@
 # pull official base image
 FROM node:20.20-alpine
 
-RUN apk update; \
-    apk upgrade; \
-    apk add bash
-
 # set working directory
 WORKDIR /app
 
