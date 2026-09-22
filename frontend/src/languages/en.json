@@ -894,6 +894,7 @@
   "cytology.label.otherResult": " Other Diagnosis Result",
   "cytology.label.reactive": "Reactive cellular changes",
   "cytology.label.review": "Awaiting Cytopathologist Review",
+  "cytology.label.assignCytopathologist": "Assign cytopathologist…",
   "cytology.label.specimen": "Specimen Adequacy",
   "cytology.label.squamous": "Squamous",
   "cytology.label.title": "Cytology",

@@ -106,9 +106,10 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Transactional
     @Override
-    public void assignTechnician(Integer cytologySampleId, SystemUser systemUser) {
+    public void assignTechnician(Integer cytologySampleId, SystemUser systemUser, String curUserId) {
         CytologySample cytologySample = get(cytologySampleId);
         cytologySample.setTechnician(systemUser);
+        cytologySample.setSysUserId(curUserId);
         update(cytologySample);
     }
 
@@ -138,10 +139,43 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Transactional
     @Override
-    public void assignCytoPathologist(Integer cytologySampleId, SystemUser systemUser) {
+    public void assignCytoPathologist(Integer cytologySampleId, SystemUser systemUser, String curUserId) {
         CytologySample cytologySample = get(cytologySampleId);
         cytologySample.setCytoPathologist(systemUser);
+        cytologySample.setSysUserId(curUserId);
         update(cytologySample);
+    }
+
+    @Override
+    public Long getCountUnassigned() {
+        return baseObjectDAO.getCountUnassigned();
+    }
+
+    @Override
+    public List<CytologySample> searchUnassigned(String searchTerm) {
+        List<CytologySample> cytologySamples = baseObjectDAO.getUnassigned();
+        if (StringUtils.isNotBlank(searchTerm)) {
+            Sample sample = sampleService.getSampleByAccessionNumber(searchTerm);
+            if (sample != null) {
+                cytologySamples = baseObjectDAO.searchUnassignedWithAccessionNumber(searchTerm);
+            } else {
+                List<CytologySample> filtered = new ArrayList<>();
+                cytologySamples.forEach(cytologySample -> {
+                    Patient patient = sampleService.getPatient(cytologySample.getSample());
+                    if (patient.getPerson().getFirstName().equals(searchTerm)
+                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                        filtered.add(cytologySample);
+                    }
+                });
+                cytologySamples = filtered;
+            }
+        }
+        return cytologySamples;
+    }
+
+    @Override
+    public Long getOpenCaseloadForCytoPathologist(String cytoPathologistId) {
+        return baseObjectDAO.getOpenCaseloadForCytoPathologist(cytoPathologistId);
     }
 
     @Override

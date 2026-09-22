@@ -894,6 +894,7 @@
   "cytology.label.otherResult": "Autre Résultat de Diagnostic",
   "cytology.label.reactive": "Modifications Cellulaires Réactives",
   "cytology.label.review": "En attente de révision cytopathologique",
+  "cytology.label.assignCytopathologist": "Assigner un cytopathologiste…",
   "cytology.label.specimen": "Aptitude de l'Échantillon",
   "cytology.label.squamous": "Épidermoïde",
   "cytology.label.title": "Cytologie",

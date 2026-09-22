@@ -13,11 +13,18 @@ public interface CytologySampleService extends BaseObjectService<CytologySample,
 
     List<CytologySample> searchWithStatusAndTerm(List<CytologyStatus> statuses, String searchTerm);
 
-    void assignTechnician(Integer cytologySampleId, SystemUser systemUser);
+    void assignTechnician(Integer cytologySampleId, SystemUser systemUser, String curUserId);
 
-    void assignCytoPathologist(Integer cytologySampleId, SystemUser systemUser);
+    void assignCytoPathologist(Integer cytologySampleId, SystemUser systemUser, String curUserId);
 
     Long getCountWithStatus(List<CytologyStatus> statuses);
+
+    Long getCountUnassigned();
+
+    /** Open cases with no cytopathologist (Reception unassigned queue list). */
+    List<CytologySample> searchUnassigned(String searchTerm);
+
+    Long getOpenCaseloadForCytoPathologist(String cytoPathologistId);
 
     Long getCountWithStatusBetweenDates(List<CytologyStatus> statuses, Timestamp from, Timestamp to);
 

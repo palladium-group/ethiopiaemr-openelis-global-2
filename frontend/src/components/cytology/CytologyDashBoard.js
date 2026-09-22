@@ -40,14 +40,17 @@ function CytologyDashboard() {
   const { userSessionDetails } = useContext(UserSessionDetailsContext);
   const [statuses, setStatuses] = useState([]);
   const [pathologyEntries, setPathologyEntries] = useState([]);
+  const [cytopathologists, setCytopathologists] = useState([]);
   const [filters, setFilters] = useState({
     searchTerm: "",
     myCases: false,
-    statuses: [{}],
+    unassignedOnly: true,
+    statuses: [],
   });
   const [inProgressStatuses, setInProgressStatuses] = useState([]);
 
   const [counts, setCounts] = useState({
+    unassigned: 0,
     inProgress: 0,
     awaitingReview: 0,
     complete: 0,
@@ -56,15 +59,12 @@ function CytologyDashboard() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const intl = useIntl();
-  const [inProgressStatusObjects, setInProgressStatusObjects] = useState(
-    inProgressStatuses.map((statusId) => ({ id: statusId })),
-  );
+  const [inProgressStatusObjects, setInProgressStatusObjects] = useState([]);
+
   const setStatusList = (statusList) => {
     if (componentMounted.current) {
-      // Set all statuses
       setStatuses(statusList);
 
-      // In-progress excludes terminal statuses (COMPLETED, REJECTED)
       const filteredStatuses = statusList
         .filter(
           (status) =>
@@ -73,36 +73,47 @@ function CytologyDashboard() {
         .map((status) => status.id);
 
       setInProgressStatuses(filteredStatuses);
-
-      // Update the inProgressStatusObjects state
       setInProgressStatusObjects(
         filteredStatuses.map((statusId) => ({ id: statusId })),
       );
-
-      // Set filters using the updated state
-      setFilters((prev) => ({
-        ...prev,
-        statuses: filteredStatuses.map((statusId) => ({ id: statusId })),
-      }));
     }
   };
 
-  const assignCurrentUserAsTechnician = (event, pathologySampleId) => {
+  const assignCytoPathologist = (event, cytologySampleId, pathologistId) => {
+    event.stopPropagation();
+    if (!pathologistId) {
+      return;
+    }
     postToOpenElisServerFullResponse(
-      "/rest/cytology/assignTechnician?cytologySampleId=" + pathologySampleId,
+      "/rest/cytology/assignCytoPathologist?cytologySampleId=" +
+        cytologySampleId +
+        "&pathologistId=" +
+        encodeURIComponent(pathologistId),
       {},
-      refreshItems,
+      () => {
+        refreshItems();
+        refreshCounts();
+        getFromOpenElisServer(
+          "/rest/cytology/cytopathologists",
+          setCytopathologistsList,
+        );
+      },
     );
   };
 
-  const assignCurrentUserAsPathologist = (event, pathologySampleId) => {
+  const assignCurrentUserAsPathologist = (event, cytologySampleId) => {
+    event.stopPropagation();
     postToOpenElisServerFullResponse(
       "/rest/cytology/assignCytoPathologist?cytologySampleId=" +
-        pathologySampleId,
+        cytologySampleId,
       {},
-      refreshItems,
+      () => {
+        refreshItems();
+        refreshCounts();
+      },
     );
   };
+
   const handlePageChange = (pageInfo) => {
     if (page != pageInfo.page) {
       setPage(pageInfo.page);
@@ -115,43 +126,58 @@ function CytologyDashboard() {
 
   const renderCell = (cell, row) => {
     var status = row.cells.find((e) => e.info.header === "status").value;
-    var pathologySampleId = row.id;
+    var cytologySampleId = row.id;
+    var assignedCytoPathologist = row.cells.find(
+      (e) => e.info.header === "assignedCytoPathologist",
+    )?.value;
 
-    if (cell.info.header === "assignedTechnician" && !cell.value) {
+    if (cell.info.header === "assignedCytoPathologist" && !assignedCytoPathologist) {
       return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsTechnician(e, pathologySampleId);
-            }}
+        <TableCell key={cell.id} onClick={(e) => e.stopPropagation()}>
+          <Select
+            id={"assign-cytopathologist-" + cytologySampleId}
+            labelText=""
+            hideLabel
+            size="sm"
+            defaultValue=""
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) =>
+              assignCytoPathologist(e, cytologySampleId, e.target.value)
+            }
           >
-            <FormattedMessage id="label.button.start" />
-          </Button>
+            <SelectItem
+              value=""
+              text={intl.formatMessage({
+                id: "cytology.label.assignCytopathologist",
+              })}
+            />
+            {cytopathologists.map((p) => (
+              <SelectItem
+                key={p.id}
+                value={p.id}
+                text={`${p.value} (${p.openCaseload ?? 0})`}
+              />
+            ))}
+          </Select>
+          {status === "READY_FOR_CYTOPATHOLOGIST" &&
+            hasRole(userSessionDetails, "Cytopathologist") && (
+              <Button
+                type="button"
+                size="sm"
+                kind="ghost"
+                className="assign-self-button"
+                onClick={(e) =>
+                  assignCurrentUserAsPathologist(e, cytologySampleId)
+                }
+              >
+                <FormattedMessage id="label.button.start" />
+              </Button>
+            )}
         </TableCell>
       );
     }
-    if (
-      cell.info.header === "assignedCytoPathologist" &&
-      !cell.value &&
-      status === "READY_FOR_CYTOPATHOLOGIST" &&
-      hasRole(userSessionDetails, "Cytopathologist")
-    ) {
-      return (
-        <TableCell key={cell.id}>
-          <Button
-            type="button"
-            onClick={(e) => {
-              assignCurrentUserAsPathologist(e, pathologySampleId);
-            }}
-          >
-            <FormattedMessage id="label.button.start" />
-          </Button>
-        </TableCell>
-      );
-    } else {
-      return <TableCell key={cell.id}>{cell.value}</TableCell>;
-    }
+
+    return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
   const setPathologyEntriesWithIds = (entries) => {
@@ -169,31 +195,61 @@ function CytologyDashboard() {
     }
   };
 
+  const setCytopathologistsList = (list) => {
+    if (componentMounted.current && Array.isArray(list)) {
+      setCytopathologists(list);
+    }
+  };
+
   const setStatusFilter = (event) => {
     const { value } = event.target;
 
-    if (value === "All") {
-      setFilters({ ...filters, statuses: statuses });
+    if (value === "UNASSIGNED") {
+      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
+    } else if (value === "All") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: statuses.map((s) => ({ id: s.id })),
+      });
     } else if (value === "IN_PROGRESS") {
-      setFilters({ ...filters, statuses: inProgressStatusObjects });
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: inProgressStatusObjects,
+      });
     } else {
-      setFilters({ ...filters, statuses: [{ id: value }] });
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: value }],
+      });
     }
   };
 
   const getSelectedValue = () => {
-    const selectedValue =
+    if (filters.unassignedOnly) {
+      return "UNASSIGNED";
+    }
+    if (
       filters.statuses.length === inProgressStatuses.length &&
       filters.statuses.every((status) => inProgressStatuses.includes(status.id))
-        ? "IN_PROGRESS"
-        : filters.statuses.length > 1
-          ? "All"
-          : filters.statuses[0].id;
-
-    return selectedValue;
+    ) {
+      return "IN_PROGRESS";
+    }
+    if (filters.statuses.length > 1) {
+      return "All";
+    }
+    return filters.statuses[0]?.id || "UNASSIGNED";
   };
 
   const filtersToParameters = () => {
+    if (filters.unassignedOnly) {
+      return (
+        "unassigned=true&searchTerm=" +
+        encodeURIComponent(filters.searchTerm || "")
+      );
+    }
     return (
       "statuses=" +
       filters.statuses
@@ -202,7 +258,7 @@ function CytologyDashboard() {
         })
         .join(",") +
       "&searchTerm=" +
-      filters.searchTerm
+      encodeURIComponent(filters.searchTerm || "")
     );
   };
 
@@ -213,6 +269,10 @@ function CytologyDashboard() {
     );
   };
 
+  const refreshCounts = () => {
+    getFromOpenElisServer("/rest/cytology/dashboard/count", loadCounts);
+  };
+
   const openCaseView = (id) => {
     window.location.href = "/CytologyCaseView/" + id;
   };
@@ -220,7 +280,11 @@ function CytologyDashboard() {
   useEffect(() => {
     componentMounted.current = true;
     getFromOpenElisServer("/rest/displayList/CYTOLOGY_STATUS", setStatusList);
-    getFromOpenElisServer("/rest/cytology/dashboard/count", loadCounts);
+    getFromOpenElisServer(
+      "/rest/cytology/cytopathologists",
+      setCytopathologistsList,
+    );
+    refreshCounts();
 
     return () => {
       componentMounted.current = false;
@@ -228,28 +292,27 @@ function CytologyDashboard() {
   }, []);
 
   const loadCounts = (data) => {
-    setCounts(data);
+    if (componentMounted.current && data) {
+      setCounts({
+        unassigned: data?.unassigned ?? 0,
+        inProgress: data?.inProgress ?? 0,
+        awaitingReview: data?.awaitingReview ?? 0,
+        complete: data?.complete ?? 0,
+      });
+    }
   };
 
   function formatDateToDDMMYYYY(date) {
     var day = date.getDate();
-    var month = date.getMonth() + 1; // Month is zero-based
+    var month = date.getMonth() + 1;
     var year = date.getFullYear();
-
-    // Ensure leading zeros for single-digit day and month
     var formattedDay = (day < 10 ? "0" : "") + day;
     var formattedMonth = (month < 10 ? "0" : "") + month;
-
-    // Construct the formatted string
-    var formattedDate = formattedDay + "/" + formattedMonth + "/" + year;
-    return formattedDate;
+    return formattedDay + "/" + formattedMonth + "/" + year;
   }
 
   const getPastWeek = () => {
-    // Get the current date
     var currentDate = new Date();
-
-    // Calculate the date of the past week
     var pastWeekDate = new Date(currentDate);
     pastWeekDate.setDate(currentDate.getDate() - 7);
 
@@ -262,22 +325,58 @@ function CytologyDashboard() {
 
   const tileList = [
     {
+      key: "unassigned",
+      title: intl.formatMessage({ id: "pathology.label.unassigned" }),
+      count: counts.unassigned,
+      className: "dashboard-tile unassigned-tile",
+    },
+    {
+      key: "inProgress",
       title: intl.formatMessage({ id: "pathology.label.casesInProgress" }),
       count: counts.inProgress,
+      className: "dashboard-tile",
     },
     {
+      key: "awaitingReview",
       title: intl.formatMessage({ id: "cytology.label.review" }),
       count: counts.awaitingReview,
+      className: "dashboard-tile",
     },
     {
+      key: "complete",
       title:
         intl.formatMessage({ id: "pathology.label.complete" }) +
         "(Week " +
         getPastWeek() +
         " )",
       count: counts.complete,
+      className: "dashboard-tile",
     },
   ];
+
+  const selectTile = (tileKey) => {
+    if (tileKey === "unassigned") {
+      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
+    } else if (tileKey === "inProgress") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: inProgressStatusObjects,
+      });
+    } else if (tileKey === "awaitingReview") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: "READY_FOR_CYTOPATHOLOGIST" }],
+      });
+    } else if (tileKey === "complete") {
+      setFilters({
+        ...filters,
+        unassignedOnly: false,
+        statuses: [{ id: "COMPLETED" }],
+      });
+    }
+  };
 
   useEffect(() => {
     componentMounted.current = true;
@@ -308,8 +407,12 @@ function CytologyDashboard() {
         </Column>
       </Grid>
       <div className="dashboard-container">
-        {tileList.map((tile, index) => (
-          <Tile key={index} className="dashboard-tile">
+        {tileList.map((tile) => (
+          <Tile
+            key={tile.key}
+            className={tile.className}
+            onClick={() => selectTile(tile.key)}
+          >
             <h3 className="tile-title">{tile.title}</h3>
             <p className="tile-value">{tile.count}</p>
           </Tile>
@@ -354,6 +457,10 @@ function CytologyDashboard() {
                 noLabel
               >
                 <SelectItem disabled value="placeholder" text="Status" />
+                <SelectItem
+                  text={intl.formatMessage({ id: "pathology.label.unassigned" })}
+                  value="UNASSIGNED"
+                />
                 <SelectItem text="All" value="All" />
                 <SelectItem text="In Progress" value="IN_PROGRESS" />
                 {statuses.map((status, index) => (
@@ -392,9 +499,7 @@ function CytologyDashboard() {
                 },
                 {
                   key: "assignedTechnician",
-                  header: intl.formatMessage({
-                    id: "label.button.select.technician",
-                  }),
+                  header: intl.formatMessage({ id: "assigned.technician.label" }),
                 },
                 {
                   key: "assignedCytoPathologist",

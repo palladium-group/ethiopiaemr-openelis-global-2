@@ -607,9 +607,9 @@ function CytologyCaseWorkflowRail({
       )}
 
       {editable && (
-        <div className="pathology-grossing-footer">
+        <>
           {isFluid && (
-            <>
+            <div className="pathology-collection-reject-block">
               {renderField(
                 "cyto-rejection-reason",
                 "cytology.workflow.rejectionReason",
@@ -618,25 +618,29 @@ function CytologyCaseWorkflowRail({
                 true,
                 false,
               )}
+            </div>
+          )}
+          <div className="pathology-grossing-footer pathology-collection-actions">
+            {isFluid && (
               <button
                 type="button"
-                className="pathology-btn pathology-btn--ghost"
+                className="pathology-btn pathology-btn--danger"
                 disabled={rejecting || confirming}
                 onClick={rejectCollection}
               >
                 <FormattedMessage id="cytology.workflow.rejectCollection" />
               </button>
-            </>
-          )}
-          <button
-            type="button"
-            className="pathology-btn pathology-btn--primary"
-            disabled={confirming || rejecting}
-            onClick={confirmCollection}
-          >
-            <FormattedMessage id="cytology.workflow.confirmCollection" />
-          </button>
-        </div>
+            )}
+            <button
+              type="button"
+              className="pathology-btn pathology-btn--primary"
+              disabled={confirming || rejecting}
+              onClick={confirmCollection}
+            >
+              <FormattedMessage id="cytology.workflow.confirmCollection" />
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

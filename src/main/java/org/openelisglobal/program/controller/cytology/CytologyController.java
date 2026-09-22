@@ -9,12 +9,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.program.bean.CytologyDashBoardCount;
+import org.openelisglobal.program.bean.PathologyPathologistOption;
 import org.openelisglobal.program.service.cytology.CytologyDisplayService;
 import org.openelisglobal.program.service.cytology.CytologySampleService;
 import org.openelisglobal.program.valueholder.cytology.CytologyCaseViewDisplayItem;
 import org.openelisglobal.program.valueholder.cytology.CytologyDisplayItem;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 import org.openelisglobal.systemuser.service.SystemUserService;
+import org.openelisglobal.systemuser.valueholder.SystemUser;
+import org.openelisglobal.userrole.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CytologyController extends BaseRestController {
 
+    private static final String ROLE_CYTOPATHOLOGIST = "Cytopathologist";
+
     @Autowired
     private CytologySampleService cytologySampleService;
 
@@ -38,11 +43,23 @@ public class CytologyController extends BaseRestController {
     @Autowired
     private SystemUserService systemUserService;
 
+    @Autowired
+    private UserRoleService userRoleService;
+
     @GetMapping(value = "/rest/cytology/dashboard", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public List<CytologyDisplayItem> getFilteredCytologyEntries(@RequestParam(required = false) String searchTerm,
-            @RequestParam CytologyStatus... statuses) {
-
+    public List<CytologyDisplayItem> getFilteredCytologyEntries(
+            @RequestParam(value = "searchTerm", required = false) String searchTerm,
+            @RequestParam(value = "unassigned", required = false, defaultValue = "false") boolean unassigned,
+            @RequestParam(value = "statuses", required = false) CytologyStatus... statuses) {
+        // Unassigned = no cytopathologist. Assignment does not change status.
+        if (unassigned) {
+            return cytologySampleService.searchUnassigned(searchTerm).stream()
+                    .map(e -> cytologyDisplayService.convertToDisplayItem(e.getId())).collect(Collectors.toList());
+        }
+        if (statuses == null || statuses.length == 0) {
+            return List.of();
+        }
         return cytologySampleService.searchWithStatusAndTerm(Arrays.asList(statuses), searchTerm).stream()
                 .map(e -> cytologyDisplayService.convertToDisplayItem(e.getId())).collect(Collectors.toList());
     }
@@ -51,6 +68,7 @@ public class CytologyController extends BaseRestController {
     @ResponseBody
     public ResponseEntity<CytologyDashBoardCount> getCytologyDashBoardMetrics() {
         CytologyDashBoardCount count = new CytologyDashBoardCount();
+        count.setUnassigned(cytologySampleService.getCountUnassigned());
         count.setInProgress(cytologySampleService.getCountWithStatus(Arrays.asList(CytologyStatus.RECEIVED,
                 CytologyStatus.CELL_BLOCK, CytologyStatus.STAINING, CytologyStatus.PREPARING_SLIDES,
                 CytologyStatus.SCREENING)));
@@ -65,20 +83,43 @@ public class CytologyController extends BaseRestController {
         return ResponseEntity.ok(count);
     }
 
+    /**
+     * Cytopathologists available for Reception assignment, each with open caseload count.
+     */
+    @GetMapping(value = "/rest/cytology/cytopathologists", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<PathologyPathologistOption> getCytoPathologistsWithCaseload() {
+        List<SystemUser> users = systemUserService.getAllSystemUsers();
+        return users.stream().filter(u -> userRoleService.userInRole(u.getId(), ROLE_CYTOPATHOLOGIST)).map(u -> {
+            Long caseload = cytologySampleService.getOpenCaseloadForCytoPathologist(u.getId());
+            return new PathologyPathologistOption(u.getId(), u.getDisplayName(), caseload == null ? 0L : caseload);
+        }).collect(Collectors.toList());
+    }
+
     @PostMapping(value = "/rest/cytology/assignTechnician", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<String> assignTechnician(@RequestParam Integer cytologySampleId, HttpServletRequest request) {
         String currentUserId = getSysUserId(request);
-        cytologySampleService.assignTechnician(cytologySampleId, systemUserService.get(currentUserId));
+        cytologySampleService.assignTechnician(cytologySampleId, systemUserService.get(currentUserId), currentUserId);
         return ResponseEntity.ok("ok");
     }
 
+    /**
+     * Assign a cytopathologist to a case. When {@code pathologistId} is omitted, assigns the current
+     * user (legacy self-claim). Reception passes an explicit pathologistId from the dashboard dropdown.
+     */
     @PostMapping(value = "/rest/cytology/assignCytoPathologist", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<String> assignPathologist(@RequestParam Integer cytologySampleId,
+            @RequestParam(value = "pathologistId", required = false) String pathologistId,
             HttpServletRequest request) {
         String currentUserId = getSysUserId(request);
-        cytologySampleService.assignCytoPathologist(cytologySampleId, systemUserService.get(currentUserId));
+        String assigneeId = (pathologistId != null && !pathologistId.isBlank()) ? pathologistId : currentUserId;
+        SystemUser pathologist = systemUserService.get(assigneeId);
+        if (pathologist == null) {
+            return ResponseEntity.badRequest().body("unknown cytopathologist");
+        }
+        cytologySampleService.assignCytoPathologist(cytologySampleId, pathologist, currentUserId);
         return ResponseEntity.ok("ok");
     }
 

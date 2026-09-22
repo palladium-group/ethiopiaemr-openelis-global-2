@@ -1,11 +1,22 @@
 package org.openelisglobal.program.bean;
 
 public class CytologyDashBoardCount {
+    /** Cases with no cytopathologist assigned. */
+    Long unassigned;
+
     Long inProgress;
 
     Long awaitingReview;
 
     Long complete;
+
+    public Long getUnassigned() {
+        return unassigned;
+    }
+
+    public void setUnassigned(Long unassigned) {
+        this.unassigned = unassigned;
+    }
 
     public Long getInProgress() {
         return inProgress;

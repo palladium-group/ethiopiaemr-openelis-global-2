@@ -434,6 +434,18 @@
   border-color: var(--path-teal-dark);
 }
 
+.pathology-btn--danger {
+  background: #ffffff;
+  border-color: #da1e28;
+  color: #da1e28;
+}
+
+.pathology-btn--danger:hover:not(:disabled) {
+  background: #fff1f1;
+  border-color: #a2191f;
+  color: #a2191f;
+}
+
 .pathology-btn--sm {
   padding: 0.45rem 0.85rem;
   font-size: 0.8rem;
@@ -540,7 +552,24 @@
 .pathology-grossing-footer {
   margin-top: 1.15rem;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.pathology-collection-reject-block {
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pathology-collection-actions {
+  margin-top: 0.85rem;
+}
+
+.pathology-collection-actions .pathology-btn {
+  min-width: 8.5rem;
 }
 
 .pathology-processing-card {
@@ -733,6 +762,15 @@
   }
 
   .pathology-container-card-actions .pathology-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .pathology-collection-actions {
+    width: 100%;
+  }
+
+  .pathology-collection-actions .pathology-btn {
     flex: 1 1 auto;
     text-align: center;
   }
