@@ -23,6 +23,9 @@ public class PathologyDisplayItem {
     /** Requesting physician from the order (read-only on Reception dashboard). */
     private String requester;
 
+    /** Clinical sample type for the case (e.g. Biopsy, Morphology), from the ordered test. */
+    private String subtype;
+
     public Date getRequestDate() {
         return requestDate;
     }
@@ -101,5 +104,13 @@ public class PathologyDisplayItem {
 
     public void setRequester(String requester) {
         this.requester = requester;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 }

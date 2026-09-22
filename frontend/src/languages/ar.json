@@ -1275,6 +1275,7 @@
   "label.existing.test.sets": "Existing test sets",
   "label.filters.mycases": "My cases",
   "label.filters.status": "Status",
+  "label.subtype": "النوع الفرعي",
   "label.form.searchby": "Search By",
   "label.import.errors": "Import Errors",
   "label.inactive": "Inactive",

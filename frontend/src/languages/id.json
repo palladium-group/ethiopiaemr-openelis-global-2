@@ -1275,6 +1275,7 @@
   "label.existing.test.sets": "Set pemeriksaan yang ada",
   "label.filters.mycases": "Kasus saya",
   "label.filters.status": "Status",
+  "label.subtype": "Subtype",
   "label.form.searchby": "Cari berdasarkan",
   "label.import.errors": "Error saat Impor",
   "label.inactive": "Inaktif",

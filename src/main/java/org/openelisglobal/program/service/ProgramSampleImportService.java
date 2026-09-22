@@ -38,9 +38,8 @@ public interface ProgramSampleImportService {
             Provider requestingProvider);
 
     /**
-     * Same as {@link #createProgramSampleFromImport}, plus the ordering system's sample-type text
-     * (e.g. "FNAC", "Pap smear"). Cytopathology uses it to pick the case subtype, which decides which
-     * Collection / read slots the shared case page shows. Ignored by the other programs.
+     * Same as {@link #createProgramSampleFromImport}, plus optional sample-type text from supportingInfo.
+     * Cytopathology prefers the ordered test LOINC for subtype; text is a fallback for older orders.
      *
      * @param programSubtypeText the order form's sample type, or null when the order carried none
      */

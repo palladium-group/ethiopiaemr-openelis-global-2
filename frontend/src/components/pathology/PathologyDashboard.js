@@ -509,6 +509,10 @@ function PathologyDashboard() {
                   header: <FormattedMessage id="pathology.label.stage" />,
                 },
                 {
+                  key: "subtype",
+                  header: <FormattedMessage id="label.subtype" />,
+                },
+                {
                   key: "lastName",
                   header: <FormattedMessage id="patient.last.name" />,
                 },

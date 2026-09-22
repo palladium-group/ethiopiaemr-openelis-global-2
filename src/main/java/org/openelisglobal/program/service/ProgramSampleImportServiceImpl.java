@@ -149,8 +149,9 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         sampleService.insertDataWithAccessionNumber(sample);
 
         // Program sample (e.g. PathologySample), linked to the already-imported
-        // questionnaire response
-        ProgramSample programSample = newProgramSampleForProgram(program, programSubtypeText);
+        // questionnaire response. Cytopathology subtype comes from the ordered test/LOINC
+        // (preferred) with sample-type text as a fallback for older orders.
+        ProgramSample programSample = newProgramSampleForProgram(program, test, programSubtypeText);
         programSample.setProgram(program);
         programSample.setSample(sample);
         programSample.setQuestionnaireResponseUuid(questionnaireResponseUuid);
@@ -234,10 +235,14 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
      * {@code programs/*.json} (PATH / IHC / CYTO) to the matching program-sample entity.
      */
     ProgramSample newProgramSampleForProgram(Program program) {
-        return newProgramSampleForProgram(program, null);
+        return newProgramSampleForProgram(program, null, null);
     }
 
     ProgramSample newProgramSampleForProgram(Program program, String programSubtypeText) {
+        return newProgramSampleForProgram(program, null, programSubtypeText);
+    }
+
+    ProgramSample newProgramSampleForProgram(Program program, Test test, String programSubtypeText) {
         // Use the stable program code from programs/*.json (PATH / IHC / CYTO), not the
         // display name — names can be renamed or localized and would silently fall through.
         String code = program.getCode() == null ? "" : program.getCode().trim();
@@ -251,7 +256,7 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         case "CYTO":
             CytologySample cytologySample = new CytologySample();
             cytologySample.setStatus(CytologySample.CytologyStatus.RECEIVED);
-            cytologySample.setSubtype(resolveCytologySubtype(programSubtypeText));
+            cytologySample.setSubtype(resolveCytologySubtype(test, programSubtypeText));
             return cytologySample;
         default:
             throw new IllegalStateException(
@@ -261,10 +266,41 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     }
 
     /**
-     * Maps the ordering system's sample-type text onto a cytopathology subtype. Unknown or missing
-     * text falls back to FNAC, the reference implementation all four tests vary from.
+     * Prefer the ordered test's LOINC (one TestOrder per cytopathology sample type). Fall back to
+     * sample-type text from supportingInfo for older orders that still share one LOINC.
      */
-    static CytologySample.CytologySubtype resolveCytologySubtype(String programSubtypeText) {
+    static CytologySample.CytologySubtype resolveCytologySubtype(Test test, String programSubtypeText) {
+        CytologySample.CytologySubtype fromLoinc = resolveCytologySubtypeFromLoinc(test == null ? null : test.getLoinc());
+        if (fromLoinc != null) {
+            return fromLoinc;
+        }
+        return resolveCytologySubtypeFromText(programSubtypeText);
+    }
+
+    /** Package-private for unit testing. */
+    static CytologySample.CytologySubtype resolveCytologySubtypeFromLoinc(String loinc) {
+        if (GenericValidator.isBlankOrNull(loinc)) {
+            return null;
+        }
+        switch (loinc.trim()) {
+        case "33716-2":
+            return CytologySample.CytologySubtype.FNAC;
+        case "97003-2":
+            return CytologySample.CytologySubtype.IMAGE_GUIDED_FNAC;
+        case "97004-0":
+            return CytologySample.CytologySubtype.FLUID;
+        case "10524-7":
+            return CytologySample.CytologySubtype.PAP_SMEAR;
+        default:
+            return null;
+        }
+    }
+
+    /**
+     * Maps the ordering system's sample-type text onto a cytopathology subtype. Unknown or missing
+     * text falls back to FNAC.
+     */
+    static CytologySample.CytologySubtype resolveCytologySubtypeFromText(String programSubtypeText) {
         if (GenericValidator.isBlankOrNull(programSubtypeText)) {
             return CytologySample.CytologySubtype.FNAC;
         }
@@ -279,6 +315,11 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
             return CytologySample.CytologySubtype.FLUID;
         }
         return CytologySample.CytologySubtype.FNAC;
+    }
+
+    /** @deprecated use {@link #resolveCytologySubtypeFromText(String)} */
+    static CytologySample.CytologySubtype resolveCytologySubtype(String programSubtypeText) {
+        return resolveCytologySubtypeFromText(programSubtypeText);
     }
 
     private void saveProgramSample(ProgramSample programSample) {

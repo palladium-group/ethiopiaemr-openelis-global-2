@@ -1275,6 +1275,7 @@
   "label.existing.test.sets": "现有检测集",
   "label.filters.mycases": "我的案例",
   "label.filters.status": "状态",
+  "label.subtype": "亚型",
   "label.form.searchby": "按...搜索",
   "label.import.errors": "导入错误",
   "label.inactive": "非活跃",

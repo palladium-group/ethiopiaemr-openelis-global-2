@@ -180,12 +180,29 @@ function CytologyDashboard() {
     return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
+  const formatCytologySubtype = (subtype) => {
+    if (!subtype) {
+      return "";
+    }
+    const labels = {
+      FNAC: "FNAC",
+      IMAGE_GUIDED_FNAC: "Image-guided FNAC",
+      PAP_SMEAR: "Pap smear",
+      FLUID: "Fluid cytology",
+    };
+    return labels[subtype] || subtype;
+  };
+
   const setPathologyEntriesWithIds = (entries) => {
     if (componentMounted.current) {
       if (entries && entries.length > 0) {
         setPathologyEntries(
           entries.map((entry) => {
-            return { ...entry, id: "" + entry.pathologySampleId };
+            return {
+              ...entry,
+              id: "" + entry.pathologySampleId,
+              subtype: formatCytologySubtype(entry.subtype),
+            };
           }),
         );
       } else {
@@ -488,6 +505,10 @@ function CytologyDashboard() {
                 {
                   key: "status",
                   header: intl.formatMessage({ id: "label.filters.status" }),
+                },
+                {
+                  key: "subtype",
+                  header: intl.formatMessage({ id: "label.subtype" }),
                 },
                 {
                   key: "lastName",

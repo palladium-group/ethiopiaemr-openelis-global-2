@@ -1275,6 +1275,7 @@
   "label.existing.test.sets": "Conjuntos de pruebas existentes",
   "label.filters.mycases": " Mis casos",
   "label.filters.status": "Estado",
+  "label.subtype": "Subtipo",
   "label.form.searchby": "Buscar por",
   "label.import.errors": "Import Errors",
   "label.inactive": "Inactive",

@@ -10,6 +10,8 @@ import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Questionnaire;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.openelisglobal.analysis.service.AnalysisService;
+import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.SampleOrderService;
 import org.openelisglobal.common.util.DateUtil;
@@ -35,6 +37,7 @@ import org.openelisglobal.sample.bean.SampleOrderItem;
 import org.openelisglobal.sample.service.SampleService;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
+import org.openelisglobal.test.valueholder.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +50,8 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     private SampleHumanService sampleHumanService;
     @Autowired
     private PathologySampleService pathologySampleService;
+    @Autowired
+    private AnalysisService analysisService;
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
@@ -78,8 +83,43 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setPathologySampleId(pathologySample.getId());
         displayItem.setPatientPK(patient.getId());
         displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtype(pathologySample.getSample()));
 
         return displayItem;
+    }
+
+    /**
+     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC 22637-3 is
+     * Morphology; everything else (including legacy Biopsy LOINC 11529-5) shows as Biopsy.
+     */
+    private String resolvePathologySubtype(Sample sample) {
+        if (sample == null || sample.getId() == null) {
+            return "Biopsy";
+        }
+        try {
+            java.util.List<Analysis> analyses = analysisService.getAnalysesBySampleId(sample.getId());
+            if (analyses != null) {
+                for (Analysis analysis : analyses) {
+                    Test test = analysis.getTest();
+                    if (test == null) {
+                        continue;
+                    }
+                    String loinc = test.getLoinc();
+                    if ("22637-3".equals(loinc != null ? loinc.trim() : null)) {
+                        return "Morphology";
+                    }
+                    String description = test.getDescription() != null ? test.getDescription().toLowerCase() : "";
+                    String name = test.getName() != null ? test.getName().toLowerCase() : "";
+                    if (description.contains("morphology") || name.contains("morphology")) {
+                        return "Morphology";
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolvePathologySubtype",
+                    "could not resolve pathology subtype for sample " + sample.getId() + ": " + e.getMessage());
+        }
+        return "Biopsy";
     }
 
     /**
@@ -279,6 +319,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
             }
         }
         displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtype(pathologySample.getSample()));
         displayItem.setAge(DateUtil.getCurrentAgeForDate(patient.getBirthDate(), DateUtil.getNowAsTimestamp()));
         displayItem.setSex(patient.getGender());
         if (pathologySample.getSample().getCollectionDate() != null) {
