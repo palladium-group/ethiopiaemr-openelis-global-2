@@ -1,6 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import {
-  Checkbox,
   Heading,
   Select,
   SelectItem,
@@ -19,9 +18,9 @@ import {
   Tile,
   Loading,
   Pagination,
+  Search,
 } from "@carbon/react";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
-import { Search } from "@carbon/react";
 import {
   getFromOpenElisServer,
   postToOpenElisServerFullResponse,
@@ -33,29 +32,60 @@ import { FormattedMessage, useIntl } from "react-intl";
 import "./PathologyDashboard.css";
 import PageBreadCrumb from "../common/PageBreadCrumb";
 
-function PathologyDashboard() {
-  const componentMounted = useRef(false);
+const HISTOPATHOLOGY = "PATH";
+const CYTOPATHOLOGY = "CYTO";
 
+/**
+ * Per-service-category wiring. Histopathology and cytopathology keep their own case views,
+ * assignment endpoints, specialist lists and review status — only the queue is shared.
+ */
+const CATEGORY_CONFIG = {
+  [HISTOPATHOLOGY]: {
+    filterValue: "HISTOPATHOLOGY",
+    caseViewPath: "/PathologyCaseView/",
+    specialistsUrl: "/rest/pathology/pathologists",
+    assignUrl: (caseId) =>
+      "/rest/pathology/assignPathologist?pathologySampleId=" + caseId,
+    reviewStatusCode: "READY_PATHOLOGIST",
+    specialistRole: "Pathologist",
+  },
+  [CYTOPATHOLOGY]: {
+    filterValue: "CYTOPATHOLOGY",
+    caseViewPath: "/CytologyCaseView/",
+    specialistsUrl: "/rest/cytology/cytopathologists",
+    assignUrl: (caseId) =>
+      "/rest/cytology/assignCytoPathologist?cytologySampleId=" + caseId,
+    reviewStatusCode: "READY_FOR_CYTOPATHOLOGIST",
+    specialistRole: "Cytopathologist",
+  },
+};
+
+/**
+ * One reception queue for every pathology service category. Rows carry their own category, so the
+ * table can mix histopathology and cytopathology cases while each one still opens its own case
+ * view and assigns its own kind of specialist.
+ */
+function PathologyReceptionDashboard() {
+  const componentMounted = useRef(false);
   const intl = useIntl();
 
   const { notificationVisible } = useContext(NotificationContext);
   const { userSessionDetails } = useContext(UserSessionDetailsContext);
 
-  const [statuses, setStatuses] = useState([]);
-  const [pathologyEntries, setPathologyEntries] = useState([]);
-  const [pathologists, setPathologists] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [specialists, setSpecialists] = useState({
+    [HISTOPATHOLOGY]: [],
+    [CYTOPATHOLOGY]: [],
+  });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     searchTerm: "",
-    myCases: false,
-    // Default Reception queue: no pathologist assigned (not merely RECEIVED status)
-    unassignedOnly: true,
-    statuses: [],
+    // Reception opens on the cases still needing a specialist, across both categories.
+    bucket: "UNASSIGNED",
+    serviceCategory: "ALL",
   });
-
-  const [inProgressStatuses, setInProgressStatuses] = useState([]);
-
   const [counts, setCounts] = useState({
     unassigned: 0,
     inProgress: 0,
@@ -63,58 +93,114 @@ function PathologyDashboard() {
     additionalRequests: 0,
     complete: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [inProgressStatusObjects, setInProgressStatusObjects] = useState([]);
-  const setStatusList = (statusList) => {
-    if (componentMounted.current) {
-      setStatuses(statusList);
 
-      const filteredStatuses = statusList
-        .filter(
-          (status) =>
-            status.id !== "COMPLETED" && status.id !== "RECEIVED",
-        )
-        .map((status) => status.id);
-
-      setInProgressStatuses(filteredStatuses);
-      setInProgressStatusObjects(
-        filteredStatuses.map((statusId) => ({ id: statusId })),
-      );
+  const categoryParameters = () => {
+    if (filters.serviceCategory === "ALL") {
+      return "";
     }
+    return "&serviceCategories=" + filters.serviceCategory;
   };
 
-  const assignPathologist = (event, pathologySampleId, pathologistId) => {
-    event.stopPropagation();
-    if (!pathologistId) {
-      return;
-    }
-    postToOpenElisServerFullResponse(
-      "/rest/pathology/assignPathologist?pathologySampleId=" +
-        pathologySampleId +
-        "&pathologistId=" +
-        encodeURIComponent(pathologistId),
-      {},
-      () => {
-        refreshItems();
-        refreshCounts();
-        getFromOpenElisServer(
-          "/rest/pathology/pathologists",
-          setPathologistsList,
-        );
-      },
+  const filtersToParameters = () => {
+    return (
+      "bucket=" +
+      filters.bucket +
+      "&searchTerm=" +
+      encodeURIComponent(filters.searchTerm || "") +
+      categoryParameters()
     );
   };
 
-  const assignCurrentUserAsPathologist = (event, pathologySampleId) => {
+  const setEntriesWithIds = (data) => {
+    if (!componentMounted.current) {
+      return;
+    }
+    if (Array.isArray(data) && data.length > 0) {
+      // rowId is category + case id: the two case tables have independent id sequences.
+      setEntries(data.map((entry) => ({ ...entry, id: entry.rowId })));
+    } else {
+      setEntries([]);
+    }
+    setLoading(false);
+  };
+
+  const loadCounts = (data) => {
+    if (!componentMounted.current || !data) {
+      return;
+    }
+    setCounts({
+      unassigned: data.unassigned ?? 0,
+      inProgress: data.inProgress ?? 0,
+      awaitingReview: data.awaitingReview ?? 0,
+      additionalRequests: data.additionalRequests ?? 0,
+      complete: data.complete ?? 0,
+    });
+  };
+
+  const refreshItems = () => {
+    getFromOpenElisServer(
+      "/rest/pathology/reception/dashboard?" + filtersToParameters(),
+      setEntriesWithIds,
+    );
+  };
+
+  const refreshCounts = () => {
+    getFromOpenElisServer(
+      "/rest/pathology/reception/dashboard/count?" +
+        categoryParameters().replace(/^&/, ""),
+      loadCounts,
+    );
+  };
+
+  const refreshSpecialists = () => {
+    Object.entries(CATEGORY_CONFIG).forEach(([code, config]) => {
+      getFromOpenElisServer(config.specialistsUrl, (list) => {
+        if (componentMounted.current && Array.isArray(list)) {
+          setSpecialists((previous) => ({ ...previous, [code]: list }));
+        }
+      });
+    });
+  };
+
+  const entryForRow = (row) => entries.find((entry) => entry.rowId === row.id);
+
+  const openCaseView = (row) => {
+    const entry = entryForRow(row);
+    const config = entry && CATEGORY_CONFIG[entry.serviceCategoryCode];
+    if (!config) {
+      return;
+    }
+    window.location.href = config.caseViewPath + entry.caseId;
+  };
+
+  const afterAssignment = () => {
+    refreshItems();
+    refreshCounts();
+    refreshSpecialists();
+  };
+
+  const assignSpecialist = (event, entry, specialistId) => {
     event.stopPropagation();
+    if (!specialistId) {
+      return;
+    }
+    const config = CATEGORY_CONFIG[entry.serviceCategoryCode];
     postToOpenElisServerFullResponse(
-      "/rest/pathology/assignPathologist?pathologySampleId=" +
-        pathologySampleId,
+      config.assignUrl(entry.caseId) +
+        "&pathologistId=" +
+        encodeURIComponent(specialistId),
       {},
-      () => {
-        refreshItems();
-        refreshCounts();
-      },
+      afterAssignment,
+    );
+  };
+
+  const assignCurrentUser = (event, entry) => {
+    event.stopPropagation();
+    const config = CATEGORY_CONFIG[entry.serviceCategoryCode];
+    postToOpenElisServerFullResponse(
+      config.assignUrl(entry.caseId),
+      {},
+      afterAssignment,
     );
   };
 
@@ -122,33 +208,27 @@ function PathologyDashboard() {
     if (page != pageInfo.page) {
       setPage(pageInfo.page);
     }
-
     if (pageSize != pageInfo.pageSize) {
       setPageSize(pageInfo.pageSize);
     }
   };
 
   const renderCell = (cell, row) => {
-    var status = row.cells.find((e) => e.info.header === "status").value;
-    var pathologySampleId = row.id;
-    var assignedPathologist = row.cells.find(
-      (e) => e.info.header === "assignedPathologist",
-    )?.value;
+    const entry = entryForRow(row);
 
-    // Reception Step 1: inline pathologist dropdown with caseload for unassigned cases
-    if (cell.info.header === "assignedPathologist" && !assignedPathologist) {
+    if (cell.info.header === "assignedSpecialist" && entry && !cell.value) {
+      const config = CATEGORY_CONFIG[entry.serviceCategoryCode];
+      const options = specialists[entry.serviceCategoryCode] || [];
       return (
         <TableCell key={cell.id} onClick={(e) => e.stopPropagation()}>
           <Select
-            id={"assign-pathologist-" + pathologySampleId}
+            id={"assign-specialist-" + entry.rowId}
             labelText=""
             hideLabel
             size="sm"
             defaultValue=""
             onClick={(e) => e.stopPropagation()}
-            onChange={(e) =>
-              assignPathologist(e, pathologySampleId, e.target.value)
-            }
+            onChange={(e) => assignSpecialist(e, entry, e.target.value)}
           >
             <SelectItem
               value=""
@@ -156,24 +236,22 @@ function PathologyDashboard() {
                 id: "pathology.label.assignPathologist",
               })}
             />
-            {pathologists.map((p) => (
+            {options.map((option) => (
               <SelectItem
-                key={p.id}
-                value={p.id}
-                text={`${p.value} (${p.openCaseload ?? 0})`}
+                key={option.id}
+                value={option.id}
+                text={`${option.value} (${option.openCaseload ?? 0})`}
               />
             ))}
           </Select>
-          {status === "READY_PATHOLOGIST" &&
-            hasRole(userSessionDetails, "Pathologist") && (
+          {entry.statusCode === config.reviewStatusCode &&
+            hasRole(userSessionDetails, config.specialistRole) && (
               <Button
                 type="button"
                 size="sm"
                 kind="ghost"
                 className="assign-self-button"
-                onClick={(e) =>
-                  assignCurrentUserAsPathologist(e, pathologySampleId)
-                }
+                onClick={(e) => assignCurrentUser(e, entry)}
               >
                 <FormattedMessage id="label.button.start" />
               </Button>
@@ -185,150 +263,9 @@ function PathologyDashboard() {
     return <TableCell key={cell.id}>{cell.value}</TableCell>;
   };
 
-  const setPathologyEntriesWithIds = (entries) => {
-    if (componentMounted.current) {
-      if (entries && entries.length > 0) {
-        setPathologyEntries(
-          entries.map((entry) => {
-            return { ...entry, id: "" + entry.pathologySampleId };
-          }),
-        );
-      } else {
-        setPathologyEntries([]);
-      }
-      setLoading(false);
-    }
-  };
-
-  const setPathologistsList = (list) => {
-    if (componentMounted.current && Array.isArray(list)) {
-      setPathologists(list);
-    }
-  };
-
-  const setStatusFilter = (event) => {
-    const { value } = event.target;
-
-    if (value === "UNASSIGNED") {
-      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
-    } else if (value === "All") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: statuses.map((s) => ({ id: s.id })),
-      });
-    } else if (value === "IN_PROGRESS") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: inProgressStatusObjects,
-      });
-    } else {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: [{ id: value }],
-      });
-    }
-  };
-
-  const getSelectedValue = () => {
-    if (filters.unassignedOnly) {
-      return "UNASSIGNED";
-    }
-    const selectedValue =
-      filters.statuses.length === inProgressStatuses.length &&
-      filters.statuses.every((status) => inProgressStatuses.includes(status.id))
-        ? "IN_PROGRESS"
-        : filters.statuses.length > 1
-          ? "All"
-          : filters.statuses[0]?.id;
-
-    return selectedValue;
-  };
-
-  const filtersToParameters = () => {
-    if (filters.unassignedOnly) {
-      return (
-        "unassigned=true&searchTerm=" + encodeURIComponent(filters.searchTerm || "")
-      );
-    }
-    return (
-      "statuses=" +
-      filters.statuses
-        .map((entry) => {
-          return entry.id;
-        })
-        .join(",") +
-      "&searchTerm=" +
-      encodeURIComponent(filters.searchTerm || "")
-    );
-  };
-
-  const refreshItems = () => {
-    getFromOpenElisServer(
-      "/rest/pathology/dashboard?" + filtersToParameters(),
-      setPathologyEntriesWithIds,
-    );
-  };
-
-  const refreshCounts = () => {
-    getFromOpenElisServer("/rest/pathology/dashboard/count", loadCounts);
-  };
-
-  const openCaseView = (id) => {
-    window.location.href = "/PathologyCaseView/" + id;
-  };
-
-  const filterByTile = (tileKey) => {
-    if (tileKey === "unassigned") {
-      setFilters({ ...filters, unassignedOnly: true, statuses: [] });
-    } else if (tileKey === "inProgress") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: inProgressStatusObjects,
-      });
-    } else if (tileKey === "awaitingReview") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: [{ id: "READY_PATHOLOGIST" }],
-      });
-    } else if (tileKey === "additionalRequests") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: [{ id: "ADDITIONAL_REQUEST" }],
-      });
-    } else if (tileKey === "complete") {
-      setFilters({
-        ...filters,
-        unassignedOnly: false,
-        statuses: [{ id: "COMPLETED" }],
-      });
-    }
-  };
-
-  useEffect(() => {
-    componentMounted.current = true;
-    getFromOpenElisServer("/rest/displayList/PATHOLOGY_STATUS", setStatusList);
-    getFromOpenElisServer("/rest/pathology/dashboard/count", loadCounts);
-    getFromOpenElisServer("/rest/pathology/pathologists", setPathologistsList);
-
-    return () => {
-      componentMounted.current = false;
-    };
-  }, []);
-
-  const loadCounts = (data) => {
-    setCounts({
-      unassigned: data?.unassigned ?? 0,
-      inProgress: data?.inProgress ?? 0,
-      awaitingReview: data?.awaitingReview ?? 0,
-      additionalRequests: data?.additionalRequests ?? 0,
-      complete: data?.complete ?? 0,
-    });
+  const rowClassName = (row) => {
+    const entry = entryForRow(row);
+    return entry?.statusCode === "RECEIVED" ? "received-row" : undefined;
   };
 
   function formatDateToDDMMYYYY(date) {
@@ -339,8 +276,7 @@ function PathologyDashboard() {
     var formattedDay = (day < 10 ? "0" : "") + day;
     var formattedMonth = (month < 10 ? "0" : "") + month;
 
-    var formattedDate = formattedDay + "/" + formattedMonth + "/" + year;
-    return formattedDate;
+    return formattedDay + "/" + formattedMonth + "/" + year;
   }
 
   const getPastWeek = () => {
@@ -358,30 +294,35 @@ function PathologyDashboard() {
   const tileList = [
     {
       key: "unassigned",
+      bucket: "UNASSIGNED",
       title: <FormattedMessage id="pathology.label.unassigned" />,
       count: counts.unassigned,
       className: "dashboard-tile unassigned-tile",
     },
     {
       key: "inProgress",
+      bucket: "IN_PROGRESS",
       title: <FormattedMessage id="pathology.label.casesInProgress" />,
       count: counts.inProgress,
       className: "dashboard-tile",
     },
     {
       key: "awaitingReview",
-      title: <FormattedMessage id="pathology.label.review" />,
+      bucket: "AWAITING_REVIEW",
+      title: <FormattedMessage id="pathology.reception.awaitingReview" />,
       count: counts.awaitingReview,
       className: "dashboard-tile",
     },
     {
       key: "additionalRequests",
+      bucket: "ADDITIONAL_REQUEST",
       title: <FormattedMessage id="pathology.label.requests" />,
       count: counts.additionalRequests,
       className: "dashboard-tile",
     },
     {
       key: "complete",
+      bucket: "COMPLETED",
       title:
         intl.formatMessage({ id: "pathology.label.complete" }) +
         "(Week " +
@@ -394,18 +335,23 @@ function PathologyDashboard() {
 
   useEffect(() => {
     componentMounted.current = true;
+    refreshSpecialists();
+    return () => {
+      componentMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    componentMounted.current = true;
+    setLoading(true);
     refreshItems();
+    refreshCounts();
     return () => {
       componentMounted.current = false;
     };
   }, [filters]);
 
   let breadcrumbs = [{ label: "home.label", link: "/" }];
-
-  const rowClassName = (row) => {
-    const status = row.cells.find((e) => e.info.header === "status")?.value;
-    return status === "RECEIVED" ? "received-row" : undefined;
-  };
 
   return (
     <>
@@ -429,7 +375,7 @@ function PathologyDashboard() {
           <Tile
             key={tile.key}
             className={tile.className}
-            onClick={() => filterByTile(tile.key)}
+            onClick={() => setFilters({ ...filters, bucket: tile.bucket })}
             style={{ cursor: "pointer" }}
           >
             <h3 className="tile-title">{tile.title}</h3>
@@ -439,7 +385,7 @@ function PathologyDashboard() {
       </div>
       <div className="orderLegendBody">
         <Grid fullWidth={true} className="gridBoundary">
-          <Column lg={8} md={4} sm={2}>
+          <Column lg={6} md={4} sm={2}>
             <Search
               size="sm"
               value={filters.searchTerm}
@@ -454,63 +400,104 @@ function PathologyDashboard() {
               })}
             />
           </Column>
-          <Column lg={8} md={4} sm={2}>
+          <Column lg={10} md={4} sm={2}>
             <div className="inlineDivBlock">
-              <div>Filters:</div>
-              <Checkbox
-                labelText={intl.formatMessage({ id: "label.filters.mycases" })}
-                id="filterMyCases"
-                value={filters.myCases}
+              <div>
+                <FormattedMessage id="filters.label" />:
+              </div>
+              <Select
+                id="serviceCategoryFilter"
+                name="serviceCategoryFilter"
+                labelText={intl.formatMessage({
+                  id: "pathology.label.serviceCategory",
+                })}
+                value={filters.serviceCategory}
                 onChange={(e) =>
-                  setFilters({ ...filters, myCases: e.target.checked })
+                  setFilters({ ...filters, serviceCategory: e.target.value })
                 }
-              />
+                noLabel
+              >
+                <SelectItem
+                  value="ALL"
+                  text={intl.formatMessage({
+                    id: "pathology.serviceCategory.all",
+                  })}
+                />
+                <SelectItem
+                  value={CATEGORY_CONFIG[HISTOPATHOLOGY].filterValue}
+                  text={intl.formatMessage({
+                    id: "pathology.serviceCategory.histopathology",
+                  })}
+                />
+                <SelectItem
+                  value={CATEGORY_CONFIG[CYTOPATHOLOGY].filterValue}
+                  text={intl.formatMessage({
+                    id: "pathology.serviceCategory.cytopathology",
+                  })}
+                />
+              </Select>
               <Select
                 id="statusFilter"
                 name="statusFilter"
                 labelText={intl.formatMessage({ id: "label.filters.status" })}
-                value={getSelectedValue()}
-                onChange={setStatusFilter}
+                value={filters.bucket}
+                onChange={(e) =>
+                  setFilters({ ...filters, bucket: e.target.value })
+                }
                 noLabel
               >
-                <SelectItem disabled value="placeholder" text="Status" />
                 <SelectItem
+                  value="UNASSIGNED"
                   text={intl.formatMessage({
                     id: "pathology.label.unassigned",
                   })}
-                  value="UNASSIGNED"
                 />
-                <SelectItem text="All" value="All" />
-                <SelectItem text="In Progress" value="IN_PROGRESS" />
-                {statuses.map((status, index) => (
-                  <SelectItem
-                    key={index}
-                    text={status.value}
-                    value={status.id}
-                  />
-                ))}
+                <SelectItem
+                  value="IN_PROGRESS"
+                  text={intl.formatMessage({
+                    id: "pathology.label.casesInProgress",
+                  })}
+                />
+                <SelectItem
+                  value="AWAITING_REVIEW"
+                  text={intl.formatMessage({
+                    id: "pathology.reception.awaitingReview",
+                  })}
+                />
+                <SelectItem
+                  value="ADDITIONAL_REQUEST"
+                  text={intl.formatMessage({ id: "pathology.label.requests" })}
+                />
+                <SelectItem
+                  value="COMPLETED"
+                  text={intl.formatMessage({ id: "pathology.label.complete" })}
+                />
+                <SelectItem value="ALL" text="All" />
               </Select>
             </div>
           </Column>
 
           <Column lg={16} md={8} sm={4}>
             <DataTable
-              rows={pathologyEntries.slice(
-                (page - 1) * pageSize,
-                page * pageSize,
-              )}
+              rows={entries.slice((page - 1) * pageSize, page * pageSize)}
               headers={[
                 {
                   key: "requestDate",
                   header: <FormattedMessage id="sample.requestDate" />,
                 },
                 {
-                  key: "status",
-                  header: <FormattedMessage id="pathology.label.stage" />,
+                  key: "serviceCategory",
+                  header: (
+                    <FormattedMessage id="pathology.label.serviceCategory" />
+                  ),
                 },
                 {
                   key: "subtype",
                   header: <FormattedMessage id="label.subtype" />,
+                },
+                {
+                  key: "status",
+                  header: <FormattedMessage id="pathology.label.stage" />,
                 },
                 {
                   key: "lastName",
@@ -531,7 +518,7 @@ function PathologyDashboard() {
                   header: <FormattedMessage id="assigned.technician.label" />,
                 },
                 {
-                  key: "assignedPathologist",
+                  key: "assignedSpecialist",
                   header: <FormattedMessage id="assigned.pathologist.label" />,
                 },
                 {
@@ -563,7 +550,7 @@ function PathologyDashboard() {
                             key={row.id}
                             className={rowClassName(row)}
                             onClick={() => {
-                              openCaseView(row.id);
+                              openCaseView(row);
                             }}
                           >
                             {row.cells.map((cell) => renderCell(cell, row))}
@@ -580,7 +567,7 @@ function PathologyDashboard() {
               page={page}
               pageSize={pageSize}
               pageSizes={[10, 20, 30, 50, 100]}
-              totalItems={pathologyEntries.length}
+              totalItems={entries.length}
               forwardText={intl.formatMessage({ id: "pagination.forward" })}
               backwardText={intl.formatMessage({ id: "pagination.backward" })}
               itemRangeText={(min, max, total) =>
@@ -621,4 +608,4 @@ function PathologyDashboard() {
   );
 }
 
-export default PathologyDashboard;
+export default PathologyReceptionDashboard;

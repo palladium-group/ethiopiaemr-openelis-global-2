@@ -28,7 +28,7 @@ function CytologyCaseView() {
 
   const breadcrumbs = [
     { label: "home.label", link: "/" },
-    { label: "cytology.label.dashboard", link: "/CytologyDashboard" },
+    { label: "pathology.label.dashboard", link: "/PathologyDashboard" },
   ];
 
   const setInitialPathologySampleInfo = (sample) => {

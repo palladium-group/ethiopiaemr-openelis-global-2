@@ -41,4 +41,5 @@
   <include relativeToChangelogFile="true" file="032-pathology-slide-stained-at.xml"/>
   <include relativeToChangelogFile="true" file="033-cytology-workflow-fields.xml"/>
   <include relativeToChangelogFile="true" file="034-cytopathology-sample-type-tests.xml"/>
+  <include relativeToChangelogFile="true" file="035-merge-cytology-into-pathology-reception.xml"/>
 </databaseChangeLog>
