@@ -313,7 +313,7 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
                     fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
                             analysesForFhir, resultsForFhir, new ArrayList<>(),
                             new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>(),
-                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir);
+                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir, null);
                 } catch (FhirLocalPersistingException e) {
                     LogEvent.logError(CytologySampleServiceImpl.class.getSimpleName(), "validateCytologySample",
                             "could not push cytology result to FHIR for sample " + sampleForFhir.getAccessionNumber()

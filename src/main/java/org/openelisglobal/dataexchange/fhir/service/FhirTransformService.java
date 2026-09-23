@@ -55,14 +55,15 @@ public interface FhirTransformService {
             ArrayList<Note> noteUpdateList) throws FhirLocalPersistingException;
 
     /**
-     * Same as {@link #transformPersistResultValidationFhirObjects} plus OpenMRS Pathology Result Form
-     * Observations (conclusion, conclusion text, microscopic finding) attached to each finalized
-     * DiagnosticReport so FetchTaskUpdates can import them by concept UUID.
+     * Same as {@link #transformPersistResultValidationFhirObjects} plus OpenMRS Pathology/Cytology Result
+     * Form Observations (gross finding, conclusion, conclusion text, microscopic finding) attached to
+     * each finalized DiagnosticReport so FetchTaskUpdates can import them by concept UUID.
+     * {@code grossFinding} applies to Pathology only; pass null for Cytology.
      */
     void transformPersistResultValidationFhirObjects(List<Result> deletableList, List<Analysis> analysisUpdateList,
             ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList, ArrayList<Sample> sampleUpdateList,
             ArrayList<Note> noteUpdateList, String microscopicFinding, String conclusionText,
-            List<String> conclusionDictionaryIds) throws FhirLocalPersistingException;
+            List<String> conclusionDictionaryIds, String grossFinding) throws FhirLocalPersistingException;
 
     org.hl7.fhir.r4.model.Patient transformToFhirPatient(String patientId) throws FhirTransformationException;
 

@@ -738,6 +738,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         final Sample sampleForFhir = finishedSample;
         final String microscopicFindingForFhir = pathologySample.getMicroscopyExam();
         final String conclusionTextForFhir = form.getConclusionText();
+        final String grossFindingForFhir = pathologySample.getGrossExam();
         final List<String> conclusionDictionaryIdsForFhir = pathologySample.getConclusions() == null
                 ? new ArrayList<>()
                 : pathologySample.getConclusions().stream().filter(c -> c.getType() == ConclusionType.DICTIONARY)
@@ -750,7 +751,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                     fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
                             analysesForFhir, resultsForFhir, new ArrayList<>(),
                             new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>(),
-                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir);
+                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir,
+                            grossFindingForFhir);
                 } catch (FhirLocalPersistingException e) {
                     LogEvent.logError(PathologySampleServiceImpl.class.getSimpleName(), "validatePathologySample",
                             "could not push pathology result to FHIR for sample " + sampleForFhir.getAccessionNumber()

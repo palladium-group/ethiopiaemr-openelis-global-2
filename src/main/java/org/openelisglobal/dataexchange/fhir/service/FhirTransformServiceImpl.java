@@ -1452,6 +1452,7 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     private static final String OM_PATH_CONCLUSION_UUID = "c4000001-4444-4a2b-8c3d-0e1f2a3b4c01";
     private static final String OM_PATH_CONCLUSION_TEXT_UUID = "c4000003-4444-4a2b-8c3d-0e1f2a3b4c03";
     private static final String OM_PATH_MICROSCOPIC_UUID = "c4000004-4444-4a2b-8c3d-0e1f2a3b4c04";
+    private static final String OM_PATH_GROSS_UUID = "c4000007-4444-4a2b-8c3d-0e1f2a3b4c07";
     // OpenMRS Cytology Result Form member concept UUIDs.
     private static final String OM_CYTO_CONCLUSION_UUID = "c4000002-4444-4a2b-8c3d-0e1f2a3b4c02";
     private static final String OM_CYTO_CONCLUSION_TEXT_UUID = "c4000005-4444-4a2b-8c3d-0e1f2a3b4c05";
@@ -1464,7 +1465,7 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList,
             ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList) throws FhirLocalPersistingException {
         transformPersistResultValidationFhirObjects(deletableList, analysisUpdateList, resultUpdateList,
-                resultItemList, sampleUpdateList, noteUpdateList, null, null, null);
+                resultItemList, sampleUpdateList, noteUpdateList, null, null, null, null);
     }
 
     @Async
@@ -1473,7 +1474,8 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     public void transformPersistResultValidationFhirObjects(List<Result> deletableList,
             List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList,
             ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList, String microscopicFinding,
-            String conclusionText, List<String> conclusionDictionaryIds) throws FhirLocalPersistingException {
+            String conclusionText, List<String> conclusionDictionaryIds, String grossFinding)
+            throws FhirLocalPersistingException {
         LogEvent.logTrace(this.getClass().getSimpleName(), "transformPersistResultValidationFhirObjects",
                 "transformPersistResultValidationFhirObjects called");
 
@@ -1501,7 +1503,7 @@ public class FhirTransformServiceImpl implements FhirTransformService {
                             conclusionText, conclusionDictionaryIds, fhirOperations, tempIdGenerator);
                 } else {
                     attachPathologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
-                            conclusionText, conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                            conclusionText, conclusionDictionaryIds, grossFinding, fhirOperations, tempIdGenerator);
                 }
                 this.addToOperations(fhirOperations, tempIdGenerator, diagnosticReport);
             }
@@ -1659,15 +1661,17 @@ public class FhirTransformServiceImpl implements FhirTransformService {
 
     /**
      * Adds OpenMRS Pathology Result Form Observations onto the DiagnosticReport so labonfhir imports
-     * conclusion / conclusion text / microscopic finding by concept UUID (SPA reads set members).
+     * gross finding / conclusion / conclusion text / microscopic finding by concept UUID (SPA reads set
+     * members).
      */
     private void attachPathologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
             String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds,
-            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+            String grossFinding, FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
         if (diagnosticReport == null || analysis == null) {
             return;
         }
         if (GenericValidator.isBlankOrNull(microscopicFinding) && GenericValidator.isBlankOrNull(conclusionText)
+                && GenericValidator.isBlankOrNull(grossFinding)
                 && (conclusionDictionaryIds == null || conclusionDictionaryIds.isEmpty())) {
             return;
         }
@@ -1676,6 +1680,8 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         Patient patient = sampleHumanService.getPatientForSample(sampleItem.getSample());
         String codedConclusion = formatCodedPathologyConclusions(conclusionDictionaryIds);
 
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_GROSS_UUID,
+                "Pathology gross finding", grossFinding, fhirOperations, tempIdGenerator);
         addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_CONCLUSION_UUID,
                 "Pathology conclusion", codedConclusion, fhirOperations, tempIdGenerator);
         addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_CONCLUSION_TEXT_UUID,
