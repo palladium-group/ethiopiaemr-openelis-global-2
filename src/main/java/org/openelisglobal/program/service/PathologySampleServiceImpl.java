@@ -217,13 +217,15 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
         if (pathologySample.getStatus() != PathologyStatus.GROSSING
                 && pathologySample.getStatus() != PathologyStatus.RECEIVED) {
-            // Already past Grossing (PROCESSING or later) — leave as-is.
+            // Already past Grossing (PROCESSING / SLICING or later) — leave as-is.
             return;
         }
         if (pathologySample.getStatus() != PathologyStatus.GROSSING) {
             throw new IllegalArgumentException("case must be in GROSSING before send to processing");
         }
-        if (blocks == null || blocks.isEmpty()) {
+
+        boolean frozen = pathologySample.isFrozen();
+        if (!frozen && (blocks == null || blocks.isEmpty())) {
             throw new IllegalArgumentException("at least one cassette is required");
         }
 
@@ -233,14 +235,27 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         } else {
             pathologySample.getBlocks().removeAll(pathologySample.getBlocks());
         }
-        for (PathologyBlock block : blocks) {
-            block.setId(null);
-            pathologySample.getBlocks().add(block);
+        if (blocks != null) {
+            for (PathologyBlock block : blocks) {
+                block.setId(null);
+                pathologySample.getBlocks().add(block);
+            }
         }
-        if (pathologySample.getProcessingStartedAt() == null) {
-            pathologySample.setProcessingStartedAt(DateUtil.getNowAsTimestamp());
+        if (frozen && pathologySample.getBlocks().isEmpty()) {
+            PathologyBlock cryoBlock = new PathologyBlock();
+            cryoBlock.setLocation("FS");
+            pathologySample.getBlocks().add(cryoBlock);
         }
-        pathologySample.setStatus(PathologyStatus.PROCESSING);
+
+        if (frozen) {
+            // Cryostat path: skip PROCESSING / EMBEDDING → Microtomy (cryotomy).
+            pathologySample.setStatus(PathologyStatus.SLICING);
+        } else {
+            if (pathologySample.getProcessingStartedAt() == null) {
+                pathologySample.setProcessingStartedAt(DateUtil.getNowAsTimestamp());
+            }
+            pathologySample.setStatus(PathologyStatus.PROCESSING);
+        }
         pathologySample.setSysUserId(curUserId);
         update(pathologySample);
     }
@@ -492,6 +507,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     public void requestSpecialStains(Integer pathologySampleId, String microscopyExam, String conclusionText,
             List<String> conclusionDictionaryIds, List<String> stainNames, String curUserId) {
         PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        if (pathologySample.isFrozen()) {
+            throw new IllegalArgumentException("special stain is not available on Frozen section cases");
+        }
         requireReadyForRead(pathologySample);
 
         // Capture and close the current read round before the case leaves the
@@ -719,6 +737,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         pathologySample.setSample(oldPathologySample.getSample());
         pathologySample.setSlides(new ArrayList<>(oldPathologySample.getSlides()));
         pathologySample.setStatus(oldPathologySample.getStatus());
+        pathologySample.setSubtype(oldPathologySample.getSubtype());
+        pathologySample.setLinkedFromPathologySampleId(oldPathologySample.getLinkedFromPathologySampleId());
         pathologySample.setTechnician(oldPathologySample.getTechnician());
         pathologySample.setTechniques(new ArrayList<>(oldPathologySample.getTechniques()));
         return pathologySample;
@@ -909,6 +929,122 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 }
             }
         });
+
+        // Frozen section leftover tissue → lab-only permanent Biopsy case (no new OpenMRS order).
+        if (pathologySample.isFrozen()) {
+            try {
+                createPermanentBiopsyAfterFrozen(pathologySample, form.getSystemUserId());
+            } catch (RuntimeException e) {
+                LogEvent.logError(this.getClass().getSimpleName(), "validatePathologySample",
+                        "could not create permanent Biopsy after Frozen section " + pathologySample.getId() + ": "
+                                + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * After Frozen section sign-out, auto-create a linked Biopsy {@link PathologySample} for
+     * permanent formalin processing of leftover tissue. Lab-only (no EMR order / referring id).
+     */
+    private void createPermanentBiopsyAfterFrozen(PathologySample frozenCase, String systemUserId) {
+        if (frozenCase == null || frozenCase.getId() == null || frozenCase.getSample() == null) {
+            return;
+        }
+        Test biopsyTest = testService.getTestByDescription("Histopathology examination");
+        if (biopsyTest == null) {
+            List<Test> loincMatches = testService.getTestsByLoincCode("11529-5");
+            if (loincMatches != null && !loincMatches.isEmpty()) {
+                biopsyTest = loincMatches.get(0);
+            }
+        }
+        if (biopsyTest == null) {
+            throw new IllegalStateException(
+                    "Histopathology examination test (LOINC 11529-5) not found; cannot create permanent Biopsy");
+        }
+
+        Sample frozenSample = frozenCase.getSample();
+        Patient patient = sampleService.getPatient(frozenSample);
+        if (patient == null) {
+            throw new IllegalStateException("no patient on frozen sample " + frozenSample.getAccessionNumber());
+        }
+
+        org.openelisglobal.common.provider.validation.IAccessionNumberGenerator accessionGenerator = org.openelisglobal.sample.util.AccessionNumberUtil
+                .getMainAccessionNumberGenerator();
+        if (accessionGenerator == null) {
+            throw new IllegalStateException("no accession number generator; cannot create permanent Biopsy");
+        }
+
+        java.sql.Date enteredDate = DateUtil.getNowAsSqlDate();
+        Timestamp receivedTimestamp = DateUtil.getNowAsTimestamp();
+
+        Sample permanentSample = new Sample();
+        permanentSample.setSysUserId(systemUserId);
+        permanentSample.setEnteredDate(enteredDate);
+        permanentSample.setReceivedTimestamp(receivedTimestamp);
+        permanentSample.setDomain(ConfigurationProperties.getInstance().getPropertyValue("domain.human"));
+        permanentSample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Entered));
+        permanentSample.setPriority(org.openelisglobal.sample.valueholder.OrderPriority.ROUTINE);
+        permanentSample.setFhirUuid(java.util.UUID.randomUUID());
+        permanentSample.setAccessionNumber(accessionGenerator.getNextAvailableAccessionNumber("", true));
+        sampleService.insertDataWithAccessionNumber(permanentSample);
+
+        PathologySample permanentCase = new PathologySample();
+        permanentCase.setProgram(frozenCase.getProgram());
+        permanentCase.setSample(permanentSample);
+        permanentCase.setQuestionnaireResponseUuid(frozenCase.getQuestionnaireResponseUuid());
+        permanentCase.setStatus(PathologyStatus.RECEIVED);
+        permanentCase.setSubtype(PathologySample.PathologySubtype.BIOPSY);
+        permanentCase.setLinkedFromPathologySampleId(frozenCase.getId());
+        permanentCase.setPathologist(frozenCase.getPathologist());
+        permanentCase.setSysUserId(systemUserId);
+        save(permanentCase);
+
+        SampleItem sampleItem = new SampleItem();
+        sampleItem.setSysUserId(systemUserId);
+        sampleItem.setSample(permanentSample);
+        List<org.openelisglobal.typeofsample.valueholder.TypeOfSample> types = SpringContext
+                .getBean(org.openelisglobal.typeofsample.service.TypeOfSampleService.class)
+                .getTypeOfSampleForTest(biopsyTest.getId());
+        if (types == null || types.isEmpty()) {
+            throw new IllegalStateException("no sample type for Histopathology examination");
+        }
+        sampleItem.setTypeOfSample(types.get(0));
+        sampleItem.setSortOrder("1");
+        sampleItem.setStatusId(SpringContext.getBean(IStatusService.class)
+                .getStatusID(org.openelisglobal.common.services.StatusService.SampleStatus.Entered));
+        sampleItem.setFhirUuid(java.util.UUID.randomUUID());
+        sampleItemService.insert(sampleItem);
+
+        Analysis analysis = new Analysis();
+        analysis.setTest(biopsyTest);
+        analysis.setIsReportable(biopsyTest.getIsReportable());
+        analysis.setAnalysisType("MANUAL");
+        analysis.setSampleItem(sampleItem);
+        analysis.setSysUserId(systemUserId);
+        analysis.setRevision(ConfigurationProperties.getInstance().getPropertyValue("analysis.default.revision"));
+        analysis.setStartedDate(enteredDate);
+        analysis.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(AnalysisStatus.NotStarted));
+        analysis.setTestSection(biopsyTest.getTestSection());
+        analysis.setFhirUuid(java.util.UUID.randomUUID());
+        analysisService.insert(analysis);
+
+        org.openelisglobal.samplehuman.valueholder.SampleHuman sampleHuman = new org.openelisglobal.samplehuman.valueholder.SampleHuman();
+        sampleHuman.setSysUserId(systemUserId);
+        sampleHuman.setSampleId(permanentSample.getId());
+        sampleHuman.setPatientId(patient.getId());
+        SpringContext.getBean(org.openelisglobal.samplehuman.service.SampleHumanService.class).insert(sampleHuman);
+
+        Note note = noteService.createSavableNote(analysis, NoteType.INTERNAL,
+                "Permanent Biopsy created after Frozen section case " + frozenSample.getAccessionNumber()
+                        + " (leftover tissue)",
+                "Permanent after Frozen section", systemUserId);
+        if (!noteService.duplicateNoteExists(note)) {
+            noteService.saveAll(java.util.Collections.singletonList(note));
+        }
+
+        LogEvent.logInfo(this.getClass().getSimpleName(), "createPermanentBiopsyAfterFrozen",
+                "created permanent Biopsy " + permanentSample.getAccessionNumber() + " linked from frozen case "
+                        + frozenCase.getId());
     }
 
     private void referToImmunoHistoChemistry(PathologySample pathologySample, PathologySampleForm form) {

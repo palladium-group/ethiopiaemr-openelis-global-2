@@ -6,7 +6,7 @@ import {
   postToOpenElisServerFullResponse,
 } from "../utils/Utils";
 
-const WORKFLOW_STEPS = [
+const BIOPSY_WORKFLOW_STEPS = [
   { id: "collection", labelId: "pathology.workflow.collection" },
   { id: "grossing", labelId: "pathology.workflow.grossing" },
   { id: "processing", labelId: "pathology.workflow.processing" },
@@ -14,6 +14,15 @@ const WORKFLOW_STEPS = [
   { id: "microtomy", labelId: "pathology.workflow.microtomy" },
   { id: "staining", labelId: "pathology.workflow.staining" },
   /** Collapsed PDF Steps 9–10: The read + Sign-out & report. */
+  { id: "review", labelId: "pathology.workflow.reviewAndReport" },
+];
+
+/** Frozen section skips paraffin processing/embedding — cryostat cut + rapid stain. */
+const FROZEN_WORKFLOW_STEPS = [
+  { id: "collection", labelId: "pathology.workflow.collection" },
+  { id: "grossing", labelId: "pathology.workflow.grossing" },
+  { id: "microtomy", labelId: "pathology.workflow.cryotomy" },
+  { id: "staining", labelId: "pathology.workflow.rapidStaining" },
   { id: "review", labelId: "pathology.workflow.reviewAndReport" },
 ];
 
@@ -144,6 +153,13 @@ function PathologyCaseWorkflowRail({
   const [startingStain, setStartingStain] = useState(false);
 
   const status = pathologySampleInfo?.status;
+  const subtypeLabel = pathologySampleInfo?.subtype || "";
+  const isFrozen =
+    subtypeLabel === "Frozen section" ||
+    subtypeLabel === "FROZEN" ||
+    (typeof subtypeLabel === "string" &&
+      subtypeLabel.toLowerCase().includes("frozen"));
+  const workflowSteps = isFrozen ? FROZEN_WORKFLOW_STEPS : BIOPSY_WORKFLOW_STEPS;
   const isCollected = !!pathologySampleInfo?.collectionDate;
   const isGrossingDone = PAST_GROSSING.has(status);
   const isGrossingActive = isCollected && status === "GROSSING";
@@ -242,11 +258,13 @@ function PathologyCaseWorkflowRail({
     if (!labNo) {
       return;
     }
+    // type=default prints order + specimen labels for the accession.
+    // type=specimen requires labNo.itemNo (e.g. ACC.1) and crashes on bare accession.
     window.open(
       config.serverBaseUrl +
         "/LabelMakerServlet?labNo=" +
         encodeURIComponent(labNo) +
-        "&type=specimen",
+        "&type=default",
       "_blank",
     );
   };
@@ -309,13 +327,23 @@ function PathologyCaseWorkflowRail({
   };
 
   const sendToProcessing = () => {
-    if (sending || !isGrossingActive || cassetteCount < 1) {
+    if (sending || !isGrossingActive) {
       return;
     }
-    const blocks = Array.from({ length: cassetteCount }, (_, index) => ({
-      blockNumber: index + 1,
-      location: cassetteSuffix(index),
-    }));
+    // Biopsy requires at least one cassette; Frozen creates a cryostat block server-side.
+    if (!isFrozen && cassetteCount < 1) {
+      return;
+    }
+    if (!grossExamDraft.trim()) {
+      return;
+    }
+    const blocks =
+      cassetteCount < 1
+        ? []
+        : Array.from({ length: cassetteCount }, (_, index) => ({
+            blockNumber: index + 1,
+            location: cassetteSuffix(index),
+          }));
     setSending(true);
     postToOpenElisServerFullResponse(
       "/rest/pathology/caseView/" + pathologySampleId + "/sendToProcessing",
@@ -938,9 +966,15 @@ function PathologyCaseWorkflowRail({
 
         <div className="pathology-grossing-cassettes-header">
           <span className="pathology-grossing-label">
-            <FormattedMessage id="pathology.workflow.cassetteList" />
+            <FormattedMessage
+              id={
+                isFrozen
+                  ? "pathology.workflow.frozenPortionOptional"
+                  : "pathology.workflow.cassetteList"
+              }
+            />
           </span>
-          {editable && (
+          {editable && !isFrozen && (
             <button
               type="button"
               className="pathology-btn pathology-btn--ghost pathology-btn--sm"
@@ -951,23 +985,33 @@ function PathologyCaseWorkflowRail({
           )}
         </div>
 
-        {rows.length === 0 ? (
+        {!isFrozen && (rows.length === 0 ? (
           <div className="pathology-cassette-empty">
             <FormattedMessage id="pathology.workflow.noCassettesYet" />
           </div>
         ) : (
           <div className="pathology-cassette-list">{rows}</div>
-        )}
+        ))}
 
         {editable && (
           <div className="pathology-grossing-footer">
             <button
               type="button"
               className="pathology-btn pathology-btn--primary"
-              disabled={sending || cassetteCount < 1}
+              disabled={
+                sending ||
+                (!isFrozen && cassetteCount < 1) ||
+                !grossExamDraft.trim()
+              }
               onClick={sendToProcessing}
             >
-              <FormattedMessage id="pathology.workflow.sendToProcessing" />
+              <FormattedMessage
+                id={
+                  isFrozen
+                    ? "pathology.workflow.sendToCryotomy"
+                    : "pathology.workflow.sendToProcessing"
+                }
+              />
             </button>
           </div>
         )}
@@ -1422,7 +1466,7 @@ function PathologyCaseWorkflowRail({
             )}
           </div>
         )}
-        {editable && (
+        {editable && !isFrozen && (
           <>
             <div className="pathology-grossing-label">
               <FormattedMessage id="pathology.workflow.requestSpecialStainLabel" />
@@ -1588,7 +1632,12 @@ function PathologyCaseWorkflowRail({
             {patientName || <FormattedMessage id="pathology.workflow.case" />}
           </div>
           <div className="pathology-case-rail-meta">
-            {[labNo, requester !== "—" ? requester : null, pathologist]
+            {[
+              labNo,
+              subtypeLabel || null,
+              requester !== "—" ? requester : null,
+              pathologist,
+            ]
               .filter(Boolean)
               .join(" · ")}
           </div>
@@ -1604,11 +1653,11 @@ function PathologyCaseWorkflowRail({
       </div>
 
       <ol className="pathology-rail">
-        {WORKFLOW_STEPS.map((step, index) => {
+        {workflowSteps.map((step, index) => {
           const state = stepState(step.id);
           const stepNumber = index + 1;
           const label = intl.formatMessage({ id: step.labelId });
-          const isLast = index === WORKFLOW_STEPS.length - 1;
+          const isLast = index === workflowSteps.length - 1;
           const isExpandedCompleted = !!expandedCompleted[step.id];
 
           return (

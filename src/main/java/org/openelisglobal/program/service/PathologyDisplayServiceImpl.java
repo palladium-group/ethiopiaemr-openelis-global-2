@@ -88,17 +88,28 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setPathologySampleId(pathologySample.getId());
         displayItem.setPatientPK(patient.getId());
         displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
-        displayItem.setSubtype(resolvePathologySubtype(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
 
         return displayItem;
     }
 
     /**
-     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC
-     * 22637-3 is Morphology; everything else (including legacy Biopsy LOINC
-     * 11529-5) shows as Biopsy.
+     * Prefer the persisted {@link PathologySample.PathologySubtype}; fall back to LOINC on the
+     * ordered test for rows created before the subtype column existed.
      */
-    private String resolvePathologySubtype(Sample sample) {
+    private String resolvePathologySubtypeDisplay(PathologySample pathologySample) {
+        if (pathologySample != null && pathologySample.getSubtype() != null) {
+            return pathologySample.getSubtype().getDisplay();
+        }
+        return resolvePathologySubtypeFromSample(pathologySample == null ? null : pathologySample.getSample());
+    }
+
+    /**
+     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC 97005-7 is Frozen
+     * section; everything else (including Biopsy 11529-5 and legacy Morphology 22637-3) shows as
+     * Biopsy.
+     */
+    private String resolvePathologySubtypeFromSample(Sample sample) {
         if (sample == null || sample.getId() == null) {
             return "Biopsy";
         }
@@ -111,18 +122,18 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
                         continue;
                     }
                     String loinc = test.getLoinc();
-                    if ("22637-3".equals(loinc != null ? loinc.trim() : null)) {
-                        return "Morphology";
+                    if ("97005-7".equals(loinc != null ? loinc.trim() : null)) {
+                        return "Frozen section";
                     }
                     String description = test.getDescription() != null ? test.getDescription().toLowerCase() : "";
                     String name = test.getName() != null ? test.getName().toLowerCase() : "";
-                    if (description.contains("morphology") || name.contains("morphology")) {
-                        return "Morphology";
+                    if (description.contains("frozen") || name.contains("frozen")) {
+                        return "Frozen section";
                     }
                 }
             }
         } catch (RuntimeException e) {
-            LogEvent.logWarn(this.getClass().getSimpleName(), "resolvePathologySubtype",
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolvePathologySubtypeFromSample",
                     "could not resolve pathology subtype for sample " + sample.getId() + ": " + e.getMessage());
         }
         return "Biopsy";
@@ -243,6 +254,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         PathologySample pathologySample = pathologySampleService.get(pathologySampleId);
         PathologyCaseViewDisplayItem displayItem = new PathologyCaseViewDisplayItem();
         displayItem.setStatus(pathologySample.getStatus());
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
         displayItem.setRequestDate(pathologySample.getSample().getEnteredDate());
         if (pathologySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(pathologySample.getPathologist().getDisplayName());
@@ -334,7 +346,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
             }
         }
         displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
-        displayItem.setSubtype(resolvePathologySubtype(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
         displayItem.setAge(DateUtil.getCurrentAgeForDate(patient.getBirthDate(), DateUtil.getNowAsTimestamp()));
         displayItem.setSex(patient.getGender());
         if (pathologySample.getSample().getCollectionDate() != null) {

@@ -250,6 +250,7 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         case "PATH":
             PathologySample pathologySample = new PathologySample();
             pathologySample.setStatus(PathologySample.PathologyStatus.RECEIVED);
+            pathologySample.setSubtype(resolvePathologySubtype(test, programSubtypeText));
             return pathologySample;
         case "IHC":
             return new ImmunohistochemistrySample();
@@ -263,6 +264,46 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
                     "unsupported program code '" + code + "' for program " + program.getProgramName()
                             + "; cannot create program case");
         }
+    }
+
+    /**
+     * Prefer the ordered test's LOINC (one TestOrder per histopathology sample type). Fall back to
+     * sample-type text for older orders.
+     */
+    static PathologySample.PathologySubtype resolvePathologySubtype(Test test, String programSubtypeText) {
+        PathologySample.PathologySubtype fromLoinc = resolvePathologySubtypeFromLoinc(
+                test == null ? null : test.getLoinc());
+        if (fromLoinc != null) {
+            return fromLoinc;
+        }
+        return resolvePathologySubtypeFromText(programSubtypeText);
+    }
+
+    /** Package-private for unit testing. */
+    static PathologySample.PathologySubtype resolvePathologySubtypeFromLoinc(String loinc) {
+        if (GenericValidator.isBlankOrNull(loinc)) {
+            return null;
+        }
+        switch (loinc.trim()) {
+        case "97005-7":
+            return PathologySample.PathologySubtype.FROZEN;
+        case "11529-5":
+        case "22637-3": // legacy Morphology — Biopsy rail
+            return PathologySample.PathologySubtype.BIOPSY;
+        default:
+            return null;
+        }
+    }
+
+    static PathologySample.PathologySubtype resolvePathologySubtypeFromText(String programSubtypeText) {
+        if (GenericValidator.isBlankOrNull(programSubtypeText)) {
+            return PathologySample.PathologySubtype.BIOPSY;
+        }
+        String normalized = programSubtypeText.toLowerCase().trim();
+        if (normalized.contains("frozen")) {
+            return PathologySample.PathologySubtype.FROZEN;
+        }
+        return PathologySample.PathologySubtype.BIOPSY;
     }
 
     /**

@@ -51,6 +51,25 @@ public class PathologySample extends ProgramSample {
         }
     }
 
+    /**
+     * Which histopathology product the case is. Biopsy runs the paraffin H&amp;E rail;
+     * Frozen section skips processing/embedding and uses the cryostat rail. Set from the
+     * ordered test LOINC on import (like {@code CytologySample.CytologySubtype}).
+     */
+    public enum PathologySubtype {
+        BIOPSY("Biopsy"), FROZEN("Frozen section");
+
+        private final String display;
+
+        PathologySubtype(String display) {
+            this.display = display;
+        }
+
+        public String getDisplay() {
+            return display;
+        }
+    }
+
     @Valid
     @OneToOne
     @JoinColumn(name = "technician_id", referencedColumnName = "id")
@@ -64,6 +83,18 @@ public class PathologySample extends ProgramSample {
     @Enumerated(EnumType.STRING)
     @NotNull
     private PathologyStatus status = PathologyStatus.RECEIVED;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "subtype")
+    private PathologySubtype subtype = PathologySubtype.BIOPSY;
+
+    /**
+     * When this Biopsy case was auto-created after a Frozen section sign-out (permanent
+     * processing of leftover tissue). Null for EMR-ordered cases and for Frozen cases.
+     */
+    @Column(name = "linked_from_pathology_sample_id")
+    private Integer linkedFromPathologySampleId;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pathology_sample_id")
@@ -304,5 +335,25 @@ public class PathologySample extends ProgramSample {
 
     public void setReads(List<PathologyRead> reads) {
         this.reads = reads;
+    }
+
+    public PathologySubtype getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(PathologySubtype subtype) {
+        this.subtype = subtype == null ? PathologySubtype.BIOPSY : subtype;
+    }
+
+    public Integer getLinkedFromPathologySampleId() {
+        return linkedFromPathologySampleId;
+    }
+
+    public void setLinkedFromPathologySampleId(Integer linkedFromPathologySampleId) {
+        this.linkedFromPathologySampleId = linkedFromPathologySampleId;
+    }
+
+    public boolean isFrozen() {
+        return subtype == PathologySubtype.FROZEN;
     }
 }

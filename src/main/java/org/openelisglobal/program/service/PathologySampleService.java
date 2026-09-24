@@ -39,10 +39,13 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
     void confirmReceived(Integer pathologySampleId, String curUserId);
 
     /**
-     * Grossing Step 4: persist macroscopic description + cassette/blocks and
-     * advance GROSSING → PROCESSING. Requires at least one block. Idempotent if
-     * already past GROSSING (returns without rewriting blocks). Stamps
-     * processingStartedAt when first entering PROCESSING.
+     * Grossing Step 4: persist macroscopic description + cassette/blocks.
+     * <ul>
+     * <li>Biopsy: advance GROSSING → PROCESSING (requires at least one block).</li>
+     * <li>Frozen section: skip paraffin processing/embedding; advance GROSSING →
+     * SLICING (cryotomy). Creates a default block when none are supplied so slides
+     * can be cut.</li>
+     * </ul>
      */
     void sendToProcessing(Integer pathologySampleId, String grossExam, List<PathologyBlock> blocks, String curUserId);
 

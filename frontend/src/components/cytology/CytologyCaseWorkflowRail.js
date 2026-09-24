@@ -186,11 +186,13 @@ function CytologyCaseWorkflowRail({
     if (!labNo) {
       return;
     }
+    // type=default prints order + specimen labels for the accession.
+    // type=specimen requires labNo.itemNo (e.g. ACC.1) and crashes on bare accession.
     window.open(
       config.serverBaseUrl +
         "/LabelMakerServlet?labNo=" +
         encodeURIComponent(labNo) +
-        "&type=specimen",
+        "&type=default",
       "_blank",
     );
   };
