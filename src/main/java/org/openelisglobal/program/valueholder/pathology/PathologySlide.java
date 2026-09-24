@@ -3,6 +3,8 @@ package org.openelisglobal.program.valueholder.pathology;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +17,11 @@ import org.openelisglobal.common.valueholder.BaseObject;
 @Entity
 @Table(name = "pathology_slide")
 public class PathologySlide extends BaseObject<Integer> {
+
+    /** Whether this slide carries patient tissue or is a stain control. */
+    public enum SlideRole {
+        PATIENT, CONTROL_POS, CONTROL_NEG
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pathology_slide_generator")
@@ -32,7 +39,10 @@ public class PathologySlide extends BaseObject<Integer> {
 
     private String location;
 
-    /** Parent cassette/block for Microtomy cuts; null for legacy free-floating slides. */
+    /**
+     * Parent cassette/block for Microtomy cuts; null for legacy free-floating
+     * slides.
+     */
     @Column(name = "pathology_block_id")
     private Integer pathologyBlockId;
 
@@ -45,6 +55,21 @@ public class PathologySlide extends BaseObject<Integer> {
     @Column(name = "stained_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Timestamp stainedAt;
+
+    /**
+     * Stain applied to this slide (e.g. H&E, PAS, Ziehl-Neelsen). Null on legacy
+     * slides.
+     */
+    @Column(name = "stain_type")
+    private String stainType;
+
+    /**
+     * PATIENT tissue, or a positive/negative control slide accompanying a special
+     * stain.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "slide_role")
+    private SlideRole slideRole = SlideRole.PATIENT;
 
     @Override
     public Integer getId() {
@@ -110,5 +135,21 @@ public class PathologySlide extends BaseObject<Integer> {
 
     public void setStainedAt(Timestamp stainedAt) {
         this.stainedAt = stainedAt;
+    }
+
+    public String getStainType() {
+        return stainType;
+    }
+
+    public void setStainType(String stainType) {
+        this.stainType = stainType;
+    }
+
+    public SlideRole getSlideRole() {
+        return slideRole;
+    }
+
+    public void setSlideRole(SlideRole slideRole) {
+        this.slideRole = slideRole;
     }
 }

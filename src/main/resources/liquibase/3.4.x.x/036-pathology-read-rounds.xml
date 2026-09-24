@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <!--
+        Pathology read rounds: append-only history of each pathologist read on a case. Round 1 is
+        the biopsy/H&E read; each later round is a read after a special-stain request. The case's own
+        microscopy_exam/conclusions stay as the "latest" mirror used by the FHIR sign-out path.
+    -->
+    <changeSet id="036-pathology-read-rounds" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pathology_read" schemaName="clinlims"/>
+            </not>
+        </preConditions>
+        <comment>create pathology_read table for per-round read findings</comment>
+        <createSequence incrementBy="1" schemaName="clinlims" sequenceName="pathology_read_seq" startValue="1"/>
+        <createTable tableName="pathology_read" schemaName="clinlims">
+            <column name="id" type="INTEGER" valueSequenceNext="pathology_read_seq">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="pathology_sample_id" type="INTEGER"/>
+            <column name="round_number" type="INTEGER"/>
+            <column name="microscopy_exam" type="TEXT"/>
+            <column name="conclusion_text" type="TEXT"/>
+            <column name="conclusion_dictionary_ids" type="TEXT"/>
+            <column name="finalized" type="boolean" defaultValueBoolean="false"/>
+            <column name="reviewed_by" type="NUMERIC(10)"/>
+            <column name="reviewed_at" type="datetime"/>
+            <column name="last_updated" type="datetime"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="pathology_read_pathology_sample_id_fk"
+                                 baseTableName="pathology_read" baseColumnNames="pathology_sample_id"
+                                 referencedTableName="pathology_sample" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="pathology_read_reviewed_by_fk"
+                                 baseTableName="pathology_read" baseColumnNames="reviewed_by"
+                                 referencedTableName="system_user" referencedColumnNames="id"/>
+        <rollback>
+            <dropTable tableName="pathology_read" schemaName="clinlims"/>
+            <dropSequence sequenceName="pathology_read_seq" schemaName="clinlims"/>
+        </rollback>
+    </changeSet>
+
+    <!--
+        Backfill: existing cases keep their read history by seeding a finalized round 1 from the
+        current microscopy_exam + conclusions. New cases produce rounds directly through the service.
+    -->
+    <changeSet id="036-pathology-read-rounds-backfill" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(*) from clinlims.pathology_read</sqlCheck>
+        </preConditions>
+        <comment>seed round 1 read from existing pathology_sample findings</comment>
+        <sql>
+            INSERT INTO clinlims.pathology_read
+                (id, pathology_sample_id, round_number, microscopy_exam, conclusion_text,
+                 conclusion_dictionary_ids, finalized, reviewed_at, last_updated)
+            SELECT nextval('clinlims.pathology_read_seq'), ps.id, 1, ps.microscopy_exam,
+                (SELECT pc.value FROM clinlims.pathology_conclusion pc
+                    WHERE pc.pathology_sample_id = ps.id AND pc.type = 'TEXT' LIMIT 1),
+                (SELECT string_agg(pc.value, ',') FROM clinlims.pathology_conclusion pc
+                    WHERE pc.pathology_sample_id = ps.id AND pc.type = 'DICTIONARY'),
+                true, ps.last_updated, ${now}
+            FROM clinlims.pathology_sample ps
+            WHERE ps.microscopy_exam IS NOT NULL AND ps.microscopy_exam != '';
+        </sql>
+        <rollback>
+            <sql>DELETE FROM clinlims.pathology_read WHERE round_number = 1</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

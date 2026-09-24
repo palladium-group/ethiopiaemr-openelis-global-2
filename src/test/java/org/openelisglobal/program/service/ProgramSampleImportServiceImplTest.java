@@ -10,12 +10,12 @@ import org.openelisglobal.program.valueholder.ProgramSample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
-import org.openelisglobal.test.valueholder.Test;
 
 /**
- * Covers the stable program-code → program-sample entity mapping used when auto-creating a
- * program case from an imported FHIR order ({@code PATH}/{@code IHC}/{@code CYTO}), and
- * cytopathology subtype resolution from ordered-test LOINC.
+ * Covers the stable program-code → program-sample entity mapping used when
+ * auto-creating a program case from an imported FHIR order
+ * ({@code PATH}/{@code IHC}/{@code CYTO}), and cytopathology subtype resolution
+ * from ordered-test LOINC.
  */
 public class ProgramSampleImportServiceImplTest {
 
@@ -28,8 +28,8 @@ public class ProgramSampleImportServiceImplTest {
         return program;
     }
 
-    private Test testWithLoinc(String loinc) {
-        Test test = new Test();
+    private org.openelisglobal.test.valueholder.Test testWithLoinc(String loinc) {
+        org.openelisglobal.test.valueholder.Test test = new org.openelisglobal.test.valueholder.Test();
         test.setLoinc(loinc);
         return test;
     }
@@ -64,8 +64,8 @@ public class ProgramSampleImportServiceImplTest {
 
     @Test
     public void resolveCytologySubtype_prefersOrderedTestLoinc() {
-        ProgramSample sample = service.newProgramSampleForProgram(programWithCode("CYTO"),
-                testWithLoinc("97004-0"), "FNAC");
+        ProgramSample sample = service.newProgramSampleForProgram(programWithCode("CYTO"), testWithLoinc("97004-0"),
+                "FNAC");
         assertTrue(sample instanceof CytologySample);
         assertEquals(CytologySample.CytologySubtype.FLUID, ((CytologySample) sample).getSubtype());
     }

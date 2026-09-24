@@ -30,7 +30,10 @@ import org.openelisglobal.systemuser.valueholder.SystemUser;
 public class PathologySample extends ProgramSample {
 
     public enum PathologyStatus {
-        /** Order received from EMR; awaiting Reception pathologist assignment / collection. */
+        /**
+         * Order received from EMR; awaiting Reception pathologist assignment /
+         * collection.
+         */
         RECEIVED("Received"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
         /** After tissue processing; cassettes being embedded in wax (PDF Step 6). */
         EMBEDDING("Embedding"), SLICING("Slicing for Slides"), STAINING("Staining"),
@@ -86,6 +89,14 @@ public class PathologySample extends ProgramSample {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pathology_sample_id")
     private List<PathologyReport> reports;
+
+    /**
+     * Append-only pathologist read rounds (round 1 = biopsy/H&E read, later rounds
+     * = special-stain reads).
+     */
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "pathology_sample_id")
+    private List<PathologyRead> reads;
 
     @Column(name = "gross_exam")
     private String grossExam;
@@ -276,5 +287,22 @@ public class PathologySample extends ProgramSample {
 
     public void setReports(List<PathologyReport> reports) {
         this.reports = reports;
+    }
+
+    public List<PathologyRead> getReads() {
+        return reads;
+    }
+
+    public String getReads_Audit() {
+        if (reads == null) {
+            return null;
+        } else {
+            return StringUtils.join(reads.stream().map(e -> "Round: " + e.getRoundNumber() + ", Finalized: "
+                    + e.getFinalized() + ", Microscopy: " + e.getMicroscopyExam()).collect(Collectors.toList()), "; ");
+        }
+    }
+
+    public void setReads(List<PathologyRead> reads) {
+        this.reads = reads;
     }
 }

@@ -70,6 +70,21 @@ const PLANNED_SLIDES_PER_BLOCK = 1;
 
 const DEFAULT_STAIN_TYPE = "H&E";
 
+/**
+ * Fallback special-stain catalog, used only when the seeded pathologist_requests displayList is
+ * empty/unavailable. The live picker is dictionary-backed (see the PATHOLOGIST_REQUESTS fetch).
+ */
+const SPECIAL_STAIN_OPTIONS = [
+  "PAS",
+  "Ziehl-Neelsen",
+  "Masson's Trichrome",
+  "GMS",
+  "Congo Red",
+  "Perls Prussian Blue",
+  "Reticulin",
+  "Mucicarmine",
+];
+
 const cassetteSuffix = (index) => "A" + (index + 1);
 
 const cassetteCode = (labNo, index) => {
@@ -123,6 +138,10 @@ function PathologyCaseWorkflowRail({
   const [conclusionTextDraft, setConclusionTextDraft] = useState("");
   const [selectedConclusionIds, setSelectedConclusionIds] = useState([]);
   const [conclusionOptions, setConclusionOptions] = useState([]);
+  const [stainOptions, setStainOptions] = useState([]);
+  const [selectedStains, setSelectedStains] = useState([]);
+  const [requestingStain, setRequestingStain] = useState(false);
+  const [startingStain, setStartingStain] = useState(false);
 
   const status = pathologySampleInfo?.status;
   const isCollected = !!pathologySampleInfo?.collectionDate;
@@ -139,7 +158,21 @@ function PathologyCaseWorkflowRail({
   const isReadDone = PAST_READ.has(status);
   const isReadActive =
     status === "READY_PATHOLOGIST" || status === "ADDITIONAL_REQUEST";
+  const isAdditionalRequest = status === "ADDITIONAL_REQUEST";
   const labNo = pathologySampleInfo?.labNumber;
+
+  /** Read rounds (append-only history) and any outstanding special-stain request. */
+  const reads = pathologySampleInfo?.reads || [];
+  const openRequests = (pathologySampleInfo?.requests || []).filter(
+    (r) => r.status === "OPENED",
+  );
+  /** Stain the tech is currently working (drives the label on newly cut slides). */
+  const activeSpecialStain = openRequests.length
+    ? openRequests
+        .map((r) => r.value)
+        .filter(Boolean)
+        .join(", ")
+    : null;
 
   useEffect(() => {
     if (isGrossingActive) {
@@ -180,6 +213,13 @@ function PathologyCaseWorkflowRail({
         setConclusionOptions(Array.isArray(list) ? list : []);
       },
     );
+  }, []);
+
+  // Special-stain catalog: the seeded pathologist_requests dictionary (Stain PAS, ZN, Trichrome …).
+  useEffect(() => {
+    getFromOpenElisServer("/rest/displayList/PATHOLOGIST_REQUESTS", (list) => {
+      setStainOptions(Array.isArray(list) ? list : []);
+    });
   }, []);
 
   const formatDateTime = (value) => {
@@ -306,7 +346,9 @@ function PathologyCaseWorkflowRail({
     }
     setMarkingComplete(true);
     postToOpenElisServerFullResponse(
-      "/rest/pathology/caseView/" + pathologySampleId + "/markProcessingComplete",
+      "/rest/pathology/caseView/" +
+        pathologySampleId +
+        "/markProcessingComplete",
       "{}",
       (response) => {
         if (response && response.ok) {
@@ -354,17 +396,25 @@ function PathologyCaseWorkflowRail({
     );
   };
 
-  const cutSlide = (blockId, onCreated) => {
+  const cutSlide = (blockId, onCreated, slideRole) => {
     if (!isMicrotomyActive || !blockId || cuttingBlockId) {
       return;
     }
     setCuttingBlockId(blockId);
+    const params = [];
+    if (activeSpecialStain) {
+      params.push("stainType=" + encodeURIComponent(activeSpecialStain));
+    }
+    if (slideRole) {
+      params.push("slideRole=" + encodeURIComponent(slideRole));
+    }
     postToOpenElisServerFullResponse(
       "/rest/pathology/caseView/" +
         pathologySampleId +
         "/blocks/" +
         blockId +
-        "/cutSlide",
+        "/cutSlide" +
+        (params.length ? "?" + params.join("&") : ""),
       "{}",
       (response) => {
         if (response && response.ok) {
@@ -507,6 +557,70 @@ function PathologyCaseWorkflowRail({
     );
   };
 
+  const toggleStain = (name) => {
+    setSelectedStains((prev) =>
+      prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name],
+    );
+  };
+
+  /** Pathologist asks for one or more special stains; keeps the case on the same accession. */
+  const requestSpecialStain = () => {
+    if (requestingStain || !isReadActive || selectedStains.length === 0) {
+      return;
+    }
+    setRequestingStain(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/requestSpecialStain",
+      JSON.stringify({
+        microscopyExam: microscopyDraft,
+        conclusionText: conclusionTextDraft,
+        conclusions: selectedConclusionIds,
+        specialStains: selectedStains,
+      }),
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+              setSelectedStains([]);
+            })
+            .finally(() => setRequestingStain(false));
+        } else {
+          setRequestingStain(false);
+        }
+      },
+    );
+  };
+
+  /** Tech picks up the request: ADDITIONAL_REQUEST → SLICING so a new section can be cut/stained. */
+  const startSpecialStain = () => {
+    if (startingStain || !isAdditionalRequest) {
+      return;
+    }
+    setStartingStain(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/startSpecialStain",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setStartingStain(false));
+        } else {
+          setStartingStain(false);
+        }
+      },
+    );
+  };
+
   const stepState = (stepId) => {
     if (stepId === "collection") {
       return isCollected ? "completed" : "active";
@@ -593,7 +707,10 @@ function PathologyCaseWorkflowRail({
     }));
   };
 
-  const patientName = [pathologySampleInfo?.firstName, pathologySampleInfo?.lastName]
+  const patientName = [
+    pathologySampleInfo?.firstName,
+    pathologySampleInfo?.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
   const assignedAt = formatDateTime(pathologySampleInfo?.assignedAt);
@@ -673,7 +790,10 @@ function PathologyCaseWorkflowRail({
     { id: "pathology.workflow.microtomySummaryDone" },
     {
       confirmed: confirmedSlideCount,
-      total: Math.max(linkedSlideCount, savedBlocks.length * PLANNED_SLIDES_PER_BLOCK),
+      total: Math.max(
+        linkedSlideCount,
+        savedBlocks.length * PLANNED_SLIDES_PER_BLOCK,
+      ),
     },
   );
 
@@ -791,7 +911,10 @@ function PathologyCaseWorkflowRail({
           (editable ? "" : " pathology-grossing-card--compact")
         }
       >
-        <label className="pathology-grossing-label" htmlFor="pathology-gross-exam">
+        <label
+          className="pathology-grossing-label"
+          htmlFor="pathology-gross-exam"
+        >
           <FormattedMessage id="pathology.workflow.macroDescription" />
         </label>
         {editable ? (
@@ -992,7 +1115,9 @@ function PathologyCaseWorkflowRail({
         if (!best) {
           return slide;
         }
-        return (slide.slideNumber || 0) > (best.slideNumber || 0) ? slide : best;
+        return (slide.slideNumber || 0) > (best.slideNumber || 0)
+          ? slide
+          : best;
       }, null);
       if (newest) {
         printSlideLabel(slideDisplayCode(newest, updated?.labNumber || labNo));
@@ -1017,9 +1142,15 @@ function PathologyCaseWorkflowRail({
             const blockCode = blockDisplayCode(block, labNo, blockIndex);
             const blockSlides = slidesForBlock(block.id);
             const confirmed = blockSlides.filter((s) => !!s.confirmedAt).length;
-            const planned = Math.max(PLANNED_SLIDES_PER_BLOCK, blockSlides.length);
+            const planned = Math.max(
+              PLANNED_SLIDES_PER_BLOCK,
+              blockSlides.length,
+            );
             return (
-              <div key={block.id || blockCode} className="pathology-microtomy-block">
+              <div
+                key={block.id || blockCode}
+                className="pathology-microtomy-block"
+              >
                 <div className="pathology-microtomy-block-header">
                   <div>
                     <div className="pathology-cassette-code">{blockCode}</div>
@@ -1031,14 +1162,28 @@ function PathologyCaseWorkflowRail({
                     </div>
                   </div>
                   {allowActions && (
-                    <button
-                      type="button"
-                      className="pathology-btn pathology-btn--ghost pathology-btn--sm"
-                      disabled={cuttingBlockId === block.id || !block.id}
-                      onClick={() => handleCutSlide(block, blockIndex)}
-                    >
-                      <FormattedMessage id="pathology.workflow.cutSlide" />
-                    </button>
+                    <div className="pathology-microtomy-block-actions">
+                      <button
+                        type="button"
+                        className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+                        disabled={cuttingBlockId === block.id || !block.id}
+                        onClick={() => handleCutSlide(block, blockIndex)}
+                      >
+                        <FormattedMessage id="pathology.workflow.cutSlide" />
+                      </button>
+                      {activeSpecialStain && (
+                        <button
+                          type="button"
+                          className="pathology-btn pathology-btn--ghost pathology-btn--sm"
+                          disabled={cuttingBlockId === block.id || !block.id}
+                          onClick={() =>
+                            cutSlide(block.id, null, "CONTROL_POS")
+                          }
+                        >
+                          <FormattedMessage id="pathology.workflow.addControlSlide" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
                 {blockSlides.length === 0 ? (
@@ -1059,13 +1204,16 @@ function PathologyCaseWorkflowRail({
                           }
                         >
                           <div className="pathology-cassette-row-main">
-                            <div className="pathology-cassette-code">{code}</div>
+                            <div className="pathology-cassette-code">
+                              {code}
+                            </div>
                             {isConfirmed && (
                               <div className="pathology-cassette-embedded-meta">
                                 <FormattedMessage
                                   id="pathology.workflow.slideConfirmedAt"
                                   values={{
-                                    when: formatDateTime(slide.confirmedAt) || "—",
+                                    when:
+                                      formatDateTime(slide.confirmedAt) || "—",
                                   }}
                                 />
                               </div>
@@ -1145,8 +1293,14 @@ function PathologyCaseWorkflowRail({
                   <div className="pathology-stain-type">
                     <FormattedMessage
                       id="pathology.workflow.stainType"
-                      values={{ type: DEFAULT_STAIN_TYPE }}
+                      values={{ type: slide.stainType || DEFAULT_STAIN_TYPE }}
                     />
+                    {slide.slideRole && slide.slideRole !== "PATIENT" && (
+                      <span className="pathology-stain-control">
+                        {" · "}
+                        <FormattedMessage id="pathology.workflow.controlSlide" />
+                      </span>
+                    )}
                   </div>
                   {isStained && (
                     <div className="pathology-cassette-embedded-meta">
@@ -1179,13 +1333,140 @@ function PathologyCaseWorkflowRail({
     </div>
   );
 
+  const renderReadHistory = () => {
+    const finalizedRounds = reads.filter((r) => r.finalized);
+    if (finalizedRounds.length === 0) {
+      return null;
+    }
+    return (
+      <div className="pathology-read-history">
+        <div className="pathology-grossing-label">
+          <FormattedMessage id="pathology.workflow.readHistory" />
+        </div>
+        {finalizedRounds.map((round) => {
+          const conclusionLine = [
+            round.conclusionText,
+            (round.conclusions || []).join(", "),
+          ]
+            .filter(Boolean)
+            .join(" — ");
+          return (
+            <div key={round.roundNumber} className="pathology-read-round">
+              <div className="pathology-read-round-header">
+                <FormattedMessage
+                  id="pathology.workflow.readRound"
+                  values={{ round: round.roundNumber }}
+                />
+                {round.reviewedBy && (
+                  <span className="pathology-read-round-meta">
+                    {" — "}
+                    <FormattedMessage
+                      id="pathology.workflow.readRoundMeta"
+                      values={{
+                        by: round.reviewedBy,
+                        when: formatDateTime(round.reviewedAt) || "—",
+                      }}
+                    />
+                  </span>
+                )}
+              </div>
+              {round.microscopyExam?.trim() && (
+                <div className="pathology-read-round-body">
+                  {round.microscopyExam}
+                </div>
+              )}
+              {conclusionLine && (
+                <div className="pathology-read-round-conclusion">
+                  {conclusionLine}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderSpecialStainSection = ({ editable }) => {
+    if (!editable && openRequests.length === 0) {
+      return null;
+    }
+    // Prefer the seeded catalog; fall back to the built-in list if it is not configured.
+    const stainChoices = stainOptions.length
+      ? stainOptions.map((o) => o.value).filter(Boolean)
+      : SPECIAL_STAIN_OPTIONS;
+    return (
+      <div className="pathology-special-stain">
+        {openRequests.length > 0 && (
+          <div className="pathology-special-stain-pending">
+            <span>
+              <FormattedMessage
+                id="pathology.workflow.specialStainRequested"
+                values={{
+                  stain: openRequests
+                    .map((r) => r.value)
+                    .filter(Boolean)
+                    .join(", "),
+                }}
+              />
+            </span>
+            {isAdditionalRequest && (
+              <button
+                type="button"
+                className="pathology-btn pathology-btn--primary pathology-btn--sm"
+                disabled={startingStain}
+                onClick={startSpecialStain}
+              >
+                <FormattedMessage id="pathology.workflow.startSpecialStain" />
+              </button>
+            )}
+          </div>
+        )}
+        {editable && (
+          <>
+            <div className="pathology-grossing-label">
+              <FormattedMessage id="pathology.workflow.requestSpecialStainLabel" />
+            </div>
+            <div className="pathology-conclusion-options">
+              {stainChoices.map((name) => (
+                <label key={name} className="pathology-conclusion-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedStains.includes(name)}
+                    onChange={() => toggleStain(name)}
+                  />
+                  <span>{name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="pathology-read-footer">
+              <button
+                type="button"
+                className="pathology-btn pathology-btn--ghost"
+                disabled={requestingStain || selectedStains.length === 0}
+                onClick={requestSpecialStain}
+              >
+                <FormattedMessage id="pathology.workflow.requestSpecialStain" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const renderReadCard = ({ editable }) => (
     <div
       className={
-        "pathology-read-card" + (editable ? "" : " pathology-read-card--compact")
+        "pathology-read-card" +
+        (editable ? "" : " pathology-read-card--compact")
       }
     >
-      <label className="pathology-grossing-label" htmlFor="pathology-microscopy">
+      {renderReadHistory()}
+      <label
+        className="pathology-grossing-label"
+        htmlFor="pathology-microscopy"
+      >
         <FormattedMessage id="pathology.workflow.microscopicFindings" />
       </label>
       {editable ? (
@@ -1265,6 +1546,8 @@ function PathologyCaseWorkflowRail({
         </div>
       )}
 
+      {renderSpecialStainSection({ editable })}
+
       {editable ? (
         <div className="pathology-read-footer">
           <button
@@ -1289,8 +1572,7 @@ function PathologyCaseWorkflowRail({
           <FormattedMessage
             id="pathology.workflow.signedOutNote"
             values={{
-              pathologist:
-                pathologySampleInfo?.assignedPathologist || "—",
+              pathologist: pathologySampleInfo?.assignedPathologist || "—",
             }}
           />
         </div>
@@ -1570,8 +1852,7 @@ function PathologyCaseWorkflowRail({
                         aria-hidden="true"
                       />
                     </button>
-                    {isExpandedCompleted &&
-                      renderReadCard({ editable: false })}
+                    {isExpandedCompleted && renderReadCard({ editable: false })}
                   </div>
                 )}
 

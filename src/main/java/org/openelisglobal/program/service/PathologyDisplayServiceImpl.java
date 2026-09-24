@@ -1,6 +1,9 @@
 package org.openelisglobal.program.service;
 
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,10 +27,12 @@ import org.openelisglobal.organization.valueholder.Organization;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem;
+import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem.ReadRoundBean;
 import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem.RequestDisplayBean;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion.ConclusionType;
 import org.openelisglobal.program.valueholder.pathology.PathologyDisplayItem;
+import org.openelisglobal.program.valueholder.pathology.PathologyRead;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologyTechnique.TechniqueType;
@@ -89,8 +94,9 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     }
 
     /**
-     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC 22637-3 is
-     * Morphology; everything else (including legacy Biopsy LOINC 11529-5) shows as Biopsy.
+     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC
+     * 22637-3 is Morphology; everything else (including legacy Biopsy LOINC
+     * 11529-5) shows as Biopsy.
      */
     private String resolvePathologySubtype(Sample sample) {
         if (sample == null || sample.getId() == null) {
@@ -123,17 +129,16 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     }
 
     /**
-     * Requesting physician for Reception: sample_requester first, then SampleHuman.provider,
-     * then ServiceRequest.requester via FHIR (covers program imports that predate requester
-     * persistence).
+     * Requesting physician for Reception: sample_requester first, then
+     * SampleHuman.provider, then ServiceRequest.requester via FHIR (covers program
+     * imports that predate requester persistence).
      */
     private String resolveRequesterName(Sample sample) {
         try {
             SampleOrderService sampleOrderService = new SampleOrderService(sample);
             SampleOrderItem sampleItem = sampleOrderService.getSampleOrderItem();
-            String requester = ((sampleItem.getProviderLastName() == null ? "" : sampleItem.getProviderLastName())
-                    + " " + (sampleItem.getProviderFirstName() == null ? "" : sampleItem.getProviderFirstName()))
-                    .trim();
+            String requester = ((sampleItem.getProviderLastName() == null ? "" : sampleItem.getProviderLastName()) + " "
+                    + (sampleItem.getProviderFirstName() == null ? "" : sampleItem.getProviderFirstName())).trim();
             if (StringUtils.isNotBlank(requester)) {
                 return requester;
             }
@@ -300,14 +305,24 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
                 pathologySample.getConclusions().stream().filter(e -> e.getType() == ConclusionType.DICTIONARY)
                         .map(e -> new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName()))
                         .collect(Collectors.toList()));
-        displayItem.setTechniques(
-                pathologySample.getTechniques().stream().filter(e -> e.getType() == TechniqueType.DICTIONARY)
-                        .map(e -> new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName()))
-                        .collect(Collectors.toList()));
-        displayItem.setRequests(pathologySample.getRequests().stream()
-                .filter(e -> e.getType() == RequestType.DICTIONARY).map(e -> new RequestDisplayBean(e.getValue(),
-                        dictionaryService.get(e.getValue()).getLocalizedName(), e.getStatus()))
+        // Include TEXT techniques/requests too: special-stain names are stored as free
+        // text, not
+        // dictionary ids, and must still surface on the case page.
+        displayItem.setTechniques(pathologySample.getTechniques().stream()
+                .map(e -> e.getType() == TechniqueType.DICTIONARY
+                        ? new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName())
+                        : new IdValuePair(e.getValue(), e.getValue()))
                 .collect(Collectors.toList()));
+        displayItem.setRequests(pathologySample.getRequests().stream()
+                .map(e -> e.getType() == RequestType.DICTIONARY
+                        ? new RequestDisplayBean(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName(),
+                                e.getStatus())
+                        : new RequestDisplayBean(e.getValue(), e.getValue(), e.getStatus()))
+                .collect(Collectors.toList()));
+        displayItem.setReads(pathologySample.getReads() == null ? new ArrayList<>()
+                : pathologySample.getReads().stream()
+                        .sorted(Comparator.comparingInt(r -> r.getRoundNumber() == null ? 0 : r.getRoundNumber()))
+                        .map(this::toReadRoundBean).collect(Collectors.toList()));
 
         SampleOrderService sampleOrderService = new SampleOrderService(pathologySample.getSample());
         SampleOrderItem sampleItem = sampleOrderService.getSampleOrderItem();
@@ -331,11 +346,38 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         if (pathologySample.getProcessingStartedAt() != null) {
             displayItem.setProcessingStartedAt(pathologySample.getProcessingStartedAt());
             // Fixed default estimate (4h); site-configurable later if needed.
-            long estimateMillis = pathologySample.getProcessingStartedAt().getTime()
-                    + (4L * 60L * 60L * 1000L);
+            long estimateMillis = pathologySample.getProcessingStartedAt().getTime() + (4L * 60L * 60L * 1000L);
             displayItem.setProcessingEstimatedComplete(new java.util.Date(estimateMillis));
         }
         return displayItem;
+    }
+
+    private ReadRoundBean toReadRoundBean(PathologyRead read) {
+        ReadRoundBean bean = new ReadRoundBean();
+        bean.setRoundNumber(read.getRoundNumber());
+        bean.setMicroscopyExam(read.getMicroscopyExam());
+        bean.setConclusionText(read.getConclusionText());
+        bean.setFinalized(read.getFinalized());
+        bean.setReviewedAt(read.getReviewedAt());
+        if (read.getReviewedBy() != null) {
+            bean.setReviewedBy(read.getReviewedBy().getDisplayName());
+        }
+        List<String> conclusionNames = new ArrayList<>();
+        if (!GenericValidator.isBlankOrNull(read.getConclusionDictionaryIds())) {
+            for (String id : read.getConclusionDictionaryIds().split(",")) {
+                String trimmed = id.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                try {
+                    conclusionNames.add(dictionaryService.get(trimmed).getLocalizedName());
+                } catch (RuntimeException ex) {
+                    conclusionNames.add(trimmed);
+                }
+            }
+        }
+        bean.setConclusions(conclusionNames);
+        return bean;
     }
 
     @Override

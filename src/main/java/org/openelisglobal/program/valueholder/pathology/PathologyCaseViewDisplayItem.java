@@ -18,13 +18,17 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     private String department;
 
-    /** When the specimen was physically collected / confirmed received (null until Collection). */
+    /**
+     * When the specimen was physically collected / confirmed received (null until
+     * Collection).
+     */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date collectionDate;
 
     /**
-     * Approximate assignment time for Collection summary — PathologySample.lastupdated when a
-     * pathologist is assigned (no dedicated assignment timestamp yet).
+     * Approximate assignment time for Collection summary —
+     * PathologySample.lastupdated when a pathologist is assigned (no dedicated
+     * assignment timestamp yet).
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date assignedAt;
@@ -33,7 +37,10 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date processingStartedAt;
 
-    /** Estimated processing complete (started + fixed duration). Null if not started. */
+    /**
+     * Estimated processing complete (started + fixed duration). Null if not
+     * started.
+     */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date processingEstimatedComplete;
 
@@ -62,6 +69,12 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
     private String microscopyExam;
 
     private List<PathologyReport> reports;
+
+    /**
+     * Append-only pathologist read rounds, oldest first (round 1 = biopsy/H&E
+     * read).
+     */
+    private List<ReadRoundBean> reads;
 
     public String getAge() {
         return age;
@@ -229,6 +242,86 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     public void setReports(List<PathologyReport> reports) {
         this.reports = reports;
+    }
+
+    public List<ReadRoundBean> getReads() {
+        return reads;
+    }
+
+    public void setReads(List<ReadRoundBean> reads) {
+        this.reads = reads;
+    }
+
+    /**
+     * One pathologist read round for the case-page timeline (see
+     * {@link PathologyRead}).
+     */
+    public static class ReadRoundBean {
+        private Integer roundNumber;
+        private String microscopyExam;
+        private String conclusionText;
+        private List<String> conclusions;
+        private Boolean finalized;
+        private String reviewedBy;
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+        private Date reviewedAt;
+
+        public Integer getRoundNumber() {
+            return roundNumber;
+        }
+
+        public void setRoundNumber(Integer roundNumber) {
+            this.roundNumber = roundNumber;
+        }
+
+        public String getMicroscopyExam() {
+            return microscopyExam;
+        }
+
+        public void setMicroscopyExam(String microscopyExam) {
+            this.microscopyExam = microscopyExam;
+        }
+
+        public String getConclusionText() {
+            return conclusionText;
+        }
+
+        public void setConclusionText(String conclusionText) {
+            this.conclusionText = conclusionText;
+        }
+
+        public List<String> getConclusions() {
+            return conclusions;
+        }
+
+        public void setConclusions(List<String> conclusions) {
+            this.conclusions = conclusions;
+        }
+
+        public Boolean getFinalized() {
+            return finalized;
+        }
+
+        public void setFinalized(Boolean finalized) {
+            this.finalized = finalized;
+        }
+
+        public String getReviewedBy() {
+            return reviewedBy;
+        }
+
+        public void setReviewedBy(String reviewedBy) {
+            this.reviewedBy = reviewedBy;
+        }
+
+        public Date getReviewedAt() {
+            return reviewedAt;
+        }
+
+        public void setReviewedAt(Date reviewedAt) {
+            this.reviewedAt = reviewedAt;
+        }
     }
 
     public static class RequestDisplayBean extends IdValuePair {

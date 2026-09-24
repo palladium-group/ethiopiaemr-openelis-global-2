@@ -15,6 +15,7 @@ import org.openelisglobal.program.service.PathologySampleService;
 import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem;
 import org.openelisglobal.program.valueholder.pathology.PathologyDisplayItem;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
+import org.openelisglobal.program.valueholder.pathology.PathologySlide;
 import org.openelisglobal.systemuser.service.SystemUserService;
 import org.openelisglobal.systemuser.valueholder.SystemUser;
 import org.openelisglobal.userrole.service.UserRoleService;
@@ -49,7 +50,8 @@ public class PathologyController extends BaseRestController {
             @RequestParam(value = "searchTerm", required = false) String searchTerm,
             @RequestParam(value = "unassigned", required = false, defaultValue = "false") boolean unassigned,
             @RequestParam(value = "statuses", required = false) PathologyStatus... statuses) {
-        // Unassigned = no pathologist (not merely RECEIVED status). Assignment does not change status.
+        // Unassigned = no pathologist (not merely RECEIVED status). Assignment does not
+        // change status.
         if (unassigned) {
             return pathologySampleService.searchUnassigned(searchTerm).stream()
                     .map(e -> pathologyDisplayService.convertToDisplayItem(e.getId())).collect(Collectors.toList());
@@ -84,7 +86,8 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Pathologists available for Reception assignment, each with open caseload count.
+     * Pathologists available for Reception assignment, each with open caseload
+     * count.
      */
     @GetMapping(value = "/rest/pathology/pathologists", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -98,23 +101,23 @@ public class PathologyController extends BaseRestController {
 
     @PostMapping(value = "/rest/pathology/assignTechnician", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<String> assignTechnician(
-            @RequestParam(value = "pathologySampleId") Integer pathologySampleId, HttpServletRequest request) {
+    public ResponseEntity<String> assignTechnician(@RequestParam(value = "pathologySampleId") Integer pathologySampleId,
+            HttpServletRequest request) {
         String currentUserId = getSysUserId(request);
         pathologySampleService.assignTechnician(pathologySampleId, systemUserService.get(currentUserId), currentUserId);
         return ResponseEntity.ok("ok");
     }
 
     /**
-     * Assign a pathologist to a case. When {@code pathologistId} is omitted, assigns the current user
-     * (legacy self-claim). Reception passes an explicit pathologistId from the dashboard dropdown.
+     * Assign a pathologist to a case. When {@code pathologistId} is omitted,
+     * assigns the current user (legacy self-claim). Reception passes an explicit
+     * pathologistId from the dashboard dropdown.
      */
     @PostMapping(value = "/rest/pathology/assignPathologist", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<String> assignPathologist(
             @RequestParam(value = "pathologySampleId") Integer pathologySampleId,
-            @RequestParam(value = "pathologistId", required = false) String pathologistId,
-            HttpServletRequest request) {
+            @RequestParam(value = "pathologistId", required = false) String pathologistId, HttpServletRequest request) {
         String currentUserId = getSysUserId(request);
         String assigneeId = (pathologistId != null && !pathologistId.isBlank()) ? pathologistId : currentUserId;
         SystemUser pathologist = systemUserService.get(assigneeId);
@@ -126,22 +129,22 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Collection Step 3: mark specimen physically received (collectionDate) and move RECEIVED → GROSSING.
+     * Collection Step 3: mark specimen physically received (collectionDate) and
+     * move RECEIVED → GROSSING.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/confirmReceived",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/confirmReceived", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public PathologyCaseViewDisplayItem confirmReceived(
-            @PathVariable("pathologySampleId") Integer pathologySampleId, HttpServletRequest request) {
+    public PathologyCaseViewDisplayItem confirmReceived(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            HttpServletRequest request) {
         pathologySampleService.confirmReceived(pathologySampleId, getSysUserId(request));
         return pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId);
     }
 
     /**
-     * Grossing Step 4: save macroscopic description + cassettes and move GROSSING → PROCESSING.
+     * Grossing Step 4: save macroscopic description + cassettes and move GROSSING →
+     * PROCESSING.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/sendToProcessing",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/sendToProcessing", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> sendToProcessing(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @RequestBody PathologySampleForm form, HttpServletRequest request) {
@@ -155,13 +158,13 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Processing Step 5: mark tissue processing complete and move PROCESSING → EMBEDDING.
+     * Processing Step 5: mark tissue processing complete and move PROCESSING →
+     * EMBEDDING.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/markProcessingComplete",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/markProcessingComplete", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<?> markProcessingComplete(
-            @PathVariable("pathologySampleId") Integer pathologySampleId, HttpServletRequest request) {
+    public ResponseEntity<?> markProcessingComplete(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            HttpServletRequest request) {
         try {
             pathologySampleService.markProcessingComplete(pathologySampleId, getSysUserId(request));
         } catch (IllegalArgumentException e) {
@@ -171,10 +174,10 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Embedding Step 6: mark one cassette embedded; when all are done, moves EMBEDDING → SLICING.
+     * Embedding Step 6: mark one cassette embedded; when all are done, moves
+     * EMBEDDING → SLICING.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/markEmbedded",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/markEmbedded", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> markBlockEmbedded(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @PathVariable("blockId") Integer blockId, HttpServletRequest request) {
@@ -187,15 +190,28 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Microtomy Step 7: cut (create) the next slide for a block.
+     * Microtomy Step 7: cut (create) the next slide for a block. Optional
+     * {@code stainType} labels the slide for special-stain rounds (defaults to
+     * H&E); optional {@code slideRole} marks a positive/negative stain control
+     * (defaults to the patient tissue slide).
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/cutSlide",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/blocks/{blockId}/cutSlide", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> cutSlide(@PathVariable("pathologySampleId") Integer pathologySampleId,
-            @PathVariable("blockId") Integer blockId, HttpServletRequest request) {
+            @PathVariable("blockId") Integer blockId,
+            @RequestParam(value = "stainType", required = false) String stainType,
+            @RequestParam(value = "slideRole", required = false) String slideRole, HttpServletRequest request) {
+        PathologySlide.SlideRole role = PathologySlide.SlideRole.PATIENT;
+        if (slideRole != null && !slideRole.isBlank()) {
+            try {
+                role = PathologySlide.SlideRole.valueOf(slideRole);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body("unknown slideRole: " + slideRole);
+            }
+        }
         try {
-            pathologySampleService.cutSlide(pathologySampleId, blockId, getSysUserId(request));
+            pathologySampleService.cutSlide(pathologySampleId, blockId,
+                    (stainType == null || stainType.isBlank()) ? null : stainType, role, getSysUserId(request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -203,11 +219,10 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Microtomy Step 7: confirm a slide; when all planned slides are confirmed, moves SLICING →
-     * STAINING.
+     * Microtomy Step 7: confirm a slide; when all planned slides are confirmed,
+     * moves SLICING → STAINING.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/confirm",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/confirm", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> confirmSlide(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @PathVariable("slideId") Integer slideId, HttpServletRequest request) {
@@ -220,11 +235,10 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * Staining Step 8: mark a slide stained; when all Microtomy slides are stained, moves STAINING →
-     * READY_PATHOLOGIST.
+     * Staining Step 8: mark a slide stained; when all Microtomy slides are stained,
+     * moves STAINING → READY_PATHOLOGIST.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/markStained",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/slides/{slideId}/markStained", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> markSlideStained(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @PathVariable("slideId") Integer slideId, HttpServletRequest request) {
@@ -237,10 +251,10 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * The read: save microscopy + conclusions without releasing (does not rewrite blocks/slides).
+     * The read: save microscopy + conclusions without releasing (does not rewrite
+     * blocks/slides).
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/saveReadDraft",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/saveReadDraft", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> saveReadDraft(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @RequestBody PathologySampleForm form, HttpServletRequest request) {
@@ -254,17 +268,50 @@ public class PathologyController extends BaseRestController {
     }
 
     /**
-     * The read / sign-out: save findings and finalize (COMPLETED + results/FHIR) without rewriting
-     * blocks/slides.
+     * The read / sign-out: save findings and finalize (COMPLETED + results/FHIR)
+     * without rewriting blocks/slides.
      */
-    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/signOut",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/signOut", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> signOut(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @RequestBody PathologySampleForm form, HttpServletRequest request) {
         try {
             pathologySampleService.signOut(pathologySampleId, form.getMicroscopyExam(), form.getConclusionText(),
                     form.getConclusions(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * The read: pathologist requests one or more special stains. Closes the current
+     * read round and moves the same case to ADDITIONAL_REQUEST (same accession — no
+     * new case is created).
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/requestSpecialStain", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> requestSpecialStain(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            @RequestBody PathologySampleForm form, HttpServletRequest request) {
+        try {
+            pathologySampleService.requestSpecialStains(pathologySampleId, form.getMicroscopyExam(),
+                    form.getConclusionText(), form.getConclusions(), form.getSpecialStains(), getSysUserId(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        return ResponseEntity.ok(pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId));
+    }
+
+    /**
+     * Tech picks up a special-stain request: moves ADDITIONAL_REQUEST → SLICING so
+     * a new section can be cut from the existing block and stained.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/startSpecialStain", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> startSpecialStain(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            HttpServletRequest request) {
+        try {
+            pathologySampleService.startSpecialStain(pathologySampleId, getSysUserId(request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

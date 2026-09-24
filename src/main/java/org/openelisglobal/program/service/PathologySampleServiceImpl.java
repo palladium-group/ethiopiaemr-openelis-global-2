@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import org.openelisglobal.program.valueholder.immunohistochemistry.Immunohistoch
 import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion.ConclusionType;
+import org.openelisglobal.program.valueholder.pathology.PathologyRead;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
@@ -317,6 +319,13 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     @Transactional
     @Override
     public void cutSlide(Integer pathologySampleId, Integer blockId, String curUserId) {
+        cutSlide(pathologySampleId, blockId, null, PathologySlide.SlideRole.PATIENT, curUserId);
+    }
+
+    @Transactional
+    @Override
+    public void cutSlide(Integer pathologySampleId, Integer blockId, String stainType,
+            PathologySlide.SlideRole slideRole, String curUserId) {
         PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
         requireSlicing(pathologySample);
         PathologyBlock block = findBlock(pathologySample, blockId);
@@ -339,6 +348,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         slide.setPathologyBlockId(blockId);
         slide.setSlideNumber(nextSlideNumber);
         slide.setLocation(blockSuffix + "." + nextSlideNumber);
+        slide.setStainType(stainType);
+        slide.setSlideRole(slideRole == null ? PathologySlide.SlideRole.PATIENT : slideRole);
         slide.setSysUserId(curUserId);
         pathologySample.getSlides().add(slide);
         pathologySample.setSysUserId(curUserId);
@@ -437,6 +448,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
         if (isStainingComplete(pathologySample)) {
             pathologySample.setStatus(PathologyStatus.READY_PATHOLOGIST);
+            // A special-stain round just finished — close its open request(s).
+            completeOpenRequests(pathologySample);
         }
         pathologySample.setSysUserId(curUserId);
         update(pathologySample);
@@ -463,12 +476,61 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         }
         requireReadyForRead(pathologySample);
         applyReadFindings(pathologySample, microscopyExam, conclusionText, conclusionDictionaryIds, curUserId);
+        finalizeActiveRound(pathologySample, curUserId);
+        completeOpenRequests(pathologySample);
 
         PathologySampleForm form = new PathologySampleForm();
         form.setSystemUserId(curUserId);
         form.setConclusionText(conclusionText);
         form.setRelease(true);
         validatePathologySample(pathologySample, form);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void requestSpecialStains(Integer pathologySampleId, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds, List<String> stainNames, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        requireReadyForRead(pathologySample);
+
+        // Capture and close the current read round before the case leaves the
+        // pathologist.
+        applyReadFindings(pathologySample, microscopyExam, conclusionText, conclusionDictionaryIds, curUserId);
+        finalizeActiveRound(pathologySample, curUserId);
+
+        if (stainNames != null) {
+            for (String stain : stainNames) {
+                if (!GenericValidator.isBlankOrNull(stain)) {
+                    pathologySample.getTechniques().add(createTechnique(stain, TechniqueType.TEXT));
+                }
+            }
+        }
+        String requestValue = (stainNames == null || stainNames.isEmpty()) ? "Special stain"
+                : StringUtils.join(stainNames.stream().filter(s -> !GenericValidator.isBlankOrNull(s))
+                        .collect(Collectors.toList()), ", ");
+        pathologySample.getRequests().add(createRequest(requestValue, RequestType.TEXT, RequestStatus.OPENED));
+
+        pathologySample.setStatus(PathologyStatus.ADDITIONAL_REQUEST);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+    }
+
+    @Transactional
+    @Override
+    public void startSpecialStain(Integer pathologySampleId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        if (pathologySample.getStatus() == PathologyStatus.SLICING
+                || pathologySample.getStatus() == PathologyStatus.STAINING) {
+            // Special stain already in progress — leave as-is.
+            return;
+        }
+        if (pathologySample.getStatus() != PathologyStatus.ADDITIONAL_REQUEST) {
+            throw new IllegalArgumentException("case must be in ADDITIONAL_REQUEST to start a special stain");
+        }
+        // Re-enter Microtomy so the tech can cut a new section from the existing block.
+        pathologySample.setStatus(PathologyStatus.SLICING);
+        pathologySample.setSysUserId(curUserId);
         update(pathologySample);
     }
 
@@ -480,8 +542,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     }
 
     /**
-     * Updates microscopy + conclusions only. Leaves blocks, slides, techniques, requests, reports
-     * untouched so Microtomy/Staining metadata is preserved.
+     * Updates microscopy + conclusions only. Leaves blocks, slides, techniques,
+     * requests, reports untouched so Microtomy/Staining metadata is preserved.
      */
     private void applyReadFindings(PathologySample pathologySample, String microscopyExam, String conclusionText,
             List<String> conclusionDictionaryIds, String curUserId) {
@@ -499,7 +561,83 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 }
             }
         }
+        recordActiveRound(pathologySample, microscopyExam, conclusionText, conclusionDictionaryIds);
         pathologySample.setSysUserId(curUserId);
+    }
+
+    /**
+     * Writes the current findings into the case's active (non-finalized) read
+     * round, creating a new round if the previous one is already finalized. Rounds
+     * are append-only history; the sample's own microscopyExam/conclusions remain
+     * the "latest" mirror used by the FHIR sign-out path.
+     */
+    private void recordActiveRound(PathologySample pathologySample, String microscopyExam, String conclusionText,
+            List<String> conclusionDictionaryIds) {
+        if (pathologySample.getReads() == null) {
+            pathologySample.setReads(new ArrayList<>());
+        }
+        PathologyRead round = getActiveRound(pathologySample);
+        if (round == null) {
+            round = new PathologyRead();
+            round.setRoundNumber(nextRoundNumber(pathologySample));
+            round.setFinalized(false);
+            pathologySample.getReads().add(round);
+        }
+        round.setMicroscopyExam(microscopyExam);
+        round.setConclusionText(conclusionText);
+        if (conclusionDictionaryIds == null) {
+            round.setConclusionDictionaryIds(null);
+        } else {
+            round.setConclusionDictionaryIds(StringUtils.join(conclusionDictionaryIds.stream()
+                    .filter(id -> !GenericValidator.isBlankOrNull(id)).collect(Collectors.toList()), ","));
+        }
+    }
+
+    /**
+     * The latest read round that has not been finalized yet, or null when every
+     * round is closed.
+     */
+    private PathologyRead getActiveRound(PathologySample pathologySample) {
+        if (pathologySample.getReads() == null) {
+            return null;
+        }
+        return pathologySample.getReads().stream().filter(r -> !Boolean.TRUE.equals(r.getFinalized()))
+                .max(Comparator.comparingInt(r -> r.getRoundNumber() == null ? 0 : r.getRoundNumber())).orElse(null);
+    }
+
+    private int nextRoundNumber(PathologySample pathologySample) {
+        if (pathologySample.getReads() == null || pathologySample.getReads().isEmpty()) {
+            return 1;
+        }
+        return pathologySample.getReads().stream().mapToInt(r -> r.getRoundNumber() == null ? 0 : r.getRoundNumber())
+                .max().orElse(0) + 1;
+    }
+
+    /**
+     * Closes the active round (stamps reviewer/time) so the next read opens a fresh
+     * round.
+     */
+    private void finalizeActiveRound(PathologySample pathologySample, String curUserId) {
+        PathologyRead round = getActiveRound(pathologySample);
+        if (round != null) {
+            round.setFinalized(true);
+            round.setReviewedAt(DateUtil.getNowAsTimestamp());
+            if (!GenericValidator.isBlankOrNull(curUserId)) {
+                round.setReviewedBy(systemUserService.get(curUserId));
+            }
+        }
+    }
+
+    /**
+     * Marks every OPENED special-stain request COMPLETED (called when the case
+     * returns to review).
+     */
+    private void completeOpenRequests(PathologySample pathologySample) {
+        if (pathologySample.getRequests() == null) {
+            return;
+        }
+        pathologySample.getRequests().stream().filter(r -> r.getStatus() == RequestStatus.OPENED)
+                .forEach(r -> r.setStatus(RequestStatus.COMPLETED));
     }
 
     private void requireSlicing(PathologySample pathologySample) {
@@ -524,8 +662,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     }
 
     /**
-     * Each block has at least {@link #PLANNED_SLIDES_PER_BLOCK} confirmed slides, and every
-     * block-linked slide on the case is confirmed (extra cuts must be confirmed too).
+     * Each block has at least {@link #PLANNED_SLIDES_PER_BLOCK} confirmed slides,
+     * and every block-linked slide on the case is confirmed (extra cuts must be
+     * confirmed too).
      */
     private boolean isMicrotomyComplete(PathologySample pathologySample) {
         if (pathologySample.getBlocks() == null || pathologySample.getBlocks().isEmpty()) {
@@ -574,6 +713,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         pathologySample.setProgram(oldPathologySample.getProgram());
         pathologySample.setQuestionnaireResponseUuid(oldPathologySample.getQuestionnaireResponseUuid());
         pathologySample.setReports(new ArrayList<>(oldPathologySample.getReports()));
+        pathologySample.setReads(oldPathologySample.getReads() == null ? new ArrayList<>()
+                : new ArrayList<>(oldPathologySample.getReads()));
         pathologySample.setRequests(new ArrayList<>(oldPathologySample.getRequests()));
         pathologySample.setSample(oldPathologySample.getSample());
         pathologySample.setSlides(new ArrayList<>(oldPathologySample.getSlides()));
@@ -645,7 +786,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         Sample sample = pathologySample.getSample();
         Patient patient = sampleService.getPatient(sample);
         ResultsUpdateDataSet actionDataSet = new ResultsUpdateDataSet(form.getSystemUserId());
-        // Collected for the FHIR sync-back below (completes the order's referring Task so the result
+        // Collected for the FHIR sync-back below (completes the order's referring Task
+        // so the result
         // returns to the ordering physician in OpenMRS).
         List<Analysis> finalizedAnalyses = new ArrayList<>();
         ArrayList<Result> resultUpdateList = new ArrayList<>();
@@ -655,8 +797,10 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         for (TestResultItem testResultItem : testResultItems) {
             if (!testResultItem.getIsGroupSeparator()) {
                 if (ResultType.isTextOnlyVariant(testResultItem.getResultType())) {
-                    // Return the pathologist's conclusion as the structured result value (so it reaches the
-                    // ordering physician), falling back to the generic "see report" text when none was given.
+                    // Return the pathologist's conclusion as the structured result value (so it
+                    // reaches the
+                    // ordering physician), falling back to the generic "see report" text when none
+                    // was given.
                     String conclusionText = form.getConclusionText();
                     testResultItem.setResultValue(GenericValidator.isBlankOrNull(conclusionText)
                             ? MessageUtil.getMessage("result.pathology.seereport")
@@ -722,25 +866,31 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
         logbookResultsPersistService.persistDataSet(actionDataSet, ResultUpdateRegister.getRegisteredUpdaters(),
                 form.getSystemUserId());
-        // Re-load the sample as a managed entity and mark it finished so the change flushes with this
-        // transaction (the pathologySample here is a detached copy, so updating its Sample directly trips
+        // Re-load the sample as a managed entity and mark it finished so the change
+        // flushes with this
+        // transaction (the pathologySample here is a detached copy, so updating its
+        // Sample directly trips
         // optimistic locking).
         Sample finishedSample = sampleService.get(sample.getId());
         finishedSample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Finished));
 
-        // Push the pathology result to the local FHIR store exactly as Result Validation does: build the
-        // Observation/DiagnosticReport for the finalized analysis and complete the order's referring Task,
-        // so OpenMRS's FetchTaskUpdates returns the result to the ordering physician. The transform is
-        // @Async and reads committed state, so defer it until after this transaction commits (otherwise the
-        // async thread can't see the analysis/results just saved). Failure must not affect the completion.
+        // Push the pathology result to the local FHIR store exactly as Result
+        // Validation does: build the
+        // Observation/DiagnosticReport for the finalized analysis and complete the
+        // order's referring Task,
+        // so OpenMRS's FetchTaskUpdates returns the result to the ordering physician.
+        // The transform is
+        // @Async and reads committed state, so defer it until after this transaction
+        // commits (otherwise the
+        // async thread can't see the analysis/results just saved). Failure must not
+        // affect the completion.
         final List<Analysis> analysesForFhir = finalizedAnalyses;
         final ArrayList<Result> resultsForFhir = resultUpdateList;
         final Sample sampleForFhir = finishedSample;
         final String microscopicFindingForFhir = pathologySample.getMicroscopyExam();
         final String conclusionTextForFhir = form.getConclusionText();
         final String grossFindingForFhir = pathologySample.getGrossExam();
-        final List<String> conclusionDictionaryIdsForFhir = pathologySample.getConclusions() == null
-                ? new ArrayList<>()
+        final List<String> conclusionDictionaryIdsForFhir = pathologySample.getConclusions() == null ? new ArrayList<>()
                 : pathologySample.getConclusions().stream().filter(c -> c.getType() == ConclusionType.DICTIONARY)
                         .map(PathologyConclusion::getValue).filter(v -> !GenericValidator.isBlankOrNull(v))
                         .collect(Collectors.toList());
@@ -748,11 +898,10 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             @Override
             public void afterCommit() {
                 try {
-                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
-                            analysesForFhir, resultsForFhir, new ArrayList<>(),
-                            new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>(),
-                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir,
-                            grossFindingForFhir);
+                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(), analysesForFhir,
+                            resultsForFhir, new ArrayList<>(), new ArrayList<>(Arrays.asList(sampleForFhir)),
+                            new ArrayList<>(), microscopicFindingForFhir, conclusionTextForFhir,
+                            conclusionDictionaryIdsForFhir, grossFindingForFhir);
                 } catch (FhirLocalPersistingException e) {
                     LogEvent.logError(PathologySampleServiceImpl.class.getSimpleName(), "validatePathologySample",
                             "could not push pathology result to FHIR for sample " + sampleForFhir.getAccessionNumber()
