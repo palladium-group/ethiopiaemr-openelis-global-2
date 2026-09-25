@@ -471,55 +471,65 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                     "no local serviceRequests found for Task " + localObjects.task.getId());
         }
 
-        TaskResult taskResult = null;
         if (localObjects.task.getStatus() == null || localObjects.task.getStatus().equals(TaskStatus.REQUESTED)) {
             Boolean taskOrderAcceptedFlag = false;
             for (ServiceRequest serviceRequest : serviceRequestList) {
+                String taskId = remoteTask.getIdElement().getIdPart();
+                String serviceRequestId = serviceRequest.getIdElement().getIdPart();
+                if (runServiceRequestImportSafely(taskId, serviceRequestId, () -> {
+                    TaskInterpreter interpreter = SpringContext.getBean(TaskInterpreter.class);
+                    // Interpret once per ServiceRequest; program routing and the electronic-order path
+                    // both reuse this result (TaskWorker skips a second interpret when results are set).
+                    List<InterpreterResults> interpretResults = interpreter.interpret(remoteTask, serviceRequest,
+                            patient);
 
-                TaskInterpreter interpreter = SpringContext.getBean(TaskInterpreter.class);
-                // Interpret once per ServiceRequest; program routing and the electronic-order path
-                // both reuse this result (TaskWorker skips a second interpret when results are set).
-                List<InterpreterResults> interpretResults = interpreter.interpret(remoteTask, serviceRequest, patient);
-
-                // When enabled, an order whose test belongs to a program (e.g. Pathology) is
-                // created directly as a program case on that program's dashboard, instead of an
-                // electronic order, so it never appears in the Electronic Orders list.
-                if (routeProgramOrdersFromFhirEnabled()) {
-                    Program program = resolveProgramForImportedTest(interpreter.getTest());
-                    if (program != null) {
-                        if (!interpretResults.isEmpty() && interpretResults.get(0) == InterpreterResults.OK) {
-                            UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(serviceRequest,
-                                    localObjects);
-                            // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
-                            // pathology/cytology orders arrive uncollected; the lab collects later.
-                            Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
-                            String programSubtypeText = resolveProgramSubtypeText(serviceRequest,
-                                    localObjects.observations);
-                            programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
-                                    interpreter.getMessagePatient(), interpreter.getOrderPriority(),
-                                    serviceRequest.getIdElement().getIdPart(), questionnaireResponseUuid, null,
-                                    requestingProvider, programSubtypeText);
-                            taskOrderAcceptedFlag = true;
+                    // When enabled, an order whose test belongs to a program (e.g. Pathology) is
+                    // created directly as a program case on that program's dashboard, instead of an
+                    // electronic order, so it never appears in the Electronic Orders list.
+                    if (routeProgramOrdersFromFhirEnabled()) {
+                        Program program = resolveProgramForImportedTest(interpreter.getTest());
+                        if (program != null) {
+                            if (!interpretResults.isEmpty() && interpretResults.get(0) == InterpreterResults.OK) {
+                                UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(
+                                        serviceRequest, localObjects);
+                                // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
+                                // pathology/cytology orders arrive uncollected; the lab collects later.
+                                Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
+                                String programSubtypeText = resolveProgramSubtypeText(serviceRequest,
+                                        localObjects.observations);
+                                programSampleImportService.createProgramSampleFromImport(program,
+                                        interpreter.getTest(), interpreter.getMessagePatient(),
+                                        interpreter.getOrderPriority(), serviceRequestId, questionnaireResponseUuid,
+                                        null, requestingProvider, programSubtypeText);
+                                return true;
+                            }
+                            // No e-order / no case; Task still REJECTED for EMR. Log for ops diagnosis.
+                            LogEvent.logError(this.getClass().getSimpleName(), "processTaskImportOrder",
+                                    "program order not created: interpret="
+                                            + (interpretResults.isEmpty() ? "EMPTY" : interpretResults.get(0))
+                                            + " task=" + taskId + " serviceRequest=" + serviceRequestId + " program="
+                                            + program.getProgramName() + " test="
+                                            + (interpreter.getTest() != null ? interpreter.getTest().getLoinc() : null)
+                                            + " referringOrder=" + interpreter.getReferringOrderNumber());
+                            return false;
                         }
-                        continue;
                     }
-                }
 
-                TaskWorker worker = new TaskWorker(remoteTask,
-                        fhirContext.newJsonParser().encodeResourceToString(remoteTask), serviceRequest, patient);
+                    TaskWorker worker = new TaskWorker(remoteTask,
+                            fhirContext.newJsonParser().encodeResourceToString(remoteTask), serviceRequest, patient);
 
-                worker.setInterpreter(interpreter);
-                worker.setInterpretResults(interpretResults);
-                worker.setExistanceChecker(SpringContext.getBean(DBOrderExistanceChecker.class));
-                worker.setPersister(SpringContext.getBean(IOrderPersister.class));
+                    worker.setInterpreter(interpreter);
+                    worker.setInterpretResults(interpretResults);
+                    worker.setExistanceChecker(SpringContext.getBean(DBOrderExistanceChecker.class));
+                    worker.setPersister(SpringContext.getBean(IOrderPersister.class));
 
-                taskResult = worker.handleOrderRequest();
-                if (taskResult == TaskResult.OK) {
-                    taskOrderAcceptedFlag = true; // at least one order was accepted per Piotr 5/14/2020
+                    return worker.handleOrderRequest() == TaskResult.OK;
+                })) {
+                    taskOrderAcceptedFlag = true;
                 }
             }
 
-            TaskStatus taskStatus = taskOrderAcceptedFlag ? TaskStatus.ACCEPTED : TaskStatus.REJECTED;
+            TaskStatus taskStatus = taskStatusAfterServiceRequestImports(taskOrderAcceptedFlag);
             localObjects.task.setStatus(taskStatus);
             if (remoteStoreUpdateStatus.isPresent() && remoteStoreUpdateStatus.get()) {
                 LogEvent.logTrace(this.getClass().getSimpleName(), "beginTaskPath",
@@ -544,6 +554,33 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             // taskBasedOnRemoteTask.setStatus(taskStatus);
             // localFhirClient.update().resource(taskBasedOnRemoteTask).execute();
         }
+    }
+
+    /**
+     * Runs one ServiceRequest import attempt. Returns its accepted flag, or false if it threw —
+     * so a single failure cannot leave the remote Task stuck in REQUESTED (infinite poll retry).
+     */
+    @FunctionalInterface
+    interface ServiceRequestImportAttempt {
+        boolean run() throws Exception;
+    }
+
+    static boolean runServiceRequestImportSafely(String taskId, String serviceRequestId,
+            ServiceRequestImportAttempt attempt) {
+        try {
+            return attempt.run();
+        } catch (Exception e) {
+            LogEvent.logError(e);
+            LogEvent.logError(FhirApiWorkFlowServiceImpl.class.getSimpleName(), "processTaskImportOrder",
+                    "failed processing serviceRequest=" + serviceRequestId + " task=" + taskId + ": "
+                            + e.getMessage());
+            return false;
+        }
+    }
+
+    /** ACCEPTED if any SR was accepted; otherwise REJECTED so the poller stops retrying. */
+    static TaskStatus taskStatusAfterServiceRequestImports(boolean anyAccepted) {
+        return anyAccepted ? TaskStatus.ACCEPTED : TaskStatus.REJECTED;
     }
 
     private boolean routeProgramOrdersFromFhirEnabled() {

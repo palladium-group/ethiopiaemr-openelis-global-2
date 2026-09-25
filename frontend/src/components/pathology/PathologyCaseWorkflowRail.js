@@ -160,9 +160,11 @@ function PathologyCaseWorkflowRail({
     (typeof subtypeLabel === "string" &&
       subtypeLabel.toLowerCase().includes("frozen"));
   const workflowSteps = isFrozen ? FROZEN_WORKFLOW_STEPS : BIOPSY_WORKFLOW_STEPS;
-  const isCollected = !!pathologySampleInfo?.collectionDate;
+  // Gate on status, not collectionDate (autofill can set the date while still RECEIVED).
+  const needsCollectionConfirm = status === "RECEIVED";
+  const isCollectionComplete = !!status && status !== "RECEIVED";
   const isGrossingDone = PAST_GROSSING.has(status);
-  const isGrossingActive = isCollected && status === "GROSSING";
+  const isGrossingActive = status === "GROSSING";
   const isProcessingDone = PAST_PROCESSING.has(status);
   const isProcessingActive = status === "PROCESSING";
   const isEmbeddingDone = PAST_EMBEDDING.has(status);
@@ -294,7 +296,7 @@ function PathologyCaseWorkflowRail({
   };
 
   const confirmReceived = () => {
-    if (confirming || isCollected) {
+    if (confirming || status !== "RECEIVED") {
       return;
     }
     setConfirming(true);
@@ -651,10 +653,13 @@ function PathologyCaseWorkflowRail({
 
   const stepState = (stepId) => {
     if (stepId === "collection") {
-      return isCollected ? "completed" : "active";
+      if (needsCollectionConfirm) {
+        return "active";
+      }
+      return isCollectionComplete ? "completed" : "locked";
     }
     if (stepId === "grossing") {
-      if (!isCollected) {
+      if (needsCollectionConfirm || !status) {
         return "locked";
       }
       if (isGrossingDone) {
@@ -841,7 +846,7 @@ function PathologyCaseWorkflowRail({
     id: "pathology.workflow.readSummaryDone",
   });
 
-  const badgeLabelId = !isCollected
+  const badgeLabelId = needsCollectionConfirm || !status
     ? "pathology.workflow.badgeCollection"
     : !isGrossingDone
       ? "pathology.workflow.badgeGrossing"
@@ -1645,7 +1650,7 @@ function PathologyCaseWorkflowRail({
         <span
           className={
             "pathology-case-rail-badge" +
-            (isCollected ? " pathology-case-rail-badge--progress" : "")
+            (isCollectionComplete ? " pathology-case-rail-badge--progress" : "")
           }
         >
           <FormattedMessage id={badgeLabelId} />

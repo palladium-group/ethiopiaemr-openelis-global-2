@@ -1,6 +1,7 @@
 package org.openelisglobal.dataexchange.fhir.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Observation;
@@ -15,6 +17,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Task.TaskStatus;
 import org.junit.Test;
 
 /**
@@ -22,7 +25,8 @@ import org.junit.Test;
  * links OpenMRS's labonfhir module stamps onto each order: referring diagnoses via
  * {@code ServiceRequest.reasonReference}, and order-time context observations (specimen site,
  * clinical history, ...) via {@code ServiceRequest.supportingInfo}. Also covers synthesizing a
- * QuestionnaireResponse from those observations for the program case view.
+ * QuestionnaireResponse from those observations for the program case view, and isolating
+ * per-ServiceRequest import failures so Tasks are not left REQUESTED forever.
  */
 public class FhirApiWorkFlowServiceImplTest {
 
@@ -145,5 +149,36 @@ public class FhirApiWorkFlowServiceImplTest {
         assertNotNull(qr);
         assertEquals(1, qr.getItem().size());
         assertEquals("Liver", qr.getItem().get(0).getAnswerFirstRep().getValueStringType().getValue());
+    }
+
+    @Test
+    public void runServiceRequestImportSafely_returnsTrue_whenAttemptSucceeds() {
+        assertTrue(FhirApiWorkFlowServiceImpl.runServiceRequestImportSafely("task-1", "sr-1", () -> true));
+    }
+
+    @Test
+    public void runServiceRequestImportSafely_returnsFalse_whenAttemptReturnsFalse() {
+        assertFalse(FhirApiWorkFlowServiceImpl.runServiceRequestImportSafely("task-1", "sr-1", () -> false));
+    }
+
+    @Test
+    public void runServiceRequestImportSafely_returnsFalseAndDoesNotPropagate_whenAttemptThrows() {
+        AtomicBoolean ranPast = new AtomicBoolean(false);
+
+        boolean accepted = FhirApiWorkFlowServiceImpl.runServiceRequestImportSafely("task-1", "sr-1", () -> {
+            throw new IllegalArgumentException("missing sample type");
+        });
+
+        assertFalse(accepted);
+        // Caller can still decide Task status (REJECTED when nothing accepted).
+        assertEquals(TaskStatus.REJECTED, FhirApiWorkFlowServiceImpl.taskStatusAfterServiceRequestImports(false));
+        ranPast.set(true);
+        assertTrue(ranPast.get());
+    }
+
+    @Test
+    public void taskStatusAfterServiceRequestImports_acceptedWhenAnySucceeded() {
+        assertEquals(TaskStatus.ACCEPTED, FhirApiWorkFlowServiceImpl.taskStatusAfterServiceRequestImports(true));
+        assertEquals(TaskStatus.REJECTED, FhirApiWorkFlowServiceImpl.taskStatusAfterServiceRequestImports(false));
     }
 }
