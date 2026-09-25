@@ -182,6 +182,9 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                     .filter(sample -> isAssignedToUser(sample.getPathologist(), sample.getTechnician(), currentUserId))
                     .collect(Collectors.toList());
         }
+        if (bucket == ReceptionBucket.COMPLETED) {
+            samples = filterCompletedWindow(samples, PathologySample::getLastupdated);
+        }
         return samples.stream()
                 .map(sample -> toRow(pathologyDisplayService.convertToDisplayItem(sample.getId()), sample))
                 .collect(Collectors.toList());
@@ -204,8 +207,19 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                     sample -> isAssignedToUser(sample.getCytoPathologist(), sample.getTechnician(), currentUserId))
                     .collect(Collectors.toList());
         }
+        if (bucket == ReceptionBucket.COMPLETED) {
+            samples = filterCompletedWindow(samples, CytologySample::getLastupdated);
+        }
         return samples.stream()
                 .map(sample -> toRow(cytologyDisplayService.convertToDisplayItem(sample.getId()), sample))
+                .collect(Collectors.toList());
+    }
+
+    private <T> List<T> filterCompletedWindow(List<T> samples,
+            java.util.function.Function<T, Timestamp> lastUpdatedGetter) {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        Timestamp windowStart = Timestamp.from(Instant.now().minus(COMPLETE_TILE_WINDOW_DAYS, ChronoUnit.DAYS));
+        return samples.stream().filter(sample -> inCompleteWindow(lastUpdatedGetter.apply(sample), windowStart, now))
                 .collect(Collectors.toList());
     }
 

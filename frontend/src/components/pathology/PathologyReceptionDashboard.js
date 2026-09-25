@@ -68,6 +68,7 @@ const CATEGORY_CONFIG = {
  */
 function PathologyReceptionDashboard() {
   const componentMounted = useRef(false);
+  const searchRequestId = useRef(0);
   const intl = useIntl();
 
   const { notificationVisible } = useContext(NotificationContext);
@@ -134,8 +135,11 @@ function PathologyReceptionDashboard() {
     );
   };
 
-  const setEntriesWithIds = (data) => {
+  const setEntriesWithIds = (data, requestId) => {
     if (!componentMounted.current) {
+      return;
+    }
+    if (requestId !== searchRequestId.current) {
       return;
     }
     if (Array.isArray(data) && data.length > 0) {
@@ -162,9 +166,10 @@ function PathologyReceptionDashboard() {
   };
 
   const refreshItems = () => {
+    const requestId = ++searchRequestId.current;
     getFromOpenElisServer(
       "/rest/pathology/reception/dashboard?" + filtersToParameters(),
-      setEntriesWithIds,
+      (data) => setEntriesWithIds(data, requestId),
     );
   };
 
@@ -376,6 +381,7 @@ function PathologyReceptionDashboard() {
 
   useEffect(() => {
     componentMounted.current = true;
+    setPage(1);
     setLoading(true);
     refreshItems();
     refreshCounts();

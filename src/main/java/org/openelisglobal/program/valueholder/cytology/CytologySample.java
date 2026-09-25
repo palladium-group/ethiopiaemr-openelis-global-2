@@ -127,7 +127,7 @@ public class CytologySample extends ProgramSample {
     @Column(name = "microscopy_exam")
     private String microscopyExam;
 
-    @Column(name = "conclusion")
+    @Column(name = "conclusion", length = 4000)
     private String conclusion;
 
     @Column(name = "conclusion_text")

@@ -43,6 +43,7 @@ import org.openelisglobal.program.valueholder.pathology.PathologyRead;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
+import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologySlide;
@@ -161,9 +162,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             } else {
                 List<PathologySample> filtered = new ArrayList<>();
                 pathologySamples.forEach(pathologySample -> {
-                    Patient patient = sampleService.getPatient(pathologySample.getSample());
-                    if (patient.getPerson().getFirstName().equals(searchTerm)
-                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                    Sample caseSample = pathologySample.getSample();
+                    Patient patient = sampleService.getPatient(caseSample);
+                    if (ProgramSampleSearch.matchesPatientOrAccession(caseSample, patient, searchTerm)) {
                         filtered.add(pathologySample);
                     }
                 });
@@ -1143,9 +1144,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             } else {
                 List<PathologySample> filteredpathologySamples = new ArrayList<>();
                 pathologySamples.forEach(pathologySample -> {
-                    Patient patient = sampleService.getPatient(pathologySample.getSample());
-                    if (patient.getPerson().getFirstName().equals(searchTerm)
-                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                    Sample caseSample = pathologySample.getSample();
+                    Patient patient = sampleService.getPatient(caseSample);
+                    if (ProgramSampleSearch.matchesPatientOrAccession(caseSample, patient, searchTerm)) {
                         filteredpathologySamples.add(pathologySample);
                     }
                 });

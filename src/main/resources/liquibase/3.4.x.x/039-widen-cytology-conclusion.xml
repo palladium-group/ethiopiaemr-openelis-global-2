@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="039-widen-cytology-conclusion" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <columnExists schemaName="clinlims" tableName="cytology_sample" columnName="conclusion"/>
+        </preConditions>
+        <comment>Widen cytology conclusion so narrative text is not truncated at 100 chars</comment>
+        <modifyDataType schemaName="clinlims" tableName="cytology_sample" columnName="conclusion"
+            newDataType="VARCHAR(4000)"/>
+        <rollback>
+            <modifyDataType schemaName="clinlims" tableName="cytology_sample" columnName="conclusion"
+                newDataType="VARCHAR(100)"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

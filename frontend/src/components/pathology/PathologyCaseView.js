@@ -32,8 +32,13 @@ function PathologyCaseView() {
   ];
 
   const setInitialPathologySampleInfo = (sample) => {
+    if (!componentMounted.current || !sample) {
+      return;
+    }
     const next = { ...sample };
+    const sessionReady = !!userSessionDetails?.userId;
     if (
+      sessionReady &&
       hasRole(userSessionDetails, "Pathologist") &&
       !next.assignedPathologistId &&
       next.status === "READY_PATHOLOGIST"
@@ -42,7 +47,7 @@ function PathologyCaseView() {
       next.assignedPathologist =
         userSessionDetails.lastName + " " + userSessionDetails.firstName;
     }
-    if (!next.assignedTechnicianId) {
+    if (sessionReady && !next.assignedTechnicianId) {
       next.assignedTechnicianId = userSessionDetails.userId;
       next.assignedTechnician =
         userSessionDetails.lastName + " " + userSessionDetails.firstName;
@@ -52,7 +57,11 @@ function PathologyCaseView() {
   };
 
   useEffect(() => {
+    if (!pathologySampleId || !userSessionDetails?.userId) {
+      return;
+    }
     componentMounted.current = true;
+    setLoading(true);
     getFromOpenElisServer(
       "/rest/pathology/caseView/" + pathologySampleId,
       setInitialPathologySampleInfo,
@@ -60,7 +69,12 @@ function PathologyCaseView() {
     return () => {
       componentMounted.current = false;
     };
-  }, [pathologySampleId]);
+  }, [
+    pathologySampleId,
+    userSessionDetails?.userId,
+    userSessionDetails?.firstName,
+    userSessionDetails?.lastName,
+  ]);
 
   return (
     <>

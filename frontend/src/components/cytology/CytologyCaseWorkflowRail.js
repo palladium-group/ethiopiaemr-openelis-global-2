@@ -773,7 +773,7 @@ function CytologyCaseWorkflowRail({
                     <button
                       type="button"
                       className="pathology-btn pathology-btn--primary pathology-btn--sm"
-                      disabled={stainingSlideId === slide.id || !slide.id}
+                      disabled={!!stainingSlideId || !slide.id}
                       onClick={() => markSlideStained(slide.id)}
                     >
                       <FormattedMessage id="cytology.workflow.markStained" />

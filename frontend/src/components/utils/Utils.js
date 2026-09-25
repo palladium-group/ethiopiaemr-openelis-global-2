@@ -84,10 +84,29 @@ export const postToOpenElisServerFullResponse = (
       body: payLoad,
     },
   )
-    .then((response) => callback(response, extraParams))
+    .then((response) => {
+      if (!response.ok) {
+        notifyOpenElisRequestFailed(response.status, endPoint);
+      }
+      callback(response, extraParams);
+    })
     .catch((error) => {
       console.error(error);
+      notifyOpenElisRequestFailed(0, endPoint);
+      // Always clear in-flight UI state even when the network fails.
+      callback({ ok: false, status: 0 }, extraParams);
     });
+};
+
+const notifyOpenElisRequestFailed = (status, endPoint) => {
+  if (typeof window === "undefined" || !window.dispatchEvent) {
+    return;
+  }
+  window.dispatchEvent(
+    new CustomEvent("openelis:request-failed", {
+      detail: { status, endPoint },
+    }),
+  );
 };
 
 export const postToOpenElisServerFormData = (

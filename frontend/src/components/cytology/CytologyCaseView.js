@@ -32,8 +32,13 @@ function CytologyCaseView() {
   ];
 
   const setInitialPathologySampleInfo = (sample) => {
+    if (!componentMounted.current || !sample) {
+      return;
+    }
     const next = { ...sample };
+    const sessionReady = !!userSessionDetails?.userId;
     if (
+      sessionReady &&
       hasRole(userSessionDetails, "CytoPathologist") &&
       !next.assignedPathologistId &&
       next.status === "READY_FOR_CYTOPATHOLOGIST"
@@ -42,7 +47,7 @@ function CytologyCaseView() {
       next.assignedPathologist =
         userSessionDetails.lastName + " " + userSessionDetails.firstName;
     }
-    if (!next.assignedTechnicianId) {
+    if (sessionReady && !next.assignedTechnicianId) {
       next.assignedTechnicianId = userSessionDetails.userId;
       next.assignedTechnician =
         userSessionDetails.lastName + " " + userSessionDetails.firstName;
@@ -52,7 +57,11 @@ function CytologyCaseView() {
   };
 
   useEffect(() => {
+    if (!cytologySampleId || !userSessionDetails?.userId) {
+      return;
+    }
     componentMounted.current = true;
+    setLoading(true);
     getFromOpenElisServer(
       "/rest/cytology/caseView/" + cytologySampleId,
       setInitialPathologySampleInfo,
@@ -60,7 +69,12 @@ function CytologyCaseView() {
     return () => {
       componentMounted.current = false;
     };
-  }, [cytologySampleId]);
+  }, [
+    cytologySampleId,
+    userSessionDetails?.userId,
+    userSessionDetails?.firstName,
+    userSessionDetails?.lastName,
+  ]);
 
   return (
     <>

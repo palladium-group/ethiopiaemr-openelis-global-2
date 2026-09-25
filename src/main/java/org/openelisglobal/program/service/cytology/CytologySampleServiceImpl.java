@@ -33,6 +33,7 @@ import org.openelisglobal.program.dao.cytology.CytologySampleDAO;
 import org.openelisglobal.program.service.ImmunohistochemistrySampleService;
 import org.openelisglobal.program.service.ProgramService;
 import org.openelisglobal.program.valueholder.Program;
+import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologySubtype;
@@ -124,9 +125,9 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
             } else {
                 List<CytologySample> filteredCytologySamples = new ArrayList<>();
                 cytologySamples.forEach(cytologySample -> {
-                    Patient patient = sampleService.getPatient(cytologySample.getSample());
-                    if (patient.getPerson().getFirstName().equals(searchTerm)
-                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                    Sample caseSample = cytologySample.getSample();
+                    Patient patient = sampleService.getPatient(caseSample);
+                    if (ProgramSampleSearch.matchesPatientOrAccession(caseSample, patient, searchTerm)) {
                         filteredCytologySamples.add(cytologySample);
                     }
                 });
@@ -161,9 +162,9 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
             } else {
                 List<CytologySample> filtered = new ArrayList<>();
                 cytologySamples.forEach(cytologySample -> {
-                    Patient patient = sampleService.getPatient(cytologySample.getSample());
-                    if (patient.getPerson().getFirstName().equals(searchTerm)
-                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                    Sample caseSample = cytologySample.getSample();
+                    Patient patient = sampleService.getPatient(caseSample);
+                    if (ProgramSampleSearch.matchesPatientOrAccession(caseSample, patient, searchTerm)) {
                         filtered.add(cytologySample);
                     }
                 });

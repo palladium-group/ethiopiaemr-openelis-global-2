@@ -45,4 +45,5 @@
   <include relativeToChangelogFile="true" file="036-pathology-read-rounds.xml"/>
   <include relativeToChangelogFile="true" file="037-pathology-slide-stain-type-and-role.xml"/>
   <include relativeToChangelogFile="true" file="038-pathology-frozen-section.xml"/>
+  <include relativeToChangelogFile="true" file="039-widen-cytology-conclusion.xml"/>
 </databaseChangeLog>
