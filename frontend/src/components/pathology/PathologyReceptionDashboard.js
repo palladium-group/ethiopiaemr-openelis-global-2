@@ -19,6 +19,7 @@ import {
   Loading,
   Pagination,
   Search,
+  Checkbox,
 } from "@carbon/react";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import {
@@ -71,6 +72,7 @@ function PathologyReceptionDashboard() {
 
   const { notificationVisible } = useContext(NotificationContext);
   const { userSessionDetails } = useContext(UserSessionDetailsContext);
+  const specialistDefaultsApplied = useRef(false);
 
   const [entries, setEntries] = useState([]);
   const [specialists, setSpecialists] = useState({
@@ -82,17 +84,36 @@ function PathologyReceptionDashboard() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     searchTerm: "",
-    // Reception opens on the cases still needing a specialist, across both categories.
+    myCases: false,
+    // Reception opens on unassigned; specialists are switched to Received + My cases below.
     bucket: "UNASSIGNED",
     serviceCategory: "ALL",
   });
   const [counts, setCounts] = useState({
     unassigned: 0,
+    received: 0,
     inProgress: 0,
     awaitingReview: 0,
     additionalRequests: 0,
     complete: 0,
   });
+
+  useEffect(() => {
+    if (specialistDefaultsApplied.current || !userSessionDetails?.roles) {
+      return;
+    }
+    specialistDefaultsApplied.current = true;
+    const isSpecialist =
+      hasRole(userSessionDetails, "Pathologist") ||
+      hasRole(userSessionDetails, "Cytopathologist");
+    if (isSpecialist) {
+      setFilters((prev) => ({
+        ...prev,
+        myCases: true,
+        bucket: "RECEIVED",
+      }));
+    }
+  }, [userSessionDetails]);
 
   const categoryParameters = () => {
     if (filters.serviceCategory === "ALL") {
@@ -107,6 +128,8 @@ function PathologyReceptionDashboard() {
       filters.bucket +
       "&searchTerm=" +
       encodeURIComponent(filters.searchTerm || "") +
+      "&assignedToMe=" +
+      (filters.myCases ? "true" : "false") +
       categoryParameters()
     );
   };
@@ -130,6 +153,7 @@ function PathologyReceptionDashboard() {
     }
     setCounts({
       unassigned: data.unassigned ?? 0,
+      received: data.received ?? 0,
       inProgress: data.inProgress ?? 0,
       awaitingReview: data.awaitingReview ?? 0,
       additionalRequests: data.additionalRequests ?? 0,
@@ -147,7 +171,9 @@ function PathologyReceptionDashboard() {
   const refreshCounts = () => {
     getFromOpenElisServer(
       "/rest/pathology/reception/dashboard/count?" +
-        categoryParameters().replace(/^&/, ""),
+        "assignedToMe=" +
+        (filters.myCases ? "true" : "false") +
+        categoryParameters(),
       loadCounts,
     );
   };
@@ -300,6 +326,13 @@ function PathologyReceptionDashboard() {
       className: "dashboard-tile unassigned-tile",
     },
     {
+      key: "received",
+      bucket: "RECEIVED",
+      title: <FormattedMessage id="pathology.label.received" />,
+      count: counts.received,
+      className: "dashboard-tile received-tile",
+    },
+    {
       key: "inProgress",
       bucket: "IN_PROGRESS",
       title: <FormattedMessage id="pathology.label.casesInProgress" />,
@@ -370,7 +403,7 @@ function PathologyReceptionDashboard() {
           </Section>
         </Column>
       </Grid>
-      <div className="dashboard-container dashboard-container-5">
+      <div className="dashboard-container dashboard-container-6">
         {tileList.map((tile) => (
           <Tile
             key={tile.key}
@@ -405,6 +438,17 @@ function PathologyReceptionDashboard() {
               <div>
                 <FormattedMessage id="filters.label" />:
               </div>
+              <Checkbox
+                labelText={intl.formatMessage({ id: "label.filters.mycases" })}
+                id="filterMyCases"
+                checked={!!filters.myCases}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    myCases: e.currentTarget.checked,
+                  })
+                }
+              />
               <Select
                 id="serviceCategoryFilter"
                 name="serviceCategoryFilter"
@@ -450,6 +494,12 @@ function PathologyReceptionDashboard() {
                   value="UNASSIGNED"
                   text={intl.formatMessage({
                     id: "pathology.label.unassigned",
+                  })}
+                />
+                <SelectItem
+                  value="RECEIVED"
+                  text={intl.formatMessage({
+                    id: "pathology.label.received",
                   })}
                 />
                 <SelectItem

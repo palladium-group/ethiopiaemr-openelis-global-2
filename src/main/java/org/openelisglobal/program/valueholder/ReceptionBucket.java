@@ -9,6 +9,11 @@ public enum ReceptionBucket {
 
     /** No specialist assigned yet, whatever the stage. */
     UNASSIGNED,
+    /**
+     * Order received / awaiting collection or first lab step ({@code RECEIVED} for both
+     * histopathology and cytopathology).
+     */
+    RECEIVED,
     IN_PROGRESS,
     AWAITING_REVIEW,
     /** Histopathology only; cytopathology has no equivalent stage. */

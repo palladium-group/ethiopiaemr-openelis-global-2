@@ -1,13 +1,11 @@
 package org.openelisglobal.program.valueholder.cytology;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 
 public class CytologyDisplayItem {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date requestDate;
+    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    private String requestDate;
 
     private CytologyStatus status;
     private String lastName;
@@ -22,11 +20,11 @@ public class CytologyDisplayItem {
 
     private CytologySample.CytologySubtype subtype;
 
-    public Date getRequestDate() {
+    public String getRequestDate() {
         return requestDate;
     }
 
-    public void setRequestDate(Date requestDate) {
+    public void setRequestDate(String requestDate) {
         this.requestDate = requestDate;
     }
 

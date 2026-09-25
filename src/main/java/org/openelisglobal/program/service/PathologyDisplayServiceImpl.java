@@ -74,7 +74,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         PathologySample pathologySample = pathologySampleService.get(pathologySampleId);
         PathologyDisplayItem displayItem = new PathologyDisplayItem();
         displayItem.setStatus(pathologySample.getStatus());
-        displayItem.setRequestDate(pathologySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(pathologySample.getSample()));
         if (pathologySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(pathologySample.getPathologist().getDisplayName());
         }
@@ -255,7 +255,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         PathologyCaseViewDisplayItem displayItem = new PathologyCaseViewDisplayItem();
         displayItem.setStatus(pathologySample.getStatus());
         displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
-        displayItem.setRequestDate(pathologySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(pathologySample.getSample()));
         if (pathologySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(pathologySample.getPathologist().getDisplayName());
             displayItem.setAssignedPathologistId(pathologySample.getPathologist().getId());
@@ -400,5 +400,20 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         pathologySample.getSlides().size();
         pathologySample.getConclusions().size();
         return pathologySample;
+    }
+
+    /**
+     * Format entered date in the lab locale/timezone so Jackson never reinterprets a Date as UTC
+     * (which shifts calendar dates west of UTC by one day).
+     */
+    private String formatRequestDate(Sample sample) {
+        if (sample == null) {
+            return null;
+        }
+        String display = sample.getEnteredDateForDisplay();
+        if (StringUtils.isNotBlank(display)) {
+            return display;
+        }
+        return sample.getEnteredDate() != null ? DateUtil.formatDateAsText(sample.getEnteredDate()) : null;
     }
 }

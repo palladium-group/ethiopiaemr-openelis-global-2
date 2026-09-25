@@ -9,6 +9,8 @@ public class ProgramReceptionDashBoardCount {
 
     private Long unassigned = 0L;
 
+    private Long received = 0L;
+
     private Long inProgress = 0L;
 
     private Long awaitingReview = 0L;
@@ -23,6 +25,14 @@ public class ProgramReceptionDashBoardCount {
 
     public void setUnassigned(Long unassigned) {
         this.unassigned = unassigned;
+    }
+
+    public Long getReceived() {
+        return received;
+    }
+
+    public void setReceived(Long received) {
+        this.received = received;
     }
 
     public Long getInProgress() {

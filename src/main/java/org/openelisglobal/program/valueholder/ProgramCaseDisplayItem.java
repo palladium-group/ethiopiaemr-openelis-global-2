@@ -1,7 +1,7 @@
 package org.openelisglobal.program.valueholder;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.sql.Timestamp;
 
 /**
  * One row of the merged pathology reception dashboard.
@@ -21,8 +21,8 @@ public class ProgramCaseDisplayItem {
 
     private Integer caseId;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date requestDate;
+    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    private String requestDate;
 
     /** Program-specific status name, e.g. GROSSING or CELL_BLOCK. */
     private String statusCode;
@@ -47,6 +47,13 @@ public class ProgramCaseDisplayItem {
     private String labNumber;
 
     private String patientPK;
+
+    /**
+     * Used only for newest-first ordering across the merged list (not shown in the UI). Prefer
+     * sample lastupdated so newly created orders rise above older same-day cases.
+     */
+    @JsonIgnore
+    private Timestamp lastUpdated;
 
     public String getRowId() {
         return rowId;
@@ -80,11 +87,11 @@ public class ProgramCaseDisplayItem {
         this.caseId = caseId;
     }
 
-    public Date getRequestDate() {
+    public String getRequestDate() {
         return requestDate;
     }
 
-    public void setRequestDate(Date requestDate) {
+    public void setRequestDate(String requestDate) {
         this.requestDate = requestDate;
     }
 
@@ -166,5 +173,13 @@ public class ProgramCaseDisplayItem {
 
     public void setPatientPK(String patientPK) {
         this.patientPK = patientPK;
+    }
+
+    public Timestamp getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(Timestamp lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 }

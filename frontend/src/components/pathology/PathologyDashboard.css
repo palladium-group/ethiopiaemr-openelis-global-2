@@ -9,6 +9,10 @@
   grid-template-columns: repeat(5, 1fr);
 }
 
+.dashboard-container-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
 .dashboard-tile {
   border-radius: 3px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -18,6 +22,11 @@
 .dashboard-tile.unassigned-tile {
   background-color: #edf5ff;
   border: 1px solid #0f62fe;
+}
+
+.dashboard-tile.received-tile {
+  background-color: #fff8e8;
+  border: 1px solid #f1c21b;
 }
 
 .tile-title {
@@ -71,7 +80,8 @@
 
 @media screen and (max-width: 450px) {
   .dashboard-container,
-  .dashboard-container-5 {
+  .dashboard-container-5,
+  .dashboard-container-6 {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     padding: 20px;
@@ -92,6 +102,9 @@
   .dashboard-container-5 {
     grid-template-columns: repeat(3, 1fr);
   }
+  .dashboard-container-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .dashboard-tile {
     min-width: 175px;
   }
@@ -102,7 +115,8 @@
 
 @media (max-width: 925px) {
   .dashboard-container,
-  .dashboard-container-5 {
+  .dashboard-container-5,
+  .dashboard-container-6 {
     grid-template-columns: repeat(3, 1fr);
     gap: 22px;
     padding: 22px;
@@ -111,14 +125,16 @@
 
 @media (max-width: 500px) {
   .dashboard-container,
-  .dashboard-container-5 {
+  .dashboard-container-5,
+  .dashboard-container-6 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media screen and (max-width: 700px) and (min-width: 450px) {
   .dashboard-container,
-  .dashboard-container-5 {
+  .dashboard-container-5,
+  .dashboard-container-6 {
     grid-template-columns: repeat(2, 1fr);
     gap: 40px;
     padding: 30px;

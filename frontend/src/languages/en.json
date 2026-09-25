@@ -1947,6 +1947,7 @@
   "pathology.label.blocks": "Blocks",
   "pathology.label.casesInProgress": "Cases in Progress",
   "pathology.label.unassigned": "Unassigned",
+  "pathology.label.received": "Received",
   "pathology.label.assignPathologist": "Assign pathologist…",
   "pathology.label.requestingPhysician": "Requesting physician",
   "pathology.workflow.collection": "Collection",

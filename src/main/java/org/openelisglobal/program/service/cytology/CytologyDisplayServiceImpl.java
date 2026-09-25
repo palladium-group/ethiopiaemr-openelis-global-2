@@ -22,6 +22,7 @@ import org.openelisglobal.program.valueholder.cytology.CytologyDisplayItem;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.sample.bean.SampleOrderItem;
 import org.openelisglobal.sample.service.SampleService;
+import org.openelisglobal.sample.valueholder.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,7 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
         CytologySample cytologySample = cytologySampleService.get(cytologySampleId);
         CytologyCaseViewDisplayItem displayItem = new CytologyCaseViewDisplayItem();
         displayItem.setStatus(cytologySample.getStatus());
-        displayItem.setRequestDate(cytologySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(cytologySample.getSample()));
         if (cytologySample.getCytoPathologist() != null) {
             displayItem.setAssignedCytoPathologist(cytologySample.getCytoPathologist().getDisplayName());
             displayItem.setAssignedPathologistId(cytologySample.getCytoPathologist().getId());
@@ -162,7 +163,7 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
         CytologySample cytologySample = cytologySampleService.get(cytologySampleId);
         CytologyDisplayItem displayItem = new CytologyDisplayItem();
         displayItem.setStatus(cytologySample.getStatus());
-        displayItem.setRequestDate(cytologySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(cytologySample.getSample()));
         if (cytologySample.getCytoPathologist() != null) {
             displayItem.setAssignedCytoPathologist(cytologySample.getCytoPathologist().getDisplayName());
         }
@@ -186,5 +187,16 @@ public class CytologyDisplayServiceImpl implements CytologyDisplayService {
             cytologySample.getDiagnosis().getDiagnosisResultsMaps().size();
         }
         return cytologySample;
+    }
+
+    private String formatRequestDate(Sample sample) {
+        if (sample == null) {
+            return null;
+        }
+        String display = sample.getEnteredDateForDisplay();
+        if (StringUtils.isNotBlank(display)) {
+            return display;
+        }
+        return sample.getEnteredDate() != null ? DateUtil.formatDateAsText(sample.getEnteredDate()) : null;
     }
 }
