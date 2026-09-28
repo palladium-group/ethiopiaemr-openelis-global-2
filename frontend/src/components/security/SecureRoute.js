@@ -67,13 +67,14 @@ function SecureRoute(props) {
   }, [userSessionDetails, errorLoadingSessionDetails]);
 
   const hasPermission = (userDetails = userSessionDetails) => {
-    var hasRole =
-      !props.role ||
-      []
-        .concat(props.role)
-        .some((role) => userDetails.roles && userDetails.roles.includes(role));
-    var containsLabUnitRole = false;
+    const roleList = props.role ? [].concat(props.role).filter(Boolean) : [];
+    const hasMatchingRole =
+      roleList.length === 0 ||
+      roleList.some((role) => userDetails.roles && userDetails.roles.includes(role));
+
+    let hasMatchingLabUnitRole = true;
     if (props.labUnitRole) {
+      hasMatchingLabUnitRole = false;
       Object.keys(props.labUnitRole).forEach((labunit) => {
         if (userDetails.userLabRolesMap) {
           const userRoles = userDetails.userLabRolesMap["AllLabUnits"]
@@ -82,14 +83,23 @@ function SecureRoute(props) {
           const roles = props.labUnitRole[labunit];
           roles.forEach((r) => {
             if (userRoles.includes(r)) {
-              containsLabUnitRole = true;
+              hasMatchingLabUnitRole = true;
             }
           });
         }
       });
     }
-    var hasLabUnitRole = !props.labUnitRole || containsLabUnitRole;
-    return hasRole && hasLabUnitRole;
+
+    // When matchAny is set, either the global role OR a lab-unit role is enough
+    // (used so Pathology Reception can open the queue without Results).
+    if (props.matchAny && roleList.length > 0 && props.labUnitRole) {
+      const hasExplicitRole = roleList.some(
+        (role) => userDetails.roles && userDetails.roles.includes(role),
+      );
+      return hasExplicitRole || hasMatchingLabUnitRole;
+    }
+
+    return hasMatchingRole && hasMatchingLabUnitRole;
   };
 
   const onIdle = () => {

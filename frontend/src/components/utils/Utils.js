@@ -549,6 +549,7 @@ export const Roles = {
   ANALYSER_IMPORT: "Analyser Import",
   CYTOPATHOLOGIST: "Cytopathologist",
   PATHOLOGIST: "Pathologist",
+  PATHOLOGY_RECEPTION: "Pathology Reception",
   RECEPTION: "Reception",
   SAMPLE_RECEPTION_APPROVAL: "Sample Reception Approval",
   RESULTS: "Results",

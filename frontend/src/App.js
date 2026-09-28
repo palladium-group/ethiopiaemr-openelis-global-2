@@ -303,18 +303,20 @@ export default function App() {
                   path="/PathologyDashboard"
                   exact
                   component={() => <PathologyReceptionDashboard />}
-                  role=""
+                  role={Roles.PATHOLOGY_RECEPTION}
                   labUnitRole={{
                     Pathology: [Roles.RESULTS],
                     Cytology: [Roles.RESULTS],
                   }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/PathologyCaseView/:pathologySampleId"
                   exact
                   component={() => <PathologyCaseView />}
-                  role=""
+                  role={Roles.PATHOLOGY_RECEPTION}
                   labUnitRole={{ Pathology: [Roles.RESULTS] }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/ImmunohistochemistryDashboard"
@@ -394,8 +396,9 @@ export default function App() {
                   path="/CytologyCaseView/:cytologySampleId"
                   exact
                   component={() => <CytologyCaseView />}
-                  role=""
+                  role={Roles.PATHOLOGY_RECEPTION}
                   labUnitRole={{ Cytology: [Roles.RESULTS] }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/GenericSample/Order"

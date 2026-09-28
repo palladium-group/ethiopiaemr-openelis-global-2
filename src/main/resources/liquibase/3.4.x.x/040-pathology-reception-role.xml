@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+      Pathology Reception is distinct from general lab Reception (/Reception).
+      Clerks who manage the shared Histopathology + Cytopathology queue get this role;
+      Pathologist / Cytopathologist remain specialist-only.
+    -->
+
+    <changeSet id="040-pathology-reception-role" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="system_role" schemaName="clinlims" />
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.system_role WHERE name = 'Pathology Reception'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create Pathology Reception global role for the shared pathology queue</comment>
+        <insert tableName="system_role" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_role_seq" />
+            <column name="name" value="Pathology Reception" />
+            <column name="description" value="Access to Histopathology and Cytopathology reception queue" />
+            <column name="is_grouping_role" value="false" />
+            <column name="grouping_parent"
+                valueComputed="(SELECT id FROM clinlims.system_role WHERE name = 'Global Roles')" />
+            <column name="display_key" value="role.PathologyReception" />
+            <column name="active" value="true" />
+            <column name="editable" value="false" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="040-pathology-reception-module" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="system_module" schemaName="clinlims" />
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.system_module WHERE name = 'PathologyReception'
+            </sqlCheck>
+        </preConditions>
+        <comment>Module for pathology reception queue and case views</comment>
+        <insert schemaName="clinlims" tableName="system_module">
+            <column name="id" valueSequenceNext="system_module_seq" />
+            <column name="name" value="PathologyReception" />
+            <column name="description" value="Pathology reception dashboard and case views" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="040-pathology-reception-role-module" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM clinlims.system_role WHERE name = 'Pathology Reception'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM clinlims.system_module WHERE name = 'PathologyReception'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM clinlims.system_role_module srm
+                JOIN clinlims.system_role sr ON sr.id = srm.system_role_id
+                JOIN clinlims.system_module sm ON sm.id = srm.system_module_id
+                WHERE sr.name = 'Pathology Reception' AND sm.name = 'PathologyReception'
+            </sqlCheck>
+        </preConditions>
+        <comment>Link Pathology Reception role to PathologyReception module</comment>
+        <insert tableName="system_role_module" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_role_module_seq" />
+            <column name="has_select" value="Y" />
+            <column name="has_add" value="Y" />
+            <column name="has_update" value="Y" />
+            <column name="system_role_id"
+                valueComputed="(SELECT id FROM clinlims.system_role WHERE name = 'Pathology Reception')" />
+            <column name="system_module_id"
+                valueComputed="(SELECT id FROM clinlims.system_module WHERE name = 'PathologyReception')" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="040-pathology-reception-module-urls" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM clinlims.system_module WHERE name = 'PathologyReception'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM clinlims.system_module_url u
+                JOIN clinlims.system_module m ON m.id = u.system_module_id
+                WHERE m.name = 'PathologyReception' AND u.url_path = '/PathologyDashboard'
+            </sqlCheck>
+        </preConditions>
+        <comment>Allow Pathology Reception to open the shared queue and case views</comment>
+        <insert tableName="system_module_url" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_module_url_seq" />
+            <column name="url_path" value="/PathologyDashboard" />
+            <column name="system_module_id"
+                valueComputed="(SELECT id FROM clinlims.system_module WHERE name = 'PathologyReception')" />
+        </insert>
+        <insert tableName="system_module_url" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_module_url_seq" />
+            <column name="url_path" value="/PathologyCaseView" />
+            <column name="system_module_id"
+                valueComputed="(SELECT id FROM clinlims.system_module WHERE name = 'PathologyReception')" />
+        </insert>
+        <insert tableName="system_module_url" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_module_url_seq" />
+            <column name="url_path" value="/CytologyCaseView" />
+            <column name="system_module_id"
+                valueComputed="(SELECT id FROM clinlims.system_module WHERE name = 'PathologyReception')" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
