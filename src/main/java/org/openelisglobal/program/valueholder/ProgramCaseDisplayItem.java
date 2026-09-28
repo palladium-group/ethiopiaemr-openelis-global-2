@@ -6,9 +6,11 @@ import java.sql.Timestamp;
 /**
  * One row of the merged pathology reception dashboard.
  *
- * <p>Histopathology and cytopathology cases live in separate tables with independent id sequences,
- * so the same numeric id exists in both. {@link #getRowId()} (category code + case id) is the only
- * identifier unique across the merged list, and the category also decides which case view the row
+ * <p>
+ * Histopathology and cytopathology cases live in separate tables with
+ * independent id sequences, so the same numeric id exists in both.
+ * {@link #getRowId()} (category code + case id) is the only identifier unique
+ * across the merged list, and the category also decides which case view the row
  * opens and which assignment endpoint it posts to.
  */
 public class ProgramCaseDisplayItem {
@@ -21,13 +23,19 @@ public class ProgramCaseDisplayItem {
 
     private Integer caseId;
 
-    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    /**
+     * Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC
+     * off-by-one.
+     */
     private String requestDate;
 
     /** Program-specific status name, e.g. GROSSING or CELL_BLOCK. */
     private String statusCode;
 
-    /** Program-specific stage shown in the Status column, e.g. "Grossing", "Cell block". */
+    /**
+     * Program-specific stage shown in the Status column, e.g. "Grossing", "Cell
+     * block".
+     */
     private String status;
 
     /** Clinical sample type, e.g. Biopsy, Morphology, FNAC, Pap smear. */
@@ -49,8 +57,9 @@ public class ProgramCaseDisplayItem {
     private String patientPK;
 
     /**
-     * Used only for newest-first ordering across the merged list (not shown in the UI). Prefer
-     * sample lastupdated so newly created orders rise above older same-day cases.
+     * Used only for newest-first ordering across the merged list (not shown in the
+     * UI). Prefer sample lastupdated so newly created orders rise above older
+     * same-day cases.
      */
     @JsonIgnore
     private Timestamp lastUpdated;

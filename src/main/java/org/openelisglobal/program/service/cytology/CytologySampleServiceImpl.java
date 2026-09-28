@@ -32,8 +32,8 @@ import org.openelisglobal.program.controller.cytology.CytologySampleForm;
 import org.openelisglobal.program.dao.cytology.CytologySampleDAO;
 import org.openelisglobal.program.service.ImmunohistochemistrySampleService;
 import org.openelisglobal.program.service.ProgramService;
-import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.util.ProgramSampleSearch;
+import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologySubtype;
@@ -311,10 +311,10 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
             @Override
             public void afterCommit() {
                 try {
-                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(),
-                            analysesForFhir, resultsForFhir, new ArrayList<>(),
-                            new ArrayList<>(Arrays.asList(sampleForFhir)), new ArrayList<>(),
-                            microscopicFindingForFhir, conclusionTextForFhir, conclusionDictionaryIdsForFhir, null);
+                    fhirTransformService.transformPersistResultValidationFhirObjects(new ArrayList<>(), analysesForFhir,
+                            resultsForFhir, new ArrayList<>(), new ArrayList<>(Arrays.asList(sampleForFhir)),
+                            new ArrayList<>(), microscopicFindingForFhir, conclusionTextForFhir,
+                            conclusionDictionaryIdsForFhir, null);
                 } catch (FhirLocalPersistingException e) {
                     LogEvent.logError(CytologySampleServiceImpl.class.getSimpleName(), "validateCytologySample",
                             "could not push cytology result to FHIR for sample " + sampleForFhir.getAccessionNumber()
@@ -488,8 +488,8 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Transactional
     @Override
-    public void saveReadDraft(Integer cytologySampleId, String microscopyExam, String conclusion,
-            String conclusionText, String curUserId) {
+    public void saveReadDraft(Integer cytologySampleId, String microscopyExam, String conclusion, String conclusionText,
+            String curUserId) {
         CytologySample cytologySample = get(cytologySampleId);
         requireReadyForRead(cytologySample);
         applyReadFindings(cytologySample, microscopyExam, conclusion, conclusionText, curUserId);

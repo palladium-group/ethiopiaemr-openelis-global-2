@@ -1,10 +1,12 @@
 package org.openelisglobal.program.valueholder.cytology;
 
-import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
 
 public class CytologyDisplayItem {
-    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    /**
+     * Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC
+     * off-by-one.
+     */
     private String requestDate;
 
     private CytologyStatus status;

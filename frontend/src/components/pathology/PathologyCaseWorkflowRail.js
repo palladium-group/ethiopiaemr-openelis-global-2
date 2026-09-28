@@ -159,7 +159,9 @@ function PathologyCaseWorkflowRail({
     subtypeLabel === "FROZEN" ||
     (typeof subtypeLabel === "string" &&
       subtypeLabel.toLowerCase().includes("frozen"));
-  const workflowSteps = isFrozen ? FROZEN_WORKFLOW_STEPS : BIOPSY_WORKFLOW_STEPS;
+  const workflowSteps = isFrozen
+    ? FROZEN_WORKFLOW_STEPS
+    : BIOPSY_WORKFLOW_STEPS;
   // Gate on status, not collectionDate (autofill can set the date while still RECEIVED).
   const needsCollectionConfirm = status === "RECEIVED";
   const isCollectionComplete = !!status && status !== "RECEIVED";
@@ -846,21 +848,22 @@ function PathologyCaseWorkflowRail({
     id: "pathology.workflow.readSummaryDone",
   });
 
-  const badgeLabelId = needsCollectionConfirm || !status
-    ? "pathology.workflow.badgeCollection"
-    : !isGrossingDone
-      ? "pathology.workflow.badgeGrossing"
-      : !isProcessingDone
-        ? "pathology.workflow.badgeProcessing"
-        : !isEmbeddingDone
-          ? "pathology.workflow.badgeEmbedding"
-          : !isMicrotomyDone
-            ? "pathology.workflow.badgeMicrotomy"
-            : !isStainingDone
-              ? "pathology.workflow.badgeStaining"
-              : isReadDone
-                ? "pathology.workflow.badgeCompleted"
-                : "pathology.workflow.badgeReview";
+  const badgeLabelId =
+    needsCollectionConfirm || !status
+      ? "pathology.workflow.badgeCollection"
+      : !isGrossingDone
+        ? "pathology.workflow.badgeGrossing"
+        : !isProcessingDone
+          ? "pathology.workflow.badgeProcessing"
+          : !isEmbeddingDone
+            ? "pathology.workflow.badgeEmbedding"
+            : !isMicrotomyDone
+              ? "pathology.workflow.badgeMicrotomy"
+              : !isStainingDone
+                ? "pathology.workflow.badgeStaining"
+                : isReadDone
+                  ? "pathology.workflow.badgeCompleted"
+                  : "pathology.workflow.badgeReview";
 
   const renderCollectionCard = ({ showConfirm }) => (
     <div
@@ -990,13 +993,14 @@ function PathologyCaseWorkflowRail({
           )}
         </div>
 
-        {!isFrozen && (rows.length === 0 ? (
-          <div className="pathology-cassette-empty">
-            <FormattedMessage id="pathology.workflow.noCassettesYet" />
-          </div>
-        ) : (
-          <div className="pathology-cassette-list">{rows}</div>
-        ))}
+        {!isFrozen &&
+          (rows.length === 0 ? (
+            <div className="pathology-cassette-empty">
+              <FormattedMessage id="pathology.workflow.noCassettesYet" />
+            </div>
+          ) : (
+            <div className="pathology-cassette-list">{rows}</div>
+          ))}
 
         {editable && (
           <div className="pathology-grossing-footer">

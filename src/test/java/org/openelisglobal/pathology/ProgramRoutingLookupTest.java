@@ -1,6 +1,7 @@
 package org.openelisglobal.pathology;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.program.service.ProgramService;
@@ -22,24 +23,19 @@ public class ProgramRoutingLookupTest extends BaseWebContextSensitiveTest {
     @Autowired
     private TestSectionService testSectionService;
 
+    @Before
+    public void init() throws Exception {
+        // In real deployments the Pathology test section and the linked
+        // Histopathology program are seeded at startup from programs/pathology.json.
+        // The test context does not run that seeding, so load an equivalent fixture
+        // to keep this test hermetic and independent of execution order.
+        executeDataSetWithStateManagement("testdata/program-routing.xml");
+    }
+
     @Test
     public void getProgramByTestSectionId_returnsProgramForPathologySection() {
         TestSection pathologySection = testSectionService.getTestSectionByName("Pathology");
         Assert.assertNotNull("Pathology test section should be seeded", pathologySection);
-
-        // The Histopathology program is created at startup from programs/pathology.json
-        // in real
-        // deployments; ensure one is linked to the Pathology section for this test
-        // context.
-        if (programService.getProgramByTestSectionId(pathologySection.getId()) == null) {
-            Program program = new Program();
-            program.setCode("PATHTST");
-            program.setProgramName("Histopathology");
-            program.setTestSection(pathologySection);
-            program.setManuallyChanged(false);
-            program.setSysUserId("1");
-            programService.save(program);
-        }
 
         Program found = programService.getProgramByTestSectionId(pathologySection.getId());
         Assert.assertNotNull("a program should be found for the pathology test section", found);

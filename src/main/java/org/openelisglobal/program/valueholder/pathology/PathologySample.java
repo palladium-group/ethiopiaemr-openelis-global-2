@@ -52,9 +52,10 @@ public class PathologySample extends ProgramSample {
     }
 
     /**
-     * Which histopathology product the case is. Biopsy runs the paraffin H&amp;E rail;
-     * Frozen section skips processing/embedding and uses the cryostat rail. Set from the
-     * ordered test LOINC on import (like {@code CytologySample.CytologySubtype}).
+     * Which histopathology product the case is. Biopsy runs the paraffin H&amp;E
+     * rail; Frozen section skips processing/embedding and uses the cryostat rail.
+     * Set from the ordered test LOINC on import (like
+     * {@code CytologySample.CytologySubtype}).
      */
     public enum PathologySubtype {
         BIOPSY("Biopsy"), FROZEN("Frozen section");
@@ -90,8 +91,9 @@ public class PathologySample extends ProgramSample {
     private PathologySubtype subtype = PathologySubtype.BIOPSY;
 
     /**
-     * When this Biopsy case was auto-created after a Frozen section sign-out (permanent
-     * processing of leftover tissue). Null for EMR-ordered cases and for Frozen cases.
+     * When this Biopsy case was auto-created after a Frozen section sign-out
+     * (permanent processing of leftover tissue). Null for EMR-ordered cases and for
+     * Frozen cases.
      */
     @Column(name = "linked_from_pathology_sample_id")
     private Integer linkedFromPathologySampleId;

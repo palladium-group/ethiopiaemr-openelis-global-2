@@ -101,7 +101,8 @@ public class TaskWorker {
             throw new IllegalStateException("Interpreter, existanceChecker or persister have not been set");
         }
 
-        // Reuse caller-supplied results when present (program-order routing interprets once then
+        // Reuse caller-supplied results when present (program-order routing interprets
+        // once then
         // falls through here for non-program orders).
         if (interpretResults == null) {
             interpretResults = interpreter.interpret(task, serviceRequest, patient);

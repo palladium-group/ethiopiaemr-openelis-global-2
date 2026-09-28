@@ -19,7 +19,10 @@ public interface PathologySampleDAO extends BaseDAO<PathologySample, Integer> {
     /** Cases with no pathologist assigned (Reception unassigned queue). */
     Long getCountUnassigned();
 
-    /** Open cases with no pathologist assigned (same criteria as {@link #getCountUnassigned()}). */
+    /**
+     * Open cases with no pathologist assigned (same criteria as
+     * {@link #getCountUnassigned()}).
+     */
     List<PathologySample> getUnassigned();
 
     /** Unassigned cases matching accession number. */

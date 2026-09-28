@@ -4,7 +4,10 @@ import org.openelisglobal.program.valueholder.immunohistochemistry.Immunohistoch
 
 public class ImmunohistochemistryDisplayItem {
 
-    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    /**
+     * Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC
+     * off-by-one.
+     */
     private String requestDate;
 
     private ImmunohistochemistryStatus status;

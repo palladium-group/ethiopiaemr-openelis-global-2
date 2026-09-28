@@ -6,7 +6,7 @@ import { Content, Theme } from "@carbon/react";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import { getFromOpenElisServer } from "../utils/Utils";
 import { useSideNavPreference } from "./useSideNavPreference";
-import { NotificationKinds, AlertDialog } from "../common/CustomNotification";
+import { NotificationKinds } from "../common/CustomNotification";
 
 export const ConfigurationContext = createContext(null);
 export const NotificationContext = createContext(null);
@@ -131,7 +131,6 @@ export default function Layout(props) {
         }}
       >
         <div className="d-flex flex-column min-vh-100">
-          {notificationVisible === true ? <AlertDialog /> : ""}
           <Header
             onChangeLanguage={props.onChangeLanguage}
             mode={mode}

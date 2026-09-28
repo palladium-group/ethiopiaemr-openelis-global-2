@@ -478,8 +478,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                 String serviceRequestId = serviceRequest.getIdElement().getIdPart();
                 if (runServiceRequestImportSafely(taskId, serviceRequestId, () -> {
                     TaskInterpreter interpreter = SpringContext.getBean(TaskInterpreter.class);
-                    // Interpret once per ServiceRequest; program routing and the electronic-order path
-                    // both reuse this result (TaskWorker skips a second interpret when results are set).
+                    // Interpret once per ServiceRequest; program routing and the electronic-order
+                    // path
+                    // both reuse this result (TaskWorker skips a second interpret when results are
+                    // set).
                     List<InterpreterResults> interpretResults = interpreter.interpret(remoteTask, serviceRequest,
                             patient);
 
@@ -490,17 +492,17 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                         Program program = resolveProgramForImportedTest(interpreter.getTest());
                         if (program != null) {
                             if (!interpretResults.isEmpty() && interpretResults.get(0) == InterpreterResults.OK) {
-                                UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(
-                                        serviceRequest, localObjects);
+                                UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(serviceRequest,
+                                        localObjects);
                                 // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
                                 // pathology/cytology orders arrive uncollected; the lab collects later.
                                 Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
                                 String programSubtypeText = resolveProgramSubtypeText(serviceRequest,
                                         localObjects.observations);
-                                programSampleImportService.createProgramSampleFromImport(program,
-                                        interpreter.getTest(), interpreter.getMessagePatient(),
-                                        interpreter.getOrderPriority(), serviceRequestId, questionnaireResponseUuid,
-                                        null, requestingProvider, programSubtypeText);
+                                programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
+                                        interpreter.getMessagePatient(), interpreter.getOrderPriority(),
+                                        serviceRequestId, questionnaireResponseUuid, null, requestingProvider,
+                                        programSubtypeText);
                                 return true;
                             }
                             // No e-order / no case; Task still REJECTED for EMR. Log for ops diagnosis.
@@ -557,8 +559,9 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     }
 
     /**
-     * Runs one ServiceRequest import attempt. Returns its accepted flag, or false if it threw —
-     * so a single failure cannot leave the remote Task stuck in REQUESTED (infinite poll retry).
+     * Runs one ServiceRequest import attempt. Returns its accepted flag, or false
+     * if it threw — so a single failure cannot leave the remote Task stuck in
+     * REQUESTED (infinite poll retry).
      */
     @FunctionalInterface
     interface ServiceRequestImportAttempt {
@@ -572,13 +575,15 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         } catch (Exception e) {
             LogEvent.logError(e);
             LogEvent.logError(FhirApiWorkFlowServiceImpl.class.getSimpleName(), "processTaskImportOrder",
-                    "failed processing serviceRequest=" + serviceRequestId + " task=" + taskId + ": "
-                            + e.getMessage());
+                    "failed processing serviceRequest=" + serviceRequestId + " task=" + taskId + ": " + e.getMessage());
             return false;
         }
     }
 
-    /** ACCEPTED if any SR was accepted; otherwise REJECTED so the poller stops retrying. */
+    /**
+     * ACCEPTED if any SR was accepted; otherwise REJECTED so the poller stops
+     * retrying.
+     */
     static TaskStatus taskStatusAfterServiceRequestImports(boolean anyAccepted) {
         return anyAccepted ? TaskStatus.ACCEPTED : TaskStatus.REJECTED;
     }
@@ -597,10 +602,11 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
 
     /**
      * Builds a QuestionnaireResponse from the order's context Observations
-     * ({@code ServiceRequest.supportingInfo}) and returns its local FHIR store id for linking onto
-     * the program sample. This is the only order-form transport: labonfhir pushes discrete
-     * Observations; OpenELIS synthesizes the QR the case view already knows how to render.
-     * Returns null when no context observations were sent or on any failure (never blocks import).
+     * ({@code ServiceRequest.supportingInfo}) and returns its local FHIR store id
+     * for linking onto the program sample. This is the only order-form transport:
+     * labonfhir pushes discrete Observations; OpenELIS synthesizes the QR the case
+     * view already knows how to render. Returns null when no context observations
+     * were sent or on any failure (never blocks import).
      */
     private UUID resolveProgramQuestionnaireResponseUuid(ServiceRequest serviceRequest,
             OriginalReferralObjects localObjects) {
@@ -609,8 +615,9 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
 
     /**
      * Reads the order form's sample type out of the context Observations
-     * ({@code ServiceRequest.supportingInfo}) so cytopathology can open the case as the right
-     * subtype (FNAC / Image-guided FNAC / Pap smear / Fluid). Null when the order carried none.
+     * ({@code ServiceRequest.supportingInfo}) so cytopathology can open the case as
+     * the right subtype (FNAC / Image-guided FNAC / Pap smear / Fluid). Null when
+     * the order carried none.
      */
     static String resolveProgramSubtypeText(ServiceRequest serviceRequest, List<Observation> observations) {
         if (serviceRequest == null || observations == null || observations.isEmpty()) {
@@ -634,8 +641,9 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     }
 
     /**
-     * Resolves the ordering physician from ServiceRequest.requester so program-case import can
-     * persist SampleRequester / SampleHuman.provider (Reception "Requesting physician").
+     * Resolves the ordering physician from ServiceRequest.requester so program-case
+     * import can persist SampleRequester / SampleHuman.provider (Reception
+     * "Requesting physician").
      */
     private Provider resolveRequestingProvider(ServiceRequest serviceRequest, OriginalReferralObjects localObjects) {
         if (serviceRequest == null || !serviceRequest.hasRequester()
@@ -673,10 +681,11 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
 
     /**
      * Builds a QuestionnaireResponse from the order's context Observations
-     * (ServiceRequest.supportingInfo) -- one item per observation, its concept name as the
-     * item text and its value as the answer -- and persists it to the local FHIR store so the
-     * program case view can render the order context. Returns the new local id, or null when
-     * there are no context observations or on any failure (never blocks the order import).
+     * (ServiceRequest.supportingInfo) -- one item per observation, its concept name
+     * as the item text and its value as the answer -- and persists it to the local
+     * FHIR store so the program case view can render the order context. Returns the
+     * new local id, or null when there are no context observations or on any
+     * failure (never blocks the order import).
      */
     private UUID synthesizeQuestionnaireResponseFromObservations(ServiceRequest serviceRequest,
             List<Observation> observations) {
@@ -697,10 +706,11 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     }
 
     /**
-     * Pure builder for the program-order form view: turns ServiceRequest.supportingInfo Observations
-     * into a QuestionnaireResponse the case UI can render. Package-private / static for unit testing.
-     * Returns null when there is nothing to show (no observations, none linked, or no displayable
-     * values).
+     * Pure builder for the program-order form view: turns
+     * ServiceRequest.supportingInfo Observations into a QuestionnaireResponse the
+     * case UI can render. Package-private / static for unit testing. Returns null
+     * when there is nothing to show (no observations, none linked, or no
+     * displayable values).
      */
     static QuestionnaireResponse buildQuestionnaireResponseFromObservations(ServiceRequest serviceRequest,
             List<Observation> observations) {
@@ -732,7 +742,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         return itemCount == 0 ? null : questionnaireResponse;
     }
 
-    /** The human-readable label for an observation's concept (its code text/display). */
+    /**
+     * The human-readable label for an observation's concept (its code
+     * text/display).
+     */
     static String observationLabel(Observation observation) {
         if (observation.hasCode()) {
             CodeableConcept code = observation.getCode();
@@ -746,7 +759,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         return "";
     }
 
-    /** A stable linkId for a synthesized questionnaire item: the concept code, else the obs id. */
+    /**
+     * A stable linkId for a synthesized questionnaire item: the concept code, else
+     * the obs id.
+     */
     static String observationLinkId(Observation observation) {
         if (observation.hasCode() && observation.getCode().hasCoding()
                 && !GenericValidator.isBlankOrNull(observation.getCode().getCodingFirstRep().getCode())) {
@@ -954,9 +970,12 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             objects.diagnoses.add(localDiagnosis);
         }
 
-        // Order-time context Observations (ServiceRequest.supportingInfo). Kept in memory for the
-        // program-order branch to synthesize the case's questionnaire response from; not re-persisted
-        // to the local store (the synthesized QuestionnaireResponse carries their content).
+        // Order-time context Observations (ServiceRequest.supportingInfo). Kept in
+        // memory for the
+        // program-order branch to synthesize the case's questionnaire response from;
+        // not re-persisted
+        // to the local store (the synthesized QuestionnaireResponse carries their
+        // content).
         objects.observations = remoteObservations;
 
         // Patient
@@ -1095,12 +1114,13 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
 
     /**
      * Fetches the order-time context Observations (specimen site, clinical history,
-     * findings, ...) an order carries, following the {@code ServiceRequest.supportingInfo}
-     * links that the ordering side (labonfhir) stamps onto each program order (the
-     * FHIR-standard order-to-supporting-info link). Each referenced Observation is read
-     * from the source server by id; duplicates (the same observation referenced by several
-     * service requests) are fetched once. A failure reading any single Observation is
-     * skipped rather than failing the whole order import.
+     * findings, ...) an order carries, following the
+     * {@code ServiceRequest.supportingInfo} links that the ordering side
+     * (labonfhir) stamps onto each program order (the FHIR-standard
+     * order-to-supporting-info link). Each referenced Observation is read from the
+     * source server by id; duplicates (the same observation referenced by several
+     * service requests) are fetched once. A failure reading any single Observation
+     * is skipped rather than failing the whole order import.
      */
     List<Observation> getSupportingInfoObservationsFromServer(IGenericClient fhirClient,
             List<ServiceRequest> serviceRequests) {
@@ -1124,9 +1144,9 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     }
 
     /**
-     * Collects the distinct-in-order Observation ids referenced by the given service
-     * requests' {@code supportingInfo}s, keeping only references that actually point at an
-     * Observation.
+     * Collects the distinct-in-order Observation ids referenced by the given
+     * service requests' {@code supportingInfo}s, keeping only references that
+     * actually point at an Observation.
      */
     static List<String> getSupportingInfoObservationIds(List<ServiceRequest> serviceRequests) {
         List<String> observationIds = new ArrayList<>();
@@ -1393,7 +1413,8 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         public List<Practitioner> requestors;
         public List<Specimen> specimens;
         public List<Condition> diagnoses;
-        // Order-time context observations (specimen site, clinical history, ...) carried on
+        // Order-time context observations (specimen site, clinical history, ...)
+        // carried on
         // ServiceRequest.supportingInfo by the ordering side (labonfhir).
         public List<Observation> observations;
         public Patient patient;

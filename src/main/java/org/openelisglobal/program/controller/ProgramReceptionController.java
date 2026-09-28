@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Single reception queue for the pathology service categories. The per-category endpoints under
- * {@code /rest/pathology} and {@code /rest/cytology} are untouched — case views, assignment and
- * workflow still go through them; this controller only serves the merged list and tiles.
+ * Single reception queue for the pathology service categories. The per-category
+ * endpoints under {@code /rest/pathology} and {@code /rest/cytology} are
+ * untouched — case views, assignment and workflow still go through them; this
+ * controller only serves the merged list and tiles.
  */
 @RestController
 public class ProgramReceptionController extends BaseRestController {
@@ -46,8 +47,7 @@ public class ProgramReceptionController extends BaseRestController {
             @RequestParam(value = "assignedToMe", required = false, defaultValue = "false") boolean assignedToMe,
             @RequestParam(value = "serviceCategories", required = false) ServiceCategory... serviceCategories) {
         String currentUserId = assignedToMe ? getSysUserId(request) : null;
-        return ResponseEntity
-                .ok(programReceptionService.count(asList(serviceCategories), assignedToMe, currentUserId));
+        return ResponseEntity.ok(programReceptionService.count(asList(serviceCategories), assignedToMe, currentUserId));
     }
 
     private List<ServiceCategory> asList(ServiceCategory... serviceCategories) {

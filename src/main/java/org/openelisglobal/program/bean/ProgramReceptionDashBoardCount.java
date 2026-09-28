@@ -1,9 +1,9 @@
 package org.openelisglobal.program.bean;
 
 /**
- * Tile counts for the merged pathology reception dashboard, summed across the selected service
- * categories. {@code additionalRequests} only ever counts histopathology cases — cytopathology has
- * no equivalent stage.
+ * Tile counts for the merged pathology reception dashboard, summed across the
+ * selected service categories. {@code additionalRequests} only ever counts
+ * histopathology cases — cytopathology has no equivalent stage.
  */
 public class ProgramReceptionDashBoardCount {
 

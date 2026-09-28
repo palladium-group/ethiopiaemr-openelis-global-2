@@ -34,7 +34,10 @@ public class CytologySlide extends BaseObject<Integer> {
     @Column(name = "location")
     private String location;
 
-    /** SMEAR for the collected smears, CELL_BLOCK_HE for the Fluid cell block's own H&E slide. */
+    /**
+     * SMEAR for the collected smears, CELL_BLOCK_HE for the Fluid cell block's own
+     * H&E slide.
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "slide_type")
     private CytologySlideType slideType = CytologySlideType.SMEAR;

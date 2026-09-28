@@ -4,7 +4,10 @@ import org.openelisglobal.program.valueholder.pathology.PathologySample.Patholog
 
 public class PathologyDisplayItem {
 
-    /** Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC off-by-one. */
+    /**
+     * Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC
+     * off-by-one.
+     */
     private String requestDate;
 
     private PathologyStatus status;
@@ -21,7 +24,10 @@ public class PathologyDisplayItem {
     /** Requesting physician from the order (read-only on Reception dashboard). */
     private String requester;
 
-    /** Clinical sample type for the case (e.g. Biopsy, Morphology), from the ordered test. */
+    /**
+     * Clinical sample type for the case (e.g. Biopsy, Morphology), from the ordered
+     * test.
+     */
     private String subtype;
 
     public String getRequestDate() {

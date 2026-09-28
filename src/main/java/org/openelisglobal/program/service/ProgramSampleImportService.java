@@ -27,21 +27,24 @@ public interface ProgramSampleImportService {
      *                                  the sample's referring id
      * @param questionnaireResponseUuid the id of the already-imported
      *                                  QuestionnaireResponse, or null
-     * @param collectionDate            ignored — EMR e-orders are not sample-collected;
-     *                                  the lab records collection later in OpenELIS. Kept
-     *                                  on the signature for call-site compatibility.
-     * @param requestingProvider        the ordering physician from ServiceRequest.requester
-     *                                  (may be null)
+     * @param collectionDate            ignored — EMR e-orders are not
+     *                                  sample-collected; the lab records collection
+     *                                  later in OpenELIS. Kept on the signature for
+     *                                  call-site compatibility.
+     * @param requestingProvider        the ordering physician from
+     *                                  ServiceRequest.requester (may be null)
      */
     void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
             Provider requestingProvider);
 
     /**
-     * Same as {@link #createProgramSampleFromImport}, plus optional sample-type text from supportingInfo.
-     * Cytopathology prefers the ordered test LOINC for subtype; text is a fallback for older orders.
+     * Same as {@link #createProgramSampleFromImport}, plus optional sample-type
+     * text from supportingInfo. Cytopathology prefers the ordered test LOINC for
+     * subtype; text is a fallback for older orders.
      *
-     * @param programSubtypeText the order form's sample type, or null when the order carried none
+     * @param programSubtypeText the order form's sample type, or null when the
+     *                           order carried none
      */
     void createProgramSampleFromImport(Program program, Test test, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,

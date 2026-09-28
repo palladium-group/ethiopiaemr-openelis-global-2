@@ -24,6 +24,9 @@ public interface CytologySampleDAO extends BaseDAO<CytologySample, Integer> {
     /** Unassigned cases matching accession number. */
     List<CytologySample> searchUnassignedWithAccessionNumber(String labNumber);
 
-    /** Open (non-COMPLETED/REJECTED) cases currently assigned to the given cytopathologist. */
+    /**
+     * Open (non-COMPLETED/REJECTED) cases currently assigned to the given
+     * cytopathologist.
+     */
     Long getOpenCaseloadForCytoPathologist(String cytoPathologistId);
 }

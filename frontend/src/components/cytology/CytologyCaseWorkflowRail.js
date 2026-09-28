@@ -248,10 +248,7 @@ function CytologyCaseWorkflowRail({
     }
     setCellBlockStepBusy(step);
     postToOpenElisServerFullResponse(
-      "/rest/cytology/caseView/" +
-        cytologySampleId +
-        "/cellBlock/" +
-        step,
+      "/rest/cytology/caseView/" + cytologySampleId + "/cellBlock/" + step,
       "{}",
       (response) =>
         applyUpdatedCase(response, () => setCellBlockStepBusy(null)),
@@ -270,8 +267,7 @@ function CytologyCaseWorkflowRail({
         slideId +
         "/markStained",
       "{}",
-      (response) =>
-        applyUpdatedCase(response, () => setStainingSlideId(null)),
+      (response) => applyUpdatedCase(response, () => setStainingSlideId(null)),
     );
   };
 
@@ -389,7 +385,10 @@ function CytologyCaseWorkflowRail({
     }));
   };
 
-  const patientName = [pathologySampleInfo?.firstName, pathologySampleInfo?.lastName]
+  const patientName = [
+    pathologySampleInfo?.firstName,
+    pathologySampleInfo?.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
   const requester = pathologySampleInfo?.requester || "—";
@@ -473,7 +472,9 @@ function CytologyCaseWorkflowRail({
           />
         )
       ) : (
-        <div className="pathology-grossing-readonly">{value?.trim() ? value : "—"}</div>
+        <div className="pathology-grossing-readonly">
+          {value?.trim() ? value : "—"}
+        </div>
       )}
     </div>
   );
@@ -485,7 +486,10 @@ function CytologyCaseWorkflowRail({
         (editable ? "" : " pathology-grossing-card--compact")
       }
     >
-      <div className="pathology-container-card-actions" style={{ marginBottom: "0.75rem" }}>
+      <div
+        className="pathology-container-card-actions"
+        style={{ marginBottom: "0.75rem" }}
+      >
         <button
           type="button"
           className="pathology-btn pathology-btn--ghost"
@@ -598,7 +602,10 @@ function CytologyCaseWorkflowRail({
       )}
 
       {isRejected && (
-        <div className="pathology-grossing-readonly" style={{ marginTop: "0.5rem" }}>
+        <div
+          className="pathology-grossing-readonly"
+          style={{ marginTop: "0.5rem" }}
+        >
           <FormattedMessage
             id="cytology.workflow.rejectedReason"
             values={{
@@ -701,9 +708,7 @@ function CytologyCaseWorkflowRail({
                   <button
                     type="button"
                     className="pathology-btn pathology-btn--primary pathology-btn--sm"
-                    disabled={
-                      !step.enabled || cellBlockStepBusy === step.id
-                    }
+                    disabled={!step.enabled || cellBlockStepBusy === step.id}
                     onClick={() => markCellBlockStep(step.id)}
                   >
                     <FormattedMessage id="cytology.workflow.markStepDone" />
@@ -755,7 +760,9 @@ function CytologyCaseWorkflowRail({
                 <div className="pathology-cassette-row-main">
                   <div className="pathology-cassette-code">{code}</div>
                   {slide.slideType && (
-                    <div className="pathology-stain-type">{slide.slideType}</div>
+                    <div className="pathology-stain-type">
+                      {slide.slideType}
+                    </div>
                   )}
                   {isStained && (
                     <div className="pathology-cassette-embedded-meta">
@@ -808,7 +815,8 @@ function CytologyCaseWorkflowRail({
   const renderReadCard = ({ editable }) => (
     <div
       className={
-        "pathology-read-card" + (editable ? "" : " pathology-read-card--compact")
+        "pathology-read-card" +
+        (editable ? "" : " pathology-read-card--compact")
       }
     >
       <label className="pathology-grossing-label" htmlFor="cyto-microscopy">
@@ -1007,9 +1015,7 @@ function CytologyCaseWorkflowRail({
       <div className="pathology-case-rail-header">
         <div className="pathology-case-rail-patient">
           <div className="pathology-case-rail-name">
-            {patientName || (
-              <FormattedMessage id="cytology.workflow.case" />
-            )}
+            {patientName || <FormattedMessage id="cytology.workflow.case" />}
           </div>
           <div className="pathology-case-rail-meta">
             {[labNo, subtype, requester !== "—" ? requester : null, pathologist]

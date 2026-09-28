@@ -86,7 +86,8 @@ function PathologyReceptionDashboard() {
   const [filters, setFilters] = useState({
     searchTerm: "",
     myCases: false,
-    // Reception opens on unassigned; specialists are switched to Received + My cases below.
+    // Pathology Reception clerks stay on Unassigned; Pathologist / Cytopathologist
+    // are switched to Received + My cases below.
     bucket: "UNASSIGNED",
     serviceCategory: "ALL",
   });
