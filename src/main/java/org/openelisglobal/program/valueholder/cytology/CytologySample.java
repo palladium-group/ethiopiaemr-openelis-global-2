@@ -24,7 +24,9 @@ public class CytologySample extends ProgramSample {
 
     public enum CytologyStatus {
         RECEIVED("Received"), CELL_BLOCK("Cell block"), STAINING("Staining"),
-        /** Legacy statuses kept so pre-workflow rows still load; mapped onto the rail. */
+        /**
+         * Legacy statuses kept so pre-workflow rows still load; mapped onto the rail.
+         */
         PREPARING_SLIDES("Preparing slides"), SCREENING("Screening"),
         READY_FOR_CYTOPATHOLOGIST("Ready for Cytopathologist"), REJECTED("Rejected"), COMPLETED("Completed");
 
@@ -40,8 +42,9 @@ public class CytologySample extends ProgramSample {
     }
 
     /**
-     * Which cytopathology test the case is. All four share one case-page template; the subtype only
-     * decides which Collection / Cell block / The read slots apply.
+     * Which cytopathology test the case is. All four share one case-page template;
+     * the subtype only decides which Collection / Cell block / The read slots
+     * apply.
      */
     public enum CytologySubtype {
         FNAC("FNAC"), IMAGE_GUIDED_FNAC("Image-guided FNAC"), PAP_SMEAR("Pap smear"), FLUID("Fluid cytology");

@@ -21,12 +21,14 @@ import org.hl7.fhir.r4.model.Task.TaskStatus;
 import org.junit.Test;
 
 /**
- * Covers how order-related resources are located during order import by following the FHIR
- * links OpenMRS's labonfhir module stamps onto each order: referring diagnoses via
- * {@code ServiceRequest.reasonReference}, and order-time context observations (specimen site,
- * clinical history, ...) via {@code ServiceRequest.supportingInfo}. Also covers synthesizing a
- * QuestionnaireResponse from those observations for the program case view, and isolating
- * per-ServiceRequest import failures so Tasks are not left REQUESTED forever.
+ * Covers how order-related resources are located during order import by
+ * following the FHIR links OpenMRS's labonfhir module stamps onto each order:
+ * referring diagnoses via {@code ServiceRequest.reasonReference}, and
+ * order-time context observations (specimen site, clinical history, ...) via
+ * {@code ServiceRequest.supportingInfo}. Also covers synthesizing a
+ * QuestionnaireResponse from those observations for the program case view, and
+ * isolating per-ServiceRequest import failures so Tasks are not left REQUESTED
+ * forever.
  */
 public class FhirApiWorkFlowServiceImplTest {
 
@@ -50,7 +52,8 @@ public class FhirApiWorkFlowServiceImplTest {
     private Observation contextObservation(String id, String code, String label, String value) {
         Observation observation = new Observation();
         observation.setId(id);
-        observation.setCode(new CodeableConcept().setText(label).addCoding(new Coding().setCode(code).setDisplay(label)));
+        observation
+                .setCode(new CodeableConcept().setText(label).addCoding(new Coding().setCode(code).setDisplay(label)));
         observation.setValue(new StringType(value));
         return observation;
     }
@@ -131,10 +134,10 @@ public class FhirApiWorkFlowServiceImplTest {
 
     @Test
     public void buildQuestionnaireResponseFromObservations_returnsNull_whenNoObservations() {
+        assertNull(FhirApiWorkFlowServiceImpl.buildQuestionnaireResponseFromObservations(
+                serviceRequestSupporting("obs-1"), Collections.emptyList()));
         assertNull(FhirApiWorkFlowServiceImpl
-                .buildQuestionnaireResponseFromObservations(serviceRequestSupporting("obs-1"), Collections.emptyList()));
-        assertNull(FhirApiWorkFlowServiceImpl.buildQuestionnaireResponseFromObservations(serviceRequestSupporting("obs-1"),
-                null));
+                .buildQuestionnaireResponseFromObservations(serviceRequestSupporting("obs-1"), null));
     }
 
     @Test

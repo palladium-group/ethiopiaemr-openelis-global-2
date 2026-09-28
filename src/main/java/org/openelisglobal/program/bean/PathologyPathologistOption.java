@@ -1,8 +1,9 @@
 package org.openelisglobal.program.bean;
 
 /**
- * Pathologist choice for Reception assignment, including open caseload so Reception can
- * balance work across pathologists (Biopsy Workflow UI/UX Step 1).
+ * Pathologist choice for Reception assignment, including open caseload so
+ * Reception can balance work across pathologists (Biopsy Workflow UI/UX Step
+ * 1).
  */
 public class PathologyPathologistOption {
 

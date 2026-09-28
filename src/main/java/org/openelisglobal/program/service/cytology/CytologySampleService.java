@@ -31,8 +31,9 @@ public interface CytologySampleService extends BaseObjectService<CytologySample,
     void updateWithFormValues(Integer cytologySampleId, CytologySampleForm form);
 
     /**
-     * Collection: stamp sample collectionDate, persist collection fields, create default smear
-     * slide(s) when none exist, then advance RECEIVED → STAINING (or CELL_BLOCK for Fluid).
+     * Collection: stamp sample collectionDate, persist collection fields, create
+     * default smear slide(s) when none exist, then advance RECEIVED → STAINING (or
+     * CELL_BLOCK for Fluid).
      */
     void confirmCollection(Integer cytologySampleId, CytologySampleForm form, String curUserId);
 
@@ -42,10 +43,15 @@ public interface CytologySampleService extends BaseObjectService<CytologySample,
     /** Fluid Cell Block checklist item: centrifuge | prepare | slide. */
     void markCellBlockStep(Integer cytologySampleId, String step, String curUserId);
 
-    /** Staining: mark one smear/cell-block slide stained; when all done → READY_FOR_CYTOPATHOLOGIST. */
+    /**
+     * Staining: mark one smear/cell-block slide stained; when all done →
+     * READY_FOR_CYTOPATHOLOGIST.
+     */
     void markSlideStained(Integer cytologySampleId, Integer slideId, String curUserId);
 
-    /** Create an additional smear slide while in STAINING (or CELL_BLOCK for Fluid). */
+    /**
+     * Create an additional smear slide while in STAINING (or CELL_BLOCK for Fluid).
+     */
     void addSmearSlide(Integer cytologySampleId, String curUserId);
 
     /** The read: save findings without releasing. */

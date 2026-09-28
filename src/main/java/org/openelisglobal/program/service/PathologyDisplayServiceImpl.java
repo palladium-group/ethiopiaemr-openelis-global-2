@@ -94,8 +94,8 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     }
 
     /**
-     * Prefer the persisted {@link PathologySample.PathologySubtype}; fall back to LOINC on the
-     * ordered test for rows created before the subtype column existed.
+     * Prefer the persisted {@link PathologySample.PathologySubtype}; fall back to
+     * LOINC on the ordered test for rows created before the subtype column existed.
      */
     private String resolvePathologySubtypeDisplay(PathologySample pathologySample) {
         if (pathologySample != null && pathologySample.getSubtype() != null) {
@@ -105,9 +105,9 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     }
 
     /**
-     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC 97005-7 is Frozen
-     * section; everything else (including Biopsy 11529-5 and legacy Morphology 22637-3) shows as
-     * Biopsy.
+     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC
+     * 97005-7 is Frozen section; everything else (including Biopsy 11529-5 and
+     * legacy Morphology 22637-3) shows as Biopsy.
      */
     private String resolvePathologySubtypeFromSample(Sample sample) {
         if (sample == null || sample.getId() == null) {
@@ -403,8 +403,8 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     }
 
     /**
-     * Format entered date in the lab locale/timezone so Jackson never reinterprets a Date as UTC
-     * (which shifts calendar dates west of UTC by one day).
+     * Format entered date in the lab locale/timezone so Jackson never reinterprets
+     * a Date as UTC (which shifts calendar dates west of UTC by one day).
      */
     private String formatRequestDate(Sample sample) {
         if (sample == null) {

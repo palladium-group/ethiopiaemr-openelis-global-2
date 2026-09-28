@@ -6,8 +6,8 @@ import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.sample.valueholder.Sample;
 
 /**
- * Shared reception/dashboard search matching: null-safe, case-insensitive contains
- * on accession and patient first/last/full name.
+ * Shared reception/dashboard search matching: null-safe, case-insensitive
+ * contains on accession and patient first/last/full name.
  */
 public final class ProgramSampleSearch {
 

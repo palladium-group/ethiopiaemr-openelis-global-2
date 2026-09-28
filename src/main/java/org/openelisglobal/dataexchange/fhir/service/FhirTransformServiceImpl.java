@@ -1448,7 +1448,8 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         Bundle responseBundle = fhirPersistanceService.createUpdateFhirResourcesInFhirStore(fhirOperations);
     }
 
-    // OpenMRS Pathology Result Form member concept UUIDs (ethiopiaemr-openmrs-content).
+    // OpenMRS Pathology Result Form member concept UUIDs
+    // (ethiopiaemr-openmrs-content).
     private static final String OM_PATH_CONCLUSION_UUID = "c4000001-4444-4a2b-8c3d-0e1f2a3b4c01";
     private static final String OM_PATH_CONCLUSION_TEXT_UUID = "c4000003-4444-4a2b-8c3d-0e1f2a3b4c03";
     private static final String OM_PATH_MICROSCOPIC_UUID = "c4000004-4444-4a2b-8c3d-0e1f2a3b4c04";
@@ -1464,8 +1465,8 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     public void transformPersistResultValidationFhirObjects(List<Result> deletableList,
             List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList,
             ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList) throws FhirLocalPersistingException {
-        transformPersistResultValidationFhirObjects(deletableList, analysisUpdateList, resultUpdateList,
-                resultItemList, sampleUpdateList, noteUpdateList, null, null, null, null);
+        transformPersistResultValidationFhirObjects(deletableList, analysisUpdateList, resultUpdateList, resultItemList,
+                sampleUpdateList, noteUpdateList, null, null, null, null);
     }
 
     @Async
@@ -1499,8 +1500,8 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             if (statusService.matches(analysis.getStatusId(), AnalysisStatus.Finalized)) {
                 DiagnosticReport diagnosticReport = this.transformResultToDiagnosticReport(analysis.getId());
                 if (isCytologyAnalysis(analysis)) {
-                    attachCytologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
-                            conclusionText, conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                    attachCytologyResultFormObservations(diagnosticReport, analysis, microscopicFinding, conclusionText,
+                            conclusionDictionaryIds, fhirOperations, tempIdGenerator);
                 } else {
                     attachPathologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
                             conclusionText, conclusionDictionaryIds, grossFinding, fhirOperations, tempIdGenerator);
@@ -1615,8 +1616,10 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         for (Result curResult : allResults) {
             diagnosticReport
                     .addResult(this.createReferenceFor(ResourceType.Observation, curResult.getFhirUuidAsString()));
-            // For text/remark results (e.g. a pathologist's conclusion) also surface the value as the
-            // report's narrative conclusion, so the receiving chart shows it as a report, not just a value.
+            // For text/remark results (e.g. a pathologist's conclusion) also surface the
+            // value as the
+            // report's narrative conclusion, so the receiving chart shows it as a report,
+            // not just a value.
             if (TypeOfTestResultServiceImpl.ResultType.isTextOnlyVariant(curResult.getResultType())
                     && curResult.getValue() != null && !curResult.getValue().trim().isEmpty()) {
                 diagnosticReport.setConclusion(curResult.getValue());
@@ -1633,8 +1636,9 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     }
 
     /**
-     * Adds OpenMRS Cytology Result Form Observations onto the DiagnosticReport so labonfhir imports
-     * conclusion / conclusion text / microscopic finding by concept UUID.
+     * Adds OpenMRS Cytology Result Form Observations onto the DiagnosticReport so
+     * labonfhir imports conclusion / conclusion text / microscopic finding by
+     * concept UUID.
      */
     private void attachCytologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
             String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds,
@@ -1660,13 +1664,13 @@ public class FhirTransformServiceImpl implements FhirTransformService {
     }
 
     /**
-     * Adds OpenMRS Pathology Result Form Observations onto the DiagnosticReport so labonfhir imports
-     * gross finding / conclusion / conclusion text / microscopic finding by concept UUID (SPA reads set
-     * members).
+     * Adds OpenMRS Pathology Result Form Observations onto the DiagnosticReport so
+     * labonfhir imports gross finding / conclusion / conclusion text / microscopic
+     * finding by concept UUID (SPA reads set members).
      */
     private void attachPathologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
-            String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds,
-            String grossFinding, FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+            String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds, String grossFinding,
+            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
         if (diagnosticReport == null || analysis == null) {
             return;
         }

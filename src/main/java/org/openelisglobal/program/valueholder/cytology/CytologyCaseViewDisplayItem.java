@@ -6,7 +6,6 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.openelisglobal.common.util.IdValuePair;
 import org.openelisglobal.program.valueholder.cytology.CytologyDiagnosis.CytologyDiagnosisResultType;
 import org.openelisglobal.program.valueholder.cytology.CytologyDiagnosis.DiagnosisCategory;
-import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySpecimenAdequacy.SpecimenAdequancySatisfaction;
 
 public class CytologyCaseViewDisplayItem extends CytologyDisplayItem {

@@ -93,9 +93,12 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     public void createProgramSampleFromImport(Program programArg, Test testArg, MessagePatient messagePatient,
             OrderPriority priority, String externalOrderId, UUID questionnaireResponseUuid, Date collectionDate,
             Provider requestingProvider, String programSubtypeText) {
-        // Idempotency guard: the poller can process the same remote task more than once (e.g. it runs
-        // once per configured remote store path, and again on any cycle before the task status flips),
-        // so skip if a sample for this order already exists. The standard electronic-order import gets
+        // Idempotency guard: the poller can process the same remote task more than once
+        // (e.g. it runs
+        // once per configured remote store path, and again on any cycle before the task
+        // status flips),
+        // so skip if a sample for this order already exists. The standard
+        // electronic-order import gets
         // this from DBOrderExistanceChecker; the program branch needs its own guard.
         if (!sampleService.getSamplesByReferringId(externalOrderId).isEmpty()) {
             LogEvent.logWarn(this.getClass().getSimpleName(), "createProgramSampleFromImport",
@@ -113,9 +116,12 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         String serviceUserId = orderPersister.getServiceUserId();
         Patient patient = orderPersister.persistPatientData(messagePatient);
 
-        // EMR pathology/cytology orders arrive as e-orders only. Physical sample collection happens
-        // later in OpenELIS by the lab user, so leave collectionDate unset. receivedTimestamp is set
-        // to now (order received by the lab) because sample.received_date is NOT NULL. Caller-supplied
+        // EMR pathology/cytology orders arrive as e-orders only. Physical sample
+        // collection happens
+        // later in OpenELIS by the lab user, so leave collectionDate unset.
+        // receivedTimestamp is set
+        // to now (order received by the lab) because sample.received_date is NOT NULL.
+        // Caller-supplied
         // collectionDate is ignored for this reason.
         if (collectionDate != null) {
             LogEvent.logDebug(this.getClass().getSimpleName(), "createProgramSampleFromImport",
@@ -138,7 +144,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
             sample.setPriority(priority);
         }
         sample.setFhirUuid(UUID.randomUUID());
-        // insertDataWithAccessionNumber does not itself generate the accession number, so reserve the
+        // insertDataWithAccessionNumber does not itself generate the accession number,
+        // so reserve the
         // next one from the configured generator (accession_number is NOT NULL).
         IAccessionNumberGenerator accessionGenerator = AccessionNumberUtil.getMainAccessionNumberGenerator();
         if (accessionGenerator == null) {
@@ -149,7 +156,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         sampleService.insertDataWithAccessionNumber(sample);
 
         // Program sample (e.g. PathologySample), linked to the already-imported
-        // questionnaire response. Cytopathology subtype comes from the ordered test/LOINC
+        // questionnaire response. Cytopathology subtype comes from the ordered
+        // test/LOINC
         // (preferred) with sample-type text as a fallback for older orders.
         ProgramSample programSample = newProgramSampleForProgram(program, test, programSubtypeText);
         programSample.setProgram(program);
@@ -223,16 +231,16 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         if (types == null || types.isEmpty()) {
             // Fail fast: a SampleItem with no type breaks later case completion. Seed
             // sampletype_test for the program test (see liquibase 027) before routing.
-            throw new IllegalStateException(
-                    "no sample type configured for program test " + test.getId() + " (" + test.getName()
-                            + "); cannot create program case");
+            throw new IllegalStateException("no sample type configured for program test " + test.getId() + " ("
+                    + test.getName() + "); cannot create program case");
         }
         return types.get(0);
     }
 
     /**
      * Package-private for unit testing. Maps the stable program code from
-     * {@code programs/*.json} (PATH / IHC / CYTO) to the matching program-sample entity.
+     * {@code programs/*.json} (PATH / IHC / CYTO) to the matching program-sample
+     * entity.
      */
     ProgramSample newProgramSampleForProgram(Program program) {
         return newProgramSampleForProgram(program, null, null);
@@ -244,7 +252,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
 
     ProgramSample newProgramSampleForProgram(Program program, Test test, String programSubtypeText) {
         // Use the stable program code from programs/*.json (PATH / IHC / CYTO), not the
-        // display name — names can be renamed or localized and would silently fall through.
+        // display name — names can be renamed or localized and would silently fall
+        // through.
         String code = program.getCode() == null ? "" : program.getCode().trim();
         switch (code) {
         case "PATH":
@@ -260,15 +269,14 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
             cytologySample.setSubtype(resolveCytologySubtype(test, programSubtypeText));
             return cytologySample;
         default:
-            throw new IllegalStateException(
-                    "unsupported program code '" + code + "' for program " + program.getProgramName()
-                            + "; cannot create program case");
+            throw new IllegalStateException("unsupported program code '" + code + "' for program "
+                    + program.getProgramName() + "; cannot create program case");
         }
     }
 
     /**
-     * Prefer the ordered test's LOINC (one TestOrder per histopathology sample type). Fall back to
-     * sample-type text for older orders.
+     * Prefer the ordered test's LOINC (one TestOrder per histopathology sample
+     * type). Fall back to sample-type text for older orders.
      */
     static PathologySample.PathologySubtype resolvePathologySubtype(Test test, String programSubtypeText) {
         PathologySample.PathologySubtype fromLoinc = resolvePathologySubtypeFromLoinc(
@@ -307,11 +315,13 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     }
 
     /**
-     * Prefer the ordered test's LOINC (one TestOrder per cytopathology sample type). Fall back to
-     * sample-type text from supportingInfo for older orders that still share one LOINC.
+     * Prefer the ordered test's LOINC (one TestOrder per cytopathology sample
+     * type). Fall back to sample-type text from supportingInfo for older orders
+     * that still share one LOINC.
      */
     static CytologySample.CytologySubtype resolveCytologySubtype(Test test, String programSubtypeText) {
-        CytologySample.CytologySubtype fromLoinc = resolveCytologySubtypeFromLoinc(test == null ? null : test.getLoinc());
+        CytologySample.CytologySubtype fromLoinc = resolveCytologySubtypeFromLoinc(
+                test == null ? null : test.getLoinc());
         if (fromLoinc != null) {
             return fromLoinc;
         }
@@ -338,8 +348,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     }
 
     /**
-     * Maps the ordering system's sample-type text onto a cytopathology subtype. Unknown or missing
-     * text falls back to FNAC.
+     * Maps the ordering system's sample-type text onto a cytopathology subtype.
+     * Unknown or missing text falls back to FNAC.
      */
     static CytologySample.CytologySubtype resolveCytologySubtypeFromText(String programSubtypeText) {
         if (GenericValidator.isBlankOrNull(programSubtypeText)) {

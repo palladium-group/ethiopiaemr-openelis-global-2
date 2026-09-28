@@ -36,7 +36,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProgramReceptionServiceImpl implements ProgramReceptionService {
 
-    /** Kept identical to the per-program dashboards so the tiles and the lists agree. */
+    /**
+     * Kept identical to the per-program dashboards so the tiles and the lists
+     * agree.
+     */
     private static final List<PathologyStatus> HISTOPATHOLOGY_IN_PROGRESS = Arrays.asList(PathologyStatus.GROSSING,
             PathologyStatus.CUTTING, PathologyStatus.PROCESSING, PathologyStatus.EMBEDDING, PathologyStatus.SLICING,
             PathologyStatus.STAINING);
@@ -109,8 +112,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                         pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.READY_PATHOLOGIST)));
                 additionalRequests += zeroWhenNull(
                         pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.ADDITIONAL_REQUEST)));
-                complete += zeroWhenNull(pathologySampleService.getCountWithStatusBetweenDates(
-                        Arrays.asList(PathologyStatus.COMPLETED), windowStart, now));
+                complete += zeroWhenNull(pathologySampleService
+                        .getCountWithStatusBetweenDates(Arrays.asList(PathologyStatus.COMPLETED), windowStart, now));
             }
             if (cytopathology) {
                 unassigned += zeroWhenNull(cytologySampleService.getCountUnassigned());
@@ -119,8 +122,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 inProgress += zeroWhenNull(cytologySampleService.getCountWithStatus(CYTOPATHOLOGY_IN_PROGRESS));
                 awaitingReview += zeroWhenNull(cytologySampleService
                         .getCountWithStatus(Arrays.asList(CytologyStatus.READY_FOR_CYTOPATHOLOGIST)));
-                complete += zeroWhenNull(cytologySampleService.getCountWithStatusBetweenDates(
-                        Arrays.asList(CytologyStatus.COMPLETED), windowStart, now));
+                complete += zeroWhenNull(cytologySampleService
+                        .getCountWithStatusBetweenDates(Arrays.asList(CytologyStatus.COMPLETED), windowStart, now));
             }
         } else {
             if (histopathology) {
@@ -242,7 +245,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
     }
 
     /**
-     * My cases = current user is the assigned specialist or the assigned technician.
+     * My cases = current user is the assigned specialist or the assigned
+     * technician.
      */
     private boolean isAssignedToUser(SystemUser specialist, SystemUser technician, String currentUserId) {
         return userMatches(specialist, currentUserId) || userMatches(technician, currentUserId);
@@ -330,7 +334,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         }
         row.setFirstName(item.getFirstName());
         row.setLastName(item.getLastName());
-        // The cytology list DTO carries no requester, so resolve it here to keep the merged
+        // The cytology list DTO carries no requester, so resolve it here to keep the
+        // merged
         // Requesting physician column populated for both categories.
         row.setRequester(resolveCytologyRequester(cytologySample));
         row.setAssignedTechnician(item.getAssignedTechnician());

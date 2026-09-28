@@ -35,6 +35,7 @@ import org.openelisglobal.note.valueholder.Note;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.pathology.PathologySampleForm;
 import org.openelisglobal.program.dao.PathologySampleDAO;
+import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
@@ -43,7 +44,6 @@ import org.openelisglobal.program.valueholder.pathology.PathologyRead;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
-import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologySlide;
@@ -931,7 +931,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             }
         });
 
-        // Frozen section leftover tissue → lab-only permanent Biopsy case (no new OpenMRS order).
+        // Frozen section leftover tissue → lab-only permanent Biopsy case (no new
+        // OpenMRS order).
         if (pathologySample.isFrozen()) {
             try {
                 createPermanentBiopsyAfterFrozen(pathologySample, form.getSystemUserId());
@@ -944,8 +945,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     }
 
     /**
-     * After Frozen section sign-out, auto-create a linked Biopsy {@link PathologySample} for
-     * permanent formalin processing of leftover tissue. Lab-only (no EMR order / referring id).
+     * After Frozen section sign-out, auto-create a linked Biopsy
+     * {@link PathologySample} for permanent formalin processing of leftover tissue.
+     * Lab-only (no EMR order / referring id).
      */
     private void createPermanentBiopsyAfterFrozen(PathologySample frozenCase, String systemUserId) {
         if (frozenCase == null || frozenCase.getId() == null || frozenCase.getSample() == null) {
@@ -1035,9 +1037,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         sampleHuman.setPatientId(patient.getId());
         SpringContext.getBean(org.openelisglobal.samplehuman.service.SampleHumanService.class).insert(sampleHuman);
 
-        Note note = noteService.createSavableNote(analysis, NoteType.INTERNAL,
-                "Permanent Biopsy created after Frozen section case " + frozenSample.getAccessionNumber()
-                        + " (leftover tissue)",
+        Note note = noteService.createSavableNote(
+                analysis, NoteType.INTERNAL, "Permanent Biopsy created after Frozen section case "
+                        + frozenSample.getAccessionNumber() + " (leftover tissue)",
                 "Permanent after Frozen section", systemUserId);
         if (!noteService.duplicateNoteExists(note)) {
             noteService.saveAll(java.util.Collections.singletonList(note));
