@@ -24,8 +24,20 @@ public class ProgramRoutingLookupTest extends BaseWebContextSensitiveTest {
 
     @Test
     public void getProgramByTestSectionId_returnsProgramForPathologySection() {
+        // In real deployments the Pathology test section and Histopathology program
+        // are seeded at startup from programs/pathology.json. The test context does
+        // not run that seeding, so create the section here to keep this test hermetic
+        // and independent of execution order.
         TestSection pathologySection = testSectionService.getTestSectionByName("Pathology");
-        Assert.assertNotNull("Pathology test section should be seeded", pathologySection);
+        if (pathologySection == null) {
+            pathologySection = new TestSection();
+            pathologySection.setTestSectionName("Pathology");
+            pathologySection.setDescription("Pathology");
+            pathologySection.setSortOrder("1");
+            pathologySection.setSysUserId("1");
+            pathologySection = testSectionService.save(pathologySection);
+        }
+        Assert.assertNotNull("Pathology test section should exist", pathologySection);
 
         // The Histopathology program is created at startup from programs/pathology.json
         // in real
