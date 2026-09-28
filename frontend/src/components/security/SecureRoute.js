@@ -70,7 +70,9 @@ function SecureRoute(props) {
     const roleList = props.role ? [].concat(props.role).filter(Boolean) : [];
     const hasMatchingRole =
       roleList.length === 0 ||
-      roleList.some((role) => userDetails.roles && userDetails.roles.includes(role));
+      roleList.some(
+        (role) => userDetails.roles && userDetails.roles.includes(role),
+      );
 
     let hasMatchingLabUnitRole = true;
     if (props.labUnitRole) {
