@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from "react";
 import {
   DataTable,
   TableContainer,
@@ -27,12 +33,19 @@ import TestConnectionModal from "../TestConnectionModal/TestConnectionModal";
 import DeleteAnalyzerModal from "../DeleteAnalyzerModal/DeleteAnalyzerModal";
 import CopyMappingsModal from "../FieldMapping/CopyMappingsModal";
 import PageTitle from "../../common/PageTitle/PageTitle";
+import { ConfigurationContext } from "../../layout/Layout";
 import "./AnalyzersList.css";
 
 const AnalyzersList = () => {
   const intl = useIntl();
   const history = useHistory();
   const searchTimeoutRef = useRef(null);
+
+  const { configurationProperties } = useContext(ConfigurationContext) || {};
+  // In mediator mode analyzer plugins are irrelevant (results arrive via the
+  // mediator API), so the "Plugin Missing" badge and warnings card are hidden.
+  const mediatorMode =
+    configurationProperties?.ANALYZER_INTEGRATION_VIA_MEDIATOR !== "false";
 
   const [analyzers, setAnalyzers] = useState([]);
   const [filteredAnalyzers, setFilteredAnalyzers] = useState([]);
@@ -277,7 +290,7 @@ const AnalyzersList = () => {
             <div className="stat-value">{stats.inactive}</div>
           </Tile>
         </Column>
-        {stats.pluginWarnings > 0 && (
+        {!mediatorMode && stats.pluginWarnings > 0 && (
           <Column lg={4} md={2} sm={2}>
             <Tile data-testid="stat-plugin-warnings">
               <div className="stat-label">
@@ -442,7 +455,10 @@ const AnalyzersList = () => {
 
                             if (headerKey === "name") {
                               testId = `analyzer-name-${row.id}`;
-                              if (analyzer?.pluginLoaded === false) {
+                              if (
+                                !mediatorMode &&
+                                analyzer?.pluginLoaded === false
+                              ) {
                                 cellContent = (
                                   <span>
                                     {cell.value}{" "}

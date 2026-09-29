@@ -252,8 +252,13 @@ public abstract class ConfigurationProperties {
                                                                           // before Not Tested
         OPENMRS_PAYMENT_GATE_ENABLED("openmrsPaymentGateEnabled", "text"), // when true, sample collection for OpenMRS
                                                                            // FHIR orders requires paid/exempted status
-        OPENMRS_PAYMENT_EXTENSION_URL("openmrsPaymentExtensionUrl", "text"); // FHIR ServiceRequest extension URL for
+        OPENMRS_PAYMENT_EXTENSION_URL("openmrsPaymentExtensionUrl", "text"), // FHIR ServiceRequest extension URL for
                                                                              // OpenMRS payment status
+        ANALYZER_INTEGRATION_VIA_MEDIATOR("analyzerIntegrationViaMediator", "text"); // when true, analyzers receive lab
+                                                                                     // results through a mediator API,
+                                                                                     // so direct-connection fields
+                                                                                     // (IP/port/plugin/protocol) are
+                                                                                     // hidden on the analyzer form
 
         // visible on
         // the ui

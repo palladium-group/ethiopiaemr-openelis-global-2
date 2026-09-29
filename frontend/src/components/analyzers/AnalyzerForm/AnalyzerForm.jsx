@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   ComposedModal,
   ModalHeader,
@@ -19,6 +19,7 @@ import {
   getAnalyzerTypes,
 } from "../../../services/analyzerService";
 import TestConnectionModal from "../TestConnectionModal/TestConnectionModal";
+import { ConfigurationContext } from "../../layout/Layout";
 import {
   PROTOCOL_VERSIONS,
   PLUGIN_PROTOCOL_DEFAULTS,
@@ -29,6 +30,13 @@ import "./AnalyzerForm.css";
 const AnalyzerForm = ({ analyzer, open, onClose }) => {
   const intl = useIntl();
   const isEditMode = !!analyzer;
+
+  const { configurationProperties } = useContext(ConfigurationContext) || {};
+  // When integration is through a mediator API, analyzers don't connect
+  // directly, so IP/port/plugin/protocol and the connection test are hidden and
+  // only name, type and status are collected. Defaults to true.
+  const mediatorMode =
+    configurationProperties?.ANALYZER_INTEGRATION_VIA_MEDIATOR !== "false";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -310,6 +318,26 @@ const AnalyzerForm = ({ analyzer, open, onClose }) => {
       port: formData.port ? parseInt(formData.port, 10) : null,
     };
 
+    // pluginTypeId must be the numeric analyzer_type DB id. Fallback options
+    // (e.g. "generic-hl7"/"generic-astm") are slugs, not real ids, and sending
+    // them makes the backend throw NumberFormatException. Only send a numeric
+    // id; otherwise omit it so the analyzer is created without a plugin-type
+    // link (analyzerType still carries the free-text category).
+    if (!/^\d+$/.test(String(submitData.pluginTypeId ?? ""))) {
+      delete submitData.pluginTypeId;
+    }
+
+    // In mediator mode the analyzer is not directly connected, so the
+    // connection/plugin fields are not collected. Drop them and send only
+    // name, type and status (all these fields are nullable on the backend).
+    if (mediatorMode) {
+      delete submitData.pluginTypeId;
+      delete submitData.ipAddress;
+      delete submitData.port;
+      delete submitData.protocolVersion;
+      delete submitData.identifierPattern;
+    }
+
     const callback = (response, extraParams) => {
       setIsSubmitting(false);
       if (response.error || response.statusCode >= 400) {
@@ -408,154 +436,161 @@ const AnalyzerForm = ({ analyzer, open, onClose }) => {
               required
             />
 
-            <Dropdown
-              id="analyzer-plugin-type"
-              data-testid="analyzer-form-plugin-type-dropdown"
-              titleText={intl.formatMessage({
-                id: "analyzer.form.pluginType",
-                defaultMessage: "Plugin Type",
-              })}
-              label={intl.formatMessage({
-                id: "analyzer.form.pluginType.placeholder",
-                defaultMessage: "Select plugin type...",
-              })}
-              items={pluginTypes}
-              selectedItem={
-                pluginTypes.find((opt) => opt.id === formData.pluginTypeId) ||
-                null
-              }
-              itemToString={(item) =>
-                item ? `${item.name} (${item.protocol})` : ""
-              }
-              onChange={({ selectedItem }) => {
-                handleFieldChange("pluginTypeId", selectedItem?.id || "");
-                // Auto-set protocol version based on plugin type
-                if (selectedItem?.protocol) {
-                  handleFieldChange(
-                    "protocolVersion",
-                    PLUGIN_PROTOCOL_DEFAULTS[selectedItem.protocol] ||
-                      formData.protocolVersion,
-                  );
-                }
-              }}
-              disabled={loadingPluginTypes}
-              helperText={intl.formatMessage({
-                id: "analyzer.form.pluginType.helperText",
-                defaultMessage:
-                  "The analyzer plugin that will handle incoming messages",
-              })}
-            />
+            {!mediatorMode && (
+              <>
+                <Dropdown
+                  id="analyzer-plugin-type"
+                  data-testid="analyzer-form-plugin-type-dropdown"
+                  titleText={intl.formatMessage({
+                    id: "analyzer.form.pluginType",
+                    defaultMessage: "Plugin Type",
+                  })}
+                  label={intl.formatMessage({
+                    id: "analyzer.form.pluginType.placeholder",
+                    defaultMessage: "Select plugin type...",
+                  })}
+                  items={pluginTypes}
+                  selectedItem={
+                    pluginTypes.find(
+                      (opt) => opt.id === formData.pluginTypeId,
+                    ) || null
+                  }
+                  itemToString={(item) =>
+                    item ? `${item.name} (${item.protocol})` : ""
+                  }
+                  onChange={({ selectedItem }) => {
+                    handleFieldChange("pluginTypeId", selectedItem?.id || "");
+                    // Auto-set protocol version based on plugin type
+                    if (selectedItem?.protocol) {
+                      handleFieldChange(
+                        "protocolVersion",
+                        PLUGIN_PROTOCOL_DEFAULTS[selectedItem.protocol] ||
+                          formData.protocolVersion,
+                      );
+                    }
+                  }}
+                  disabled={loadingPluginTypes}
+                  helperText={intl.formatMessage({
+                    id: "analyzer.form.pluginType.helperText",
+                    defaultMessage:
+                      "The analyzer plugin that will handle incoming messages",
+                  })}
+                />
 
-            {!isEditMode && isGenericPlugin && (
-              <Dropdown
-                id="analyzer-default-config"
-                data-testid="analyzer-form-default-config-dropdown"
-                titleText={intl.formatMessage({
-                  id: "analyzer.form.loadDefaultConfig",
-                })}
-                label={intl.formatMessage({
-                  id: "analyzer.form.loadDefaultConfig.placeholder",
-                })}
-                items={defaultConfigs}
-                selectedItem={selectedDefault}
-                itemToString={(item) =>
-                  item ? `${item.analyzerName} (${item.protocol})` : ""
-                }
-                onChange={({ selectedItem }) =>
-                  handleDefaultConfigSelect(selectedItem)
-                }
-                disabled={loadingDefaults}
-                helperText={intl.formatMessage({
-                  id: "analyzer.form.loadDefaultConfig.helperText",
-                })}
-              />
+                {!isEditMode && isGenericPlugin && (
+                  <Dropdown
+                    id="analyzer-default-config"
+                    data-testid="analyzer-form-default-config-dropdown"
+                    titleText={intl.formatMessage({
+                      id: "analyzer.form.loadDefaultConfig",
+                    })}
+                    label={intl.formatMessage({
+                      id: "analyzer.form.loadDefaultConfig.placeholder",
+                    })}
+                    items={defaultConfigs}
+                    selectedItem={selectedDefault}
+                    itemToString={(item) =>
+                      item ? `${item.analyzerName} (${item.protocol})` : ""
+                    }
+                    onChange={({ selectedItem }) =>
+                      handleDefaultConfigSelect(selectedItem)
+                    }
+                    disabled={loadingDefaults}
+                    helperText={intl.formatMessage({
+                      id: "analyzer.form.loadDefaultConfig.helperText",
+                    })}
+                  />
+                )}
+
+                {isGenericPlugin && (
+                  <TextInput
+                    id="analyzer-identifier-pattern"
+                    data-testid="analyzer-form-identifier-pattern-input"
+                    labelText={intl.formatMessage({
+                      id: "analyzer.form.identifierPattern",
+                      defaultMessage: "Identifier Pattern",
+                    })}
+                    placeholder={intl.formatMessage({
+                      id: "analyzer.form.identifierPattern.placeholder",
+                      defaultMessage: "e.g., ^ABX\\^PENTRA.*",
+                    })}
+                    value={formData.identifierPattern}
+                    onChange={(e) =>
+                      handleFieldChange("identifierPattern", e.target.value)
+                    }
+                    helperText={intl.formatMessage({
+                      id: "analyzer.form.identifierPattern.helperText",
+                      defaultMessage:
+                        "Regex pattern to match incoming message identifiers for routing",
+                    })}
+                  />
+                )}
+
+                <Dropdown
+                  id="analyzer-protocol-version"
+                  data-testid="analyzer-form-protocol-version-dropdown"
+                  titleText={intl.formatMessage({
+                    id: "analyzer.form.protocolVersion",
+                    defaultMessage: "Message Protocol",
+                  })}
+                  items={PROTOCOL_VERSIONS}
+                  selectedItem={
+                    PROTOCOL_VERSIONS.find(
+                      (opt) => opt.value === formData.protocolVersion,
+                    ) || PROTOCOL_VERSIONS[0]
+                  }
+                  itemToString={(item) => (item ? item.label : "")}
+                  onChange={({ selectedItem }) => {
+                    if (selectedItem) {
+                      handleFieldChange("protocolVersion", selectedItem.value);
+                    }
+                  }}
+                />
+
+                <div
+                  className="connection-fields"
+                  data-testid="analyzer-form-connection-fields"
+                >
+                  <TextInput
+                    id="analyzer-ip"
+                    data-testid="analyzer-form-ip-input"
+                    labelText={intl.formatMessage({
+                      id: "analyzer.form.ipAddress",
+                    })}
+                    placeholder={intl.formatMessage({
+                      id: "analyzer.form.ipAddress.placeholder",
+                    })}
+                    value={formData.ipAddress}
+                    onChange={(e) =>
+                      handleFieldChange("ipAddress", e.target.value)
+                    }
+                    invalid={!!errors.ipAddress}
+                    invalidText={errors.ipAddress}
+                  />
+
+                  <TextInput
+                    id="analyzer-port"
+                    data-testid="analyzer-form-port-input"
+                    labelText={intl.formatMessage({ id: "analyzer.form.port" })}
+                    placeholder={intl.formatMessage({
+                      id: "analyzer.form.port.placeholder",
+                    })}
+                    value={formData.port}
+                    onChange={(e) => handleFieldChange("port", e.target.value)}
+                    invalid={!!errors.port}
+                    invalidText={errors.port}
+                  />
+
+                  <Button
+                    kind="tertiary"
+                    onClick={() => setTestConnectionModalOpen(true)}
+                    data-testid="analyzer-form-test-connection-button"
+                  >
+                    {intl.formatMessage({ id: "analyzer.form.testConnection" })}
+                  </Button>
+                </div>
+              </>
             )}
-
-            {isGenericPlugin && (
-              <TextInput
-                id="analyzer-identifier-pattern"
-                data-testid="analyzer-form-identifier-pattern-input"
-                labelText={intl.formatMessage({
-                  id: "analyzer.form.identifierPattern",
-                  defaultMessage: "Identifier Pattern",
-                })}
-                placeholder={intl.formatMessage({
-                  id: "analyzer.form.identifierPattern.placeholder",
-                  defaultMessage: "e.g., ^ABX\\^PENTRA.*",
-                })}
-                value={formData.identifierPattern}
-                onChange={(e) =>
-                  handleFieldChange("identifierPattern", e.target.value)
-                }
-                helperText={intl.formatMessage({
-                  id: "analyzer.form.identifierPattern.helperText",
-                  defaultMessage:
-                    "Regex pattern to match incoming message identifiers for routing",
-                })}
-              />
-            )}
-
-            <Dropdown
-              id="analyzer-protocol-version"
-              data-testid="analyzer-form-protocol-version-dropdown"
-              titleText={intl.formatMessage({
-                id: "analyzer.form.protocolVersion",
-                defaultMessage: "Message Protocol",
-              })}
-              items={PROTOCOL_VERSIONS}
-              selectedItem={
-                PROTOCOL_VERSIONS.find(
-                  (opt) => opt.value === formData.protocolVersion,
-                ) || PROTOCOL_VERSIONS[0]
-              }
-              itemToString={(item) => (item ? item.label : "")}
-              onChange={({ selectedItem }) => {
-                if (selectedItem) {
-                  handleFieldChange("protocolVersion", selectedItem.value);
-                }
-              }}
-            />
-
-            <div
-              className="connection-fields"
-              data-testid="analyzer-form-connection-fields"
-            >
-              <TextInput
-                id="analyzer-ip"
-                data-testid="analyzer-form-ip-input"
-                labelText={intl.formatMessage({
-                  id: "analyzer.form.ipAddress",
-                })}
-                placeholder={intl.formatMessage({
-                  id: "analyzer.form.ipAddress.placeholder",
-                })}
-                value={formData.ipAddress}
-                onChange={(e) => handleFieldChange("ipAddress", e.target.value)}
-                invalid={!!errors.ipAddress}
-                invalidText={errors.ipAddress}
-              />
-
-              <TextInput
-                id="analyzer-port"
-                data-testid="analyzer-form-port-input"
-                labelText={intl.formatMessage({ id: "analyzer.form.port" })}
-                placeholder={intl.formatMessage({
-                  id: "analyzer.form.port.placeholder",
-                })}
-                value={formData.port}
-                onChange={(e) => handleFieldChange("port", e.target.value)}
-                invalid={!!errors.port}
-                invalidText={errors.port}
-              />
-
-              <Button
-                kind="tertiary"
-                onClick={() => setTestConnectionModalOpen(true)}
-                data-testid="analyzer-form-test-connection-button"
-              >
-                {intl.formatMessage({ id: "analyzer.form.testConnection" })}
-              </Button>
-            </div>
 
             <Dropdown
               id="analyzer-status"
