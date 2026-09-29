@@ -24,6 +24,7 @@ import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologyTechnique.TechniqueType;
 import org.openelisglobal.sample.bean.SampleOrderItem;
 import org.openelisglobal.sample.service.SampleService;
+import org.openelisglobal.sample.valueholder.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +49,7 @@ public class ImmunohistochemistryDisplayServiceImpl implements Immunohistochemis
                 .get(immunohistochemistrySampleId);
         ImmunohistochemistryDisplayItem displayItem = new ImmunohistochemistryDisplayItem();
         displayItem.setStatus(immunohistochemistrySample.getStatus());
-        displayItem.setRequestDate(immunohistochemistrySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(immunohistochemistrySample.getSample()));
         if (immunohistochemistrySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(immunohistochemistrySample.getPathologist().getDisplayName());
         }
@@ -70,7 +71,7 @@ public class ImmunohistochemistryDisplayServiceImpl implements Immunohistochemis
                 .get(immunohistochemistrySampleId);
         ImmunohistochemistryCaseViewDisplayItem displayItem = new ImmunohistochemistryCaseViewDisplayItem();
         displayItem.setStatus(immunohistochemistrySample.getStatus());
-        displayItem.setRequestDate(immunohistochemistrySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(immunohistochemistrySample.getSample()));
         if (immunohistochemistrySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(immunohistochemistrySample.getPathologist().getDisplayName());
             displayItem.setAssignedPathologistId(immunohistochemistrySample.getPathologist().getId());
@@ -141,5 +142,16 @@ public class ImmunohistochemistryDisplayServiceImpl implements Immunohistochemis
             displayItem.setSex(patient.getGender());
         }
         return displayItem;
+    }
+
+    private String formatRequestDate(Sample sample) {
+        if (sample == null) {
+            return null;
+        }
+        String display = sample.getEnteredDateForDisplay();
+        if (StringUtils.isNotBlank(display)) {
+            return display;
+        }
+        return sample.getEnteredDate() != null ? DateUtil.formatDateAsText(sample.getEnteredDate()) : null;
     }
 }

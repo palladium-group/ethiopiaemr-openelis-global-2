@@ -144,6 +144,11 @@ public abstract class ConfigurationProperties {
          * completion to per-analysis OpenMRS ServiceRequest ids.
          */
         PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR("per analysis referring service request FHIR", "text"),
+        // When true, an imported FHIR order whose test belongs to a program (e.g.
+        // Pathology) is
+        // routed to that program's workflow/dashboard instead of the generic
+        // electronic-order list.
+        ROUTE_PROGRAM_ORDERS_FROM_FHIR("route program orders from FHIR", "text"),
         SIGNATURES_ON_NONCONFORMITY_REPORTS("non-conformity signature", "text"), // If true a space should be left for
         // signatures on non-conformity reports
         NONCONFORMITY_RECEPTION_AS_UNIT("Reception as unit", "text"), // If true then reception will be an option for

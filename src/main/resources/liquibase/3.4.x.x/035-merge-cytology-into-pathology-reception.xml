@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+      Histopathology and cytopathology share one reception queue at /PathologyDashboard, so the
+      separate Cytology sidenav entry is retired and the Cytology module gains permission for the
+      shared dashboard. /CytologyDashboard still resolves (the SPA redirects it) and the
+      cytopathology case view is unchanged.
+    -->
+
+    <changeSet id="035-cytology-module-pathology-dashboard-url" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">select count(*) from clinlims.system_module where name = 'Cytology'</sqlCheck>
+            <sqlCheck expectedResult="0">select count(*) from clinlims.system_module_url u join clinlims.system_module m on m.id = u.system_module_id where m.name = 'Cytology' and u.url_path = '/PathologyDashboard'</sqlCheck>
+        </preConditions>
+        <comment>Let Cytopathologist-only users reach the shared pathology reception dashboard</comment>
+        <insert tableName="system_module_url" schemaName="clinlims">
+            <column name="id" valueSequenceNext="system_module_url_seq" />
+            <column name="url_path" value="/PathologyDashboard" />
+            <column name="system_module_id"
+                valueComputed="(SELECT id FROM clinlims.system_module WHERE name = 'Cytology')" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="035-retire-cytology-sidenav-entry" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">select count(*) from clinlims.menu where element_id = 'menu_cytology' and is_active = true</sqlCheck>
+        </preConditions>
+        <comment>Cytopathology is reached from the Pathology queue, so hide its own sidenav entry</comment>
+        <update tableName="menu" schemaName="clinlims">
+            <column name="is_active" valueBoolean="false" />
+            <where>element_id = 'menu_cytology'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

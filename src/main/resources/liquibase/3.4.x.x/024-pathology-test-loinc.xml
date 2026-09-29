@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <!--
+    PLACEHOLDER LOINC for the Pathology "Histopathology examination" test.
+
+    Incoming FHIR pathology orders carry this LOINC in ServiceRequest.code (emitted by the community
+    fhir2 module from the OpenMRS pathology order concept's LOINC mapping). OpenELIS matches the order
+    to this test by LOINC (TaskInterpreterImpl), which routes it to the Pathology dashboard.
+
+    11529-5 ("Surgical pathology study") is a PLACEHOLDER. It MUST equal the LOINC on the OpenMRS
+    content-repo pathology order concept. When the final metadata is agreed, update BOTH sides.
+    See tasks/2026-09-02-pathology-module-o3-openelis/placeholder-metadata.md.
+  -->
+  <changeSet id="024-pathology-test-loinc" author="openelis">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="test" schemaName="clinlims"/>
+      <sqlCheck expectedResult="1">
+        select count(*) from clinlims.test where name = 'Histopathology examination';
+      </sqlCheck>
+    </preConditions>
+    <update tableName="test" schemaName="clinlims">
+      <column name="loinc" value="11529-5"/>
+      <where>id=:value</where>
+      <whereParams>
+        <param valueComputed="(SELECT id FROM clinlims.test WHERE name = 'Histopathology examination')"/>
+      </whereParams>
+    </update>
+  </changeSet>
+</databaseChangeLog>

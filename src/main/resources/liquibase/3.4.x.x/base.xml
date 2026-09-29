@@ -30,4 +30,21 @@
   <include relativeToChangelogFile="true" file="021-reception-role-module.xml"/>
   <include relativeToChangelogFile="true" file="022-openmrs-payment-gate-site-config.xml"/>
   <include relativeToChangelogFile="true" file="023-autofill-collection-date-default.xml"/>
+  <include relativeToChangelogFile="true" file="024-pathology-test-loinc.xml"/>
+  <include relativeToChangelogFile="true" file="025-route-program-orders-from-fhir-config.xml"/>
+  <include relativeToChangelogFile="true" file="026-pathology-histopathology-test-safety-net.xml"/>
+  <include relativeToChangelogFile="true" file="027-pathology-test-result-config.xml"/>
+  <include relativeToChangelogFile="true" file="028-cytology-test-loinc-and-config.xml"/>
+  <include relativeToChangelogFile="true" file="029-pathology-processing-started-at.xml"/>
+  <include relativeToChangelogFile="true" file="030-pathology-block-embedded-at.xml"/>
+  <include relativeToChangelogFile="true" file="031-pathology-slide-block-and-confirmed-at.xml"/>
+  <include relativeToChangelogFile="true" file="032-pathology-slide-stained-at.xml"/>
+  <include relativeToChangelogFile="true" file="033-cytology-workflow-fields.xml"/>
+  <include relativeToChangelogFile="true" file="034-cytopathology-sample-type-tests.xml"/>
+  <include relativeToChangelogFile="true" file="035-merge-cytology-into-pathology-reception.xml"/>
+  <include relativeToChangelogFile="true" file="036-pathology-read-rounds.xml"/>
+  <include relativeToChangelogFile="true" file="037-pathology-slide-stain-type-and-role.xml"/>
+  <include relativeToChangelogFile="true" file="038-pathology-frozen-section.xml"/>
+  <include relativeToChangelogFile="true" file="039-widen-cytology-conclusion.xml"/>
+  <include relativeToChangelogFile="true" file="040-pathology-reception-role.xml"/>
 </databaseChangeLog>

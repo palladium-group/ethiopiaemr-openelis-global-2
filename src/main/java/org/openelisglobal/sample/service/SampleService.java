@@ -46,6 +46,8 @@ public interface SampleService extends BaseObjectService<Sample, String> {
 
     Sample getSampleByReferringId(String referringId);
 
+    List<Sample> getSamplesByReferringId(String referringId);
+
     List<Sample> getSamplesReceivedInDateRange(String receivedDateStart, String receivedDateEnd);
 
     List<Sample> getSamplesByAccessionRange(String minAccession, String maxAccession);

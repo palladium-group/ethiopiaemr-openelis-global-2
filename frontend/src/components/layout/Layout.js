@@ -6,6 +6,7 @@ import { Content, Theme } from "@carbon/react";
 import UserSessionDetailsContext from "../../UserSessionDetailsContext";
 import { getFromOpenElisServer } from "../utils/Utils";
 import { useSideNavPreference } from "./useSideNavPreference";
+import { NotificationKinds } from "../common/CustomNotification";
 
 export const ConfigurationContext = createContext(null);
 export const NotificationContext = createContext(null);
@@ -59,13 +60,15 @@ export default function Layout(props) {
     userSessionDetails.authenticated && mode === SIDENAV_MODES.LOCK;
 
   const addNotification = (notificationBody) => {
-    setNotifications([...notifications, notificationBody]);
+    setNotifications((prev) => [...prev, notificationBody]);
   };
 
   const removeNotification = (index) => {
-    const newNotifications = [...notifications];
-    newNotifications.splice(index, 1);
-    setNotifications(newNotifications);
+    setNotifications((prev) => {
+      const next = [...prev];
+      next.splice(index, 1);
+      return next;
+    });
   };
 
   const fetchConfigurationProperties = (res) => {
@@ -86,6 +89,28 @@ export default function Layout(props) {
     }
     setResetConfig(false);
   }, [userSessionDetails.authenticated, resetConfig]);
+
+  useEffect(() => {
+    const onRequestFailed = (event) => {
+      const status = event?.detail?.status;
+      const subtitle =
+        status === 0
+          ? "Network error — please try again."
+          : "Request failed" + (status ? " (" + status + ")" : "") + ".";
+      setNotifications((prev) => [
+        ...prev,
+        {
+          title: "Error",
+          subtitle,
+          kind: NotificationKinds.error,
+        },
+      ]);
+      setNotificationVisible(true);
+    };
+    window.addEventListener("openelis:request-failed", onRequestFailed);
+    return () =>
+      window.removeEventListener("openelis:request-failed", onRequestFailed);
+  }, []);
 
   return (
     <ConfigurationContext.Provider

@@ -35,25 +35,33 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.ServiceRequest.ServiceRequestStatus;
 import org.hl7.fhir.r4.model.Specimen;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.hl7.fhir.r4.model.Task.TaskStatus;
 import org.openelisglobal.common.action.IActionConstants;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.TableIdService;
+import org.openelisglobal.common.util.ConfigurationProperties;
+import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
 import org.openelisglobal.dataexchange.fhir.service.FhirPersistanceServiceImpl.FhirOperations;
 import org.openelisglobal.dataexchange.fhir.service.TaskWorker.TaskResult;
 import org.openelisglobal.dataexchange.order.action.DBOrderExistanceChecker;
+import org.openelisglobal.dataexchange.order.action.IOrderInterpreter.InterpreterResults;
 import org.openelisglobal.dataexchange.order.action.IOrderPersister;
 import org.openelisglobal.organization.service.OrganizationService;
 import org.openelisglobal.organization.valueholder.Organization;
+import org.openelisglobal.program.service.ProgramSampleImportService;
+import org.openelisglobal.program.service.ProgramService;
+import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.provider.service.ProviderService;
 import org.openelisglobal.provider.valueholder.Provider;
 import org.openelisglobal.referral.fhir.service.FhirReferralService;
 import org.openelisglobal.referral.service.ReferralService;
 import org.openelisglobal.spring.util.SpringContext;
+import org.openelisglobal.test.valueholder.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -81,6 +89,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
     private OrganizationService organizationService;
     @Autowired
     private ProviderService providerService;
+    @Autowired
+    private ProgramService programService;
+    @Autowired
+    private ProgramSampleImportService programSampleImportService;
 
     @Value("${org.openelisglobal.fhirstore.uri}")
     private String localFhirStorePath;
@@ -459,25 +471,67 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
                     "no local serviceRequests found for Task " + localObjects.task.getId());
         }
 
-        TaskResult taskResult = null;
         if (localObjects.task.getStatus() == null || localObjects.task.getStatus().equals(TaskStatus.REQUESTED)) {
             Boolean taskOrderAcceptedFlag = false;
             for (ServiceRequest serviceRequest : serviceRequestList) {
+                String taskId = remoteTask.getIdElement().getIdPart();
+                String serviceRequestId = serviceRequest.getIdElement().getIdPart();
+                if (runServiceRequestImportSafely(taskId, serviceRequestId, () -> {
+                    TaskInterpreter interpreter = SpringContext.getBean(TaskInterpreter.class);
+                    // Interpret once per ServiceRequest; program routing and the electronic-order
+                    // path
+                    // both reuse this result (TaskWorker skips a second interpret when results are
+                    // set).
+                    List<InterpreterResults> interpretResults = interpreter.interpret(remoteTask, serviceRequest,
+                            patient);
 
-                TaskWorker worker = new TaskWorker(remoteTask,
-                        fhirContext.newJsonParser().encodeResourceToString(remoteTask), serviceRequest, patient);
+                    // When enabled, an order whose test belongs to a program (e.g. Pathology) is
+                    // created directly as a program case on that program's dashboard, instead of an
+                    // electronic order, so it never appears in the Electronic Orders list.
+                    if (routeProgramOrdersFromFhirEnabled()) {
+                        Program program = resolveProgramForImportedTest(interpreter.getTest());
+                        if (program != null) {
+                            if (!interpretResults.isEmpty() && interpretResults.get(0) == InterpreterResults.OK) {
+                                UUID questionnaireResponseUuid = resolveProgramQuestionnaireResponseUuid(serviceRequest,
+                                        localObjects);
+                                // Do not treat ServiceRequest.authoredOn as specimen collection — EMR
+                                // pathology/cytology orders arrive uncollected; the lab collects later.
+                                Provider requestingProvider = resolveRequestingProvider(serviceRequest, localObjects);
+                                String programSubtypeText = resolveProgramSubtypeText(serviceRequest,
+                                        localObjects.observations);
+                                programSampleImportService.createProgramSampleFromImport(program, interpreter.getTest(),
+                                        interpreter.getMessagePatient(), interpreter.getOrderPriority(),
+                                        serviceRequestId, questionnaireResponseUuid, null, requestingProvider,
+                                        programSubtypeText);
+                                return true;
+                            }
+                            // No e-order / no case; Task still REJECTED for EMR. Log for ops diagnosis.
+                            LogEvent.logError(this.getClass().getSimpleName(), "processTaskImportOrder",
+                                    "program order not created: interpret="
+                                            + (interpretResults.isEmpty() ? "EMPTY" : interpretResults.get(0))
+                                            + " task=" + taskId + " serviceRequest=" + serviceRequestId + " program="
+                                            + program.getProgramName() + " test="
+                                            + (interpreter.getTest() != null ? interpreter.getTest().getLoinc() : null)
+                                            + " referringOrder=" + interpreter.getReferringOrderNumber());
+                            return false;
+                        }
+                    }
 
-                worker.setInterpreter(SpringContext.getBean(TaskInterpreter.class));
-                worker.setExistanceChecker(SpringContext.getBean(DBOrderExistanceChecker.class));
-                worker.setPersister(SpringContext.getBean(IOrderPersister.class));
+                    TaskWorker worker = new TaskWorker(remoteTask,
+                            fhirContext.newJsonParser().encodeResourceToString(remoteTask), serviceRequest, patient);
 
-                taskResult = worker.handleOrderRequest();
-                if (taskResult == TaskResult.OK) {
-                    taskOrderAcceptedFlag = true; // at least one order was accepted per Piotr 5/14/2020
+                    worker.setInterpreter(interpreter);
+                    worker.setInterpretResults(interpretResults);
+                    worker.setExistanceChecker(SpringContext.getBean(DBOrderExistanceChecker.class));
+                    worker.setPersister(SpringContext.getBean(IOrderPersister.class));
+
+                    return worker.handleOrderRequest() == TaskResult.OK;
+                })) {
+                    taskOrderAcceptedFlag = true;
                 }
             }
 
-            TaskStatus taskStatus = taskOrderAcceptedFlag ? TaskStatus.ACCEPTED : TaskStatus.REJECTED;
+            TaskStatus taskStatus = taskStatusAfterServiceRequestImports(taskOrderAcceptedFlag);
             localObjects.task.setStatus(taskStatus);
             if (remoteStoreUpdateStatus.isPresent() && remoteStoreUpdateStatus.get()) {
                 LogEvent.logTrace(this.getClass().getSimpleName(), "beginTaskPath",
@@ -502,6 +556,239 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             // taskBasedOnRemoteTask.setStatus(taskStatus);
             // localFhirClient.update().resource(taskBasedOnRemoteTask).execute();
         }
+    }
+
+    /**
+     * Runs one ServiceRequest import attempt. Returns its accepted flag, or false
+     * if it threw — so a single failure cannot leave the remote Task stuck in
+     * REQUESTED (infinite poll retry).
+     */
+    @FunctionalInterface
+    interface ServiceRequestImportAttempt {
+        boolean run() throws Exception;
+    }
+
+    static boolean runServiceRequestImportSafely(String taskId, String serviceRequestId,
+            ServiceRequestImportAttempt attempt) {
+        try {
+            return attempt.run();
+        } catch (Exception e) {
+            LogEvent.logError(e);
+            LogEvent.logError(FhirApiWorkFlowServiceImpl.class.getSimpleName(), "processTaskImportOrder",
+                    "failed processing serviceRequest=" + serviceRequestId + " task=" + taskId + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * ACCEPTED if any SR was accepted; otherwise REJECTED so the poller stops
+     * retrying.
+     */
+    static TaskStatus taskStatusAfterServiceRequestImports(boolean anyAccepted) {
+        return anyAccepted ? TaskStatus.ACCEPTED : TaskStatus.REJECTED;
+    }
+
+    private boolean routeProgramOrdersFromFhirEnabled() {
+        return ConfigurationProperties.getInstance().isPropertyValueEqual(Property.ROUTE_PROGRAM_ORDERS_FROM_FHIR,
+                "true");
+    }
+
+    private Program resolveProgramForImportedTest(Test test) {
+        if (test == null || test.getTestSection() == null) {
+            return null;
+        }
+        return programService.getProgramByTestSectionId(test.getTestSection().getId());
+    }
+
+    /**
+     * Builds a QuestionnaireResponse from the order's context Observations
+     * ({@code ServiceRequest.supportingInfo}) and returns its local FHIR store id
+     * for linking onto the program sample. This is the only order-form transport:
+     * labonfhir pushes discrete Observations; OpenELIS synthesizes the QR the case
+     * view already knows how to render. Returns null when no context observations
+     * were sent or on any failure (never blocks import).
+     */
+    private UUID resolveProgramQuestionnaireResponseUuid(ServiceRequest serviceRequest,
+            OriginalReferralObjects localObjects) {
+        return synthesizeQuestionnaireResponseFromObservations(serviceRequest, localObjects.observations);
+    }
+
+    /**
+     * Reads the order form's sample type out of the context Observations
+     * ({@code ServiceRequest.supportingInfo}) so cytopathology can open the case as
+     * the right subtype (FNAC / Image-guided FNAC / Pap smear / Fluid). Null when
+     * the order carried none.
+     */
+    static String resolveProgramSubtypeText(ServiceRequest serviceRequest, List<Observation> observations) {
+        if (serviceRequest == null || observations == null || observations.isEmpty()) {
+            return null;
+        }
+        List<String> observationIds = getSupportingInfoObservationIds(Arrays.asList(serviceRequest));
+        for (Observation observation : observations) {
+            if (!observationIds.contains(observation.getIdElement().getIdPart())) {
+                continue;
+            }
+            String label = observationLabel(observation);
+            if (label == null || !label.toLowerCase().contains("sample type")) {
+                continue;
+            }
+            String value = observationValueText(observation);
+            if (!GenericValidator.isBlankOrNull(value)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Resolves the ordering physician from ServiceRequest.requester so program-case
+     * import can persist SampleRequester / SampleHuman.provider (Reception
+     * "Requesting physician").
+     */
+    private Provider resolveRequestingProvider(ServiceRequest serviceRequest, OriginalReferralObjects localObjects) {
+        if (serviceRequest == null || !serviceRequest.hasRequester()
+                || GenericValidator.isBlankOrNull(serviceRequest.getRequester().getReferenceElement().getIdPart())) {
+            return null;
+        }
+        String practitionerId = serviceRequest.getRequester().getReferenceElement().getIdPart();
+        try {
+            UUID fhirUuid = UUID.fromString(practitionerId);
+            Provider existing = providerService.getProviderByFhirId(fhirUuid);
+            if (existing != null) {
+                return existing;
+            }
+            Practitioner practitioner = null;
+            if (localObjects != null && localObjects.requestors != null) {
+                for (Practitioner candidate : localObjects.requestors) {
+                    if (practitionerId.equals(candidate.getIdElement().getIdPart())) {
+                        practitioner = candidate;
+                        break;
+                    }
+                }
+            }
+            if (practitioner == null) {
+                return null;
+            }
+            Provider transformed = fhirTransformService.transformToProvider(practitioner);
+            return providerService.insertOrUpdateProviderByFhirUuid(transformed.getFhirUuid(), transformed);
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolveRequestingProvider",
+                    "could not resolve requesting provider for ServiceRequest "
+                            + serviceRequest.getIdElement().getIdPart() + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Builds a QuestionnaireResponse from the order's context Observations
+     * (ServiceRequest.supportingInfo) -- one item per observation, its concept name
+     * as the item text and its value as the answer -- and persists it to the local
+     * FHIR store so the program case view can render the order context. Returns the
+     * new local id, or null when there are no context observations or on any
+     * failure (never blocks the order import).
+     */
+    private UUID synthesizeQuestionnaireResponseFromObservations(ServiceRequest serviceRequest,
+            List<Observation> observations) {
+        try {
+            QuestionnaireResponse questionnaireResponse = buildQuestionnaireResponseFromObservations(serviceRequest,
+                    observations);
+            if (questionnaireResponse == null) {
+                return null;
+            }
+            fhirPersistanceService.updateFhirResourceInFhirStore(questionnaireResponse);
+            return UUID.fromString(questionnaireResponse.getIdElement().getIdPart());
+        } catch (Exception e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "synthesizeQuestionnaireResponseFromObservations",
+                    "could not synthesize questionnaire response for ServiceRequest "
+                            + serviceRequest.getIdElement().getIdPart() + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Pure builder for the program-order form view: turns
+     * ServiceRequest.supportingInfo Observations into a QuestionnaireResponse the
+     * case UI can render. Package-private / static for unit testing. Returns null
+     * when there is nothing to show (no observations, none linked, or no
+     * displayable values).
+     */
+    static QuestionnaireResponse buildQuestionnaireResponseFromObservations(ServiceRequest serviceRequest,
+            List<Observation> observations) {
+        if (serviceRequest == null || observations == null || observations.isEmpty()) {
+            return null;
+        }
+        List<String> observationIds = getSupportingInfoObservationIds(Arrays.asList(serviceRequest));
+        QuestionnaireResponse questionnaireResponse = new QuestionnaireResponse();
+        UUID id = UUID.randomUUID();
+        questionnaireResponse.setId(id.toString());
+        questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
+        questionnaireResponse.addBasedOn(
+                new Reference(ResourceType.ServiceRequest + "/" + serviceRequest.getIdElement().getIdPart()));
+        int itemCount = 0;
+        for (Observation observation : observations) {
+            if (!observationIds.contains(observation.getIdElement().getIdPart())) {
+                continue;
+            }
+            String value = observationValueText(observation);
+            if (GenericValidator.isBlankOrNull(value)) {
+                continue;
+            }
+            QuestionnaireResponse.QuestionnaireResponseItemComponent item = questionnaireResponse.addItem();
+            item.setLinkId(observationLinkId(observation));
+            item.setText(observationLabel(observation));
+            item.addAnswer().setValue(new StringType(value));
+            itemCount++;
+        }
+        return itemCount == 0 ? null : questionnaireResponse;
+    }
+
+    /**
+     * The human-readable label for an observation's concept (its code
+     * text/display).
+     */
+    static String observationLabel(Observation observation) {
+        if (observation.hasCode()) {
+            CodeableConcept code = observation.getCode();
+            if (!GenericValidator.isBlankOrNull(code.getText())) {
+                return code.getText();
+            }
+            if (code.hasCoding() && !GenericValidator.isBlankOrNull(code.getCodingFirstRep().getDisplay())) {
+                return code.getCodingFirstRep().getDisplay();
+            }
+        }
+        return "";
+    }
+
+    /**
+     * A stable linkId for a synthesized questionnaire item: the concept code, else
+     * the obs id.
+     */
+    static String observationLinkId(Observation observation) {
+        if (observation.hasCode() && observation.getCode().hasCoding()
+                && !GenericValidator.isBlankOrNull(observation.getCode().getCodingFirstRep().getCode())) {
+            return observation.getCode().getCodingFirstRep().getCode();
+        }
+        return observation.getIdElement().getIdPart();
+    }
+
+    /** The observation's value as display text (string, coded, or quantity). */
+    static String observationValueText(Observation observation) {
+        if (observation.hasValueStringType()) {
+            return observation.getValueStringType().getValue();
+        }
+        if (observation.hasValueCodeableConcept()) {
+            CodeableConcept value = observation.getValueCodeableConcept();
+            if (!GenericValidator.isBlankOrNull(value.getText())) {
+                return value.getText();
+            }
+            if (value.hasCoding()) {
+                return value.getCodingFirstRep().getDisplay();
+            }
+        }
+        if (observation.hasValueQuantity() && observation.getValueQuantity().getValue() != null) {
+            return observation.getValueQuantity().getValue().toPlainString();
+        }
+        return null;
     }
 
     private Task getLocalTaskBasedOnTask(Task remoteTask, String remoteStorePath) {
@@ -570,6 +857,8 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             remotePatientForTask = getForPatientFromServer(sourceFhirClient, remoteServiceRequests);
         }
         List<Condition> remoteDiagnoses = getReasonReferenceDiagnosesFromServer(sourceFhirClient,
+                remoteServiceRequests);
+        List<Observation> remoteObservations = getSupportingInfoObservationsFromServer(sourceFhirClient,
                 remoteServiceRequests);
         Practitioner remotePractitionerForTask = getPractitionerFromServer(sourceFhirClient, remoteTask);
         if (remotePractitionerForTask != null) {
@@ -680,6 +969,14 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             }
             objects.diagnoses.add(localDiagnosis);
         }
+
+        // Order-time context Observations (ServiceRequest.supportingInfo). Kept in
+        // memory for the
+        // program-order branch to synthesize the case's questionnaire response from;
+        // not re-persisted
+        // to the local store (the synthesized QuestionnaireResponse carries their
+        // content).
+        objects.observations = remoteObservations;
 
         // Patient
         // Patient forPatient = getForPatientFromBundle(bundle, remoteTask);
@@ -813,6 +1110,56 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
             }
         }
         return conditionIds;
+    }
+
+    /**
+     * Fetches the order-time context Observations (specimen site, clinical history,
+     * findings, ...) an order carries, following the
+     * {@code ServiceRequest.supportingInfo} links that the ordering side
+     * (labonfhir) stamps onto each program order (the FHIR-standard
+     * order-to-supporting-info link). Each referenced Observation is read from the
+     * source server by id; duplicates (the same observation referenced by several
+     * service requests) are fetched once. A failure reading any single Observation
+     * is skipped rather than failing the whole order import.
+     */
+    List<Observation> getSupportingInfoObservationsFromServer(IGenericClient fhirClient,
+            List<ServiceRequest> serviceRequests) {
+        List<Observation> observations = new ArrayList<>();
+        Set<String> fetchedIds = new HashSet<>();
+        for (String observationId : getSupportingInfoObservationIds(serviceRequests)) {
+            if (!fetchedIds.add(observationId)) {
+                continue;
+            }
+            try {
+                Observation observation = fhirClient.read().resource(Observation.class).withId(observationId).execute();
+                if (observation != null) {
+                    observations.add(observation);
+                }
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "getSupportingInfoObservationsFromServer",
+                        "could not fetch context Observation/" + observationId + ": " + e.getMessage());
+            }
+        }
+        return observations;
+    }
+
+    /**
+     * Collects the distinct-in-order Observation ids referenced by the given
+     * service requests' {@code supportingInfo}s, keeping only references that
+     * actually point at an Observation.
+     */
+    static List<String> getSupportingInfoObservationIds(List<ServiceRequest> serviceRequests) {
+        List<String> observationIds = new ArrayList<>();
+        for (ServiceRequest serviceRequest : serviceRequests) {
+            for (Reference supportingInfo : serviceRequest.getSupportingInfo()) {
+                String resourceType = supportingInfo.getReferenceElement().getResourceType();
+                String id = supportingInfo.getReferenceElement().getIdPart();
+                if (!GenericValidator.isBlankOrNull(id) && ResourceType.Observation.name().equals(resourceType)) {
+                    observationIds.add(id);
+                }
+            }
+        }
+        return observationIds;
     }
 
     private Optional<Condition> getConditionWithSameIdentifier(Condition condition, String remoteStorePath) {
@@ -1066,6 +1413,10 @@ public class FhirApiWorkFlowServiceImpl implements FhirApiWorkflowService {
         public List<Practitioner> requestors;
         public List<Specimen> specimens;
         public List<Condition> diagnoses;
+        // Order-time context observations (specimen site, clinical history, ...)
+        // carried on
+        // ServiceRequest.supportingInfo by the ordering side (labonfhir).
+        public List<Observation> observations;
         public Patient patient;
         public Location location;
     }

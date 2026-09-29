@@ -23,6 +23,12 @@ public class PathologySampleForm {
 
     private List<String> techniques;
 
+    /**
+     * Stain names selected by the pathologist when requesting a special stain from
+     * the read step.
+     */
+    private List<String> specialStains;
+
     private List<PathologyRequestForm> requests;
 
     private List<String> resolvedRequests;
@@ -93,6 +99,14 @@ public class PathologySampleForm {
 
     public void setTechniques(List<String> techniques) {
         this.techniques = techniques;
+    }
+
+    public List<String> getSpecialStains() {
+        return specialStains;
+    }
+
+    public void setSpecialStains(List<String> specialStains) {
+        this.specialStains = specialStains;
     }
 
     public List<PathologyRequestForm> getRequests() {

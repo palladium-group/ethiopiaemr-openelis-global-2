@@ -297,10 +297,9 @@ class HomePage {
     return new DashBoardPage();
   }
 
+  // Cytopathology cases live in the shared pathology reception queue.
   goToCytologyDashboard() {
-    this.openNavigationMenu();
-    cy.get(this.selectors.cytologyMenu).click();
-    return new DashBoardPage();
+    return this.goToPathologyDashboard();
   }
 
   // Admin related functions

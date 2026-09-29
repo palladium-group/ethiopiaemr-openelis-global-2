@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch,
+} from "react-router-dom";
 import { IntlProvider } from "react-intl";
 import { confirmAlert } from "react-confirm-alert";
 import Layout from "./components/layout/Layout";
@@ -37,8 +42,7 @@ import RoutineReports from "./components/reports/Routine";
 import StudyReports from "./components/reports/Study";
 import StudyValidation from "./components/validation/Index";
 import AnalyserResultIndex from "./components/analyserResults/Index";
-import PathologyDashboard from "./components/pathology/PathologyDashboard";
-import CytologyDashboard from "./components/cytology/CytologyDashBoard";
+import PathologyReceptionDashboard from "./components/pathology/PathologyReceptionDashboard";
 import NoteBookDashBoard from "./components/notebook/NoteBookDashBoard";
 import NoteBookEntryForm from "./components/notebook/NoteBookEntryForm";
 import CytologyCaseView from "./components/cytology/CytologyCaseView";
@@ -298,16 +302,21 @@ export default function App() {
                 <SecureRoute
                   path="/PathologyDashboard"
                   exact
-                  component={() => <PathologyDashboard />}
-                  role=""
-                  labUnitRole={{ Pathology: [Roles.RESULTS] }}
+                  component={() => <PathologyReceptionDashboard />}
+                  role={Roles.PATHOLOGY_RECEPTION}
+                  labUnitRole={{
+                    Pathology: [Roles.RESULTS],
+                    Cytology: [Roles.RESULTS],
+                  }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/PathologyCaseView/:pathologySampleId"
                   exact
                   component={() => <PathologyCaseView />}
-                  role=""
+                  role={Roles.PATHOLOGY_RECEPTION}
                   labUnitRole={{ Pathology: [Roles.RESULTS] }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/ImmunohistochemistryDashboard"
@@ -323,11 +332,11 @@ export default function App() {
                   role=""
                   labUnitRole={{ Immunohistochemistry: [Roles.RESULTS] }}
                 />
-                <SecureRoute
+                {/* Cytopathology shares the one pathology reception queue. */}
+                <Route
                   path="/CytologyDashboard"
                   exact
-                  component={() => <CytologyDashboard />}
-                  role=""
+                  component={() => <Redirect to="/PathologyDashboard" />}
                 />
                 <SecureRoute
                   path="/genericProgram"
@@ -387,8 +396,9 @@ export default function App() {
                   path="/CytologyCaseView/:cytologySampleId"
                   exact
                   component={() => <CytologyCaseView />}
-                  role=""
+                  role={Roles.PATHOLOGY_RECEPTION}
                   labUnitRole={{ Cytology: [Roles.RESULTS] }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/GenericSample/Order"

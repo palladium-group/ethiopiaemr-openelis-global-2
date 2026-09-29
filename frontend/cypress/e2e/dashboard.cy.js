@@ -147,7 +147,7 @@ describe.skip("Dashboard Tests", function () {
 
     it("User navigates back to Cytology Dashboard to confirm added order", function () {
       dashboard = homePage.goToCytologyDashboard();
-      cy.url().should("include", "CytologyDashboard");
+      cy.url().should("include", "PathologyDashboard");
     });
 
     it("Change The Status of Order and saves it", function () {

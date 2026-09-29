@@ -639,6 +639,20 @@ public class SampleDAOImpl extends BaseDAOImpl<Sample, String> implements Sample
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Sample> getSamplesByReferringId(String referringId) throws LIMSRuntimeException {
+        String sql = "from Sample s where s.referringId = :referringId";
+        try {
+            Query<Sample> query = entityManager.unwrap(Session.class).createQuery(sql, Sample.class);
+            query.setParameter("referringId", referringId);
+            return query.list();
+        } catch (HibernateException e) {
+            handleException(e, "getSamplesByReferringId");
+        }
+        return new ArrayList<>();
+    }
+
+    @Override
     public List<Sample> getAllMissingFhirUuid() {
         String sql = "from Sample s where s.fhirUuid is NULL";
         try {

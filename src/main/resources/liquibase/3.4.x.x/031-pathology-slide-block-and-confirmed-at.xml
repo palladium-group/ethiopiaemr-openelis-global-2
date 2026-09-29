@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Pathology Microtomy (Step 7): link slides to their parent block and stamp when a cut
+        slide is confirmed. Null pathology_block_id keeps legacy free-floating slides valid.
+    -->
+    <changeSet id="031-pathology-slide-block-and-confirmed-at" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="pathology_slide" columnName="pathology_block_id"/>
+            </not>
+        </preConditions>
+        <comment>Add pathology_slide.pathology_block_id and confirmed_at for Microtomy</comment>
+        <addColumn schemaName="clinlims" tableName="pathology_slide">
+            <column name="pathology_block_id" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="confirmed_at" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="pathology_slide_pathology_block_id_fk"
+                                 baseTableName="pathology_slide" baseColumnNames="pathology_block_id"
+                                 referencedTableName="pathology_block" referencedColumnNames="id"
+                                 baseTableSchemaName="clinlims" referencedTableSchemaName="clinlims"/>
+        <rollback>
+            <dropForeignKeyConstraint baseTableName="pathology_slide"
+                                      baseTableSchemaName="clinlims"
+                                      constraintName="pathology_slide_pathology_block_id_fk"/>
+            <dropColumn schemaName="clinlims" tableName="pathology_slide" columnName="pathology_block_id"/>
+            <dropColumn schemaName="clinlims" tableName="pathology_slide" columnName="confirmed_at"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

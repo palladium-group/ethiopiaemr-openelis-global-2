@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <!--
+      Seeds the orderable "Cytology examination" test (LOINC 33716-2) in the Cytology section so
+      incoming FHIR cytology orders route to the CYTO program dashboard. Keep the LOINC equal to the
+      OpenMRS content-repo cytology order concept's LOINC.
+    -->
+
+    <changeSet id="028-cytology-examination-test" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(*) from clinlims.test where description = 'Cytology examination'</sqlCheck>
+            <sqlCheck expectedResult="1">select count(*) from clinlims.test_section where name = 'Cytology'</sqlCheck>
+        </preConditions>
+        <comment>Create the Cytology examination test (LOINC 33716-2) in the Cytology section</comment>
+        <insert schemaName="clinlims" tableName="localization">
+            <column name="id" valueSequenceNext="localization_seq" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="cytology test name (028)" />
+            <column name="english" value="Cytology examination" />
+            <column name="french" value="Cytology examination"/>
+        </insert>
+        <insert schemaName="clinlims" tableName="localization">
+            <column name="id" valueSequenceNext="localization_seq" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="cytology test reporting name (028)" />
+            <column name="english" value="Cytology examination" />
+            <column name="french" value="Cytology examination"/>
+        </insert>
+        <insert schemaName="clinlims" tableName="test">
+            <column name="id" valueNumeric="nextval('test_seq')"/>
+            <column name="description" value="Cytology examination"/>
+            <column name="lastupdated" valueDate="now()" />
+            <column name="is_active" value="Y" />
+            <column name="is_reportable" value="Y" />
+            <column name="orderable" valueBoolean="true" />
+            <column name="loinc" value="33716-2" />
+            <column name="test_section_id" valueComputed="(select id from test_section where name = 'Cytology' limit 1)" />
+            <column name="name" value="Cytology examination" />
+            <column name="name_localization_id" valueComputed="(select id from localization where description = 'cytology test name (028)' limit 1)" />
+            <column name="reporting_name_localization_id" valueComputed="(select id from localization where description = 'cytology test reporting name (028)' limit 1)" />
+            <column name="guid" value="b8d2f3a1-3371-4b37-9c4d-1e2f3a4b5c6d"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="028-cytology-specimen-type" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(*) from clinlims.type_of_sample where description = 'Cytology specimen'</sqlCheck>
+        </preConditions>
+        <comment>Create default Cytology specimen TypeOfSample for program-order import</comment>
+        <insert schemaName="clinlims" tableName="localization">
+            <column name="id" valueSequenceNext="localization_seq" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="sampleType name" />
+            <column name="english" value="Cytology specimen" />
+            <column name="french" value="Cytology specimen"/>
+        </insert>
+        <insert schemaName="clinlims" tableName="type_of_sample">
+            <column name="id" valueSequenceNext="type_of_sample_seq"/>
+            <column name="description" value="Cytology specimen"/>
+            <column name="lastupdated" valueDate="now()" />
+            <column name="domain" value="H" />
+            <column name="local_abbrev" value="CYT" />
+            <column name="is_active" value="t" />
+            <column name="display_key" value="sample.type.CYTsampleType"/>
+            <column name="name_localization_id" valueComputed="(select id from localization where english = 'Cytology specimen' and description = 'sampleType name' limit 1)"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="028-cytology-test-sample-type-mapping" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">select count(*) from clinlims.test where description = 'Cytology examination'</sqlCheck>
+            <sqlCheck expectedResult="1">select count(*) from clinlims.type_of_sample where description = 'Cytology specimen'</sqlCheck>
+            <sqlCheck expectedResult="0">select count(*) from clinlims.sampletype_test st join clinlims.test t on t.id = st.test_id where t.description = 'Cytology examination'</sqlCheck>
+        </preConditions>
+        <comment>Map Cytology examination to Cytology specimen sample type</comment>
+        <insert schemaName="clinlims" tableName="sampletype_test">
+            <column name="id" valueSequenceNext="sample_type_test_seq"/>
+            <column name="sample_type_id" valueComputed="(select id from clinlims.type_of_sample where description = 'Cytology specimen' limit 1)"/>
+            <column name="test_id" valueComputed="(select id from clinlims.test where description = 'Cytology examination' limit 1)"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="028-cytology-test-remark-result-type" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">select count(*) from clinlims.test where description = 'Cytology examination'</sqlCheck>
+            <sqlCheck expectedResult="0">select count(*) from clinlims.test_result tr join clinlims.test t on t.id = tr.test_id where t.description = 'Cytology examination'</sqlCheck>
+        </preConditions>
+        <comment>Give Cytology examination a Remark (free-text) result type so completion can persist a result value</comment>
+        <insert schemaName="clinlims" tableName="test_result">
+            <column name="id" valueSequenceNext="test_result_seq"/>
+            <column name="test_id" valueComputed="(select id from clinlims.test where description = 'Cytology examination' limit 1)"/>
+            <column name="tst_rslt_type" value="R"/>
+            <column name="sort_order" value="1"/>
+            <column name="is_active" value="t"/>
+            <column name="lastupdated" valueComputed="${now}"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

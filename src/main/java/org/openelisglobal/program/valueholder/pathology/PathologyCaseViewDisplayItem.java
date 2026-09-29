@@ -1,5 +1,7 @@
 package org.openelisglobal.program.valueholder.pathology;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.Date;
 import java.util.List;
 import org.hl7.fhir.r4.model.Questionnaire;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
@@ -16,7 +18,31 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     private String department;
 
-    private String requester;
+    /**
+     * When the specimen was physically collected / confirmed received (null until
+     * Collection).
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date collectionDate;
+
+    /**
+     * Approximate assignment time for Collection summary —
+     * PathologySample.lastupdated when a pathologist is assigned (no dedicated
+     * assignment timestamp yet).
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date assignedAt;
+
+    /** When tissue processing started (Grossing → PROCESSING). */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date processingStartedAt;
+
+    /**
+     * Estimated processing complete (started + fixed duration). Null if not
+     * started.
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private Date processingEstimatedComplete;
 
     private Questionnaire programQuestionnaire;
 
@@ -43,6 +69,12 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
     private String microscopyExam;
 
     private List<PathologyReport> reports;
+
+    /**
+     * Append-only pathologist read rounds, oldest first (round 1 = biopsy/H&E
+     * read).
+     */
+    private List<ReadRoundBean> reads;
 
     public String getAge() {
         return age;
@@ -172,12 +204,36 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
         this.department = department;
     }
 
-    public String getRequester() {
-        return requester;
+    public Date getCollectionDate() {
+        return collectionDate;
     }
 
-    public void setRequester(String requester) {
-        this.requester = requester;
+    public void setCollectionDate(Date collectionDate) {
+        this.collectionDate = collectionDate;
+    }
+
+    public Date getAssignedAt() {
+        return assignedAt;
+    }
+
+    public void setAssignedAt(Date assignedAt) {
+        this.assignedAt = assignedAt;
+    }
+
+    public Date getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(Date processingStartedAt) {
+        this.processingStartedAt = processingStartedAt;
+    }
+
+    public Date getProcessingEstimatedComplete() {
+        return processingEstimatedComplete;
+    }
+
+    public void setProcessingEstimatedComplete(Date processingEstimatedComplete) {
+        this.processingEstimatedComplete = processingEstimatedComplete;
     }
 
     public List<PathologyReport> getReports() {
@@ -186,6 +242,86 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
 
     public void setReports(List<PathologyReport> reports) {
         this.reports = reports;
+    }
+
+    public List<ReadRoundBean> getReads() {
+        return reads;
+    }
+
+    public void setReads(List<ReadRoundBean> reads) {
+        this.reads = reads;
+    }
+
+    /**
+     * One pathologist read round for the case-page timeline (see
+     * {@link PathologyRead}).
+     */
+    public static class ReadRoundBean {
+        private Integer roundNumber;
+        private String microscopyExam;
+        private String conclusionText;
+        private List<String> conclusions;
+        private Boolean finalized;
+        private String reviewedBy;
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+        private Date reviewedAt;
+
+        public Integer getRoundNumber() {
+            return roundNumber;
+        }
+
+        public void setRoundNumber(Integer roundNumber) {
+            this.roundNumber = roundNumber;
+        }
+
+        public String getMicroscopyExam() {
+            return microscopyExam;
+        }
+
+        public void setMicroscopyExam(String microscopyExam) {
+            this.microscopyExam = microscopyExam;
+        }
+
+        public String getConclusionText() {
+            return conclusionText;
+        }
+
+        public void setConclusionText(String conclusionText) {
+            this.conclusionText = conclusionText;
+        }
+
+        public List<String> getConclusions() {
+            return conclusions;
+        }
+
+        public void setConclusions(List<String> conclusions) {
+            this.conclusions = conclusions;
+        }
+
+        public Boolean getFinalized() {
+            return finalized;
+        }
+
+        public void setFinalized(Boolean finalized) {
+            this.finalized = finalized;
+        }
+
+        public String getReviewedBy() {
+            return reviewedBy;
+        }
+
+        public void setReviewedBy(String reviewedBy) {
+            this.reviewedBy = reviewedBy;
+        }
+
+        public Date getReviewedAt() {
+            return reviewedAt;
+        }
+
+        public void setReviewedAt(Date reviewedAt) {
+            this.reviewedAt = reviewedAt;
+        }
     }
 
     public static class RequestDisplayBean extends IdValuePair {

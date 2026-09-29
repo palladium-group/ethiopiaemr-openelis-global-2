@@ -36,6 +36,11 @@
         entered_date="2024-06-03 00:00:00.0"
         collection_date="2024-06-03 00:00:00.0"
         lastupdated="2023-11-01 12:00:00" />
+    <sample id="3" accession_number="12347"
+        received_date="2024-07-01 00:00:00.0"
+        entered_date="2024-07-01 00:00:00.0"
+        collection_date="2024-07-01 00:00:00.0"
+        lastupdated="2024-07-01 12:00:00" />
     <program_sample id="1" program_id="1" sample_id="1"
         last_updated="2024-06-10 12:00:00.0" />
 
@@ -49,11 +54,30 @@
         pathologist_id="1003" status="GROSSING"
         gross_exam="Abnormal tissues observed"
         microscopy_exam="Microscopic details of sample" />
+    <!-- Case ready for the pathologist read with one embedded block and one
+        confirmed+stained H&E slide; used by the special-stain re-loop tests. -->
+    <pathology_sample id="3"
+        last_updated="2024-07-10 12:00:00.0" program_id="1" sample_id="3"
+        technician_id="1001" pathologist_id="1002" status="READY_PATHOLOGIST"
+        gross_exam="Gross description round 1" microscopy_exam="" />
 
     <pathology_block id="101" pathology_sample_id="1"
-        block_number="11" location="Lab 1" />
+        block_number="11" location="Lab 1"
+        last_updated="2024-06-10 12:00:00.0" />
+    <pathology_block id="103" pathology_sample_id="3"
+        block_number="1" location="A1" last_updated="2024-07-01 12:00:00.0" />
+    <!-- First pathology_slide row defines the column set for the whole table
+        (FlatXmlDataSet, no column sensing), so it lists every column later slides
+        need. last_updated is populated because BaseObject uses it as the optimistic-lock
+        column on update/delete. -->
+    <pathology_slide id="203" pathology_sample_id="3"
+        pathology_block_id="103" slide_number="1" file_type="JPEG"
+        location="A1.1" confirmed_at="2024-07-01 10:00:00.0"
+        stained_at="2024-07-01 11:00:00.0" stain_type="H&amp;E"
+        slide_role="PATIENT" last_updated="2024-07-01 12:00:00.0" />
     <pathology_slide id="201" pathology_sample_id="1"
-        file_type="JPEG" location="Slide Storage 1" />
+        file_type="JPEG" location="Slide Storage 1"
+        last_updated="2024-06-10 12:00:00.0" />
     <pathology_request id="301" pathology_sample_id="1"
         status="PENDING" type="DICTIONARY" value="HISTOLOGY" />
 

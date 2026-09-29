@@ -1448,12 +1448,35 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         Bundle responseBundle = fhirPersistanceService.createUpdateFhirResourcesInFhirStore(fhirOperations);
     }
 
+    // OpenMRS Pathology Result Form member concept UUIDs
+    // (ethiopiaemr-openmrs-content).
+    private static final String OM_PATH_CONCLUSION_UUID = "c4000001-4444-4a2b-8c3d-0e1f2a3b4c01";
+    private static final String OM_PATH_CONCLUSION_TEXT_UUID = "c4000003-4444-4a2b-8c3d-0e1f2a3b4c03";
+    private static final String OM_PATH_MICROSCOPIC_UUID = "c4000004-4444-4a2b-8c3d-0e1f2a3b4c04";
+    private static final String OM_PATH_GROSS_UUID = "c4000007-4444-4a2b-8c3d-0e1f2a3b4c07";
+    // OpenMRS Cytology Result Form member concept UUIDs.
+    private static final String OM_CYTO_CONCLUSION_UUID = "c4000002-4444-4a2b-8c3d-0e1f2a3b4c02";
+    private static final String OM_CYTO_CONCLUSION_TEXT_UUID = "c4000005-4444-4a2b-8c3d-0e1f2a3b4c05";
+    private static final String OM_CYTO_MICROSCOPIC_UUID = "c4000006-4444-4a2b-8c3d-0e1f2a3b4c06";
+
     @Async
     @Override
     @Transactional(readOnly = true)
     public void transformPersistResultValidationFhirObjects(List<Result> deletableList,
             List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList,
             ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList) throws FhirLocalPersistingException {
+        transformPersistResultValidationFhirObjects(deletableList, analysisUpdateList, resultUpdateList, resultItemList,
+                sampleUpdateList, noteUpdateList, null, null, null, null);
+    }
+
+    @Async
+    @Override
+    @Transactional(readOnly = true)
+    public void transformPersistResultValidationFhirObjects(List<Result> deletableList,
+            List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList, List<AnalysisItem> resultItemList,
+            ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList, String microscopicFinding,
+            String conclusionText, List<String> conclusionDictionaryIds, String grossFinding)
+            throws FhirLocalPersistingException {
         LogEvent.logTrace(this.getClass().getSimpleName(), "transformPersistResultValidationFhirObjects",
                 "transformPersistResultValidationFhirObjects called");
 
@@ -1476,6 +1499,13 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             this.addToOperations(fhirOperations, tempIdGenerator, serviceRequest);
             if (statusService.matches(analysis.getStatusId(), AnalysisStatus.Finalized)) {
                 DiagnosticReport diagnosticReport = this.transformResultToDiagnosticReport(analysis.getId());
+                if (isCytologyAnalysis(analysis)) {
+                    attachCytologyResultFormObservations(diagnosticReport, analysis, microscopicFinding, conclusionText,
+                            conclusionDictionaryIds, fhirOperations, tempIdGenerator);
+                } else {
+                    attachPathologyResultFormObservations(diagnosticReport, analysis, microscopicFinding,
+                            conclusionText, conclusionDictionaryIds, grossFinding, fhirOperations, tempIdGenerator);
+                }
                 this.addToOperations(fhirOperations, tempIdGenerator, diagnosticReport);
             }
         }
@@ -1586,10 +1616,130 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         for (Result curResult : allResults) {
             diagnosticReport
                     .addResult(this.createReferenceFor(ResourceType.Observation, curResult.getFhirUuidAsString()));
+            // For text/remark results (e.g. a pathologist's conclusion) also surface the
+            // value as the
+            // report's narrative conclusion, so the receiving chart shows it as a report,
+            // not just a value.
+            if (TypeOfTestResultServiceImpl.ResultType.isTextOnlyVariant(curResult.getResultType())
+                    && curResult.getValue() != null && !curResult.getValue().trim().isEmpty()) {
+                diagnosticReport.setConclusion(curResult.getValue());
+            }
         }
         diagnosticReport.setCode(transformTestToCodeableConcept(test.getId()));
 
         return diagnosticReport;
+    }
+
+    private boolean isCytologyAnalysis(Analysis analysis) {
+        return analysis != null && analysis.getTestSection() != null
+                && "Cytology".equalsIgnoreCase(analysis.getTestSection().getTestSectionName());
+    }
+
+    /**
+     * Adds OpenMRS Cytology Result Form Observations onto the DiagnosticReport so
+     * labonfhir imports conclusion / conclusion text / microscopic finding by
+     * concept UUID.
+     */
+    private void attachCytologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
+            String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds,
+            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+        if (diagnosticReport == null || analysis == null) {
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(microscopicFinding) && GenericValidator.isBlankOrNull(conclusionText)
+                && (conclusionDictionaryIds == null || conclusionDictionaryIds.isEmpty())) {
+            return;
+        }
+
+        SampleItem sampleItem = analysis.getSampleItem();
+        Patient patient = sampleHumanService.getPatientForSample(sampleItem.getSample());
+        String codedConclusion = formatCodedPathologyConclusions(conclusionDictionaryIds);
+
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_CONCLUSION_UUID,
+                "Cytology conclusion", codedConclusion, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_CONCLUSION_TEXT_UUID,
+                "Cytology conclusion text", conclusionText, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_CYTO_MICROSCOPIC_UUID,
+                "Cytology microscopic finding", microscopicFinding, fhirOperations, tempIdGenerator);
+    }
+
+    /**
+     * Adds OpenMRS Pathology Result Form Observations onto the DiagnosticReport so
+     * labonfhir imports gross finding / conclusion / conclusion text / microscopic
+     * finding by concept UUID (SPA reads set members).
+     */
+    private void attachPathologyResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
+            String microscopicFinding, String conclusionText, List<String> conclusionDictionaryIds, String grossFinding,
+            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+        if (diagnosticReport == null || analysis == null) {
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(microscopicFinding) && GenericValidator.isBlankOrNull(conclusionText)
+                && GenericValidator.isBlankOrNull(grossFinding)
+                && (conclusionDictionaryIds == null || conclusionDictionaryIds.isEmpty())) {
+            return;
+        }
+
+        SampleItem sampleItem = analysis.getSampleItem();
+        Patient patient = sampleHumanService.getPatientForSample(sampleItem.getSample());
+        String codedConclusion = formatCodedPathologyConclusions(conclusionDictionaryIds);
+
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_GROSS_UUID,
+                "Pathology gross finding", grossFinding, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_CONCLUSION_UUID,
+                "Pathology conclusion", codedConclusion, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_CONCLUSION_TEXT_UUID,
+                "Pathology conclusion text", conclusionText, fhirOperations, tempIdGenerator);
+        addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, OM_PATH_MICROSCOPIC_UUID,
+                "Pathology microscopic finding", microscopicFinding, fhirOperations, tempIdGenerator);
+    }
+
+    private String formatCodedPathologyConclusions(List<String> conclusionDictionaryIds) {
+        if (conclusionDictionaryIds == null || conclusionDictionaryIds.isEmpty()) {
+            return null;
+        }
+        List<String> labels = new ArrayList<>();
+        for (String dictionaryId : conclusionDictionaryIds) {
+            if (GenericValidator.isBlankOrNull(dictionaryId)) {
+                continue;
+            }
+            try {
+                labels.add(dictionaryService.get(dictionaryId).getLocalizedName());
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "formatCodedPathologyConclusions",
+                        "could not resolve pathology conclusion dictionary id " + dictionaryId + ": " + e.getMessage());
+                labels.add(dictionaryId);
+            }
+        }
+        return labels.isEmpty() ? null : String.join("; ", labels);
+    }
+
+    private void addPathologyResultFormObservation(DiagnosticReport diagnosticReport, Analysis analysis,
+            SampleItem sampleItem, Patient patient, String conceptUuid, String display, String value,
+            FhirOperations fhirOperations, TempIdGenerator tempIdGenerator) {
+        if (GenericValidator.isBlankOrNull(value) || GenericValidator.isBlankOrNull(conceptUuid)) {
+            return;
+        }
+        String observationId = UUID
+                .nameUUIDFromBytes(("oe-path-result-form|" + analysis.getFhirUuidAsString() + "|" + conceptUuid)
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                .toString();
+
+        Observation observation = new Observation();
+        observation.setId(observationId);
+        observation.setStatus(ObservationStatus.FINAL);
+        observation.setCode(new CodeableConcept().addCoding(new Coding(null, conceptUuid, display)).setText(display));
+        observation.setValue(new StringType(value));
+        observation.addBasedOn(this.createReferenceFor(ResourceType.ServiceRequest, analysis.getFhirUuidAsString()));
+        observation.setSpecimen(this.createReferenceFor(ResourceType.Specimen, sampleItem.getFhirUuidAsString()));
+        observation.setSubject(this.createReferenceFor(ResourceType.Patient, patient.getFhirUuidAsString()));
+        if (analysis.getReleasedDate() != null) {
+            observation.setIssued(analysis.getReleasedDate());
+            observation.setEffective(new DateTimeType(analysis.getReleasedDate()));
+        }
+
+        this.addToOperations(fhirOperations, tempIdGenerator, observation);
+        diagnosticReport.addResult(this.createReferenceFor(ResourceType.Observation, observationId));
     }
 
     private DiagnosticReport genNewDiagnosticReport(Analysis analysis) {

@@ -453,6 +453,13 @@ public class DBOrderPersister implements IOrderPersister {
     }
 
     @Override
+    @Transactional
+    public Patient persistPatientData(MessagePatient orderPatient) {
+        persist(orderPatient);
+        return patient;
+    }
+
+    @Override
     public String getServiceUserId() {
         return SERVICE_USER_ID;
     }

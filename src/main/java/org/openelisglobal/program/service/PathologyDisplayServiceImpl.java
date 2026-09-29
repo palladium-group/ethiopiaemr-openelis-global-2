@@ -1,29 +1,48 @@
 package org.openelisglobal.program.service;
 
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.GenericValidator;
+import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Questionnaire;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r4.model.ServiceRequest;
+import org.openelisglobal.analysis.service.AnalysisService;
+import org.openelisglobal.analysis.valueholder.Analysis;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.SampleOrderService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.common.util.IdValuePair;
+import org.openelisglobal.dataexchange.fhir.FhirConfig;
 import org.openelisglobal.dataexchange.fhir.FhirUtil;
 import org.openelisglobal.dictionary.service.DictionaryService;
 import org.openelisglobal.organization.service.OrganizationService;
 import org.openelisglobal.organization.valueholder.Organization;
 import org.openelisglobal.patient.valueholder.Patient;
+import org.openelisglobal.person.valueholder.Person;
 import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem;
+import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem.ReadRoundBean;
 import org.openelisglobal.program.valueholder.pathology.PathologyCaseViewDisplayItem.RequestDisplayBean;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion.ConclusionType;
 import org.openelisglobal.program.valueholder.pathology.PathologyDisplayItem;
+import org.openelisglobal.program.valueholder.pathology.PathologyRead;
 import org.openelisglobal.program.valueholder.pathology.PathologyRequest.RequestType;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologyTechnique.TechniqueType;
+import org.openelisglobal.provider.service.ProviderService;
+import org.openelisglobal.provider.valueholder.Provider;
 import org.openelisglobal.sample.bean.SampleOrderItem;
 import org.openelisglobal.sample.service.SampleService;
+import org.openelisglobal.sample.valueholder.Sample;
+import org.openelisglobal.samplehuman.service.SampleHumanService;
+import org.openelisglobal.test.valueholder.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,13 +52,21 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
     @Autowired
     private SampleService sampleService;
     @Autowired
+    private SampleHumanService sampleHumanService;
+    @Autowired
     private PathologySampleService pathologySampleService;
+    @Autowired
+    private AnalysisService analysisService;
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
     private FhirUtil fhirUtil;
     @Autowired
+    private FhirConfig fhirConfig;
+    @Autowired
     private OrganizationService organizationService;
+    @Autowired
+    private ProviderService providerService;
 
     @Override
     @Transactional
@@ -47,7 +74,7 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         PathologySample pathologySample = pathologySampleService.get(pathologySampleId);
         PathologyDisplayItem displayItem = new PathologyDisplayItem();
         displayItem.setStatus(pathologySample.getStatus());
-        displayItem.setRequestDate(pathologySample.getSample().getEnteredDate());
+        displayItem.setRequestDate(formatRequestDate(pathologySample.getSample()));
         if (pathologySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(pathologySample.getPathologist().getDisplayName());
         }
@@ -59,7 +86,166 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setLastName(patient.getPerson().getLastName());
         displayItem.setLabNumber(pathologySample.getSample().getAccessionNumber());
         displayItem.setPathologySampleId(pathologySample.getId());
+        displayItem.setPatientPK(patient.getId());
+        displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
+
         return displayItem;
+    }
+
+    /**
+     * Prefer the persisted {@link PathologySample.PathologySubtype}; fall back to
+     * LOINC on the ordered test for rows created before the subtype column existed.
+     */
+    private String resolvePathologySubtypeDisplay(PathologySample pathologySample) {
+        if (pathologySample != null && pathologySample.getSubtype() != null) {
+            return pathologySample.getSubtype().getDisplay();
+        }
+        return resolvePathologySubtypeFromSample(pathologySample == null ? null : pathologySample.getSample());
+    }
+
+    /**
+     * Maps the ordered histopathology test onto a dashboard subtype label. LOINC
+     * 97005-7 is Frozen section; everything else (including Biopsy 11529-5 and
+     * legacy Morphology 22637-3) shows as Biopsy.
+     */
+    private String resolvePathologySubtypeFromSample(Sample sample) {
+        if (sample == null || sample.getId() == null) {
+            return "Biopsy";
+        }
+        try {
+            java.util.List<Analysis> analyses = analysisService.getAnalysesBySampleId(sample.getId());
+            if (analyses != null) {
+                for (Analysis analysis : analyses) {
+                    Test test = analysis.getTest();
+                    if (test == null) {
+                        continue;
+                    }
+                    String loinc = test.getLoinc();
+                    if ("97005-7".equals(loinc != null ? loinc.trim() : null)) {
+                        return "Frozen section";
+                    }
+                    String description = test.getDescription() != null ? test.getDescription().toLowerCase() : "";
+                    String name = test.getName() != null ? test.getName().toLowerCase() : "";
+                    if (description.contains("frozen") || name.contains("frozen")) {
+                        return "Frozen section";
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolvePathologySubtypeFromSample",
+                    "could not resolve pathology subtype for sample " + sample.getId() + ": " + e.getMessage());
+        }
+        return "Biopsy";
+    }
+
+    /**
+     * Requesting physician for Reception: sample_requester first, then
+     * SampleHuman.provider, then ServiceRequest.requester via FHIR (covers program
+     * imports that predate requester persistence).
+     */
+    private String resolveRequesterName(Sample sample) {
+        try {
+            SampleOrderService sampleOrderService = new SampleOrderService(sample);
+            SampleOrderItem sampleItem = sampleOrderService.getSampleOrderItem();
+            String requester = ((sampleItem.getProviderLastName() == null ? "" : sampleItem.getProviderLastName()) + " "
+                    + (sampleItem.getProviderFirstName() == null ? "" : sampleItem.getProviderFirstName())).trim();
+            if (StringUtils.isNotBlank(requester)) {
+                return requester;
+            }
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolveRequesterName",
+                    "SampleOrderService could not resolve requester for sample " + sample.getId());
+        }
+
+        try {
+            Provider provider = sampleHumanService.getProviderForSample(sample);
+            String fromProvider = formatProviderName(provider);
+            if (StringUtils.isNotBlank(fromProvider)) {
+                return fromProvider;
+            }
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolveRequesterName",
+                    "SampleHuman provider lookup failed for sample " + sample.getId());
+        }
+
+        return resolveRequesterNameFromFhir(sample);
+    }
+
+    private String formatProviderName(Provider provider) {
+        if (provider == null || provider.getPerson() == null) {
+            return "";
+        }
+        Person person = provider.getPerson();
+        return ((person.getLastName() == null ? "" : person.getLastName()) + " "
+                + (person.getFirstName() == null ? "" : person.getFirstName())).trim();
+    }
+
+    private String resolveRequesterNameFromFhir(Sample sample) {
+        if (sample == null || GenericValidator.isBlankOrNull(sample.getReferringId())) {
+            return "";
+        }
+        try {
+            ServiceRequest serviceRequest = readServiceRequest(sample.getReferringId());
+            if (serviceRequest == null || !serviceRequest.hasRequester() || GenericValidator
+                    .isBlankOrNull(serviceRequest.getRequester().getReferenceElement().getIdPart())) {
+                return "";
+            }
+            String practitionerId = serviceRequest.getRequester().getReferenceElement().getIdPart();
+            Provider provider = providerService.getProviderByFhirId(UUID.fromString(practitionerId));
+            String fromProvider = formatProviderName(provider);
+            if (StringUtils.isNotBlank(fromProvider)) {
+                return fromProvider;
+            }
+            Practitioner practitioner = readPractitioner(practitionerId);
+            if (practitioner != null && practitioner.hasName()) {
+                String family = practitioner.getNameFirstRep().getFamily();
+                String given = practitioner.getNameFirstRep().hasGiven()
+                        ? practitioner.getNameFirstRep().getGivenAsSingleString()
+                        : "";
+                return ((family == null ? "" : family) + " " + given).trim();
+            }
+        } catch (RuntimeException e) {
+            LogEvent.logWarn(this.getClass().getSimpleName(), "resolveRequesterNameFromFhir",
+                    "could not resolve FHIR requester for sample " + sample.getId() + ": " + e.getMessage());
+        }
+        return "";
+    }
+
+    private ServiceRequest readServiceRequest(String id) {
+        try {
+            return fhirUtil.getLocalFhirClient().read().resource(ServiceRequest.class).withId(id).execute();
+        } catch (RuntimeException localEx) {
+            if (fhirConfig.getRemoteStorePaths() != null) {
+                for (String remotePath : fhirConfig.getRemoteStorePaths()) {
+                    try {
+                        return fhirUtil.getFhirClient(remotePath).read().resource(ServiceRequest.class).withId(id)
+                                .execute();
+                    } catch (RuntimeException ignore) {
+                        // try next remote store
+                    }
+                }
+            }
+            throw localEx;
+        }
+    }
+
+    private Practitioner readPractitioner(String id) {
+        try {
+            return fhirUtil.getLocalFhirClient().read().resource(Practitioner.class).withId(id).execute();
+        } catch (RuntimeException localEx) {
+            if (fhirConfig.getRemoteStorePaths() != null) {
+                for (String remotePath : fhirConfig.getRemoteStorePaths()) {
+                    try {
+                        return fhirUtil.getFhirClient(remotePath).read().resource(Practitioner.class).withId(id)
+                                .execute();
+                    } catch (RuntimeException ignore) {
+                        // try next remote store
+                    }
+                }
+            }
+            return null;
+        }
     }
 
     @Override
@@ -68,7 +254,8 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         PathologySample pathologySample = pathologySampleService.get(pathologySampleId);
         PathologyCaseViewDisplayItem displayItem = new PathologyCaseViewDisplayItem();
         displayItem.setStatus(pathologySample.getStatus());
-        displayItem.setRequestDate(pathologySample.getSample().getEnteredDate());
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
+        displayItem.setRequestDate(formatRequestDate(pathologySample.getSample()));
         if (pathologySample.getPathologist() != null) {
             displayItem.setAssignedPathologist(pathologySample.getPathologist().getDisplayName());
             displayItem.setAssignedPathologistId(pathologySample.getPathologist().getId());
@@ -91,11 +278,28 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         displayItem.setLabNumber(pathologySample.getSample().getAccessionNumber());
         displayItem.setPathologySampleId(pathologySample.getId());
         displayItem.setPatientPK(patient.getId());
-        displayItem.setProgramQuestionnaire(fhirUtil.getLocalFhirClient().read().resource(Questionnaire.class)
-                .withId(pathologySample.getProgram().getQuestionnaireUUID().toString()).execute());
-        displayItem.setProgramQuestionnaireResponse(
-                fhirUtil.getLocalFhirClient().read().resource(QuestionnaireResponse.class)
-                        .withId(pathologySample.getQuestionnaireResponseUuid().toString()).execute());
+        // Guard both FHIR reads: a program without a questionnaire, or a sample whose
+        // questionnaire response is not (yet) in the local store, must not crash the
+        // case view.
+        if (pathologySample.getProgram() != null && pathologySample.getProgram().getQuestionnaireUUID() != null) {
+            try {
+                displayItem.setProgramQuestionnaire(fhirUtil.getLocalFhirClient().read().resource(Questionnaire.class)
+                        .withId(pathologySample.getProgram().getQuestionnaireUUID().toString()).execute());
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "convertToCaseDisplayItem",
+                        "could not load program Questionnaire for pathology sample " + pathologySampleId);
+            }
+        }
+        if (pathologySample.getQuestionnaireResponseUuid() != null) {
+            try {
+                displayItem.setProgramQuestionnaireResponse(
+                        fhirUtil.getLocalFhirClient().read().resource(QuestionnaireResponse.class)
+                                .withId(pathologySample.getQuestionnaireResponseUuid().toString()).execute());
+            } catch (RuntimeException e) {
+                LogEvent.logWarn(this.getClass().getSimpleName(), "convertToCaseDisplayItem",
+                        "could not load QuestionnaireResponse for pathology sample " + pathologySampleId);
+            }
+        }
 
         displayItem.setGrossExam(pathologySample.getGrossExam());
         displayItem.setMicroscopyExam(pathologySample.getMicroscopyExam());
@@ -113,14 +317,24 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
                 pathologySample.getConclusions().stream().filter(e -> e.getType() == ConclusionType.DICTIONARY)
                         .map(e -> new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName()))
                         .collect(Collectors.toList()));
-        displayItem.setTechniques(
-                pathologySample.getTechniques().stream().filter(e -> e.getType() == TechniqueType.DICTIONARY)
-                        .map(e -> new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName()))
-                        .collect(Collectors.toList()));
-        displayItem.setRequests(pathologySample.getRequests().stream()
-                .filter(e -> e.getType() == RequestType.DICTIONARY).map(e -> new RequestDisplayBean(e.getValue(),
-                        dictionaryService.get(e.getValue()).getLocalizedName(), e.getStatus()))
+        // Include TEXT techniques/requests too: special-stain names are stored as free
+        // text, not
+        // dictionary ids, and must still surface on the case page.
+        displayItem.setTechniques(pathologySample.getTechniques().stream()
+                .map(e -> e.getType() == TechniqueType.DICTIONARY
+                        ? new IdValuePair(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName())
+                        : new IdValuePair(e.getValue(), e.getValue()))
                 .collect(Collectors.toList()));
+        displayItem.setRequests(pathologySample.getRequests().stream()
+                .map(e -> e.getType() == RequestType.DICTIONARY
+                        ? new RequestDisplayBean(e.getValue(), dictionaryService.get(e.getValue()).getLocalizedName(),
+                                e.getStatus())
+                        : new RequestDisplayBean(e.getValue(), e.getValue(), e.getStatus()))
+                .collect(Collectors.toList()));
+        displayItem.setReads(pathologySample.getReads() == null ? new ArrayList<>()
+                : pathologySample.getReads().stream()
+                        .sorted(Comparator.comparingInt(r -> r.getRoundNumber() == null ? 0 : r.getRoundNumber()))
+                        .map(this::toReadRoundBean).collect(Collectors.toList()));
 
         SampleOrderService sampleOrderService = new SampleOrderService(pathologySample.getSample());
         SampleOrderItem sampleItem = sampleOrderService.getSampleOrderItem();
@@ -131,10 +345,51 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
                 displayItem.setDepartment(org.getOrganizationName());
             }
         }
-        displayItem.setRequester(sampleItem.getProviderLastName() + " " + sampleItem.getProviderFirstName());
+        displayItem.setRequester(resolveRequesterName(pathologySample.getSample()));
+        displayItem.setSubtype(resolvePathologySubtypeDisplay(pathologySample));
         displayItem.setAge(DateUtil.getCurrentAgeForDate(patient.getBirthDate(), DateUtil.getNowAsTimestamp()));
         displayItem.setSex(patient.getGender());
+        if (pathologySample.getSample().getCollectionDate() != null) {
+            displayItem.setCollectionDate(pathologySample.getSample().getCollectionDate());
+        }
+        if (pathologySample.getPathologist() != null && pathologySample.getLastupdated() != null) {
+            displayItem.setAssignedAt(pathologySample.getLastupdated());
+        }
+        if (pathologySample.getProcessingStartedAt() != null) {
+            displayItem.setProcessingStartedAt(pathologySample.getProcessingStartedAt());
+            // Fixed default estimate (4h); site-configurable later if needed.
+            long estimateMillis = pathologySample.getProcessingStartedAt().getTime() + (4L * 60L * 60L * 1000L);
+            displayItem.setProcessingEstimatedComplete(new java.util.Date(estimateMillis));
+        }
         return displayItem;
+    }
+
+    private ReadRoundBean toReadRoundBean(PathologyRead read) {
+        ReadRoundBean bean = new ReadRoundBean();
+        bean.setRoundNumber(read.getRoundNumber());
+        bean.setMicroscopyExam(read.getMicroscopyExam());
+        bean.setConclusionText(read.getConclusionText());
+        bean.setFinalized(read.getFinalized());
+        bean.setReviewedAt(read.getReviewedAt());
+        if (read.getReviewedBy() != null) {
+            bean.setReviewedBy(read.getReviewedBy().getDisplayName());
+        }
+        List<String> conclusionNames = new ArrayList<>();
+        if (!GenericValidator.isBlankOrNull(read.getConclusionDictionaryIds())) {
+            for (String id : read.getConclusionDictionaryIds().split(",")) {
+                String trimmed = id.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                try {
+                    conclusionNames.add(dictionaryService.get(trimmed).getLocalizedName());
+                } catch (RuntimeException ex) {
+                    conclusionNames.add(trimmed);
+                }
+            }
+        }
+        bean.setConclusions(conclusionNames);
+        return bean;
     }
 
     @Override
@@ -145,5 +400,20 @@ public class PathologyDisplayServiceImpl implements PathologyDisplayService {
         pathologySample.getSlides().size();
         pathologySample.getConclusions().size();
         return pathologySample;
+    }
+
+    /**
+     * Format entered date in the lab locale/timezone so Jackson never reinterprets
+     * a Date as UTC (which shifts calendar dates west of UTC by one day).
+     */
+    private String formatRequestDate(Sample sample) {
+        if (sample == null) {
+            return null;
+        }
+        String display = sample.getEnteredDateForDisplay();
+        if (StringUtils.isNotBlank(display)) {
+            return display;
+        }
+        return sample.getEnteredDate() != null ? DateUtil.formatDateAsText(sample.getEnteredDate()) : null;
     }
 }

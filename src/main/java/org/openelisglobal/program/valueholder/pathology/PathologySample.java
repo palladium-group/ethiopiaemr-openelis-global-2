@@ -11,6 +11,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -29,13 +30,39 @@ import org.openelisglobal.systemuser.valueholder.SystemUser;
 public class PathologySample extends ProgramSample {
 
     public enum PathologyStatus {
-        GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"), SLICING("Slicing for Slides"),
-        STAINING("Staining"), READY_PATHOLOGIST("Ready for Pathologist"),
-        ADDITIONAL_REQUEST("Additional Pathologist Request"), COMPLETED("Completed");
+        /**
+         * Order received from EMR; awaiting Reception pathologist assignment /
+         * collection.
+         */
+        RECEIVED("Received"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
+        /** After tissue processing; cassettes being embedded in wax (PDF Step 6). */
+        EMBEDDING("Embedding"), SLICING("Slicing for Slides"), STAINING("Staining"),
+        READY_PATHOLOGIST("Ready for Pathologist"), ADDITIONAL_REQUEST("Additional Pathologist Request"),
+        COMPLETED("Completed");
 
         private String display;
 
         PathologyStatus(String display) {
+            this.display = display;
+        }
+
+        public String getDisplay() {
+            return display;
+        }
+    }
+
+    /**
+     * Which histopathology product the case is. Biopsy runs the paraffin H&amp;E
+     * rail; Frozen section skips processing/embedding and uses the cryostat rail.
+     * Set from the ordered test LOINC on import (like
+     * {@code CytologySample.CytologySubtype}).
+     */
+    public enum PathologySubtype {
+        BIOPSY("Biopsy"), FROZEN("Frozen section");
+
+        private final String display;
+
+        PathologySubtype(String display) {
             this.display = display;
         }
 
@@ -56,7 +83,20 @@ public class PathologySample extends ProgramSample {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private PathologyStatus status = PathologyStatus.GROSSING;
+    private PathologyStatus status = PathologyStatus.RECEIVED;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "subtype")
+    private PathologySubtype subtype = PathologySubtype.BIOPSY;
+
+    /**
+     * When this Biopsy case was auto-created after a Frozen section sign-out
+     * (permanent processing of leftover tissue). Null for EMR-ordered cases and for
+     * Frozen cases.
+     */
+    @Column(name = "linked_from_pathology_sample_id")
+    private Integer linkedFromPathologySampleId;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pathology_sample_id")
@@ -83,11 +123,23 @@ public class PathologySample extends ProgramSample {
     @JoinColumn(name = "pathology_sample_id")
     private List<PathologyReport> reports;
 
+    /**
+     * Append-only pathologist read rounds (round 1 = biopsy/H&E read, later rounds
+     * = special-stain reads).
+     */
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "pathology_sample_id")
+    private List<PathologyRead> reads;
+
     @Column(name = "gross_exam")
     private String grossExam;
 
     @Column(name = "microscopy_exam")
     private String microscopyExam;
+
+    /** When tissue processing started (stamped on Grossing → PROCESSING). */
+    @Column(name = "processing_started_at")
+    private Timestamp processingStartedAt;
 
     public List<PathologyRequest> getRequests() {
         return requests;
@@ -243,6 +295,14 @@ public class PathologySample extends ProgramSample {
         this.microscopyExam = microscopyExam;
     }
 
+    public Timestamp getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(Timestamp processingStartedAt) {
+        this.processingStartedAt = processingStartedAt;
+    }
+
     public List<PathologyReport> getReports() {
         return reports;
     }
@@ -260,5 +320,42 @@ public class PathologySample extends ProgramSample {
 
     public void setReports(List<PathologyReport> reports) {
         this.reports = reports;
+    }
+
+    public List<PathologyRead> getReads() {
+        return reads;
+    }
+
+    public String getReads_Audit() {
+        if (reads == null) {
+            return null;
+        } else {
+            return StringUtils.join(reads.stream().map(e -> "Round: " + e.getRoundNumber() + ", Finalized: "
+                    + e.getFinalized() + ", Microscopy: " + e.getMicroscopyExam()).collect(Collectors.toList()), "; ");
+        }
+    }
+
+    public void setReads(List<PathologyRead> reads) {
+        this.reads = reads;
+    }
+
+    public PathologySubtype getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(PathologySubtype subtype) {
+        this.subtype = subtype == null ? PathologySubtype.BIOPSY : subtype;
+    }
+
+    public Integer getLinkedFromPathologySampleId() {
+        return linkedFromPathologySampleId;
+    }
+
+    public void setLinkedFromPathologySampleId(Integer linkedFromPathologySampleId) {
+        this.linkedFromPathologySampleId = linkedFromPathologySampleId;
+    }
+
+    public boolean isFrozen() {
+        return subtype == PathologySubtype.FROZEN;
     }
 }

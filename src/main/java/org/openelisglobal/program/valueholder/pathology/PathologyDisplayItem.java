@@ -1,13 +1,14 @@
 package org.openelisglobal.program.valueholder.pathology;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
 
 public class PathologyDisplayItem {
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date requestDate;
+    /**
+     * Lab-local calendar date string (via DateUtil); never a raw Date to avoid UTC
+     * off-by-one.
+     */
+    private String requestDate;
 
     private PathologyStatus status;
     private String lastName;
@@ -20,11 +21,20 @@ public class PathologyDisplayItem {
 
     private String patientPK;
 
-    public Date getRequestDate() {
+    /** Requesting physician from the order (read-only on Reception dashboard). */
+    private String requester;
+
+    /**
+     * Clinical sample type for the case (e.g. Biopsy, Morphology), from the ordered
+     * test.
+     */
+    private String subtype;
+
+    public String getRequestDate() {
         return requestDate;
     }
 
-    public void setRequestDate(Date requestDate) {
+    public void setRequestDate(String requestDate) {
         this.requestDate = requestDate;
     }
 
@@ -90,5 +100,21 @@ public class PathologyDisplayItem {
 
     public void setPatientPK(String patientPK) {
         this.patientPK = patientPK;
+    }
+
+    public String getRequester() {
+        return requester;
+    }
+
+    public void setRequester(String requester) {
+        this.requester = requester;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 }

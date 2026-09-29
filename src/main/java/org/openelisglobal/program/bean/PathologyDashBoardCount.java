@@ -2,6 +2,9 @@ package org.openelisglobal.program.bean;
 
 public class PathologyDashBoardCount {
 
+    /** Cases with no pathologist assigned (typically RECEIVED from EMR). */
+    Long unassigned;
+
     Long inProgress;
 
     Long awaitingReview;
@@ -9,6 +12,14 @@ public class PathologyDashBoardCount {
     Long additionalRequests;
 
     Long complete;
+
+    public Long getUnassigned() {
+        return unassigned;
+    }
+
+    public void setUnassigned(Long unassigned) {
+        this.unassigned = unassigned;
+    }
 
     public Long getInProgress() {
         return inProgress;

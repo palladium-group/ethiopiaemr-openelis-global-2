@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!--
+        Label slides with the stain applied (H&E, PAS, Ziehl-Neelsen, ...) and mark whether a slide
+        is patient tissue or a positive/negative stain control. Needed so a special-stain round's new
+        slides render with the right stain instead of the hardcoded "H&E".
+    -->
+    <changeSet id="037-pathology-slide-stain-type" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="pathology_slide" columnName="stain_type"/>
+            </not>
+        </preConditions>
+        <comment>Add pathology_slide.stain_type</comment>
+        <addColumn schemaName="clinlims" tableName="pathology_slide">
+            <column name="stain_type" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="pathology_slide" columnName="stain_type"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="037-pathology-slide-slide-role" author="openelis">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="clinlims" tableName="pathology_slide" columnName="slide_role"/>
+            </not>
+        </preConditions>
+        <comment>Add pathology_slide.slide_role (PATIENT / CONTROL_POS / CONTROL_NEG)</comment>
+        <addColumn schemaName="clinlims" tableName="pathology_slide">
+            <column name="slide_role" type="VARCHAR(50)" defaultValue="PATIENT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn schemaName="clinlims" tableName="pathology_slide" columnName="slide_role"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

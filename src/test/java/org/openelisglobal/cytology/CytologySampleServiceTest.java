@@ -243,7 +243,7 @@ public class CytologySampleServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void assignTechnician_shouldAssignTechnicianToCytologySample() {
         SystemUser systemUser = systemUserService.get("1");
-        cytologySampleService.assignTechnician(2, systemUser);
+        cytologySampleService.assignTechnician(2, systemUser, "1");
         CytologySample cytologySample = cytologySampleService.get(2);
         assertEquals("1", cytologySample.getTechnician().getId());
     }
@@ -251,7 +251,7 @@ public class CytologySampleServiceTest extends BaseWebContextSensitiveTest {
     @Test
     public void assignCycoPathologist_shouldAssignCycoPathologistToCytologySample() {
         SystemUser systemUser = systemUserService.get("1");
-        cytologySampleService.assignCytoPathologist(2, systemUser);
+        cytologySampleService.assignCytoPathologist(2, systemUser, "1");
         CytologySample cytologySample = cytologySampleService.get(2);
         assertEquals("1", cytologySample.getCytoPathologist().getId());
     }

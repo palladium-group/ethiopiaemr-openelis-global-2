@@ -26,6 +26,7 @@ import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.immunohistochemistry.ImmunohistochemistrySampleForm;
 import org.openelisglobal.program.dao.ImmunohistochemistrySampleDAO;
+import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample.ImmunohistochemistryStatus;
 import org.openelisglobal.result.action.util.ResultSet;
@@ -197,9 +198,9 @@ public class ImmunohistochemistrySampleServiceImpl
             } else {
                 List<ImmunohistochemistrySample> filteredImmunohistochemistrySamples = new ArrayList<>();
                 immunohistochemistrySamples.forEach(pathologySample -> {
-                    Patient patient = sampleService.getPatient(pathologySample.getSample());
-                    if (patient.getPerson().getFirstName().equals(searchTerm)
-                            || patient.getPerson().getLastName().equals(searchTerm)) {
+                    Sample caseSample = pathologySample.getSample();
+                    Patient patient = sampleService.getPatient(caseSample);
+                    if (ProgramSampleSearch.matchesPatientOrAccession(caseSample, patient, searchTerm)) {
                         filteredImmunohistochemistrySamples.add(pathologySample);
                     }
                 });
