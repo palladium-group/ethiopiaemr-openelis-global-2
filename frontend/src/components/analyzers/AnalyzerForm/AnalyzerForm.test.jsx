@@ -34,15 +34,23 @@ import {
   createAnalyzer,
   updateAnalyzer,
 } from "../../../services/analyzerService";
+import { ConfigurationContext } from "../../layout/Layout";
 import messages from "../../../languages/en.json";
 
 // ========== TEST SETUP ==========
 
-const renderWithIntl = (component) => {
+// Default to direct-connection mode so the connection/plugin/protocol fields
+// render for the existing tests. Mediator mode is exercised explicitly below.
+const renderWithIntl = (
+  component,
+  configurationProperties = { ANALYZER_INTEGRATION_VIA_MEDIATOR: "false" },
+) => {
   return render(
     <BrowserRouter>
       <IntlProvider locale="en" messages={messages}>
-        {component}
+        <ConfigurationContext.Provider value={{ configurationProperties }}>
+          {component}
+        </ConfigurationContext.Provider>
       </IntlProvider>
     </BrowserRouter>,
   );
@@ -180,5 +188,34 @@ describe("AnalyzerForm", () => {
 
     // Assert: Verify test connection modal opens
     await screen.findByTestId("test-connection-modal", {}, { timeout: 2000 });
+  });
+
+  test("testMediatorMode_HidesConnectionFields", async () => {
+    // Arrange
+    const onClose = jest.fn();
+
+    // Act: Render form with mediator integration enabled
+    renderWithIntl(<AnalyzerForm open={true} onClose={onClose} />, {
+      ANALYZER_INTEGRATION_VIA_MEDIATOR: "true",
+    });
+
+    await screen.findByTestId("analyzer-form", {}, { timeout: 2000 });
+
+    // Assert: name, type and status remain; connection/plugin/protocol fields hidden
+    expect(screen.getByTestId("analyzer-form-name-input")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("analyzer-form-type-dropdown"),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("analyzer-form-ip-input")).toBeNull();
+    expect(screen.queryByTestId("analyzer-form-port-input")).toBeNull();
+    expect(
+      screen.queryByTestId("analyzer-form-plugin-type-dropdown"),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId("analyzer-form-protocol-version-dropdown"),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId("analyzer-form-test-connection-button"),
+    ).toBeNull();
   });
 });

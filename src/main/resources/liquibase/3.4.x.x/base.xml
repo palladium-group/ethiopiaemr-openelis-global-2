@@ -47,4 +47,5 @@
   <include relativeToChangelogFile="true" file="038-pathology-frozen-section.xml"/>
   <include relativeToChangelogFile="true" file="039-widen-cytology-conclusion.xml"/>
   <include relativeToChangelogFile="true" file="040-pathology-reception-role.xml"/>
+  <include relativeToChangelogFile="true" file="041-analyzer-mediator-integration.xml"/>
 </databaseChangeLog>
