@@ -28,6 +28,7 @@ import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
 import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.note.service.NoteService;
 import org.openelisglobal.note.service.NoteServiceImpl.NoteType;
@@ -109,6 +110,9 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
     @Autowired
     private FhirTransformService fhirTransformService;
 
+    @Autowired
+    private ProgramPaymentGateService programPaymentGateService;
+
     PathologySampleServiceImpl() {
         super(PathologySample.class);
         this.auditTrailLog = true;
@@ -181,7 +185,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
     @Transactional
     @Override
-    public void confirmReceived(Integer pathologySampleId, String curUserId) {
+    public OpenMrsPaymentStatus confirmReceived(Integer pathologySampleId, String curUserId) {
         PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
         Sample sample = pathologySample.getSample();
         Timestamp now = DateUtil.getNowAsTimestamp();
@@ -203,11 +207,40 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             }
         }
 
-        if (pathologySample.getStatus() == PathologyStatus.RECEIVED) {
+        if (pathologySample.getStatus() != PathologyStatus.RECEIVED) {
+            return null;
+        }
+        OpenMrsPaymentStatus paymentStatus = paymentStatusForProceed(pathologySample);
+        pathologySample.setStatus(ProgramPaymentGateService.allowsProceed(paymentStatus) ? PathologyStatus.GROSSING
+                : PathologyStatus.AWAITING_PAYMENT);
+        pathologySample.setSysUserId(curUserId);
+        update(pathologySample);
+        return paymentStatus;
+    }
+
+    @Transactional
+    @Override
+    public OpenMrsPaymentStatus checkPayment(Integer pathologySampleId, String curUserId) {
+        PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
+        if (pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT) {
+            return null;
+        }
+        OpenMrsPaymentStatus paymentStatus = paymentStatusForProceed(pathologySample);
+        if (ProgramPaymentGateService.allowsProceed(paymentStatus)) {
             pathologySample.setStatus(PathologyStatus.GROSSING);
             pathologySample.setSysUserId(curUserId);
             update(pathologySample);
         }
+        return paymentStatus;
+    }
+
+    private OpenMrsPaymentStatus paymentStatusForProceed(PathologySample pathologySample) {
+        // Frozen section is intraoperative (patient on the table): never held for
+        // payment.
+        if (pathologySample.isFrozen()) {
+            return OpenMrsPaymentStatus.NOT_APPLICABLE;
+        }
+        return programPaymentGateService.checkPayment(pathologySample.getSample());
     }
 
     @Transactional
@@ -217,7 +250,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         PathologySample pathologySample = copyPathologySample(get(pathologySampleId));
 
         if (pathologySample.getStatus() != PathologyStatus.GROSSING
-                && pathologySample.getStatus() != PathologyStatus.RECEIVED) {
+                && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT) {
             // Already past Grossing (PROCESSING / SLICING or later) — leave as-is.
             return;
         }
@@ -269,6 +303,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         if (pathologySample.getStatus() != PathologyStatus.PROCESSING
                 && pathologySample.getStatus() != PathologyStatus.GROSSING
                 && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT
                 && pathologySample.getStatus() != PathologyStatus.CUTTING) {
             // Already at EMBEDDING or later — leave as-is.
             return;
@@ -291,6 +326,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 && pathologySample.getStatus() != PathologyStatus.PROCESSING
                 && pathologySample.getStatus() != PathologyStatus.GROSSING
                 && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT
                 && pathologySample.getStatus() != PathologyStatus.CUTTING) {
             // Already at SLICING or later — leave as-is.
             return;
@@ -382,6 +418,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 && pathologySample.getStatus() != PathologyStatus.PROCESSING
                 && pathologySample.getStatus() != PathologyStatus.GROSSING
                 && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT
                 && pathologySample.getStatus() != PathologyStatus.CUTTING) {
             // Already at STAINING or later — leave as-is.
             return;
@@ -430,6 +467,7 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
                 && pathologySample.getStatus() != PathologyStatus.PROCESSING
                 && pathologySample.getStatus() != PathologyStatus.GROSSING
                 && pathologySample.getStatus() != PathologyStatus.RECEIVED
+                && pathologySample.getStatus() != PathologyStatus.AWAITING_PAYMENT
                 && pathologySample.getStatus() != PathologyStatus.CUTTING) {
             // Already at READY_PATHOLOGIST or later — leave as-is.
             return;
@@ -756,6 +794,10 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         }
         if (!GenericValidator.isBlankOrNull(form.getAssignedTechnicianId())) {
             pathologySample.setTechnician(systemUserService.get(form.getAssignedTechnicianId()));
+        }
+        if (pathologySample.getStatus() == PathologyStatus.AWAITING_PAYMENT
+                && form.getStatus() != PathologyStatus.AWAITING_PAYMENT) {
+            throw new IllegalArgumentException("case is awaiting payment; check payment to proceed");
         }
         pathologySample.setStatus(form.getStatus());
         pathologySample.getBlocks().removeAll(pathologySample.getBlocks());

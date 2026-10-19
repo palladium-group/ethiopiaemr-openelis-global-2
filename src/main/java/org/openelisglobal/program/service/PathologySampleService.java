@@ -3,6 +3,7 @@ package org.openelisglobal.program.service;
 import java.sql.Timestamp;
 import java.util.List;
 import org.openelisglobal.common.service.BaseObjectService;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.program.controller.pathology.PathologySampleForm;
 import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
@@ -33,10 +34,23 @@ public interface PathologySampleService extends BaseObjectService<PathologySampl
 
     /**
      * Marks the specimen physically collected (Sample/SampleItem.collectionDate =
-     * now) and advances status from RECEIVED to GROSSING. Idempotent if already
+     * now) and advances status from RECEIVED to GROSSING, or to AWAITING_PAYMENT
+     * when the pathology payment gate holds the case. Idempotent if already
      * collected.
+     *
+     * @return the payment status evaluated, or null when the case was not in
+     *         RECEIVED
      */
-    void confirmReceived(Integer pathologySampleId, String curUserId);
+    OpenMrsPaymentStatus confirmReceived(Integer pathologySampleId, String curUserId);
+
+    /**
+     * Re-checks payment for a case in AWAITING_PAYMENT and advances it to GROSSING
+     * when paid or exempted.
+     *
+     * @return the payment status evaluated, or null when the case was not awaiting
+     *         payment
+     */
+    OpenMrsPaymentStatus checkPayment(Integer pathologySampleId, String curUserId);
 
     /**
      * Grossing Step 4: persist macroscopic description + cassette/blocks.

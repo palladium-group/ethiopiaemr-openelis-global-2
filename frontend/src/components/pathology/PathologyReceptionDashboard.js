@@ -27,7 +27,7 @@ import {
   postToOpenElisServerFullResponse,
   hasRole,
 } from "../utils/Utils";
-import { NotificationContext } from "../layout/Layout";
+import { ConfigurationContext, NotificationContext } from "../layout/Layout";
 import { AlertDialog } from "../common/CustomNotification";
 import { FormattedMessage, useIntl } from "react-intl";
 import "./PathologyDashboard.css";
@@ -73,6 +73,9 @@ function PathologyReceptionDashboard() {
 
   const { notificationVisible } = useContext(NotificationContext);
   const { userSessionDetails } = useContext(UserSessionDetailsContext);
+  const { configurationProperties } = useContext(ConfigurationContext);
+  const paymentGateEnabled =
+    configurationProperties?.PATHOLOGY_PAYMENT_GATE_ENABLED === "true";
   const specialistDefaultsApplied = useRef(false);
 
   const [entries, setEntries] = useState([]);
@@ -94,6 +97,7 @@ function PathologyReceptionDashboard() {
   const [counts, setCounts] = useState({
     unassigned: 0,
     received: 0,
+    awaitingPayment: 0,
     inProgress: 0,
     awaitingReview: 0,
     additionalRequests: 0,
@@ -159,6 +163,7 @@ function PathologyReceptionDashboard() {
     setCounts({
       unassigned: data.unassigned ?? 0,
       received: data.received ?? 0,
+      awaitingPayment: data.awaitingPayment ?? 0,
       inProgress: data.inProgress ?? 0,
       awaitingReview: data.awaitingReview ?? 0,
       additionalRequests: data.additionalRequests ?? 0,
@@ -338,6 +343,19 @@ function PathologyReceptionDashboard() {
       count: counts.received,
       className: "dashboard-tile received-tile",
     },
+    ...(paymentGateEnabled
+      ? [
+          {
+            key: "awaitingPayment",
+            bucket: "AWAITING_PAYMENT",
+            title: (
+              <FormattedMessage id="pathology.reception.awaitingPayment" />
+            ),
+            count: counts.awaitingPayment,
+            className: "dashboard-tile awaiting-payment-tile",
+          },
+        ]
+      : []),
     {
       key: "inProgress",
       bucket: "IN_PROGRESS",
@@ -410,7 +428,14 @@ function PathologyReceptionDashboard() {
           </Section>
         </Column>
       </Grid>
-      <div className="dashboard-container dashboard-container-6">
+      <div
+        className={
+          "dashboard-container " +
+          (paymentGateEnabled
+            ? "dashboard-container-7"
+            : "dashboard-container-6")
+        }
+      >
         {tileList.map((tile) => (
           <Tile
             key={tile.key}
@@ -509,6 +534,14 @@ function PathologyReceptionDashboard() {
                     id: "pathology.label.received",
                   })}
                 />
+                {paymentGateEnabled && (
+                  <SelectItem
+                    value="AWAITING_PAYMENT"
+                    text={intl.formatMessage({
+                      id: "pathology.reception.awaitingPayment",
+                    })}
+                  />
+                )}
                 <SelectItem
                   value="IN_PROGRESS"
                   text={intl.formatMessage({

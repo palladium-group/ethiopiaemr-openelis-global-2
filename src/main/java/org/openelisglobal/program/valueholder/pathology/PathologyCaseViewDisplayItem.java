@@ -19,6 +19,12 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
     private String department;
 
     /**
+     * OpenMRS payment status from the last payment check (collection or check
+     * payment); null when no check was made in this request.
+     */
+    private String paymentStatus;
+
+    /**
      * When the specimen was physically collected / confirmed received (null until
      * Collection).
      */
@@ -344,5 +350,13 @@ public class PathologyCaseViewDisplayItem extends PathologyDisplayItem {
         public void setStatus(RequestStatus status) {
             this.status = status;
         }
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 }

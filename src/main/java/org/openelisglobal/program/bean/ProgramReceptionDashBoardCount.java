@@ -11,6 +11,8 @@ public class ProgramReceptionDashBoardCount {
 
     private Long received = 0L;
 
+    private Long awaitingPayment = 0L;
+
     private Long inProgress = 0L;
 
     private Long awaitingReview = 0L;
@@ -33,6 +35,14 @@ public class ProgramReceptionDashBoardCount {
 
     public void setReceived(Long received) {
         this.received = received;
+    }
+
+    public Long getAwaitingPayment() {
+        return awaitingPayment;
+    }
+
+    public void setAwaitingPayment(Long awaitingPayment) {
+        this.awaitingPayment = awaitingPayment;
     }
 
     public Long getInProgress() {

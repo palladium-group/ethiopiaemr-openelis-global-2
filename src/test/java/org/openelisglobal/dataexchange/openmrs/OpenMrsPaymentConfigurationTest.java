@@ -41,6 +41,14 @@ public class OpenMrsPaymentConfigurationTest {
     }
 
     @Test
+    public void isPathologyGateEnabled_readsOwnPropertyIndependentOfLabGate() {
+        when(configurationProperties.isPropertyValueEqual(Property.PATHOLOGY_PAYMENT_GATE_ENABLED, "true"))
+                .thenReturn(true);
+        assertTrue(configuration.isPathologyGateEnabled());
+        assertFalse(configuration.isGateEnabled());
+    }
+
+    @Test
     public void getPaymentStatusExtensionUrl_usesConfiguredValue() {
         when(configurationProperties.getPropertyValue(Property.OPENMRS_PAYMENT_EXTENSION_URL))
                 .thenReturn("https://example.org/payment-status");

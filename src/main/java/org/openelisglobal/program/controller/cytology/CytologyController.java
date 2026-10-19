@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.openelisglobal.common.rest.BaseRestController;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.program.bean.CytologyDashBoardCount;
 import org.openelisglobal.program.bean.PathologyPathologistOption;
 import org.openelisglobal.program.service.cytology.CytologyDisplayService;
@@ -132,25 +133,50 @@ public class CytologyController extends BaseRestController {
 
     @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public CytologySampleForm createCytologyEntry(@PathVariable("cytologySampleId") Integer cytologySampleId,
+    public ResponseEntity<?> createCytologyEntry(@PathVariable("cytologySampleId") Integer cytologySampleId,
             @RequestBody CytologySampleForm form, HttpServletRequest request) {
         form.setSystemUserId(this.getSysUserId(request));
-        cytologySampleService.updateWithFormValues(cytologySampleId, form);
+        try {
+            cytologySampleService.updateWithFormValues(cytologySampleId, form);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
-        return form;
+        return ResponseEntity.ok(form);
     }
 
     @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/confirmCollection", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> confirmCollection(@PathVariable("cytologySampleId") Integer cytologySampleId,
             @RequestBody(required = false) CytologySampleForm form, HttpServletRequest request) {
+        OpenMrsPaymentStatus paymentStatus;
         try {
-            cytologySampleService.confirmCollection(cytologySampleId, form == null ? new CytologySampleForm() : form,
-                    getSysUserId(request));
+            paymentStatus = cytologySampleService.confirmCollection(cytologySampleId,
+                    form == null ? new CytologySampleForm() : form, getSysUserId(request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return ResponseEntity.ok(cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId));
+        return ResponseEntity.ok(caseViewWithPaymentStatus(cytologySampleId, paymentStatus));
+    }
+
+    /**
+     * Collected case held in AWAITING_PAYMENT: re-check OpenMRS payment and move to
+     * STAINING (or CELL_BLOCK for Fluid) when paid or exempted.
+     */
+    @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/checkPayment", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public CytologyCaseViewDisplayItem checkPayment(@PathVariable("cytologySampleId") Integer cytologySampleId,
+            HttpServletRequest request) {
+        OpenMrsPaymentStatus paymentStatus = cytologySampleService.checkPayment(cytologySampleId,
+                getSysUserId(request));
+        return caseViewWithPaymentStatus(cytologySampleId, paymentStatus);
+    }
+
+    private CytologyCaseViewDisplayItem caseViewWithPaymentStatus(Integer cytologySampleId,
+            OpenMrsPaymentStatus paymentStatus) {
+        CytologyCaseViewDisplayItem caseView = cytologyDisplayService.convertToCaseDisplayItem(cytologySampleId);
+        caseView.setPaymentStatus(paymentStatus == null ? null : paymentStatus.name());
+        return caseView;
     }
 
     @PostMapping(value = "/rest/cytology/caseView/{cytologySampleId}/rejectCollection", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -36,6 +36,7 @@ import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentConstants;
 import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentExtensionReader;
 import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentOrderScope;
 import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
+import org.openelisglobal.dataexchange.openmrs.PaymentVerificationResult;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrder;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrderDisplayItem;
 import org.openelisglobal.dataexchange.order.valueholder.ElectronicOrderType;
@@ -103,6 +104,21 @@ public class OpenMrsPaymentVerificationServiceImplTest {
         verify(fhirContext).newRestfulGenericClient(REMOTE_FHIR_PATH);
         verify(fhirUtil, never()).getFhirClient(eq(REMOTE_FHIR_PATH));
         verify(remoteClient, times(1)).registerInterceptor(any(BasicAuthInterceptor.class));
+    }
+
+    @Test
+    public void verifyOrderPayment_readsRemoteEvenWhenLabGateDisabled() throws Exception {
+        when(paymentConfiguration.isGateEnabled()).thenReturn(false);
+        ServiceRequest paidRequest = serviceRequestWithStatus("PAID");
+        when(readExecutable.execute()).thenReturn(paidRequest);
+        when(extensionReader.readPaymentStatus(paidRequest, EXTENSION_URL)).thenReturn(OpenMrsPaymentStatus.PAID);
+
+        assertEquals(OpenMrsPaymentStatus.NOT_APPLICABLE, verificationService.verifyAndSync(ORDER_UUID, true).getStatus());
+        PaymentVerificationResult result = verificationService.verifyOrderPayment(ORDER_UUID, true);
+
+        assertEquals(OpenMrsPaymentStatus.PAID, result.getStatus());
+        assertTrue(result.isCollectionAllowed());
+        verify(readExecutable, times(1)).execute();
     }
 
     @Test

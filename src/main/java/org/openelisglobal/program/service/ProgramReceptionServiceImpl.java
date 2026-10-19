@@ -97,6 +97,7 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         ProgramReceptionDashBoardCount count = new ProgramReceptionDashBoardCount();
         long unassigned = 0;
         long received = 0;
+        long awaitingPayment = 0;
         long inProgress = 0;
         long awaitingReview = 0;
         long additionalRequests = 0;
@@ -107,6 +108,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 unassigned += zeroWhenNull(pathologySampleService.getCountUnassigned());
                 received += zeroWhenNull(
                         pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.RECEIVED)));
+                awaitingPayment += zeroWhenNull(
+                        pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.AWAITING_PAYMENT)));
                 inProgress += zeroWhenNull(pathologySampleService.getCountWithStatus(HISTOPATHOLOGY_IN_PROGRESS));
                 awaitingReview += zeroWhenNull(
                         pathologySampleService.getCountWithStatus(Arrays.asList(PathologyStatus.READY_PATHOLOGIST)));
@@ -119,6 +122,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 unassigned += zeroWhenNull(cytologySampleService.getCountUnassigned());
                 received += zeroWhenNull(
                         cytologySampleService.getCountWithStatus(Arrays.asList(CytologyStatus.RECEIVED)));
+                awaitingPayment += zeroWhenNull(
+                        cytologySampleService.getCountWithStatus(Arrays.asList(CytologyStatus.AWAITING_PAYMENT)));
                 inProgress += zeroWhenNull(cytologySampleService.getCountWithStatus(CYTOPATHOLOGY_IN_PROGRESS));
                 awaitingReview += zeroWhenNull(cytologySampleService
                         .getCountWithStatus(Arrays.asList(CytologyStatus.READY_FOR_CYTOPATHOLOGIST)));
@@ -130,6 +135,9 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 unassigned += countAssignedPathology(pathologySampleService.searchUnassigned(null), currentUserId);
                 received += countAssignedPathology(
                         pathologySampleService.getWithStatus(Arrays.asList(PathologyStatus.RECEIVED)), currentUserId);
+                awaitingPayment += countAssignedPathology(
+                        pathologySampleService.getWithStatus(Arrays.asList(PathologyStatus.AWAITING_PAYMENT)),
+                        currentUserId);
                 inProgress += countAssignedPathology(pathologySampleService.getWithStatus(HISTOPATHOLOGY_IN_PROGRESS),
                         currentUserId);
                 awaitingReview += countAssignedPathology(
@@ -147,6 +155,9 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 unassigned += countAssignedCytology(cytologySampleService.searchUnassigned(null), currentUserId);
                 received += countAssignedCytology(
                         cytologySampleService.getWithStatus(Arrays.asList(CytologyStatus.RECEIVED)), currentUserId);
+                awaitingPayment += countAssignedCytology(
+                        cytologySampleService.getWithStatus(Arrays.asList(CytologyStatus.AWAITING_PAYMENT)),
+                        currentUserId);
                 inProgress += countAssignedCytology(cytologySampleService.getWithStatus(CYTOPATHOLOGY_IN_PROGRESS),
                         currentUserId);
                 awaitingReview += countAssignedCytology(
@@ -161,6 +172,7 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
 
         count.setUnassigned(unassigned);
         count.setReceived(received);
+        count.setAwaitingPayment(awaitingPayment);
         count.setInProgress(inProgress);
         count.setAwaitingReview(awaitingReview);
         count.setAdditionalRequests(additionalRequests);
@@ -267,6 +279,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         switch (bucket) {
         case RECEIVED:
             return Arrays.asList(PathologyStatus.RECEIVED);
+        case AWAITING_PAYMENT:
+            return Arrays.asList(PathologyStatus.AWAITING_PAYMENT);
         case IN_PROGRESS:
             return HISTOPATHOLOGY_IN_PROGRESS;
         case AWAITING_REVIEW:
@@ -286,6 +300,8 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         switch (bucket) {
         case RECEIVED:
             return Arrays.asList(CytologyStatus.RECEIVED);
+        case AWAITING_PAYMENT:
+            return Arrays.asList(CytologyStatus.AWAITING_PAYMENT);
         case IN_PROGRESS:
             return CYTOPATHOLOGY_IN_PROGRESS;
         case AWAITING_REVIEW:

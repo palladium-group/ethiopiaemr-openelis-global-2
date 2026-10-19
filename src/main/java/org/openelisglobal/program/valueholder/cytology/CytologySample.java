@@ -23,7 +23,12 @@ import org.openelisglobal.systemuser.valueholder.SystemUser;
 public class CytologySample extends ProgramSample {
 
     public enum CytologyStatus {
-        RECEIVED("Received"), CELL_BLOCK("Cell block"), STAINING("Staining"),
+        RECEIVED("Received"),
+        /**
+         * Collected, but the OpenMRS order is not yet paid or exempted; held before
+         * Staining / Cell block.
+         */
+        AWAITING_PAYMENT("Awaiting payment"), CELL_BLOCK("Cell block"), STAINING("Staining"),
         /**
          * Legacy statuses kept so pre-workflow rows still load; mapped onto the rail.
          */

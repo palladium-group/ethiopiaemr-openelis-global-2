@@ -72,6 +72,11 @@ public class OpenMrsPaymentVerificationServiceImpl implements OpenMrsPaymentVeri
         if (!paymentConfiguration.isGateEnabled()) {
             return PaymentVerificationResult.notApplicable();
         }
+        return verifyOrderPayment(orderUuid, bypassCache);
+    }
+
+    @Override
+    public PaymentVerificationResult verifyOrderPayment(String orderUuid, boolean bypassCache) {
         if (GenericValidator.isBlankOrNull(orderUuid)) {
             return buildResult(null, OpenMrsPaymentStatus.UNKNOWN, false, false);
         }

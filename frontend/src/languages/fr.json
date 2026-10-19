@@ -1849,6 +1849,7 @@
   "pathology.label.stage": "Stade",
   "pathology.label.serviceCategory": "Catégorie de service",
   "pathology.reception.awaitingReview": "En attente de révision",
+  "pathology.reception.awaitingPayment": "En attente de paiement",
   "pathology.serviceCategory.all": "Toutes les catégories de service",
   "pathology.serviceCategory.histopathology": "Histopathologie",
   "pathology.serviceCategory.cytopathology": "Cytopathologie",

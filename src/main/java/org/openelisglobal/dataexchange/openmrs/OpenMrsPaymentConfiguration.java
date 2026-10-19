@@ -28,6 +28,14 @@ public class OpenMrsPaymentConfiguration {
         return configurationProperties.isPropertyValueEqual(Property.OPENMRS_PAYMENT_GATE_ENABLED, "true");
     }
 
+    /**
+     * Pathology/cytology have their own switch so they can be gated without gating
+     * general lab sample entry.
+     */
+    public boolean isPathologyGateEnabled() {
+        return configurationProperties.isPropertyValueEqual(Property.PATHOLOGY_PAYMENT_GATE_ENABLED, "true");
+    }
+
     public String getPaymentStatusExtensionUrl() {
         String configuredUrl = configurationProperties.getPropertyValue(Property.OPENMRS_PAYMENT_EXTENSION_URL);
         if (StringUtils.isBlank(configuredUrl)) {

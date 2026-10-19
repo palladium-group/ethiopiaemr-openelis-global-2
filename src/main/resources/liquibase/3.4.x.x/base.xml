@@ -48,4 +48,5 @@
   <include relativeToChangelogFile="true" file="039-widen-cytology-conclusion.xml"/>
   <include relativeToChangelogFile="true" file="040-pathology-reception-role.xml"/>
   <include relativeToChangelogFile="true" file="041-analyzer-mediator-integration.xml"/>
+  <include relativeToChangelogFile="true" file="042-pathology-payment-gate.xml"/>
 </databaseChangeLog>
