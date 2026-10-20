@@ -34,7 +34,12 @@ public class PathologySample extends ProgramSample {
          * Order received from EMR; awaiting Reception pathologist assignment /
          * collection.
          */
-        RECEIVED("Received"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
+        RECEIVED("Received"),
+        /**
+         * Collected, but the OpenMRS order is not yet paid or exempted; held before
+         * Grossing.
+         */
+        AWAITING_PAYMENT("Awaiting payment"), GROSSING("Grossing"), CUTTING("Cutting"), PROCESSING("Processing"),
         /** After tissue processing; cassettes being embedded in wax (PDF Step 6). */
         EMBEDDING("Embedding"), SLICING("Slicing for Slides"), STAINING("Staining"),
         READY_PATHOLOGIST("Ready for Pathologist"), ADDITIONAL_REQUEST("Additional Pathologist Request"),

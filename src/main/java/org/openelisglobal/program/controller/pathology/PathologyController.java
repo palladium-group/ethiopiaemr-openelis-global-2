@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.openelisglobal.common.rest.BaseRestController;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.program.bean.PathologyDashBoardCount;
 import org.openelisglobal.program.bean.PathologyPathologistOption;
 import org.openelisglobal.program.service.PathologyDisplayService;
@@ -136,8 +137,29 @@ public class PathologyController extends BaseRestController {
     @ResponseBody
     public PathologyCaseViewDisplayItem confirmReceived(@PathVariable("pathologySampleId") Integer pathologySampleId,
             HttpServletRequest request) {
-        pathologySampleService.confirmReceived(pathologySampleId, getSysUserId(request));
-        return pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId);
+        OpenMrsPaymentStatus paymentStatus = pathologySampleService.confirmReceived(pathologySampleId,
+                getSysUserId(request));
+        return caseViewWithPaymentStatus(pathologySampleId, paymentStatus);
+    }
+
+    /**
+     * Collected case held in AWAITING_PAYMENT: re-check OpenMRS payment and move to
+     * GROSSING when paid or exempted.
+     */
+    @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}/checkPayment", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public PathologyCaseViewDisplayItem checkPayment(@PathVariable("pathologySampleId") Integer pathologySampleId,
+            HttpServletRequest request) {
+        OpenMrsPaymentStatus paymentStatus = pathologySampleService.checkPayment(pathologySampleId,
+                getSysUserId(request));
+        return caseViewWithPaymentStatus(pathologySampleId, paymentStatus);
+    }
+
+    private PathologyCaseViewDisplayItem caseViewWithPaymentStatus(Integer pathologySampleId,
+            OpenMrsPaymentStatus paymentStatus) {
+        PathologyCaseViewDisplayItem caseView = pathologyDisplayService.convertToCaseDisplayItem(pathologySampleId);
+        caseView.setPaymentStatus(paymentStatus == null ? null : paymentStatus.name());
+        return caseView;
     }
 
     /**
@@ -327,11 +349,15 @@ public class PathologyController extends BaseRestController {
 
     @PostMapping(value = "/rest/pathology/caseView/{pathologySampleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public PathologySampleForm getFilteredPathologyEntries(@PathVariable("pathologySampleId") Integer pathologySampleId,
+    public ResponseEntity<?> getFilteredPathologyEntries(@PathVariable("pathologySampleId") Integer pathologySampleId,
             @RequestBody PathologySampleForm form, HttpServletRequest request) {
         form.setSystemUserId(this.getSysUserId(request));
-        pathologySampleService.updateWithFormValues(pathologySampleId, form);
+        try {
+            pathologySampleService.updateWithFormValues(pathologySampleId, form);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
-        return form;
+        return ResponseEntity.ok(form);
     }
 }

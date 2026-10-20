@@ -130,6 +130,7 @@ function PathologyCaseWorkflowRail({
 }) {
   const intl = useIntl();
   const [confirming, setConfirming] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(false);
   const [sending, setSending] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
   const [markingBlockId, setMarkingBlockId] = useState(null);
@@ -165,6 +166,9 @@ function PathologyCaseWorkflowRail({
   // Gate on status, not collectionDate (autofill can set the date while still RECEIVED).
   const needsCollectionConfirm = status === "RECEIVED";
   const isCollectionComplete = !!status && status !== "RECEIVED";
+  /** Collected, held before Grossing until the OpenMRS order is paid or exempted. */
+  const isAwaitingPayment = status === "AWAITING_PAYMENT";
+  const paymentStatus = pathologySampleInfo?.paymentStatus;
   const isGrossingDone = PAST_GROSSING.has(status);
   const isGrossingActive = status === "GROSSING";
   const isProcessingDone = PAST_PROCESSING.has(status);
@@ -321,6 +325,40 @@ function PathologyCaseWorkflowRail({
       },
     );
   };
+
+  const checkPayment = () => {
+    if (checkingPayment || status !== "AWAITING_PAYMENT") {
+      return;
+    }
+    setCheckingPayment(true);
+    postToOpenElisServerFullResponse(
+      "/rest/pathology/caseView/" + pathologySampleId + "/checkPayment",
+      "{}",
+      (response) => {
+        if (response && response.ok) {
+          response
+            .json()
+            .then((data) => {
+              if (onCaseUpdated) {
+                onCaseUpdated(data);
+              }
+            })
+            .finally(() => setCheckingPayment(false));
+        } else {
+          setCheckingPayment(false);
+        }
+      },
+    );
+  };
+
+  // Re-check payment when a held case is opened (status alone does not say
+  // whether it was paid since).
+  useEffect(() => {
+    if (isAwaitingPayment && !paymentStatus) {
+      checkPayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAwaitingPayment, pathologySampleId]);
 
   const addCassette = () => {
     setCassetteCount((n) => n + 1);
@@ -664,6 +702,9 @@ function PathologyCaseWorkflowRail({
       if (needsCollectionConfirm || !status) {
         return "locked";
       }
+      if (isAwaitingPayment) {
+        return "active";
+      }
       if (isGrossingDone) {
         return "completed";
       }
@@ -851,19 +892,21 @@ function PathologyCaseWorkflowRail({
   const badgeLabelId =
     needsCollectionConfirm || !status
       ? "pathology.workflow.badgeCollection"
-      : !isGrossingDone
-        ? "pathology.workflow.badgeGrossing"
-        : !isProcessingDone
-          ? "pathology.workflow.badgeProcessing"
-          : !isEmbeddingDone
-            ? "pathology.workflow.badgeEmbedding"
-            : !isMicrotomyDone
-              ? "pathology.workflow.badgeMicrotomy"
-              : !isStainingDone
-                ? "pathology.workflow.badgeStaining"
-                : isReadDone
-                  ? "pathology.workflow.badgeCompleted"
-                  : "pathology.workflow.badgeReview";
+      : isAwaitingPayment
+        ? "pathology.workflow.badgeAwaitingPayment"
+        : !isGrossingDone
+          ? "pathology.workflow.badgeGrossing"
+          : !isProcessingDone
+            ? "pathology.workflow.badgeProcessing"
+            : !isEmbeddingDone
+              ? "pathology.workflow.badgeEmbedding"
+              : !isMicrotomyDone
+                ? "pathology.workflow.badgeMicrotomy"
+                : !isStainingDone
+                  ? "pathology.workflow.badgeStaining"
+                  : isReadDone
+                    ? "pathology.workflow.badgeCompleted"
+                    : "pathology.workflow.badgeReview";
 
   const renderCollectionCard = ({ showConfirm }) => (
     <div
@@ -899,6 +942,41 @@ function PathologyCaseWorkflowRail({
             <FormattedMessage id="pathology.workflow.confirmReceived" />
           </button>
         )}
+      </div>
+    </div>
+  );
+
+  const renderPaymentHoldCard = () => (
+    <div className="pathology-container-card">
+      <div className="pathology-container-card-copy">
+        <div className="pathology-container-card-title">
+          <FormattedMessage id="pathology.workflow.awaitingPaymentTitle" />
+        </div>
+        <div className="pathology-container-card-meta">
+          {paymentStatus ? (
+            <FormattedMessage
+              id="pathology.workflow.awaitingPaymentStatus"
+              values={{
+                status: intl.formatMessage({
+                  id: "eorder.payment.status." + paymentStatus,
+                  defaultMessage: paymentStatus,
+                }),
+              }}
+            />
+          ) : (
+            <FormattedMessage id="pathology.workflow.awaitingPaymentChecking" />
+          )}
+        </div>
+      </div>
+      <div className="pathology-container-card-actions">
+        <button
+          type="button"
+          className="pathology-btn pathology-btn--primary"
+          disabled={checkingPayment}
+          onClick={checkPayment}
+        >
+          <FormattedMessage id="pathology.workflow.checkPayment" />
+        </button>
       </div>
     </div>
   );
@@ -1928,9 +2006,17 @@ function PathologyCaseWorkflowRail({
                   <div className="pathology-rail-panel">
                     <h3 className="pathology-rail-step-title">{label}</h3>
                     <p className="pathology-rail-step-copy">
-                      <FormattedMessage id="pathology.workflow.grossingIntro" />
+                      <FormattedMessage
+                        id={
+                          isAwaitingPayment
+                            ? "pathology.workflow.awaitingPaymentIntro"
+                            : "pathology.workflow.grossingIntro"
+                        }
+                      />
                     </p>
-                    {renderGrossingCard({ editable: true })}
+                    {isAwaitingPayment
+                      ? renderPaymentHoldCard()
+                      : renderGrossingCard({ editable: true })}
                   </div>
                 )}
 

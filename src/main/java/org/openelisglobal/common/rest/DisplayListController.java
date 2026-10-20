@@ -416,6 +416,8 @@ public class DisplayListController extends BaseRestController {
                 .getInstance().getPropertyValue(Property.PER_ANALYSIS_REFERRING_SERVICE_REQUEST_FHIR));
         configs.put(Property.OPENMRS_PAYMENT_GATE_ENABLED.toString(),
                 ConfigurationProperties.getInstance().getPropertyValue(Property.OPENMRS_PAYMENT_GATE_ENABLED));
+        configs.put(Property.PATHOLOGY_PAYMENT_GATE_ENABLED.toString(),
+                ConfigurationProperties.getInstance().getPropertyValue(Property.PATHOLOGY_PAYMENT_GATE_ENABLED));
         configs.put("currentDateAsText", DateUtil.getCurrentDateAsText());
         configs.put("currentTimeAsText", DateUtil.getCurrentTimeAsText());
         configs.put(Property.BANNER_TEXT.toString(), localizationService

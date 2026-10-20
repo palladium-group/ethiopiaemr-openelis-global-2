@@ -3,6 +3,7 @@ package org.openelisglobal.program.service.cytology;
 import java.sql.Timestamp;
 import java.util.List;
 import org.openelisglobal.common.service.BaseObjectService;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.program.controller.cytology.CytologySampleForm;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
@@ -33,9 +34,22 @@ public interface CytologySampleService extends BaseObjectService<CytologySample,
     /**
      * Collection: stamp sample collectionDate, persist collection fields, create
      * default smear slide(s) when none exist, then advance RECEIVED → STAINING (or
-     * CELL_BLOCK for Fluid).
+     * CELL_BLOCK for Fluid), or to AWAITING_PAYMENT when the pathology payment gate
+     * holds the case.
+     *
+     * @return the payment status evaluated, or null when the case was already past
+     *         collection
      */
-    void confirmCollection(Integer cytologySampleId, CytologySampleForm form, String curUserId);
+    OpenMrsPaymentStatus confirmCollection(Integer cytologySampleId, CytologySampleForm form, String curUserId);
+
+    /**
+     * Re-checks payment for a case in AWAITING_PAYMENT and advances it to STAINING
+     * (or CELL_BLOCK for Fluid) when paid or exempted.
+     *
+     * @return the payment status evaluated, or null when the case was not awaiting
+     *         payment
+     */
+    OpenMrsPaymentStatus checkPayment(Integer cytologySampleId, String curUserId);
 
     /** Fluid only: reject at Collection (clotted/autolyzed). */
     void rejectCollection(Integer cytologySampleId, String rejectionReason, String curUserId);

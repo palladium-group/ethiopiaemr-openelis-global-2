@@ -254,6 +254,9 @@ public abstract class ConfigurationProperties {
                                                                            // FHIR orders requires paid/exempted status
         OPENMRS_PAYMENT_EXTENSION_URL("openmrsPaymentExtensionUrl", "text"), // FHIR ServiceRequest extension URL for
                                                                              // OpenMRS payment status
+        PATHOLOGY_PAYMENT_GATE_ENABLED("pathologyPaymentGateEnabled", "text"), // when true, OpenMRS pathology and
+                                                                               // cytology cases wait for paid/exempted
+                                                                               // status after collection
         ANALYZER_INTEGRATION_VIA_MEDIATOR("analyzerIntegrationViaMediator", "text"); // when true, analyzers receive lab
                                                                                      // results through a mediator API,
                                                                                      // so direct-connection fields

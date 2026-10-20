@@ -18,6 +18,12 @@ public class CytologyCaseViewDisplayItem extends CytologyDisplayItem {
 
     private String department;
 
+    /**
+     * OpenMRS payment status from the last payment check (collection or check
+     * payment); null when no check was made in this request.
+     */
+    private String paymentStatus;
+
     private String requester;
 
     private Questionnaire programQuestionnaire;
@@ -437,5 +443,13 @@ public class CytologyCaseViewDisplayItem extends CytologyDisplayItem {
                 this.results = results;
             }
         }
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 }

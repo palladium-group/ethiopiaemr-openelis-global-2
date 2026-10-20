@@ -26,11 +26,13 @@ import org.openelisglobal.common.util.ConfigurationProperties.Property;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dataexchange.fhir.exception.FhirLocalPersistingException;
 import org.openelisglobal.dataexchange.fhir.service.FhirTransformService;
+import org.openelisglobal.dataexchange.openmrs.OpenMrsPaymentStatus;
 import org.openelisglobal.internationalization.MessageUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.cytology.CytologySampleForm;
 import org.openelisglobal.program.dao.cytology.CytologySampleDAO;
 import org.openelisglobal.program.service.ImmunohistochemistrySampleService;
+import org.openelisglobal.program.service.ProgramPaymentGateService;
 import org.openelisglobal.program.service.ProgramService;
 import org.openelisglobal.program.util.ProgramSampleSearch;
 import org.openelisglobal.program.valueholder.Program;
@@ -65,6 +67,9 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Autowired
     protected CytologySampleDAO baseObjectDAO;
+
+    @Autowired
+    private ProgramPaymentGateService programPaymentGateService;
 
     @Autowired
     protected SystemUserService systemUserService;
@@ -199,6 +204,10 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
         if (!GenericValidator.isBlankOrNull(form.getAssignedTechnicianId())) {
             cytologySample.setTechnician(systemUserService.get(form.getAssignedTechnicianId()));
         }
+        if (cytologySample.getStatus() == CytologyStatus.AWAITING_PAYMENT
+                && form.getStatus() != CytologyStatus.AWAITING_PAYMENT) {
+            throw new IllegalArgumentException("case is awaiting payment; check payment to proceed");
+        }
         cytologySample.setStatus(form.getStatus());
 
         cytologySample.getSlides().removeAll(cytologySample.getSlides());
@@ -326,7 +335,7 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
 
     @Transactional
     @Override
-    public void confirmCollection(Integer cytologySampleId, CytologySampleForm form, String curUserId) {
+    public OpenMrsPaymentStatus confirmCollection(Integer cytologySampleId, CytologySampleForm form, String curUserId) {
         CytologySample cytologySample = get(cytologySampleId);
         if (cytologySample.getStatus() == CytologyStatus.REJECTED
                 || cytologySample.getStatus() == CytologyStatus.COMPLETED) {
@@ -335,7 +344,7 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
         if (cytologySample.getStatus() != CytologyStatus.RECEIVED
                 && cytologySample.getStatus() != CytologyStatus.PREPARING_SLIDES) {
             // Already past Collection — leave as-is (idempotent).
-            return;
+            return null;
         }
 
         applyCollectionFields(cytologySample, form);
@@ -349,13 +358,34 @@ public class CytologySampleServiceImpl extends AuditableBaseObjectServiceImpl<Cy
             cytologySample.getSlides().add(newSmearSlide(1, curUserId));
         }
 
-        if (cytologySample.getSubtype() == CytologySubtype.FLUID) {
-            cytologySample.setStatus(CytologyStatus.CELL_BLOCK);
-        } else {
-            cytologySample.setStatus(CytologyStatus.STAINING);
-        }
+        OpenMrsPaymentStatus paymentStatus = programPaymentGateService.checkPayment(cytologySample.getSample());
+        cytologySample.setStatus(
+                ProgramPaymentGateService.allowsProceed(paymentStatus) ? statusAfterCollection(cytologySample)
+                        : CytologyStatus.AWAITING_PAYMENT);
         cytologySample.setSysUserId(curUserId);
         update(cytologySample);
+        return paymentStatus;
+    }
+
+    @Transactional
+    @Override
+    public OpenMrsPaymentStatus checkPayment(Integer cytologySampleId, String curUserId) {
+        CytologySample cytologySample = get(cytologySampleId);
+        if (cytologySample.getStatus() != CytologyStatus.AWAITING_PAYMENT) {
+            return null;
+        }
+        OpenMrsPaymentStatus paymentStatus = programPaymentGateService.checkPayment(cytologySample.getSample());
+        if (ProgramPaymentGateService.allowsProceed(paymentStatus)) {
+            cytologySample.setStatus(statusAfterCollection(cytologySample));
+            cytologySample.setSysUserId(curUserId);
+            update(cytologySample);
+        }
+        return paymentStatus;
+    }
+
+    private CytologyStatus statusAfterCollection(CytologySample cytologySample) {
+        return cytologySample.getSubtype() == CytologySubtype.FLUID ? CytologyStatus.CELL_BLOCK
+                : CytologyStatus.STAINING;
     }
 
     @Transactional

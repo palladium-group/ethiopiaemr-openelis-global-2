@@ -14,7 +14,12 @@ public enum ReceptionBucket {
      * Order received / awaiting collection or first lab step ({@code RECEIVED} for
      * both histopathology and cytopathology).
      */
-    RECEIVED, IN_PROGRESS, AWAITING_REVIEW,
+    RECEIVED,
+    /**
+     * Collected but held until the OpenMRS order is paid or exempted
+     * ({@code AWAITING_PAYMENT} for both histopathology and cytopathology).
+     */
+    AWAITING_PAYMENT, IN_PROGRESS, AWAITING_REVIEW,
     /** Histopathology only; cytopathology has no equivalent stage. */
     ADDITIONAL_REQUEST, COMPLETED, ALL;
 }

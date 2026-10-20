@@ -5,6 +5,7 @@ import { postToOpenElisServerFullResponse } from "../utils/Utils";
 
 /** Statuses at or past Collection completion. */
 const PAST_COLLECTION = new Set([
+  "AWAITING_PAYMENT",
   "CELL_BLOCK",
   "STAINING",
   "SCREENING",
@@ -51,6 +52,7 @@ function CytologyCaseWorkflowRail({
 }) {
   const intl = useIntl();
   const [confirming, setConfirming] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [cellBlockStepBusy, setCellBlockStepBusy] = useState(null);
   const [stainingSlideId, setStainingSlideId] = useState(null);
@@ -79,6 +81,11 @@ function CytologyCaseWorkflowRail({
   const subtype = pathologySampleInfo?.subtype || "FNAC";
   const isFluid = subtype === "FLUID";
   const isRejected = status === "REJECTED";
+  /** Collected, held before Cell block / Staining until the OpenMRS order is paid or exempted. */
+  const isAwaitingPayment = status === "AWAITING_PAYMENT";
+  const paymentStatus = pathologySampleInfo?.paymentStatus;
+  /** The step a held case resumes at once payment clears. */
+  const paymentHoldStepId = isFluid ? "cellBlock" : "staining";
 
   const isCollectionDone = PAST_COLLECTION.has(status);
   const isCollectionActive = COLLECTION_ACTIVE.has(status) && !isRejected;
@@ -230,6 +237,27 @@ function CytologyCaseWorkflowRail({
     );
   };
 
+  const checkPayment = () => {
+    if (checkingPayment || !isAwaitingPayment) {
+      return;
+    }
+    setCheckingPayment(true);
+    postToOpenElisServerFullResponse(
+      "/rest/cytology/caseView/" + cytologySampleId + "/checkPayment",
+      "{}",
+      (response) => applyUpdatedCase(response, () => setCheckingPayment(false)),
+    );
+  };
+
+  // Re-check payment when a held case is opened (status alone does not say
+  // whether it was paid since).
+  useEffect(() => {
+    if (isAwaitingPayment && !paymentStatus) {
+      checkPayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAwaitingPayment, cytologySampleId]);
+
   const rejectCollection = () => {
     if (rejecting || !isCollectionActive || !isFluid) {
       return;
@@ -340,6 +368,9 @@ function CytologyCaseWorkflowRail({
       if (!isCollectionDone || isRejected) {
         return "locked";
       }
+      if (isAwaitingPayment) {
+        return "active";
+      }
       if (isCellBlockDone) {
         return "completed";
       }
@@ -354,6 +385,9 @@ function CytologyCaseWorkflowRail({
         : isCollectionDone && !isRejected;
       if (!stainingUnlocked) {
         return "locked";
+      }
+      if (isAwaitingPayment) {
+        return "active";
       }
       if (isStainingDone) {
         return "completed";
@@ -440,13 +474,15 @@ function CytologyCaseWorkflowRail({
     ? "cytology.workflow.badgeRejected"
     : !isCollectionDone
       ? "cytology.workflow.badgeCollection"
-      : isFluid && !isCellBlockDone
-        ? "cytology.workflow.badgeCellBlock"
-        : !isStainingDone
-          ? "cytology.workflow.badgeStaining"
-          : isReadDone
-            ? "cytology.workflow.badgeCompleted"
-            : "cytology.workflow.badgeReview";
+      : isAwaitingPayment
+        ? "cytology.workflow.badgeAwaitingPayment"
+        : isFluid && !isCellBlockDone
+          ? "cytology.workflow.badgeCellBlock"
+          : !isStainingDone
+            ? "cytology.workflow.badgeStaining"
+            : isReadDone
+              ? "cytology.workflow.badgeCompleted"
+              : "cytology.workflow.badgeReview";
 
   const renderField = (id, labelId, value, onChange, editable, multiline) => (
     <div key={id} className="pathology-grossing-field">
@@ -674,6 +710,41 @@ function CytologyCaseWorkflowRail({
       enabled: !!pathologySampleInfo?.cellBlockPreparedAt,
     },
   ];
+
+  const renderPaymentHoldCard = () => (
+    <div className="pathology-container-card">
+      <div className="pathology-container-card-copy">
+        <div className="pathology-container-card-title">
+          <FormattedMessage id="cytology.workflow.awaitingPaymentTitle" />
+        </div>
+        <div className="pathology-container-card-meta">
+          {paymentStatus ? (
+            <FormattedMessage
+              id="cytology.workflow.awaitingPaymentStatus"
+              values={{
+                status: intl.formatMessage({
+                  id: "eorder.payment.status." + paymentStatus,
+                  defaultMessage: paymentStatus,
+                }),
+              }}
+            />
+          ) : (
+            <FormattedMessage id="cytology.workflow.awaitingPaymentChecking" />
+          )}
+        </div>
+      </div>
+      <div className="pathology-container-card-actions">
+        <button
+          type="button"
+          className="pathology-btn pathology-btn--primary"
+          disabled={checkingPayment}
+          onClick={checkPayment}
+        >
+          <FormattedMessage id="cytology.workflow.checkPayment" />
+        </button>
+      </div>
+    </div>
+  );
 
   const renderCellBlockCard = ({ allowMark }) => (
     <div
@@ -1105,6 +1176,15 @@ function CytologyCaseWorkflowRail({
                     renderCollectionCard({ editable: true }),
                   )}
                 {state === "active" &&
+                  isAwaitingPayment &&
+                  step.id === paymentHoldStepId &&
+                  renderActivePanel(
+                    step.id,
+                    "cytology.workflow.awaitingPaymentIntro",
+                    renderPaymentHoldCard(),
+                  )}
+                {state === "active" &&
+                  !isAwaitingPayment &&
                   step.id === "cellBlock" &&
                   renderActivePanel(
                     step.id,
@@ -1112,6 +1192,7 @@ function CytologyCaseWorkflowRail({
                     renderCellBlockCard({ allowMark: true }),
                   )}
                 {state === "active" &&
+                  !isAwaitingPayment &&
                   step.id === "staining" &&
                   renderActivePanel(
                     step.id,

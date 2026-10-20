@@ -11,6 +11,12 @@ public interface OpenMrsPaymentVerificationService {
 
     PaymentVerificationResult verifyAndSync(String orderUuid, boolean bypassCache);
 
+    /**
+     * Same as {@link #verifyAndSync(String, boolean)} but ignores the general lab
+     * gate switch; callers with their own switch (e.g. pathology) check it first.
+     */
+    PaymentVerificationResult verifyOrderPayment(String orderUuid, boolean bypassCache);
+
     PaymentVerificationResult verifyAndSyncForElectronicOrder(ElectronicOrder electronicOrder);
 
     PaymentVerificationResult verifyAndSyncForElectronicOrder(ElectronicOrder electronicOrder, boolean bypassCache);
