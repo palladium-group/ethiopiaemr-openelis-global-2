@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <changeSet id="043-pathology-supply-order-enabled-config" author="pathology-supply-order">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(*) FROM clinlims.site_information WHERE name = 'pathologySupplyOrderEnabled'</sqlCheck>
+        </preConditions>
+        <comment>When true, pathology and cytology case pages can order medical supplies in OpenMRS</comment>
+        <insert schemaName="clinlims" tableName="site_information">
+            <column name="id" valueSequenceNext="site_information_seq" />
+            <column name="name" value="pathologySupplyOrderEnabled" />
+            <column name="lastupdated" valueComputed="${now}" />
+            <column name="description" value="Allow ordering medical supplies in OpenMRS from pathology and cytology cases" />
+            <column name="value" value="false" />
+            <column name="encrypted" value="false" />
+            <column name="domain_id" valueComputed="(SELECT id FROM site_information_domain WHERE name = 'sampleEntryConfig')" />
+            <column name="value_type" value="boolean" />
+            <column name="instruction_key" value="instructions.pathology.supply.order" />
+            <column name="group" value="0" />
+        </insert>
+    </changeSet>
+
+    <!--
+        One row per "Order supplies" submission on a pathology/cytology case. Each submission becomes
+        one OpenMRS order encounter (uuid generated here, so a retry never creates a second encounter);
+        OpenMRS then queues that encounter for Dagu exactly like an O3 order basket.
+    -->
+    <changeSet id="043-program-supply-request" author="pathology-supply-order">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="program_supply_request" schemaName="clinlims"/>
+            </not>
+        </preConditions>
+        <comment>create program_supply_request and program_supply_request_item tables</comment>
+        <createSequence incrementBy="1" schemaName="clinlims" sequenceName="program_supply_request_seq" startValue="1"/>
+        <createTable tableName="program_supply_request" schemaName="clinlims">
+            <column name="id" type="INTEGER" valueSequenceNext="program_supply_request_seq">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="sample_id" type="NUMERIC(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="encounter_uuid" type="VARCHAR(36)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="status" type="VARCHAR(20)"/>
+            <column name="failure_reason" type="TEXT"/>
+            <column name="dagu_status" type="VARCHAR(20)"/>
+            <column name="dagu_reason" type="TEXT"/>
+            <column name="requested_by" type="NUMERIC(10)"/>
+            <column name="requested_at" type="datetime"/>
+            <column name="last_updated" type="datetime"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="program_supply_request_sample_id_fk"
+                                 baseTableName="program_supply_request" baseColumnNames="sample_id"
+                                 referencedTableName="sample" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="program_supply_request_requested_by_fk"
+                                 baseTableName="program_supply_request" baseColumnNames="requested_by"
+                                 referencedTableName="system_user" referencedColumnNames="id"/>
+        <createIndex indexName="program_supply_request_sample_idx" tableName="program_supply_request" schemaName="clinlims">
+            <column name="sample_id"/>
+        </createIndex>
+
+        <createSequence incrementBy="1" schemaName="clinlims" sequenceName="program_supply_request_item_seq" startValue="1"/>
+        <createTable tableName="program_supply_request_item" schemaName="clinlims">
+            <column name="id" type="INTEGER" valueSequenceNext="program_supply_request_item_seq">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="supply_request_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="concept_uuid" type="VARCHAR(38)"/>
+            <column name="concept_name" type="VARCHAR(255)"/>
+            <column name="quantity" type="INTEGER"/>
+            <column name="quantity_units_uuid" type="VARCHAR(38)"/>
+            <column name="quantity_units_name" type="VARCHAR(255)"/>
+            <column name="urgency" type="VARCHAR(20)"/>
+            <column name="instructions" type="VARCHAR(500)"/>
+            <column name="last_updated" type="datetime"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="program_supply_request_item_request_fk"
+                                 baseTableName="program_supply_request_item" baseColumnNames="supply_request_id"
+                                 referencedTableName="program_supply_request" referencedColumnNames="id"/>
+        <rollback>
+            <dropTable tableName="program_supply_request_item" schemaName="clinlims"/>
+            <dropSequence sequenceName="program_supply_request_item_seq" schemaName="clinlims"/>
+            <dropTable tableName="program_supply_request" schemaName="clinlims"/>
+            <dropSequence sequenceName="program_supply_request_seq" schemaName="clinlims"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
