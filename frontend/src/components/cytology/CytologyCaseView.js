@@ -11,6 +11,7 @@ import QuestionnaireResponse from "../common/QuestionnaireResponse";
 import "../pathology/PathologyDashboard.css";
 import PageBreadCrumb from "../common/PageBreadCrumb";
 import CytologyCaseWorkflowRail from "./CytologyCaseWorkflowRail";
+import CaseSupplyOrders from "../pathology/CaseSupplyOrders";
 
 /**
  * Cytology case page: patient/order context + workflow rail only.
@@ -125,6 +126,21 @@ function CytologyCaseView() {
           </Section>
         </Column>
       </Grid>
+
+      {!loading ? (
+        <Grid fullWidth={true}>
+          <Column lg={16} md={8} sm={4}>
+            <CaseSupplyOrders
+              caseType="cytology"
+              caseId={cytologySampleId}
+              caseClosed={
+                pathologySampleInfo.status === "COMPLETED" ||
+                pathologySampleInfo.status === "REJECTED"
+              }
+            />
+          </Column>
+        </Grid>
+      ) : null}
 
       <Grid fullWidth={true} className="orderLegendBody">
         {notificationVisible === true ? <AlertDialog /> : null}
