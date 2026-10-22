@@ -877,3 +877,98 @@
     text-align: center;
   }
 }
+
+/* Medical supplies ordered from a case (CaseSupplyOrders) */
+.case-supply-orders {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+}
+
+.case-supply-orders-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.case-supply-orders-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.case-supply-orders-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-supply-orders-hint,
+.case-supply-orders-empty {
+  color: #525252;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.case-supply-orders-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.case-supply-orders-items li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-supply-orders-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-supply-orders-reason {
+  color: #da1e28;
+  font-size: 0.75rem;
+}
+
+.case-supply-orders-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.case-supply-orders-line {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 2fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.case-supply-orders-line-name {
+  font-weight: 600;
+  align-self: center;
+}
+
+@media (max-width: 672px) {
+  .case-supply-orders-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .case-supply-orders-line {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Leave room for the supply search results inside the scrolling modal body */
+.case-supply-orders-modal .cds--modal-content {
+  min-height: 22rem;
+}

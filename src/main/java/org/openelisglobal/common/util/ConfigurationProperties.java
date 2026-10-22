@@ -257,6 +257,9 @@ public abstract class ConfigurationProperties {
         PATHOLOGY_PAYMENT_GATE_ENABLED("pathologyPaymentGateEnabled", "text"), // when true, OpenMRS pathology and
                                                                                // cytology cases wait for paid/exempted
                                                                                // status after collection
+        PATHOLOGY_SUPPLY_ORDER_ENABLED("pathologySupplyOrderEnabled", "text"), // when true, pathology and cytology
+                                                                               // cases can order medical supplies in
+                                                                               // OpenMRS
         ANALYZER_INTEGRATION_VIA_MEDIATOR("analyzerIntegrationViaMediator", "text"); // when true, analyzers receive lab
                                                                                      // results through a mediator API,
                                                                                      // so direct-connection fields
