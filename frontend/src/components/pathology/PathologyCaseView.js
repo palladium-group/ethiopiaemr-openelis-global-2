@@ -11,6 +11,7 @@ import QuestionnaireResponse from "../common/QuestionnaireResponse";
 import "./PathologyDashboard.css";
 import PageBreadCrumb from "../common/PageBreadCrumb";
 import PathologyCaseWorkflowRail from "./PathologyCaseWorkflowRail";
+import CaseSupplyOrders from "./CaseSupplyOrders";
 
 /**
  * Pathology case page: patient/order context + workflow rail only.
@@ -125,6 +126,18 @@ function PathologyCaseView() {
           </Section>
         </Column>
       </Grid>
+
+      {!loading ? (
+        <Grid fullWidth={true}>
+          <Column lg={16} md={8} sm={4}>
+            <CaseSupplyOrders
+              caseType="pathology"
+              caseId={pathologySampleId}
+              caseClosed={pathologySampleInfo.status === "COMPLETED"}
+            />
+          </Column>
+        </Grid>
+      ) : null}
 
       <Grid fullWidth={true} className="orderLegendBody">
         {notificationVisible === true ? <AlertDialog /> : null}
