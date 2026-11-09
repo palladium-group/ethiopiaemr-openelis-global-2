@@ -24,4 +24,20 @@ public enum ServiceCategory {
     public String getDisplay() {
         return display;
     }
+
+    /**
+     * @return the category whose code equals the program code (PATH, CYTO), or null
+     *         for programs that are not a pathology service category (e.g. IHC)
+     */
+    public static ServiceCategory fromProgramCode(String programCode) {
+        if (programCode == null) {
+            return null;
+        }
+        for (ServiceCategory category : values()) {
+            if (category.code.equals(programCode.trim())) {
+                return category;
+            }
+        }
+        return null;
+    }
 }

@@ -37,6 +37,7 @@ import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.controller.pathology.PathologySampleForm;
 import org.openelisglobal.program.dao.PathologySampleDAO;
 import org.openelisglobal.program.util.ProgramSampleSearch;
+import org.openelisglobal.program.valueholder.ServiceCategory;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologyBlock;
 import org.openelisglobal.program.valueholder.pathology.PathologyConclusion;
@@ -103,6 +104,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
 
     @Autowired
     private ImmunohistochemistrySampleService immunohistochemistrySampleService;
+    @Autowired
+    private ProgramAccessionNumberService programAccessionNumberService;
 
     @Autowired
     private TestSectionService testSectionService;
@@ -1013,12 +1016,6 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
             throw new IllegalStateException("no patient on frozen sample " + frozenSample.getAccessionNumber());
         }
 
-        org.openelisglobal.common.provider.validation.IAccessionNumberGenerator accessionGenerator = org.openelisglobal.sample.util.AccessionNumberUtil
-                .getMainAccessionNumberGenerator();
-        if (accessionGenerator == null) {
-            throw new IllegalStateException("no accession number generator; cannot create permanent Biopsy");
-        }
-
         java.sql.Date enteredDate = DateUtil.getNowAsSqlDate();
         Timestamp receivedTimestamp = DateUtil.getNowAsTimestamp();
 
@@ -1030,7 +1027,8 @@ public class PathologySampleServiceImpl extends AuditableBaseObjectServiceImpl<P
         permanentSample.setStatusId(SpringContext.getBean(IStatusService.class).getStatusID(OrderStatus.Entered));
         permanentSample.setPriority(org.openelisglobal.sample.valueholder.OrderPriority.ROUTINE);
         permanentSample.setFhirUuid(java.util.UUID.randomUUID());
-        permanentSample.setAccessionNumber(accessionGenerator.getNextAvailableAccessionNumber("", true));
+        permanentSample
+                .setAccessionNumber(programAccessionNumberService.nextAccessionNumber(ServiceCategory.HISTOPATHOLOGY));
         sampleService.insertDataWithAccessionNumber(permanentSample);
 
         PathologySample permanentCase = new PathologySample();

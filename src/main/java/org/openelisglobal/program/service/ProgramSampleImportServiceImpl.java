@@ -8,7 +8,6 @@ import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.common.log.LogEvent;
-import org.openelisglobal.common.provider.validation.IAccessionNumberGenerator;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.StatusService.OrderStatus;
 import org.openelisglobal.common.services.StatusService.SampleStatus;
@@ -21,6 +20,7 @@ import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.service.cytology.CytologySampleService;
 import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.valueholder.ProgramSample;
+import org.openelisglobal.program.valueholder.ServiceCategory;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
@@ -29,7 +29,6 @@ import org.openelisglobal.reception.service.ReceptionApprovalSupport;
 import org.openelisglobal.requester.service.SampleRequesterService;
 import org.openelisglobal.requester.valueholder.SampleRequester;
 import org.openelisglobal.sample.service.SampleService;
-import org.openelisglobal.sample.util.AccessionNumberUtil;
 import org.openelisglobal.sample.valueholder.OrderPriority;
 import org.openelisglobal.sample.valueholder.Sample;
 import org.openelisglobal.samplehuman.service.SampleHumanService;
@@ -52,6 +51,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
 
     @Autowired
     private SampleService sampleService;
+    @Autowired
+    private ProgramAccessionNumberService programAccessionNumberService;
     @Autowired
     private SampleItemService sampleItemService;
     @Autowired
@@ -145,14 +146,10 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         }
         sample.setFhirUuid(UUID.randomUUID());
         // insertDataWithAccessionNumber does not itself generate the accession number,
-        // so reserve the
-        // next one from the configured generator (accession_number is NOT NULL).
-        IAccessionNumberGenerator accessionGenerator = AccessionNumberUtil.getMainAccessionNumberGenerator();
-        if (accessionGenerator == null) {
-            throw new IllegalStateException(
-                    "no accession number generator configured; cannot create " + program.getProgramName() + " case");
-        }
-        sample.setAccessionNumber(accessionGenerator.getNextAvailableAccessionNumber("", true));
+        // so reserve the next one (accession_number is NOT NULL); histopathology and
+        // cytopathology may draw from their own sequence.
+        sample.setAccessionNumber(
+                programAccessionNumberService.nextAccessionNumber(ServiceCategory.fromProgramCode(program.getCode())));
         sampleService.insertDataWithAccessionNumber(sample);
 
         // Program sample (e.g. PathologySample), linked to the already-imported

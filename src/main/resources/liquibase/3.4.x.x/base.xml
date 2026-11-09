@@ -50,4 +50,5 @@
   <include relativeToChangelogFile="true" file="041-analyzer-mediator-integration.xml"/>
   <include relativeToChangelogFile="true" file="042-pathology-payment-gate.xml"/>
   <include relativeToChangelogFile="true" file="043-pathology-supply-order.xml"/>
+  <include relativeToChangelogFile="true" file="044-pathology-accession-by-service-category.xml"/>
 </databaseChangeLog>
