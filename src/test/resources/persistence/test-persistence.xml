@@ -61,6 +61,7 @@
         <class>org.openelisglobal.program.valueholder.pathology.PathologyRead</class>
         <class>org.openelisglobal.program.valueholder.supply.ProgramSupplyRequest</class>
         <class>org.openelisglobal.program.valueholder.supply.ProgramSupplyRequestItem</class>
+        <class>org.openelisglobal.common.valueholder.AccessionNumberInfo</class>
 
         <!-- Sample Storage Management entities (001-sample-storage) - annotation-based -->
         <class>org.openelisglobal.storage.valueholder.StorageRoom</class>

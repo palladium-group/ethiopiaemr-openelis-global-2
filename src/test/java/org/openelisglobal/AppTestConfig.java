@@ -15,6 +15,9 @@ import org.jasypt.util.text.TextEncryptor;
 import org.mockito.Mockito;
 import org.openelisglobal.audittrail.dao.AuditTrailService;
 import org.openelisglobal.barcode.controller.PrintBarcodeController;
+import org.openelisglobal.common.provider.validation.AccessionNumberValidatorFactory;
+import org.openelisglobal.common.service.AccessionService;
+import org.openelisglobal.common.service.AccessionServiceImpl;
 import org.openelisglobal.common.services.DisplayListService;
 import org.openelisglobal.common.services.IStatusService;
 import org.openelisglobal.common.services.PluginAnalyzerService;
@@ -117,6 +120,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TestNotificationServiceImpl.class) })
 @EnableWebMvc
 public class AppTestConfig implements WebMvcConfigurer {
+
+    // Real accession number generation (not scanned by the packages above)
+    @Bean
+    @Profile("test")
+    public AccessionNumberValidatorFactory accessionNumberValidatorFactory() {
+        return new AccessionNumberValidatorFactory();
+    }
+
+    @Bean
+    @Profile("test")
+    public AccessionService accessionService() {
+        return new AccessionServiceImpl();
+    }
 
     @Bean
     @Profile("test")

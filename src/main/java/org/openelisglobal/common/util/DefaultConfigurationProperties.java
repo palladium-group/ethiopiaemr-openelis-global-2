@@ -335,6 +335,7 @@ public class DefaultConfigurationProperties extends ConfigurationProperties {
         properties.setPropertyValue(Property.OPENMRS_PAYMENT_GATE_ENABLED, "false");
         properties.setPropertyValue(Property.PATHOLOGY_PAYMENT_GATE_ENABLED, "false");
         properties.setPropertyValue(Property.PATHOLOGY_SUPPLY_ORDER_ENABLED, "false");
+        properties.setPropertyValue(Property.PATHOLOGY_ACCESSION_BY_SERVICE_CATEGORY, "true");
         properties.setPropertyValue(Property.OPENMRS_PAYMENT_EXTENSION_URL,
                 "https://palladiumethiopia.com/fhir/ext/payment-status");
         properties.setPropertyValue(Property.GPS_ACCURACY_METERS, "100");

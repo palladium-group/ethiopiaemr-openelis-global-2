@@ -260,6 +260,11 @@ public abstract class ConfigurationProperties {
         PATHOLOGY_SUPPLY_ORDER_ENABLED("pathologySupplyOrderEnabled", "text"), // when true, pathology and cytology
                                                                                // cases can order medical supplies in
                                                                                // OpenMRS
+        PATHOLOGY_ACCESSION_BY_SERVICE_CATEGORY("pathologyAccessionByCategory", "text"), // when true,
+                                                                                         // histopathology and
+                                                                                         // cytopathology cases
+                                                                                         // get their own
+                                                                                         // accession sequences
         ANALYZER_INTEGRATION_VIA_MEDIATOR("analyzerIntegrationViaMediator", "text"); // when true, analyzers receive lab
                                                                                      // results through a mediator API,
                                                                                      // so direct-connection fields
