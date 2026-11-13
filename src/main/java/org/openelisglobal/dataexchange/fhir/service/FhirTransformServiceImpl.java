@@ -1733,9 +1733,10 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         observation.addBasedOn(this.createReferenceFor(ResourceType.ServiceRequest, analysis.getFhirUuidAsString()));
         observation.setSpecimen(this.createReferenceFor(ResourceType.Specimen, sampleItem.getFhirUuidAsString()));
         observation.setSubject(this.createReferenceFor(ResourceType.Patient, patient.getFhirUuidAsString()));
-        if (analysis.getReleasedDate() != null) {
-            observation.setIssued(analysis.getReleasedDate());
-            observation.setEffective(new DateTimeType(analysis.getReleasedDate()));
+        Date releasedDateTime = getReleasedDateTime(analysis);
+        if (releasedDateTime != null) {
+            observation.setIssued(releasedDateTime);
+            observation.setEffective(new DateTimeType(releasedDateTime));
         }
 
         this.addToOperations(fhirOperations, tempIdGenerator, observation);
@@ -1754,6 +1755,26 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             diagnosticReport.addIdentifier(facilityId);
         }
         return diagnosticReport;
+    }
+
+    /**
+     * ANALYSIS.RELEASED_DATE is mapped as java.sql.Date, so it is persisted (and
+     * read back) at midnight. The analysis lastupdated stamp is written by the same
+     * validation save that sets the released date, so when it falls on the released
+     * day it carries the actual release time-of-day. Otherwise (e.g. the analysis
+     * was modified on a later day) fall back to the date-only value.
+     */
+    static Date getReleasedDateTime(Analysis analysis) {
+        Date releasedDate = analysis.getReleasedDate();
+        if (releasedDate == null) {
+            return null;
+        }
+        Timestamp lastupdated = analysis.getLastupdated();
+        if (lastupdated != null && new java.sql.Date(releasedDate.getTime()).toLocalDate()
+                .equals(lastupdated.toLocalDateTime().toLocalDate())) {
+            return new Date(lastupdated.getTime());
+        }
+        return new Date(releasedDate.getTime());
     }
 
     private Observation transformResultToObservation(String resultId) {
@@ -1841,11 +1862,12 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         observation.setSpecimen(this.createReferenceFor(ResourceType.Specimen, sampleItem.getFhirUuidAsString()));
         observation.setSubject(this.createReferenceFor(ResourceType.Patient, patient.getFhirUuidAsString()));
         // observation.setIssued(result.getOriginalLastupdated());
-        observation.setIssued(analysis.getReleasedDate()); // update to get Released Date instead of commpleted date
+        Date releasedDateTime = getReleasedDateTime(analysis);
+        observation.setIssued(releasedDateTime); // update to get Released Date instead of commpleted date
         // observation.setEffective(new
         // DateTimeType(result.getLastupdated()));
-        if (analysis.getReleasedDate() != null) {
-            observation.setEffective(new DateTimeType(analysis.getReleasedDate()));
+        if (releasedDateTime != null) {
+            observation.setEffective(new DateTimeType(releasedDateTime));
         } else {
             observation.setEffective(new DateTimeType(analysis.getStartedDate()));
         }
