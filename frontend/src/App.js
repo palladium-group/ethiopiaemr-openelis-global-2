@@ -46,6 +46,7 @@ import PathologyReceptionDashboard from "./components/pathology/PathologyRecepti
 import NoteBookDashBoard from "./components/notebook/NoteBookDashBoard";
 import NoteBookEntryForm from "./components/notebook/NoteBookEntryForm";
 import CytologyCaseView from "./components/cytology/CytologyCaseView";
+import HematopathologyCaseView from "./components/hematopathology/HematopathologyCaseView";
 import PathologyCaseView from "./components/pathology/PathologyCaseView";
 import ImmunohistochemistryDashboard from "./components/immunohistochemistry/ImmunohistochemistryDashboard";
 import ImmunohistochemistryCaseView from "./components/immunohistochemistry/ImmunohistochemistryCaseView";
@@ -307,6 +308,7 @@ export default function App() {
                   labUnitRole={{
                     Pathology: [Roles.RESULTS],
                     Cytology: [Roles.RESULTS],
+                    Hematopathology: [Roles.RESULTS],
                   }}
                   matchAny
                 />
@@ -391,6 +393,14 @@ export default function App() {
                   exact
                   component={() => <NotebookSampleOrder />}
                   role={Roles.RESULTS}
+                />
+                <SecureRoute
+                  path="/HematopathologyCaseView/:hematopathologySampleId"
+                  exact
+                  component={() => <HematopathologyCaseView />}
+                  role={Roles.PATHOLOGY_RECEPTION}
+                  labUnitRole={{ Hematopathology: [Roles.RESULTS] }}
+                  matchAny
                 />
                 <SecureRoute
                   path="/CytologyCaseView/:cytologySampleId"

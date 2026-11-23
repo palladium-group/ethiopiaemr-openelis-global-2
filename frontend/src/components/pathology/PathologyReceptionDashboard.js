@@ -35,6 +35,7 @@ import PageBreadCrumb from "../common/PageBreadCrumb";
 
 const HISTOPATHOLOGY = "PATH";
 const CYTOPATHOLOGY = "CYTO";
+const HEMATOPATHOLOGY = "HEME";
 
 /**
  * Per-service-category wiring. Histopathology and cytopathology keep their own case views,
@@ -59,6 +60,16 @@ const CATEGORY_CONFIG = {
     reviewStatusCode: "READY_FOR_CYTOPATHOLOGIST",
     specialistRole: "Cytopathologist",
   },
+  [HEMATOPATHOLOGY]: {
+    filterValue: "HEMATOPATHOLOGY",
+    caseViewPath: "/HematopathologyCaseView/",
+    specialistsUrl: "/rest/hematopathology/hematopathologists",
+    assignUrl: (caseId) =>
+      "/rest/hematopathology/assignHematopathologist?hematopathologySampleId=" +
+      caseId,
+    reviewStatusCode: "READY_FOR_HEMATOPATHOLOGIST",
+    specialistRole: "Hematopathologist",
+  },
 };
 
 /**
@@ -82,6 +93,7 @@ function PathologyReceptionDashboard() {
   const [specialists, setSpecialists] = useState({
     [HISTOPATHOLOGY]: [],
     [CYTOPATHOLOGY]: [],
+    [HEMATOPATHOLOGY]: [],
   });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
@@ -111,7 +123,8 @@ function PathologyReceptionDashboard() {
     specialistDefaultsApplied.current = true;
     const isSpecialist =
       hasRole(userSessionDetails, "Pathologist") ||
-      hasRole(userSessionDetails, "Cytopathologist");
+      hasRole(userSessionDetails, "Cytopathologist") ||
+      hasRole(userSessionDetails, "Hematopathologist");
     if (isSpecialist) {
       setFilters((prev) => ({
         ...prev,
@@ -509,6 +522,12 @@ function PathologyReceptionDashboard() {
                   value={CATEGORY_CONFIG[CYTOPATHOLOGY].filterValue}
                   text={intl.formatMessage({
                     id: "pathology.serviceCategory.cytopathology",
+                  })}
+                />
+                <SelectItem
+                  value={CATEGORY_CONFIG[HEMATOPATHOLOGY].filterValue}
+                  text={intl.formatMessage({
+                    id: "pathology.serviceCategory.hematopathology",
                   })}
                 />
               </Select>
