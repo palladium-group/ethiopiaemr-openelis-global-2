@@ -18,12 +18,17 @@ import org.openelisglobal.common.services.SampleOrderService;
 import org.openelisglobal.program.bean.ProgramReceptionDashBoardCount;
 import org.openelisglobal.program.service.cytology.CytologyDisplayService;
 import org.openelisglobal.program.service.cytology.CytologySampleService;
+import org.openelisglobal.program.service.hematopathology.HematopathologyDisplayService;
+import org.openelisglobal.program.service.hematopathology.HematopathologySampleService;
 import org.openelisglobal.program.valueholder.ProgramCaseDisplayItem;
 import org.openelisglobal.program.valueholder.ReceptionBucket;
 import org.openelisglobal.program.valueholder.ServiceCategory;
 import org.openelisglobal.program.valueholder.cytology.CytologyDisplayItem;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologyDisplayItem;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample.HematopathologyStatus;
 import org.openelisglobal.program.valueholder.pathology.PathologyDisplayItem;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
@@ -47,6 +52,9 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
     private static final List<CytologyStatus> CYTOPATHOLOGY_IN_PROGRESS = Arrays.asList(CytologyStatus.CELL_BLOCK,
             CytologyStatus.STAINING, CytologyStatus.PREPARING_SLIDES, CytologyStatus.SCREENING);
 
+    private static final List<HematopathologyStatus> HEMATOPATHOLOGY_IN_PROGRESS = Arrays.asList(
+            HematopathologyStatus.SMEAR_PREP, HematopathologyStatus.PROCESSING, HematopathologyStatus.ACQUISITION);
+
     private static final int COMPLETE_TILE_WINDOW_DAYS = 7;
 
     @Autowired
@@ -57,6 +65,10 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
     private CytologySampleService cytologySampleService;
     @Autowired
     private CytologyDisplayService cytologyDisplayService;
+    @Autowired
+    private HematopathologySampleService hematopathologySampleService;
+    @Autowired
+    private HematopathologyDisplayService hematopathologyDisplayService;
 
     @Override
     @Transactional
@@ -72,6 +84,9 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         }
         if (selected.contains(ServiceCategory.CYTOPATHOLOGY)) {
             rows.addAll(searchCytopathology(selectedBucket, searchTerm, mineOnly, currentUserId));
+        }
+        if (selected.contains(ServiceCategory.HEMATOPATHOLOGY)) {
+            rows.addAll(searchHematopathology(selectedBucket, searchTerm, mineOnly, currentUserId));
         }
 
         Comparator<ProgramCaseDisplayItem> newestFirst = Comparator.comparing(ProgramCaseDisplayItem::getLastUpdated,
@@ -89,6 +104,7 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         Collection<ServiceCategory> selected = selectedOrAll(categories);
         boolean histopathology = selected.contains(ServiceCategory.HISTOPATHOLOGY);
         boolean cytopathology = selected.contains(ServiceCategory.CYTOPATHOLOGY);
+        boolean hematopathology = selected.contains(ServiceCategory.HEMATOPATHOLOGY);
         boolean mineOnly = assignedToMe && StringUtils.isNotBlank(currentUserId);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -130,6 +146,19 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 complete += zeroWhenNull(cytologySampleService
                         .getCountWithStatusBetweenDates(Arrays.asList(CytologyStatus.COMPLETED), windowStart, now));
             }
+            if (hematopathology) {
+                unassigned += zeroWhenNull(hematopathologySampleService.getCountUnassigned());
+                received += zeroWhenNull(
+                        hematopathologySampleService.getCountWithStatus(Arrays.asList(HematopathologyStatus.RECEIVED)));
+                awaitingPayment += zeroWhenNull(hematopathologySampleService
+                        .getCountWithStatus(Arrays.asList(HematopathologyStatus.AWAITING_PAYMENT)));
+                inProgress += zeroWhenNull(
+                        hematopathologySampleService.getCountWithStatus(HEMATOPATHOLOGY_IN_PROGRESS));
+                awaitingReview += zeroWhenNull(hematopathologySampleService
+                        .getCountWithStatus(Arrays.asList(HematopathologyStatus.READY_FOR_HEMATOPATHOLOGIST)));
+                complete += zeroWhenNull(hematopathologySampleService.getCountWithStatusBetweenDates(
+                        Arrays.asList(HematopathologyStatus.COMPLETED), windowStart, now));
+            }
         } else {
             if (histopathology) {
                 unassigned += countAssignedPathology(pathologySampleService.searchUnassigned(null), currentUserId);
@@ -165,6 +194,24 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                         currentUserId);
                 complete += cytologySampleService.getWithStatus(Arrays.asList(CytologyStatus.COMPLETED)).stream()
                         .filter(sample -> isAssignedToUser(sample.getCytoPathologist(), sample.getTechnician(),
+                                currentUserId))
+                        .filter(sample -> inCompleteWindow(sample.getLastupdated(), windowStart, now)).count();
+            }
+            if (hematopathology) {
+                unassigned += countAssignedHematopathology(hematopathologySampleService.searchUnassigned(null),
+                        currentUserId);
+                received += countAssignedHematopathology(
+                        hematopathologySampleService.getWithStatus(Arrays.asList(HematopathologyStatus.RECEIVED)),
+                        currentUserId);
+                awaitingPayment += countAssignedHematopathology(hematopathologySampleService
+                        .getWithStatus(Arrays.asList(HematopathologyStatus.AWAITING_PAYMENT)), currentUserId);
+                inProgress += countAssignedHematopathology(
+                        hematopathologySampleService.getWithStatus(HEMATOPATHOLOGY_IN_PROGRESS), currentUserId);
+                awaitingReview += countAssignedHematopathology(hematopathologySampleService.getWithStatus(
+                        Arrays.asList(HematopathologyStatus.READY_FOR_HEMATOPATHOLOGIST)), currentUserId);
+                complete += hematopathologySampleService.getWithStatus(Arrays.asList(HematopathologyStatus.COMPLETED))
+                        .stream()
+                        .filter(sample -> isAssignedToUser(sample.getHematopathologist(), sample.getTechnician(),
                                 currentUserId))
                         .filter(sample -> inCompleteWindow(sample.getLastupdated(), windowStart, now)).count();
             }
@@ -230,6 +277,31 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
                 .collect(Collectors.toList());
     }
 
+    private List<ProgramCaseDisplayItem> searchHematopathology(ReceptionBucket bucket, String searchTerm,
+            boolean mineOnly, String currentUserId) {
+        List<HematopathologySample> samples;
+        if (bucket == ReceptionBucket.UNASSIGNED) {
+            samples = hematopathologySampleService.searchUnassigned(searchTerm);
+        } else {
+            List<HematopathologyStatus> statuses = hematopathologyStatusesFor(bucket);
+            if (statuses.isEmpty()) {
+                return List.of();
+            }
+            samples = hematopathologySampleService.searchWithStatusAndTerm(statuses, searchTerm);
+        }
+        if (mineOnly) {
+            samples = samples.stream().filter(
+                    sample -> isAssignedToUser(sample.getHematopathologist(), sample.getTechnician(), currentUserId))
+                    .collect(Collectors.toList());
+        }
+        if (bucket == ReceptionBucket.COMPLETED) {
+            samples = filterCompletedWindow(samples, HematopathologySample::getLastupdated);
+        }
+        return samples.stream()
+                .map(sample -> toRow(hematopathologyDisplayService.convertToDisplayItem(sample.getId()), sample))
+                .collect(Collectors.toList());
+    }
+
     private <T> List<T> filterCompletedWindow(List<T> samples,
             java.util.function.Function<T, Timestamp> lastUpdatedGetter) {
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -253,6 +325,15 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         }
         return samples.stream()
                 .filter(sample -> isAssignedToUser(sample.getCytoPathologist(), sample.getTechnician(), currentUserId))
+                .count();
+    }
+
+    private long countAssignedHematopathology(List<HematopathologySample> samples, String currentUserId) {
+        if (samples == null || samples.isEmpty()) {
+            return 0L;
+        }
+        return samples.stream().filter(
+                sample -> isAssignedToUser(sample.getHematopathologist(), sample.getTechnician(), currentUserId))
                 .count();
     }
 
@@ -316,6 +397,48 @@ public class ProgramReceptionServiceImpl implements ProgramReceptionService {
         default:
             return List.of();
         }
+    }
+
+    private List<HematopathologyStatus> hematopathologyStatusesFor(ReceptionBucket bucket) {
+        switch (bucket) {
+        case RECEIVED:
+            return Arrays.asList(HematopathologyStatus.RECEIVED);
+        case AWAITING_PAYMENT:
+            return Arrays.asList(HematopathologyStatus.AWAITING_PAYMENT);
+        case IN_PROGRESS:
+            return HEMATOPATHOLOGY_IN_PROGRESS;
+        case AWAITING_REVIEW:
+            return Arrays.asList(HematopathologyStatus.READY_FOR_HEMATOPATHOLOGIST);
+        case COMPLETED:
+            return Arrays.asList(HematopathologyStatus.COMPLETED);
+        case ALL:
+            return Arrays.asList(HematopathologyStatus.values());
+        default:
+            // ADDITIONAL_REQUEST is histopathology only
+            return List.of();
+        }
+    }
+
+    private ProgramCaseDisplayItem toRow(HematopathologyDisplayItem item, HematopathologySample sample) {
+        ProgramCaseDisplayItem row = newRow(ServiceCategory.HEMATOPATHOLOGY, item.getCaseId());
+        row.setRequestDate(item.getRequestDate());
+        if (item.getStatus() != null) {
+            row.setStatusCode(item.getStatus().name());
+            row.setStatus(item.getStatus().getDisplay());
+        }
+        if (item.getSubtype() != null) {
+            row.setSubtype(item.getSubtype().getDisplay());
+        }
+        row.setFirstName(item.getFirstName());
+        row.setLastName(item.getLastName());
+        row.setRequester(item.getRequester());
+        row.setAssignedTechnician(item.getAssignedTechnician());
+        row.setAssignedSpecialist(item.getAssignedHematopathologist());
+        row.setLabNumber(item.getLabNumber());
+        row.setPatientPK(item.getPatientPK());
+        row.setLastUpdated(resolveLastUpdated(sample == null ? null : sample.getSample(),
+                sample == null ? null : sample.getLastupdated()));
+        return row;
     }
 
     private ProgramCaseDisplayItem toRow(PathologyDisplayItem item, PathologySample pathologySample) {

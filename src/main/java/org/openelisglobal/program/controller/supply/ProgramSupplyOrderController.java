@@ -8,10 +8,13 @@ import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.common.rest.BaseRestController;
 import org.openelisglobal.program.service.PathologySampleService;
 import org.openelisglobal.program.service.cytology.CytologySampleService;
+import org.openelisglobal.program.service.hematopathology.HematopathologySampleService;
+import org.openelisglobal.program.service.hematopathology.HematopathologyWorkflow;
 import org.openelisglobal.program.service.supply.ProgramSupplyOrderException;
 import org.openelisglobal.program.service.supply.ProgramSupplyOrderService;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample.CytologyStatus;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample.PathologyStatus;
 import org.openelisglobal.sample.valueholder.Sample;
@@ -39,6 +42,8 @@ public class ProgramSupplyOrderController extends BaseRestController {
     private PathologySampleService pathologySampleService;
     @Autowired
     private CytologySampleService cytologySampleService;
+    @Autowired
+    private HematopathologySampleService hematopathologySampleService;
 
     @GetMapping(value = "/rest/pathology/supplyOrder/catalog", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> searchCatalog(@RequestParam(value = "q", required = false) String term) {
@@ -100,6 +105,30 @@ public class ProgramSupplyOrderController extends BaseRestController {
         });
     }
 
+    @GetMapping(value = "/rest/hematopathology/caseView/{id}/supplyRequests", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getHematopathologyRequests(@PathVariable("id") Integer id) {
+        return handle(() -> caseRequests(hematopathologyCase(id).getSample()));
+    }
+
+    @PostMapping(value = "/rest/hematopathology/caseView/{id}/supplyRequests", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createHematopathologyRequest(@PathVariable("id") Integer id,
+            @RequestBody ProgramSupplyRequestForm form, HttpServletRequest request) {
+        return handle(() -> {
+            HematopathologySample sample = hematopathologyCase(id);
+            return supplyOrderService.create(sample.getSample(), isClosed(sample), form, getSysUserId(request));
+        });
+    }
+
+    @PostMapping(value = "/rest/hematopathology/caseView/{id}/supplyRequests/{requestId}/retry", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> retryHematopathologyRequest(@PathVariable("id") Integer id,
+            @PathVariable("requestId") Integer requestId, HttpServletRequest request) {
+        return handle(() -> {
+            HematopathologySample sample = hematopathologyCase(id);
+            return supplyOrderService.retry(requestId, sample.getSample().getId(), isClosed(sample),
+                    getSysUserId(request));
+        });
+    }
+
     /**
      * {@code fromOpenMrs} is false for cases entered in OpenELIS: they have no
      * OpenMRS patient/order to order supplies against, so the page hides the
@@ -126,6 +155,18 @@ public class ProgramSupplyOrderController extends BaseRestController {
             throw new ProgramSupplyOrderException(ProgramSupplyOrderException.Code.NOT_FOUND, "Case not found");
         }
         return cytologySample;
+    }
+
+    private HematopathologySample hematopathologyCase(Integer id) {
+        HematopathologySample sample = hematopathologySampleService.get(id);
+        if (sample == null || sample.getSample() == null) {
+            throw new ProgramSupplyOrderException(ProgramSupplyOrderException.Code.NOT_FOUND, "Case not found");
+        }
+        return sample;
+    }
+
+    private static boolean isClosed(HematopathologySample sample) {
+        return HematopathologyWorkflow.isClosed(sample.getStatus());
     }
 
     private static boolean isClosed(PathologySample pathologySample) {
