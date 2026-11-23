@@ -1,5 +1,7 @@
 package org.openelisglobal.program.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -18,10 +20,12 @@ import org.openelisglobal.dataexchange.order.action.IOrderPersister;
 import org.openelisglobal.dataexchange.order.action.MessagePatient;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.program.service.cytology.CytologySampleService;
+import org.openelisglobal.program.service.hematopathology.HematopathologySampleService;
 import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.valueholder.ProgramSample;
 import org.openelisglobal.program.valueholder.ServiceCategory;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 import org.openelisglobal.provider.valueholder.Provider;
@@ -77,6 +81,12 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     private ProgramSampleService programSampleService;
     @Autowired
     private CytologySampleService cytologySampleService;
+
+    @Autowired
+    private HematopathologySampleService hematopathologySampleService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
     @Autowired
     private IStatusService statusService;
 
@@ -101,6 +111,13 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         // so skip if a sample for this order already exists. The standard
         // electronic-order import gets
         // this from DBOrderExistanceChecker; the program branch needs its own guard.
+        //
+        // The same Task can be polled concurrently (the webapp is deployed under two
+        // contexts, each with its own scheduler), so both runs could pass this check
+        // before either commits. A transaction-scoped Postgres advisory lock on the
+        // order id makes the second run wait for the first to commit; its check then
+        // sees the sample and skips.
+        lockImportOfOrder(externalOrderId);
         if (!sampleService.getSamplesByReferringId(externalOrderId).isEmpty()) {
             LogEvent.logWarn(this.getClass().getSimpleName(), "createProgramSampleFromImport",
                     "a sample for imported order " + externalOrderId + " already exists; skipping duplicate import");
@@ -236,8 +253,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
 
     /**
      * Package-private for unit testing. Maps the stable program code from
-     * {@code programs/*.json} (PATH / IHC / CYTO) to the matching program-sample
-     * entity.
+     * {@code programs/*.json} (PATH / IHC / CYTO / HEME) to the matching
+     * program-sample entity.
      */
     ProgramSample newProgramSampleForProgram(Program program) {
         return newProgramSampleForProgram(program, null, null);
@@ -248,7 +265,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
     }
 
     ProgramSample newProgramSampleForProgram(Program program, Test test, String programSubtypeText) {
-        // Use the stable program code from programs/*.json (PATH / IHC / CYTO), not the
+        // Use the stable program code from programs/*.json (PATH / IHC / CYTO / HEME),
+        // not the
         // display name — names can be renamed or localized and would silently fall
         // through.
         String code = program.getCode() == null ? "" : program.getCode().trim();
@@ -265,10 +283,27 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
             cytologySample.setStatus(CytologySample.CytologyStatus.RECEIVED);
             cytologySample.setSubtype(resolveCytologySubtype(test, programSubtypeText));
             return cytologySample;
+        case "HEME":
+            HematopathologySample hematopathologySample = new HematopathologySample();
+            hematopathologySample.setStatus(HematopathologySample.HematopathologyStatus.RECEIVED);
+            hematopathologySample.setSubtype(resolveHematopathologySubtype(test, programSubtypeText));
+            return hematopathologySample;
         default:
             throw new IllegalStateException("unsupported program code '" + code + "' for program "
                     + program.getProgramName() + "; cannot create program case");
         }
+    }
+
+    /** Holds until this transaction ends; no-op without an order id. */
+    private void lockImportOfOrder(String externalOrderId) {
+        if (GenericValidator.isBlankOrNull(externalOrderId)) {
+            return;
+        }
+        // pg_advisory_xact_lock returns void, which Hibernate cannot map; wrap it so
+        // the query yields a bigint.
+        entityManager
+                .createNativeQuery("select count(*) from (select pg_advisory_xact_lock(hashtext(:key))) advisory_lock")
+                .setParameter("key", "program-order-import:" + externalOrderId).getSingleResult();
     }
 
     /**
@@ -293,7 +328,6 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         case "97005-7":
             return PathologySample.PathologySubtype.FROZEN;
         case "11529-5":
-        case "22637-3": // legacy Morphology — Biopsy rail
             return PathologySample.PathologySubtype.BIOPSY;
         default:
             return null;
@@ -370,6 +404,55 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
         return resolveCytologySubtypeFromText(programSubtypeText);
     }
 
+    /**
+     * Prefer the ordered test's LOINC (one TestOrder per hematopathology test).
+     * Fall back to sample-type text from supportingInfo.
+     */
+    static HematopathologySample.HematopathologySubtype resolveHematopathologySubtype(Test test,
+            String programSubtypeText) {
+        HematopathologySample.HematopathologySubtype fromLoinc = resolveHematopathologySubtypeFromLoinc(
+                test == null ? null : test.getLoinc());
+        if (fromLoinc != null) {
+            return fromLoinc;
+        }
+        return resolveHematopathologySubtypeFromText(programSubtypeText);
+    }
+
+    /**
+     * Package-private for unit testing. LOINCs must match the OpenMRS content-repo
+     * hematopathology order concepts (97006-5 and 97007-3 are placeholders).
+     */
+    static HematopathologySample.HematopathologySubtype resolveHematopathologySubtypeFromLoinc(String loinc) {
+        if (GenericValidator.isBlankOrNull(loinc)) {
+            return null;
+        }
+        switch (loinc.trim()) {
+        case "22637-3":
+            return HematopathologySample.HematopathologySubtype.PERIPHERAL_MORPHOLOGY;
+        case "97006-5":
+            return HematopathologySample.HematopathologySubtype.BONE_MARROW_ASPIRATE;
+        case "97007-3":
+            return HematopathologySample.HematopathologySubtype.FLOW_CYTOMETRY;
+        default:
+            return null;
+        }
+    }
+
+    static HematopathologySample.HematopathologySubtype resolveHematopathologySubtypeFromText(
+            String programSubtypeText) {
+        if (GenericValidator.isBlankOrNull(programSubtypeText)) {
+            return HematopathologySample.HematopathologySubtype.PERIPHERAL_MORPHOLOGY;
+        }
+        String normalized = programSubtypeText.toLowerCase().trim();
+        if (normalized.contains("flow")) {
+            return HematopathologySample.HematopathologySubtype.FLOW_CYTOMETRY;
+        }
+        if (normalized.contains("marrow")) {
+            return HematopathologySample.HematopathologySubtype.BONE_MARROW_ASPIRATE;
+        }
+        return HematopathologySample.HematopathologySubtype.PERIPHERAL_MORPHOLOGY;
+    }
+
     private void saveProgramSample(ProgramSample programSample) {
         if (programSample instanceof PathologySample) {
             pathologySampleService.save((PathologySample) programSample);
@@ -377,6 +460,8 @@ public class ProgramSampleImportServiceImpl implements ProgramSampleImportServic
             immunohistochemistrySampleService.save((ImmunohistochemistrySample) programSample);
         } else if (programSample instanceof CytologySample) {
             cytologySampleService.save((CytologySample) programSample);
+        } else if (programSample instanceof HematopathologySample) {
+            hematopathologySampleService.save((HematopathologySample) programSample);
         } else {
             programSampleService.save(programSample);
         }

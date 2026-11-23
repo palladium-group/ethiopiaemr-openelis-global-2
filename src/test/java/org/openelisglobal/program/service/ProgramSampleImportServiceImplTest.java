@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.openelisglobal.program.valueholder.Program;
 import org.openelisglobal.program.valueholder.ProgramSample;
 import org.openelisglobal.program.valueholder.cytology.CytologySample;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample;
+import org.openelisglobal.program.valueholder.hematopathology.HematopathologySample.HematopathologySubtype;
 import org.openelisglobal.program.valueholder.immunohistochemistry.ImmunohistochemistrySample;
 import org.openelisglobal.program.valueholder.pathology.PathologySample;
 
@@ -80,5 +82,40 @@ public class ProgramSampleImportServiceImplTest {
                 ProgramSampleImportServiceImpl.resolveCytologySubtypeFromLoinc("33716-2"));
         assertEquals(CytologySample.CytologySubtype.PAP_SMEAR,
                 ProgramSampleImportServiceImpl.resolveCytologySubtypeFromLoinc("10524-7"));
+    }
+
+    @Test
+    public void newProgramSampleForProgram_createsHematopathologySampleForHemeCode() {
+        ProgramSample sample = service.newProgramSampleForProgram(programWithCode("HEME"), testWithLoinc("97007-3"),
+                null);
+        assertTrue(sample instanceof HematopathologySample);
+        HematopathologySample heme = (HematopathologySample) sample;
+        assertEquals(HematopathologySample.HematopathologyStatus.RECEIVED, heme.getStatus());
+        assertEquals(HematopathologySubtype.FLOW_CYTOMETRY, heme.getSubtype());
+    }
+
+    @Test
+    public void resolveHematopathologySubtype_byLoinc() {
+        assertEquals(HematopathologySubtype.PERIPHERAL_MORPHOLOGY,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtypeFromLoinc("22637-3"));
+        assertEquals(HematopathologySubtype.BONE_MARROW_ASPIRATE,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtypeFromLoinc("97006-5"));
+        assertEquals(HematopathologySubtype.FLOW_CYTOMETRY,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtypeFromLoinc("97007-3"));
+    }
+
+    @Test
+    public void resolveHematopathologySubtype_fallsBackToSampleTypeText() {
+        assertEquals(HematopathologySubtype.BONE_MARROW_ASPIRATE,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtype(null, "Bone marrow aspirate"));
+        assertEquals(HematopathologySubtype.FLOW_CYTOMETRY,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtype(null, "Flow cytometry"));
+        assertEquals(HematopathologySubtype.PERIPHERAL_MORPHOLOGY,
+                ProgramSampleImportServiceImpl.resolveHematopathologySubtype(null, null));
+    }
+
+    @Test
+    public void legacyMorphologyLoinc_noLongerRoutesToHistopathologyBiopsy() {
+        assertEquals(null, ProgramSampleImportServiceImpl.resolvePathologySubtypeFromLoinc("22637-3"));
     }
 }
