@@ -74,6 +74,8 @@ public class ProgramAccessionNumberServiceTest extends BaseWebContextSensitiveTe
                 accessionNumberService.nextAccessionNumber(ServiceCategory.HISTOPATHOLOGY));
         assertEquals(SITE + "CYTO" + year + "000000001",
                 accessionNumberService.nextAccessionNumber(ServiceCategory.CYTOPATHOLOGY));
+        assertEquals(SITE + "HEME" + year + "000000001",
+                accessionNumberService.nextAccessionNumber(ServiceCategory.HEMATOPATHOLOGY));
         assertEquals(SITE + year + "0000000000001", accessionNumberService.nextAccessionNumber(null));
 
         assertEquals(Long.valueOf(2), jdbcTemplate.queryForObject(

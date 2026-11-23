@@ -1,0 +1,79 @@
+{
+  "program": {
+    "code": "HEME",
+    "programName": "Hematopathology",
+    "questionnaireUUID": "5b8e4c21-7d3a-4f6e-9c12-8a0b1c2d3e4f"
+  },
+  "testSectionName": "Hematopathology",
+  "additionalOrderEntryQuestions": {
+    "resourceType": "Questionnaire",
+    "id": "5b8e4c21-7d3a-4f6e-9c12-8a0b1c2d3e4f",
+    "name": "Hematopathology Reception",
+    "status": "active",
+    "subjectType": [
+      "Patient",
+      "Specimen",
+      "ServiceRequest"
+    ],
+    "description": "Extra information for the Hematopathology workflow (Peripheral morphology, Bone marrow aspirate, Flow cytometry)",
+    "item": [
+      {
+        "linkId": "e69892a0-fc50-5a6b-91d7-b613d1680438",
+        "text": "Sample type",
+        "type": "choice",
+        "answerOption": [
+          {
+            "valueString": "Peripheral morphology"
+          },
+          {
+            "valueString": "Bone marrow aspirate"
+          },
+          {
+            "valueString": "Flow cytometry"
+          }
+        ]
+      },
+      {
+        "linkId": "32e4e1ba-297f-562c-9e14-c39335bfbd91",
+        "text": "Clinical history",
+        "type": "text"
+      },
+      {
+        "linkId": "1af1084d-9ddd-50d3-93ff-5b8d985205a4",
+        "text": "Recent CBC summary",
+        "type": "text"
+      },
+      {
+        "linkId": "c492b621-d972-5a53-9dfd-f969cfc16341",
+        "text": "Provisional diagnosis",
+        "type": "text"
+      },
+      {
+        "linkId": "802bd3ff-8f4a-529a-bb67-830f344a37ea",
+        "text": "Referring department",
+        "type": "string"
+      },
+      {
+        "linkId": "10f9dbc3-63f1-5b8d-975f-ded691f03447",
+        "text": "Clinical suspicion / panel requested",
+        "type": "text"
+      },
+      {
+        "linkId": "c604e54b-1ff7-50c6-90f4-a6b86b46d97d",
+        "text": "Specimen source",
+        "type": "choice",
+        "answerOption": [
+          {
+            "valueString": "Peripheral blood"
+          },
+          {
+            "valueString": "Bone marrow"
+          },
+          {
+            "valueString": "Fluid"
+          }
+        ]
+      }
+    ]
+  }
+}

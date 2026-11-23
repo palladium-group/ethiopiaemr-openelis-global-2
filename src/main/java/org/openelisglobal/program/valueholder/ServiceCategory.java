@@ -7,7 +7,8 @@ package org.openelisglobal.program.valueholder;
  */
 public enum ServiceCategory {
 
-    HISTOPATHOLOGY("PATH", "Histopathology"), CYTOPATHOLOGY("CYTO", "Cytopathology");
+    HISTOPATHOLOGY("PATH", "Histopathology"), CYTOPATHOLOGY("CYTO", "Cytopathology"),
+    HEMATOPATHOLOGY("HEME", "Hematopathology");
 
     private final String code;
     private final String display;
@@ -26,8 +27,9 @@ public enum ServiceCategory {
     }
 
     /**
-     * @return the category whose code equals the program code (PATH, CYTO), or null
-     *         for programs that are not a pathology service category (e.g. IHC)
+     * @return the category whose code equals the program code (PATH, CYTO, HEME),
+     *         or null for programs that are not a pathology service category (e.g.
+     *         IHC)
      */
     public static ServiceCategory fromProgramCode(String programCode) {
         if (programCode == null) {
