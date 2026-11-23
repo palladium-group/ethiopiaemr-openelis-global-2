@@ -1477,6 +1477,28 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             ArrayList<Sample> sampleUpdateList, ArrayList<Note> noteUpdateList, String microscopicFinding,
             String conclusionText, List<String> conclusionDictionaryIds, String grossFinding)
             throws FhirLocalPersistingException {
+        persistResultFhirObjects(deletableList, analysisUpdateList, resultUpdateList, sampleUpdateList,
+                microscopicFinding, conclusionText, conclusionDictionaryIds, grossFinding, null);
+    }
+
+    @Async
+    @Override
+    @Transactional(readOnly = true)
+    public void transformPersistProgramResultFhirObjects(List<Analysis> analysisUpdateList,
+            ArrayList<Result> resultUpdateList, ArrayList<Sample> sampleUpdateList,
+            List<ResultFormObservation> resultFormObservations) throws FhirLocalPersistingException {
+        persistResultFhirObjects(new ArrayList<>(), analysisUpdateList, resultUpdateList, sampleUpdateList, null, null,
+                null, null, resultFormObservations == null ? new ArrayList<>() : resultFormObservations);
+    }
+
+    /**
+     * {@code resultFormObservations} non-null → attach exactly those fields to each
+     * finalized DiagnosticReport; null → pathology / cytology Result Form fields.
+     */
+    private void persistResultFhirObjects(List<Result> deletableList, List<Analysis> analysisUpdateList,
+            ArrayList<Result> resultUpdateList, ArrayList<Sample> sampleUpdateList, String microscopicFinding,
+            String conclusionText, List<String> conclusionDictionaryIds, String grossFinding,
+            List<ResultFormObservation> resultFormObservations) throws FhirLocalPersistingException {
         LogEvent.logTrace(this.getClass().getSimpleName(), "transformPersistResultValidationFhirObjects",
                 "transformPersistResultValidationFhirObjects called");
 
@@ -1499,7 +1521,10 @@ public class FhirTransformServiceImpl implements FhirTransformService {
             this.addToOperations(fhirOperations, tempIdGenerator, serviceRequest);
             if (statusService.matches(analysis.getStatusId(), AnalysisStatus.Finalized)) {
                 DiagnosticReport diagnosticReport = this.transformResultToDiagnosticReport(analysis.getId());
-                if (isCytologyAnalysis(analysis)) {
+                if (resultFormObservations != null) {
+                    attachResultFormObservations(diagnosticReport, analysis, resultFormObservations, fhirOperations,
+                            tempIdGenerator);
+                } else if (isCytologyAnalysis(analysis)) {
                     attachCytologyResultFormObservations(diagnosticReport, analysis, microscopicFinding, conclusionText,
                             conclusionDictionaryIds, fhirOperations, tempIdGenerator);
                 } else {
@@ -1628,6 +1653,20 @@ public class FhirTransformServiceImpl implements FhirTransformService {
         diagnosticReport.setCode(transformTestToCodeableConcept(test.getId()));
 
         return diagnosticReport;
+    }
+
+    private void attachResultFormObservations(DiagnosticReport diagnosticReport, Analysis analysis,
+            List<ResultFormObservation> resultFormObservations, FhirOperations fhirOperations,
+            TempIdGenerator tempIdGenerator) {
+        if (diagnosticReport == null || analysis == null || resultFormObservations.isEmpty()) {
+            return;
+        }
+        SampleItem sampleItem = analysis.getSampleItem();
+        Patient patient = sampleHumanService.getPatientForSample(sampleItem.getSample());
+        for (ResultFormObservation field : resultFormObservations) {
+            addPathologyResultFormObservation(diagnosticReport, analysis, sampleItem, patient, field.conceptUuid(),
+                    field.display(), field.value(), fhirOperations, tempIdGenerator);
+        }
     }
 
     private boolean isCytologyAnalysis(Analysis analysis) {

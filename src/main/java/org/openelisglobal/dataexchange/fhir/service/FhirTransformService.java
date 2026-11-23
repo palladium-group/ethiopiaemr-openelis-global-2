@@ -66,6 +66,24 @@ public interface FhirTransformService {
             ArrayList<Note> noteUpdateList, String microscopicFinding, String conclusionText,
             List<String> conclusionDictionaryIds, String grossFinding) throws FhirLocalPersistingException;
 
+    /**
+     * One OpenMRS Result Form field, sent as an Observation (coded by OpenMRS
+     * concept UUID) on the finalized DiagnosticReport.
+     */
+    record ResultFormObservation(String conceptUuid, String display, String value) {
+    }
+
+    /**
+     * Result push for program cases whose result form is a plain list of fields
+     * (e.g. hematopathology): same Task / ServiceRequest / DiagnosticReport
+     * handling as {@link #transformPersistResultValidationFhirObjects}, with the
+     * given Result Form Observations attached to each finalized DiagnosticReport.
+     * Blank values are skipped.
+     */
+    void transformPersistProgramResultFhirObjects(List<Analysis> analysisUpdateList, ArrayList<Result> resultUpdateList,
+            ArrayList<Sample> sampleUpdateList, List<ResultFormObservation> resultFormObservations)
+            throws FhirLocalPersistingException;
+
     org.hl7.fhir.r4.model.Patient transformToFhirPatient(String patientId) throws FhirTransformationException;
 
     Future<Bundle> transformPersistObjectsUnderSamples(List<String> sampleIds) throws FhirLocalPersistingException;
